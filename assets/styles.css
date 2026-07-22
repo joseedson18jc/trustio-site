@@ -1495,6 +1495,204 @@ html { scrollbar-color: #1c2739 var(--abyss); }
 ::-webkit-scrollbar-thumb { background: #1c2739; border: 2px solid var(--abyss); border-radius: 8px; }
 ::-webkit-scrollbar-thumb:hover { background: #2a3a55; }
 
+/* ---------- Footer certification badge (all pages) ---------- */
+.iso-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iso-badge img {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  filter: brightness(0) invert(0.72);
+  opacity: 0.55;
+  transition: filter 300ms ease, opacity 300ms ease;
+}
+
+.iso-badge:hover img {
+  filter: brightness(0) invert(0.95);
+  opacity: 1;
+}
+
+.iso-badge-text {
+  display: grid;
+  gap: 3px;
+  font-family: var(--mono);
+}
+
+.iso-badge-text > span {
+  color: #9aa5b8;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.iso-badge-text a {
+  color: #66738a;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  transition: color 180ms ease;
+}
+
+.iso-badge-text a:hover { color: white; }
+
+/* 404 bottom row */
+.error-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* ---------- Founder page ---------- */
+.founder-hero {
+  display: flex;
+  min-height: 100svh;
+  align-items: center;
+  padding-top: 140px;
+  padding-bottom: 68px;
+  overflow: hidden;
+}
+
+.founder-hero-inner {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.founder-hero .eyebrow { justify-content: center; }
+
+.founder-hero h1 {
+  margin: 30px 0 18px;
+  background: linear-gradient(108deg, #f4f6fa 25%, #b9d8ff 62%, var(--blue-signal) 108%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-size: clamp(58px, 9.5vw, 128px);
+  letter-spacing: -0.065em;
+  line-height: 0.92;
+  text-shadow: 0 0 90px rgba(37, 99, 235, 0.12);
+}
+
+.founder-role {
+  margin: 0;
+  color: var(--blue-signal);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.founder-hero .hero-actions { justify-content: center; }
+
+/* Metric cards */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.metric-card {
+  position: relative;
+  min-height: 250px;
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, rgba(17, 22, 31, 0.8), rgba(8, 10, 15, 0.7));
+  transition: transform 400ms var(--ease), border-color 300ms ease;
+}
+
+.metric-card:hover {
+  border-color: rgba(94, 167, 255, 0.28);
+  transform: translateY(-4px);
+}
+
+.metric-value {
+  display: block;
+  background: linear-gradient(105deg, #f4f6fa 20%, #b9d8ff 60%, var(--blue-signal) 110%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-family: var(--display);
+  font-size: clamp(44px, 4.6vw, 62px);
+  font-weight: 780;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.metric-label {
+  margin: 18px 0 12px;
+  color: var(--blue-signal);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.metric-card > p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Founder quote */
+.founder-quote {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: rgba(10, 29, 61, 0.08);
+}
+
+.founder-quote blockquote {
+  max-width: 980px;
+  margin: 0 auto;
+  color: #dce8fa;
+  font-family: var(--serif);
+  font-size: clamp(30px, 4vw, 52px);
+  font-style: italic;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* Areas grid */
+.founder-areas-grid {
+  display: grid;
+  grid-template-columns: 0.36fr 1fr;
+  gap: 70px;
+  align-items: start;
+}
+
+.founder-areas-intro h2 { margin: 17px 0 24px; font-size: clamp(38px, 4.6vw, 58px); }
+.founder-areas-intro > p:not(.section-kicker) { margin: 0; color: var(--muted); font-size: 16px; }
+
+/* Certifications */
+.founder-certs { border-top: 1px solid var(--line); }
+.founder-certs .section-heading { margin-bottom: clamp(40px, 5vw, 60px); }
+.cert-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+.cert-tags span { font-size: 9px; }
+
+/* Founder contact CTA */
+.founder-page .contact-card h2 { font-size: clamp(40px, 5.5vw, 68px); }
+.founder-page .contact-card-inner > p:not(.section-kicker) {
+  max-width: 640px;
+  margin-bottom: 34px;
+  color: rgba(239, 246, 255, 0.76);
+  font-size: 18px;
+}
+
+@media (max-width: 900px) {
+  .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  .founder-areas-grid { grid-template-columns: 1fr; gap: 44px; }
+}
+
+@media (max-width: 560px) {
+  .metric-grid { grid-template-columns: 1fr; }
+  .founder-hero h1 { font-size: clamp(44px, 13vw, 64px); }
+  .error-footer { align-items: flex-start; flex-direction: column; gap: 14px; }
+}
+
 /* Responsive */
 @media (max-width: 1060px) {
   .desktop-nav { display: none; }

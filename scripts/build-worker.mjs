@@ -34,6 +34,7 @@ async function walk(directory) {
 const sourceFiles = [
   "index.html",
   "manifesto.html",
+  "fundador.html",
   "404.html",
   "robots.txt",
   "sitemap.xml",

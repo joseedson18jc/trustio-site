@@ -1,0 +1,14 @@
+{
+  "name": "trustio-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-worker.mjs",
+    "build:static": "vite build",
+    "validate": "node scripts/validate-artifact.mjs"
+  },
+  "devDependencies": {
+    "vite": "7.0.6"
+  }
+}

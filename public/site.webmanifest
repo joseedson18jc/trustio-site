@@ -1,0 +1,16 @@
+{
+  "name": "Trustio",
+  "short_name": "Trustio",
+  "description": "Infraestrutura privada de inteligência artificial para empresas.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05070b",
+  "theme_color": "#05070b",
+  "icons": [
+    {
+      "src": "/assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#05070B"/><stop offset="1" stop-color="#08152D"/></linearGradient>
+    <linearGradient id="lid" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5EA7FF"/><stop offset="1" stop-color="#2563EB"/></linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2E6BF0"/><stop offset="1" stop-color="#0F2C6B"/></linearGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="2" fill="#344052"/></pattern>
+    <radialGradient id="glow"><stop stop-color="#2563EB" stop-opacity=".28"/><stop offset="1" stop-color="#2563EB" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="900" cy="260" r="400" fill="url(#glow)"/>
+  <rect x="52" y="52" width="1096" height="526" rx="34" fill="#0B0E14" stroke="#293244" stroke-width="2"/>
+  <rect x="88" y="92" width="380" height="170" fill="url(#dots)" opacity=".82"/>
+  <rect x="768" y="368" width="336" height="150" fill="url(#dots)" opacity=".82"/>
+  <circle cx="1062" cy="480" r="7" fill="#5EA7FF"/>
+  <circle cx="1062" cy="480" r="20" fill="#5EA7FF" opacity=".12"/>
+  <g transform="translate(100 420) scale(.72)">
+    <path fill="url(#lid)" d="M8 30v-2Q8 8 28 8h40q20 0 20 20v2Z"/>
+    <path fill="url(#body)" d="M8 42h34v19q0 7 6 7t6-7V42h34v26q0 20-20 20H28Q8 88 8 68Z"/>
+  </g>
+  <text x="180" y="482" fill="#F4F6FA" font-family="Arial, sans-serif" font-size="68" font-weight="800" letter-spacing="-4">Trust<tspan fill="#5EA7FF">io</tspan></text>
+  <text x="100" y="330" fill="#F4F6FA" font-family="Arial, sans-serif" font-size="50" font-weight="700">Infraestrutura privada de IA</text>
+  <text x="100" y="374" fill="#9AA7B9" font-family="Arial, sans-serif" font-size="23">Controle, segurança e liberdade tecnológica.</text>
+</svg>

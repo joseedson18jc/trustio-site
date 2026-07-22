@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">Símbolo Trustio</title>
+  <desc id="desc">Portal T em gradiente azul</desc>
+  <defs>
+    <linearGradient id="lid" gradientUnits="userSpaceOnUse" x1="8" y1="8" x2="88" y2="40">
+      <stop offset="0" stop-color="#5EA7FF"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="body" gradientUnits="userSpaceOnUse" x1="8" y1="42" x2="88" y2="88">
+      <stop offset="0" stop-color="#2E6BF0"/>
+      <stop offset="1" stop-color="#0F2C6B"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#lid)" d="M8 30v-2Q8 8 28 8h40q20 0 20 20v2Z"/>
+  <path fill="url(#body)" d="M8 42h34v19q0 7 6 7t6-7V42h34v26q0 20-20 20H28Q8 88 8 68Z"/>
+</svg>

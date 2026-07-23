@@ -1503,8 +1503,8 @@ html { scrollbar-color: #1c2739 var(--abyss); }
 }
 
 .iso-badge img {
-  width: 30px;
   height: 30px;
+  width: auto;
   flex: 0 0 auto;
   filter: brightness(0) invert(0.72);
   opacity: 0.55;

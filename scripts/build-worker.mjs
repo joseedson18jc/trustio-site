@@ -33,6 +33,7 @@ async function walk(directory) {
 
 const sourceFiles = [
   "index.html",
+  "modelos.html",
   "manifesto.html",
   "fundador.html",
   "404.html",

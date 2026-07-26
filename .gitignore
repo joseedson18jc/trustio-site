@@ -1,5 +1,8 @@
 upload/
 validation/
+dist/
+node_modules/
 Trustio-Preview.mp4
 Trustio-Site-Final.zip
+*.bak-*
 .DS_Store

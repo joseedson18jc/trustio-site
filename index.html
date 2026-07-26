@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#05070a">
+  <meta name="theme-color" content="#05070b">
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -31,6 +31,47 @@
   <link rel="preload" href="assets/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/styles.css">
   <script type="module" src="assets/app.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://trustio.com.br/#organization",
+        "name": "Trustio",
+        "url": "https://trustio.com.br/",
+        "logo": "https://trustio.com.br/assets/trustio-mark.svg",
+        "image": "https://trustio.com.br/assets/social-card.png",
+        "description": "Infraestrutura privada de inteligência artificial para empresas, construída e hospedada no Brasil.",
+        "email": "contato@trustio.com.br",
+        "areaServed": "BR",
+        "founder": {
+          "@type": "Person",
+          "name": "José Edson da Costa",
+          "jobTitle": "Fundador",
+          "url": "https://trustio.com.br/fundador.html",
+          "sameAs": ["https://www.linkedin.com/in/edsondacostajc/"]
+        },
+        "knowsAbout": [
+          "Infraestrutura privada de IA",
+          "Modelos de linguagem",
+          "RAG e busca corporativa",
+          "Agentes corporativos",
+          "LGPD",
+          "Segurança da informação"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://trustio.com.br/#website",
+        "url": "https://trustio.com.br/",
+        "name": "Trustio",
+        "inLanguage": "pt-BR",
+        "publisher": { "@id": "https://trustio.com.br/#organization" }
+      }
+    ]
+  }
+  </script>
 </head>
 <body class="home-page">
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -45,6 +86,7 @@
 
       <nav class="desktop-nav" aria-label="Navegação principal">
         <a href="#plataforma">Plataforma</a>
+        <a href="modelos.html">Modelos Poderosos</a>
         <a href="#seguranca">Segurança</a>
         <a href="#implantacao">Implantação</a>
         <a href="manifesto.html">Manifesto</a>
@@ -59,6 +101,7 @@
 
     <nav class="mobile-nav" id="mobile-menu" aria-label="Navegação para dispositivos móveis" hidden>
       <a href="#plataforma">Plataforma</a>
+      <a href="modelos.html">Modelos Poderosos</a>
       <a href="#seguranca">Segurança</a>
       <a href="#implantacao">Implantação</a>
       <a href="manifesto.html">Manifesto</a>
@@ -176,10 +219,52 @@
           <p>Crie experiências de voz e automação de atendimento integradas à operação e aos controles corporativos.</p>
         </article>
       </div>
+
+      <div class="container api-band" id="api">
+        <div class="api-copy reveal">
+          <p class="section-kicker">Compatibilidade</p>
+          <h3>A API que seus times já conhecem.</h3>
+          <p>Endpoints compatíveis com o padrão OpenAI: o código, os SDKs e as ferramentas que sua equipe já usa continuam funcionando. Migrar é trocar a URL.</p>
+          <ul class="api-points">
+            <li><strong>Sem lock-in de código.</strong> Bibliotecas oficiais e frameworks como LangChain funcionam sem adaptação.</li>
+            <li><strong>Modelos sob seu controle.</strong> Abertos ou dedicados, versionados por você — sem mudanças silenciosas.</li>
+            <li><strong>Observabilidade nativa.</strong> Logs, métricas de uso e custos por equipe desde a primeira chamada.</li>
+          </ul>
+        </div>
+        <div class="api-terminal reveal reveal-delay-1" role="img" aria-label="Exemplo de chamada à API compatível com o padrão OpenAI">
+          <div class="api-terminal-bar" aria-hidden="true"><i></i><i></i><i></i><span>terminal — exemplo</span></div>
+          <pre><code><span class="tk-dim"># mesma interface, seu perímetro</span>
+<span class="tk-cmd">curl</span> <span class="tk-str">https://ia.suaempresa.com.br/v1/chat/completions</span> \
+  <span class="tk-flag">-H</span> <span class="tk-str">"Authorization: Bearer $TRUSTIO_KEY"</span> \
+  <span class="tk-flag">-d</span> <span class="tk-str">'{
+    "model": "trustio-pro",
+    "messages": [
+      {"role": "user",
+       "content": "Resuma o contrato 4402."}
+    ]
+  }'</span></code></pre>
+        </div>
+      </div>
     </section>
 
-    <section class="brazil-banner" aria-label="A Trustio e membro oficial da Brazils AI Global Role 2030">
-      <img src="assets/brazil-banner.jpg" alt="A Trustio e membro oficial da Brazils AI Global Role 2030. Patrocinio: Claude (Anthropic).">
+    <section class="brazil-banner">
+      <img src="assets/brazil-banner.jpg" width="2400" height="1350" loading="lazy" decoding="async" alt="A Trustio é membro oficial da Brazil's AI Global Role 2030. Patrocínio: Claude (Anthropic).">
+    </section>
+
+    <section class="hardware-band" aria-label="Painel de servidor Trustio">
+      <div class="container">
+        <div class="server-panel reveal" id="server-panel">
+          <div class="server-inner">
+            <div class="server-grid" data-server-grid="left" aria-hidden="true"></div>
+            <div class="server-center">
+              <span class="server-sensor" aria-hidden="true"></span>
+              <div class="server-wordmark">Trust<span>io</span></div>
+              <span class="server-tag">nó ativo · perímetro seguro</span>
+            </div>
+            <div class="server-grid" data-server-grid="right" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="security section-shell" id="seguranca" aria-labelledby="security-title">
@@ -306,16 +391,16 @@
         <p>Infraestrutura privada de inteligência artificial para empresas.</p>
       </div>
       <div class="footer-links">
-        <div><span>EXPLORAR</span><a href="#plataforma">Plataforma</a><a href="#seguranca">Segurança</a><a href="#implantacao">Implantação</a></div>
+        <div><span>EXPLORAR</span><a href="#plataforma">Plataforma</a><a href="modelos.html">Modelos Poderosos</a><a href="#seguranca">Segurança</a><a href="#implantacao">Implantação</a></div>
         <div><span>INSTITUCIONAL</span><a href="manifesto.html">Manifesto</a><a href="fundador.html">Fundador</a><a href="mailto:contato@trustio.com.br">Contato</a></div>
       </div>
     </div>
     <div class="container footer-bottom">
       <p>© <span data-year>2026</span> Trustio. Todos os direitos reservados.</p>
       <div class="iso-badge">
-        <img src="assets/iso-27001.png" alt="Certificação ISO 27001" height="44">
-        <img src="assets/anpd.png" alt="ANPD — Autoridade Nacional de Proteção de Dados" height="44">
-        <img src="assets/lgpd.png" alt="LGPD — Lei Geral de Proteção de Dados" height="44">
+        <img src="assets/iso-27001.png" alt="Certificação ISO 27001" width="120" height="120">
+        <img src="assets/anpd.png" alt="ANPD — Autoridade Nacional de Proteção de Dados" width="249" height="140">
+        <img src="assets/lgpd.png" alt="LGPD — Lei Geral de Proteção de Dados" width="240" height="120">
         <div class="iso-badge-text">
           <span>ISO 27001 · LGPD · ANPD</span>
           <a href="https://github.com/joseedson18jc/trustio-site/blob/main/SECURITY.md" target="_blank" rel="noopener">Acompanhamento de segurança</a>

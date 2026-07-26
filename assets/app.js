@@ -233,3 +233,34 @@ document.querySelectorAll("#network-canvas").forEach((canvas) => {
 });
 
 reducedMotion.addEventListener?.("change", () => window.location.reload());
+
+const serverPanel = document.getElementById("server-panel");
+if (serverPanel) {
+  const rows = 10;
+  const cols = 14;
+  const unitDelay = 0.1;
+  const source = { x: 24, y: 4.5 };
+  serverPanel.querySelectorAll("[data-server-grid]").forEach((grid) => {
+    const side = grid.dataset.serverGrid;
+    const fragment = document.createDocumentFragment();
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
+        const unifiedX = side === "left" ? col : cols + col;
+        const distance = Math.hypot(unifiedX - source.x, row - source.y);
+        const led = document.createElement("span");
+        led.className = "server-led";
+        led.style.animationDelay = `${(distance * unitDelay).toFixed(2)}s`;
+        fragment.appendChild(led);
+      }
+    }
+    grid.appendChild(fragment);
+  });
+
+  if ("IntersectionObserver" in window && !reducedMotion.matches) {
+    new IntersectionObserver((entries) => {
+      entries.forEach((entry) => serverPanel.classList.toggle("is-live", entry.isIntersecting));
+    }, { threshold: 0.15 }).observe(serverPanel);
+  } else if (!reducedMotion.matches) {
+    serverPanel.classList.add("is-live");
+  }
+}

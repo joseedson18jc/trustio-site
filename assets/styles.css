@@ -1971,10 +1971,13 @@ html { scrollbar-color: #1c2739 var(--abyss); }
   border-radius: 13px;
   background: rgba(255, 255, 255, 0.03);
 }
-.model-logo svg { width: 27px; height: 27px; }
+.model-logo svg { width: 23px; height: 23px; }
+/* Marcas de terceiros: usadas apenas para identificar os modelos (uso nominativo).
+   OpenAI e Moonshot AI são monocromáticas — em fundo escuro aplica-se a inversão
+   branca padrão, não uma recoloração. Anthropic mantém sua cor de marca. */
 .model-logo-openai { color: #ffffff; }
 .model-logo-anthropic { color: #d97757; }
-.model-logo-moonshot { color: #9ec3ff; }
+.model-logo-moonshot { color: #e8eef7; }
 
 .model-vendor {
   margin: 0;

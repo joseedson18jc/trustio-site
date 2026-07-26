@@ -1216,7 +1216,7 @@ p {
 .footer-links span { margin-bottom: 10px; color: #8d98aa; font-family: var(--mono); font-size: 9px; letter-spacing: .13em; }
 .footer-links a { color: var(--muted-strong); font-size: 14px; transition: color 180ms ease; }
 .footer-links a:hover { color: white; }
-.footer-bottom { display: flex; min-height: 74px; align-items: center; justify-content: space-between; gap: 30px; border-top: 1px solid var(--line); color: #8d98aa; font-family: var(--mono); font-size: 9px; letter-spacing: .06em; }
+.footer-bottom { display: flex; flex-wrap: wrap; min-height: 74px; align-items: center; justify-content: space-between; gap: 14px 30px; padding-top: 14px; padding-bottom: 14px; border-top: 1px solid var(--line); color: #8d98aa; font-family: var(--mono); font-size: 9px; letter-spacing: .06em; }
 .footer-bottom p { display: flex; align-items: center; gap: 10px; margin: 0; }
 .brazil-dot { width: 7px; height: 7px; border: 1px solid #f2c94c; border-radius: 50%; box-shadow: inset 0 0 0 2px #1f8b4c; }
 .compact-footer { padding-top: 0; }

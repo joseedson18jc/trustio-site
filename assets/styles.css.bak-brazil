@@ -1503,7 +1503,7 @@ html { scrollbar-color: #1c2739 var(--abyss); }
 }
 
 .iso-badge img {
-  height: 44px;
+  height: 30px;
   width: auto;
   flex: 0 0 auto;
   filter: brightness(0) invert(0.72);
@@ -1867,7 +1867,3 @@ html { scrollbar-color: #1c2739 var(--abyss); }
 .error-content > p:not(.eyebrow) { margin-bottom: 36px; color: var(--muted); font-size: 19px; }
 .error-code { margin: 0; color: #536075; font-family: var(--mono); font-size: 9px; letter-spacing: .14em; }
 .error-dots { position: absolute; right: 4%; bottom: 8%; width: 35%; height: 35%; background-image: radial-gradient(circle, rgba(94,167,255,.22) 1.5px, transparent 2px); background-size: 26px 26px; mask-image: radial-gradient(circle, black, transparent 72%); }
-
-/* === Brazil banner (added) — full-bleed, shows the complete image (no crop) === */
-.brazil-banner{width:100%;overflow:hidden;background:#0b1a34;line-height:0;}
-.brazil-banner img{display:block;width:100%;height:auto;}

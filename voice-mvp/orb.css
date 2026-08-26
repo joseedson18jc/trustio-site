@@ -1,0 +1,44 @@
+.voice-orb {
+  --voice-level: 0;
+  position: relative;
+  isolation: isolate;
+  width: clamp(220px, 33vw, 304px);
+  aspect-ratio: 1;
+  margin: clamp(30px, 5vw, 56px) auto 28px;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+  transform: translateZ(0);
+}
+
+.orb-canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 148%;
+  height: 148%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: transparent;
+}
+
+@media (max-width: 640px) {
+  .voice-orb {
+    width: clamp(210px, 64vw, 264px);
+    margin-top: 34px;
+  }
+
+  .orb-canvas {
+    width: 154%;
+    height: 154%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voice-orb,
+  .orb-canvas {
+    transition: none !important;
+  }
+}

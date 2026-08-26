@@ -29,7 +29,7 @@ Use o domínio:
 voice.trustio.com.br
 ```
 
-O `vercel.json` fixa as Functions em São Paulo (`gru1`). Isso reduz o tempo de criação do ephemeral token para usuários no Brasil. O áudio em tempo real segue diretamente do navegador para a xAI.
+O áudio em tempo real segue diretamente do navegador para a xAI, então a região da Function não entra no hot path de voz. Se o plano Vercel usado suportar escolha regional e os testes mostrarem ganho no endpoint de criação do token, `gru1` pode ser habilitada depois. O prefetch do token já esconde quase todo esse custo antes de o usuário iniciar a conversa.
 
 ## Environment Variables
 

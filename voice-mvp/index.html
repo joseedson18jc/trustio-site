@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+  <meta name="theme-color" content="#05070b">
+  <title>Crédito Jus × Trustio | Voice AI Demo</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section id="login-view" class="gate card" aria-labelledby="login-title">
+      <div class="brand-lockup">
+        <span>CRÉDITO JUS</span>
+        <span class="brand-separator">×</span>
+        <strong>TRUSTIO</strong>
+      </div>
+      <p class="eyebrow">Private Voice AI Experience</p>
+      <h1 id="login-title">Demonstração comercial privada</h1>
+      <p class="lede">Acesse o agente de vendas treinado para simular conversas B2C e B2B em tempo real.</p>
+
+      <form id="login-form" class="login-form">
+        <label for="access-code">Código de acesso</label>
+        <div class="input-row">
+          <input id="access-code" name="code" type="password" autocomplete="one-time-code" required>
+          <button type="submit" class="primary-button">Entrar</button>
+        </div>
+        <p id="login-error" class="error-text" role="alert" hidden></p>
+      </form>
+
+      <div class="privacy-note">
+        <span class="status-dot"></span>
+        Ambiente privado. Não utilize CPF, dados bancários ou informações pessoais reais.
+      </div>
+    </section>
+
+    <section id="demo-view" class="demo" hidden aria-labelledby="demo-title">
+      <header class="demo-header">
+        <div>
+          <div class="brand-lockup compact">
+            <span>CRÉDITO JUS</span>
+            <span class="brand-separator">×</span>
+            <strong>TRUSTIO</strong>
+          </div>
+          <p class="eyebrow">Voice Sales Agent</p>
+        </div>
+        <div class="header-actions">
+          <span id="timer" class="timer">10:00</span>
+          <button id="logout-button" class="ghost-button" type="button">Sair</button>
+        </div>
+      </header>
+
+      <div class="voice-stage card">
+        <div class="stage-copy">
+          <p class="eyebrow">Demonstração em tempo real</p>
+          <h1 id="demo-title">Converse com o agente comercial</h1>
+          <p>Escolha um cenário ou fale livremente. A sessão usa o agente treinado da Crédito Jus.</p>
+        </div>
+
+        <div id="orb" class="voice-orb" data-state="idle" aria-hidden="true">
+          <div class="orb-core"></div>
+          <div class="orb-ring orb-ring-one"></div>
+          <div class="orb-ring orb-ring-two"></div>
+        </div>
+
+        <div class="voice-status" aria-live="polite">
+          <strong id="status-title">Pronto para testar</strong>
+          <span id="status-detail">A conexão é preparada antes da primeira fala para reduzir a espera.</span>
+        </div>
+
+        <div class="scenario-row" aria-label="Cenários sugeridos">
+          <button class="scenario-button" type="button" data-prompt="Sou consumidor e quero entender quais opções de crédito vocês oferecem e como funciona o processo.">B2C · Consumidor</button>
+          <button class="scenario-button" type="button" data-prompt="Represento uma empresa interessada em parceria comercial com a Crédito Jus. Como funcionaria uma parceria B2B?">B2B · Parceiro</button>
+        </div>
+
+        <div class="main-controls">
+          <button id="talk-button" class="talk-button" type="button">
+            <span class="mic-icon" aria-hidden="true">●</span>
+            <span id="talk-label">Iniciar conversa</span>
+          </button>
+          <button id="end-button" class="secondary-button" type="button" disabled>Encerrar</button>
+        </div>
+      </div>
+
+      <section class="conversation-panel card" aria-labelledby="conversation-title">
+        <div class="conversation-head">
+          <div>
+            <p class="eyebrow">Live transcript</p>
+            <h2 id="conversation-title">Conversa</h2>
+          </div>
+          <button id="clear-button" class="ghost-button" type="button">Limpar</button>
+        </div>
+
+        <div id="transcript" class="transcript" aria-live="polite">
+          <p class="empty-transcript">A transcrição aparecerá aqui durante o teste.</p>
+        </div>
+
+        <form id="message-form" class="composer">
+          <input id="message-input" type="text" placeholder="Digite uma mensagem para o agente" autocomplete="off">
+          <button class="send-button" type="submit" aria-label="Enviar mensagem">Enviar</button>
+        </form>
+      </section>
+
+      <p class="demo-footnote">Ambiente demonstrativo. Áudio e transcrição não são armazenados por esta interface.</p>
+    </section>
+  </main>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

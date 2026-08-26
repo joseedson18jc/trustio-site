@@ -2,18 +2,56 @@
 
 MVP privado para compartilhar o Voice Sales Agent treinado da Crédito Jus com prospects B2C e B2B.
 
+## Escopo do agente
+
+Este deployment é **exclusivo da Crédito Jus**. O backend está vinculado ao saved xAI Voice Agent:
+
+```text
+agent_XrzC3PUBPY9m5pEs
+```
+
+Esse ID não deve ser reutilizado em páginas, demos, tenants ou clientes diferentes. Há um override opcional chamado `CREDITOJUS_XAI_AGENT_ID` somente para permitir rotação futura do agente da própria Crédito Jus.
+
+## URL
+
+Rota dedicada:
+
+```text
+/credito-jus
+```
+
+Produção recomendada:
+
+```text
+https://voice.trustio.com.br/credito-jus
+```
+
+Enquanto este deployment for dedicado à Crédito Jus, `/` redireciona para `/credito-jus`.
+
 ## Arquitetura
 
 - Frontend estático servido pelo CDN da Vercel.
 - Login privado por código de acesso e cookie HttpOnly assinado.
 - `POST /api/session` cria um ephemeral client secret da xAI. A API key nunca chega ao browser.
-- O browser conecta diretamente ao xAI Realtime usando o `agent_id` salvo no Console.
+- O browser conecta diretamente ao xAI Realtime usando o agente salvo da Crédito Jus.
 - O caminho de áudio não passa pela Vercel. Isso evita um proxy adicional e reduz latência.
 - Captura via AudioWorklet, PCM16 mono a 24 kHz, chunks de 50 ms.
 - Transporte de áudio binário no WebSocket para evitar base64 e JSON no hot path.
 - Playback começa a cada chunk recebido, sem esperar a resposta completa.
 - Server VAD do agente cuida do turn-taking e interrupções.
 - A credencial efêmera é pré-carregada depois do login para encurtar o tempo até a primeira fala.
+
+## Orb realtime
+
+O orb foi desenhado localmente com CSS, sem asset remoto, e tem estados visuais distintos:
+
+- Idle: respiração e movimento interno lento.
+- Connecting: aura azul mais intensa.
+- Listening: reação à amplitude real do microfone por `--voice-level`.
+- Thinking: plasma azul/violeta acelerado, partículas, anéis orbitais e pulso central.
+- Speaking: pulsação suave enquanto a resposta é reproduzida.
+
+O estado Thinking é acionado no fim da fala do usuário e durante a criação da resposta. A interface muda para Speaking quando os primeiros sinais da resposta chegam, sem aguardar a resposta completa.
 
 ## Deploy recomendado
 
@@ -29,26 +67,33 @@ Use o domínio:
 voice.trustio.com.br
 ```
 
-O áudio em tempo real segue diretamente do navegador para a xAI, então a região da Function não entra no hot path de voz. Se o plano Vercel usado suportar escolha regional e os testes mostrarem ganho no endpoint de criação do token, `gru1` pode ser habilitada depois. O prefetch do token já esconde quase todo esse custo antes de o usuário iniciar a conversa.
+O áudio em tempo real segue diretamente do navegador para a xAI. A Function fica em `gru1` para reduzir a latência de autenticação/token para usuários no Brasil, sem entrar no hot path contínuo de voz.
 
 ## Environment Variables
 
-Configure somente no Vercel. Não coloque valores reais no GitHub.
+Configure somente no Vercel. Não coloque valores secretos no GitHub.
+
+Obrigatórias:
 
 ```text
 XAI_API_KEY=<xAI API key>
-XAI_AGENT_ID=<saved Voice Agent id>
 DEMO_ACCESS_CODE=<private code shared with the prospect>
 DEMO_SESSION_SECRET=<long random value used to sign the cookie>
 ```
 
-Opcional:
+Opcional, somente para substituir futuramente o agente da própria Crédito Jus:
+
+```text
+CREDITOJUS_XAI_AGENT_ID=agent_XrzC3PUBPY9m5pEs
+```
+
+Experimento opcional de latência:
 
 ```text
 XAI_REASONING_EFFORT=none
 ```
 
-Use `none` somente depois de comparar a qualidade com o comportamento padrão. Ele pode reduzir o tempo de resposta, mas também reduz o reasoning aplicado a cada turno. Se a variável não existir, o agent runtime usa sua configuração normal.
+Use `none` somente depois de comparar a qualidade com o comportamento padrão. Ele pode reduzir o tempo de resposta, mas também reduz o reasoning aplicado a cada turno.
 
 ## Segurança do MVP
 
@@ -60,19 +105,21 @@ Use `none` somente depois de comparar a qualidade com o comportamento padrão. E
 - Sem persistência da transcrição pela aplicação.
 - Sessão visual limitada a 10 minutos.
 
-O `agent_id` não é tratado como credencial. Para manter a menor latência, o browser recebe a URL de conexão após autenticação e se conecta diretamente à xAI usando somente um token efêmero de curta duração.
+O `agent_id` não é uma API key. A credencial sensível continua sendo `XAI_API_KEY`, mantida exclusivamente server-side. O browser recebe apenas um client secret efêmero e a URL necessária para a conexão realtime.
 
 ## Checklist antes de enviar ao cliente
 
-1. Configurar as quatro Environment Variables obrigatórias.
+1. Configurar `XAI_API_KEY`, `DEMO_ACCESS_CODE` e `DEMO_SESSION_SECRET` na Vercel.
 2. Fazer deploy com Root Directory `voice-mvp`.
-3. Testar no Safari do iPhone e Chrome desktop.
-4. Validar áudio com e sem fone de ouvido.
-5. Testar interrupção enquanto o agente fala.
-6. Comparar latência com `XAI_REASONING_EFFORT` ausente e com `none`.
-7. Apontar `voice.trustio.com.br` para o projeto.
-8. Criar um código de acesso exclusivo para a demonstração.
+3. Abrir `/credito-jus` e validar que `/` redireciona corretamente.
+4. Testar no Safari do iPhone e Chrome desktop.
+5. Validar áudio com e sem fone de ouvido.
+6. Conferir visualmente todos os estados do orb, especialmente Thinking.
+7. Testar interrupção enquanto o agente fala.
+8. Comparar latência com `XAI_REASONING_EFFORT` ausente e com `none`.
+9. Apontar `voice.trustio.com.br` para o projeto.
+10. Criar um código de acesso exclusivo para a demonstração.
 
 ## Próxima versão
 
-Para múltiplos prospects, substituir o código único por links de convite com expiração, rate limiting server-side e painel de uso. O hot path de áudio deve continuar direto browser → xAI para preservar a latência.
+Para múltiplos prospects da própria Crédito Jus, substituir o código único por links de convite com expiração, rate limiting server-side e painel de uso. Para outros clientes Trustio, criar deployments/configurações separados com IDs de agente próprios. O hot path de áudio deve continuar direto browser → xAI para preservar a latência.

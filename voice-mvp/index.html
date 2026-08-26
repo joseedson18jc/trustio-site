@@ -60,18 +60,7 @@
         </div>
 
         <div id="orb" class="voice-orb" data-state="idle" aria-hidden="true">
-          <div class="orb-aura"></div>
-          <div class="orb-shell">
-            <div class="orb-liquid"></div>
-            <div class="orb-nebula orb-nebula-a"></div>
-            <div class="orb-nebula orb-nebula-b"></div>
-            <div class="orb-stars"></div>
-            <div class="orb-highlight"></div>
-            <div class="orb-glass"></div>
-          </div>
-          <div class="orb-ring orb-ring-one"></div>
-          <div class="orb-ring orb-ring-two"></div>
-          <div class="orb-ring orb-ring-three"></div>
+          <canvas id="orb-canvas" class="orb-canvas"></canvas>
         </div>
 
         <div class="voice-status" aria-live="polite">
@@ -116,6 +105,7 @@
     </section>
   </main>
 
+  <script type="module" src="/orb.js"></script>
   <script type="module" src="/app.js"></script>
 </body>
 </html>

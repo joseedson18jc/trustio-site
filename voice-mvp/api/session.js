@@ -1,5 +1,9 @@
 import { COOKIE_NAME, readCookies, verifySession } from "../lib/auth.js";
 
+// This deployment is intentionally dedicated to Crédito Jus only.
+// The ID is not a credential. XAI_API_KEY remains server-side and secret.
+const CREDITOJUS_AGENT_ID = process.env.CREDITOJUS_XAI_AGENT_ID || "agent_XrzC3PUBPY9m5pEs";
+
 function json(res, status, body) {
   res.status(status);
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -20,8 +24,7 @@ export default async function handler(req, res) {
   }
 
   const apiKey = process.env.XAI_API_KEY;
-  const agentId = process.env.XAI_AGENT_ID;
-  if (!apiKey || !agentId) {
+  if (!apiKey) {
     return json(res, 503, { error: "Voice runtime is not configured." });
   }
 
@@ -43,7 +46,7 @@ export default async function handler(req, res) {
 
     const clientSecret = await response.json();
     const url = new URL("wss://api.x.ai/v1/realtime");
-    url.searchParams.set("agent_id", agentId);
+    url.searchParams.set("agent_id", CREDITOJUS_AGENT_ID);
 
     const reasoningEffort = process.env.XAI_REASONING_EFFORT;
     if (reasoningEffort === "none" || reasoningEffort === "high") {
@@ -54,6 +57,7 @@ export default async function handler(req, res) {
       token: clientSecret.value,
       expiresAt: clientSecret.expires_at,
       wsUrl: url.toString(),
+      runtime: "credito-jus",
     });
   } catch (error) {
     console.error("xAI client secret request error", error);

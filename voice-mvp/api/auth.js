@@ -3,6 +3,7 @@ import {
   clearSessionCookie,
   createSession,
   readCookies,
+  resolveSessionSecret,
   safeEqual,
   sessionCookie,
   verifySession,
@@ -16,9 +17,9 @@ function json(res, status, body) {
 }
 
 export default async function handler(req, res) {
-  const secret = process.env.DEMO_SESSION_SECRET;
+  const secret = resolveSessionSecret();
   if (!secret) {
-    return json(res, 503, { error: "Demo session secret is not configured." });
+    return json(res, 503, { error: "Voice runtime is not configured." });
   }
 
   const cookies = readCookies(req.headers.cookie || "");

@@ -1,4 +1,4 @@
-import { COOKIE_NAME, readCookies, verifySession } from "../lib/auth.js";
+import { COOKIE_NAME, readCookies, resolveSessionSecret, verifySession } from "../lib/auth.js";
 
 // This deployment is intentionally dedicated to Crédito Jus only.
 // The ID is not a credential. XAI_API_KEY remains server-side and secret.
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return json(res, 405, { error: "Method not allowed." });
   }
 
-  const sessionSecret = process.env.DEMO_SESSION_SECRET;
+  const sessionSecret = resolveSessionSecret();
   const cookies = readCookies(req.headers.cookie || "");
   if (!verifySession(cookies[COOKIE_NAME], sessionSecret)) {
     return json(res, 401, { error: "Authentication required." });

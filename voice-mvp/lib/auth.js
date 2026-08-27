@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 
 export const COOKIE_NAME = "trustio_voice_demo";
 const SESSION_TTL_SECONDS = 8 * 60 * 60;
+const SESSION_SECRET_CONTEXT = "trustio:voice-demo:session:v1";
 
 function digest(value) {
   return crypto.createHash("sha256").update(String(value)).digest();
@@ -9,6 +10,23 @@ function digest(value) {
 
 export function safeEqual(left, right) {
   return crypto.timingSafeEqual(digest(left), digest(right));
+}
+
+export function resolveSessionSecret(env = process.env) {
+  const configured = String(env.DEMO_SESSION_SECRET || "").trim();
+  if (configured) return configured;
+
+  // Keep DEMO_SESSION_SECRET as an explicit override, but make the deployment
+  // self-healing when it is omitted. XAI_API_KEY is already a high-entropy,
+  // server-only secret, so derive a domain-separated signing key from it.
+  // Rotating XAI_API_KEY intentionally invalidates existing demo sessions.
+  const apiKey = String(env.XAI_API_KEY || "").trim();
+  if (!apiKey) return "";
+
+  return crypto
+    .createHmac("sha256", apiKey)
+    .update(SESSION_SECRET_CONTEXT)
+    .digest("base64url");
 }
 
 function sign(payload, secret) {

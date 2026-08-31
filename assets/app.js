@@ -264,3 +264,37 @@ if (serverPanel) {
     serverPanel.classList.add("is-live");
   }
 }
+
+function ensureJuridicoNavigation() {
+  const currentPath = window.location.pathname.replace(/\/+$/, "") || "/";
+  const juridicoPath = "/juridico";
+
+  document.querySelectorAll(".desktop-nav, .mobile-nav").forEach((nav) => {
+    let link = nav.querySelector('a[href="/juridico/"], a[href="/juridico"]');
+    if (!link) {
+      link = document.createElement("a");
+      link.href = "/juridico/";
+      link.textContent = "Jurídico";
+      const manifesto = nav.querySelector('a[href="manifesto.html"], a[href="/manifesto.html"]');
+      if (manifesto) nav.insertBefore(link, manifesto);
+      else nav.appendChild(link);
+    }
+
+    if (currentPath === juridicoPath || currentPath.startsWith(`${juridicoPath}/`)) {
+      link.classList.add("is-active");
+      link.setAttribute("aria-current", "page");
+    }
+  });
+
+  document.querySelectorAll(".footer-links > div:first-child").forEach((group) => {
+    if (group.querySelector('a[href="/juridico/"], a[href="/juridico"]')) return;
+    const link = document.createElement("a");
+    link.href = "/juridico/";
+    link.textContent = "Jurídico";
+    const security = Array.from(group.querySelectorAll("a")).find((item) => item.textContent.trim() === "Segurança");
+    if (security) group.insertBefore(link, security);
+    else group.appendChild(link);
+  });
+}
+
+ensureJuridicoNavigation();

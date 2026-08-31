@@ -36,6 +36,7 @@ const sourceFiles = [
   "modelos.html",
   "manifesto.html",
   "fundador.html",
+  "juridico/index.html",
   "404.html",
   "robots.txt",
   "sitemap.xml",
@@ -106,6 +107,7 @@ export default {
     }
     if (path === "/") path = "/index.html";
     if (path === "/manifesto" || path === "/manifesto/") path = "/manifesto.html";
+    if (path === "/juridico" || path === "/juridico/") path = "/juridico/index.html";
 
     const file = FILES[path];
     if (file) return respond(request, file);

@@ -15,6 +15,7 @@ export default defineConfig({
         modelos: resolve(import.meta.dirname, "modelos.html"),
         manifesto: resolve(import.meta.dirname, "manifesto.html"),
         fundador: resolve(import.meta.dirname, "fundador.html"),
+        juridico: resolve(import.meta.dirname, "juridico/index.html"),
         notFound: resolve(import.meta.dirname, "404.html")
       }
     }

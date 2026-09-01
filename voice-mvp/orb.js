@@ -38,8 +38,6 @@ if (orb && canvas) {
       uniform float uLevel;
       uniform float uPhase;
 
-      #define PI 3.141592653589793
-
       float saturate(float x) { return clamp(x, 0.0, 1.0); }
 
       mat2 rot(float a) {
@@ -132,7 +130,7 @@ if (orb && canvas) {
 
         float radial = length(uv);
         float halo = exp(-pow(max(radial - 0.56, 0.0) * 3.7, 2.0));
-        halo *= smoothstep(1.10, 0.55, radial);
+        halo *= 1.0 - smoothstep(0.55, 1.10, radial);
 
         float cameraBreathe = sin(uTime * 0.38) * 0.012;
         vec3 ro = vec3(uPointer.x * 0.035, uPointer.y * 0.028, 3.05 + cameraBreathe);
@@ -171,7 +169,7 @@ if (orb && canvas) {
 
           float cloud = smoothstep(0.47, 0.82, n1 * 0.76 + n2 * 0.34);
           cloud *= 0.54 + n3 * 0.54;
-          float density = (cloud * 0.70 + ribbon * (0.22 + uEnergy * 0.20));
+          float density = cloud * 0.70 + ribbon * (0.22 + uEnergy * 0.20);
           density *= smoothstep(0.0, 0.19, radialInside);
           density *= 0.70 + uEnergy * 0.56 + uLevel * 0.20;
 
@@ -181,7 +179,7 @@ if (orb && canvas) {
 
           float starA = starPoint(rotateVolume(q + vec3(0.12), -timeFlow * 0.55), 10.5, 0.979);
           float starB = starPoint(rotateVolume(q * 1.13 - vec3(0.6), timeFlow * 0.28), 15.5, 0.987);
-          float stars = (starA * 1.0 + starB * 0.72) * smoothstep(0.03, 0.22, radialInside);
+          float stars = (starA + starB * 0.72) * smoothstep(0.03, 0.22, radialInside);
           vec3 starColor = mix(vec3(0.50, 0.82, 1.0), vec3(0.88, 0.92, 1.0), hash31(floor(q * 9.0)));
 
           float localAlpha = density * stepSize * (0.78 + uEnergy * 0.58);
@@ -218,10 +216,10 @@ if (orb && canvas) {
         glass += vec3(0.18, 0.31, 0.58) * broadSpec * 0.13;
         glass += vec3(0.18, 0.27, 0.56) * topLight * 0.035;
 
-        float lowerShade = smoothstep(-0.15, -0.92, normal.y);
+        float lowerShade = 1.0 - smoothstep(-0.92, -0.15, normal.y);
         accum *= 1.0 - lowerShade * 0.28;
 
-        float innerGlow = smoothstep(0.90, 0.0, radial) * (0.025 + uEnergy * 0.025);
+        float innerGlow = (1.0 - smoothstep(0.0, 0.90, radial)) * (0.025 + uEnergy * 0.025);
         vec3 finalColor = accum + glass + vec3(0.10, 0.18, 0.52) * innerGlow;
 
         float shellAlpha = 0.84 + fresnel * 0.16;

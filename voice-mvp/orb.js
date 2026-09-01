@@ -2,408 +2,443 @@ const orb = document.querySelector("#orb");
 const canvas = document.querySelector("#orb-canvas");
 
 if (orb && canvas) {
-  const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const TAU = Math.PI * 2;
+  const gl = canvas.getContext("webgl2", {
+    alpha: true,
+    antialias: false,
+    depth: false,
+    stencil: false,
+    premultipliedAlpha: true,
+    powerPreference: "high-performance",
+  });
 
-  const stateTuning = {
-    idle:       { energy: 0.42, speed: 0.42, glow: 0.58, ring: 0.24, wobble: 0.009 },
-    connecting: { energy: 0.72, speed: 1.22, glow: 0.86, ring: 0.82, wobble: 0.013 },
-    listening:  { energy: 0.62, speed: 0.68, glow: 0.76, ring: 0.42, wobble: 0.012 },
-    thinking:   { energy: 0.94, speed: 1.48, glow: 1.00, ring: 0.96, wobble: 0.019 },
-    speaking:   { energy: 0.84, speed: 1.02, glow: 0.94, ring: 0.70, wobble: 0.016 },
-  };
+  if (!gl) {
+    drawFallback();
+  } else {
+    const vertexSource = `#version 300 es
+      precision highp float;
+      in vec2 aPosition;
+      out vec2 vUv;
+      void main() {
+        vUv = aPosition * 0.5 + 0.5;
+        gl_Position = vec4(aPosition, 0.0, 1.0);
+      }
+    `;
 
-  const signalPoints = Array.from({ length: 18 }, (_, i) => ({
-    angle: (i / 18) * TAU + ((i * 0.73) % 1),
-    radius: 0.15 + ((i * 37) % 71) / 100,
-    size: 0.65 + ((i * 19) % 10) / 12,
-    phase: (i * 1.71) % TAU,
-    drift: 0.08 + ((i * 13) % 7) / 100,
-  }));
+    const fragmentSource = `#version 300 es
+      precision highp float;
 
-  let cssWidth = 0;
-  let cssHeight = 0;
-  let dpr = 1;
-  let raf = 0;
-  let lastTime = performance.now();
-  let visualTime = 0;
-  let smoothLevel = 0;
-  let smoothEnergy = stateTuning.idle.energy;
-  let lastRenderedState = "idle";
-  let pageVisible = !document.hidden;
+      in vec2 vUv;
+      out vec4 outColor;
 
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-  }
+      uniform vec2 uResolution;
+      uniform vec2 uPointer;
+      uniform float uTime;
+      uniform float uEnergy;
+      uniform float uLevel;
+      uniform float uPhase;
 
-  function lerp(a, b, amount) {
-    return a + (b - a) * amount;
-  }
+      #define PI 3.141592653589793
 
-  function roundedNoise(angle, time) {
-    return (
-      Math.sin(angle * 3 + time * 0.71) * 0.50 +
-      Math.sin(angle * 5 - time * 0.49 + 1.7) * 0.31 +
-      Math.sin(angle * 7 + time * 0.33 + 0.6) * 0.19
-    );
-  }
+      float saturate(float x) { return clamp(x, 0.0, 1.0); }
 
-  function resize() {
-    const rect = canvas.getBoundingClientRect();
-    cssWidth = Math.max(1, rect.width);
-    cssHeight = Math.max(1, rect.height);
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    const targetWidth = Math.max(1, Math.round(cssWidth * dpr));
-    const targetHeight = Math.max(1, Math.round(cssHeight * dpr));
-
-    if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
-      canvas.width = targetWidth;
-      canvas.height = targetHeight;
-    }
-
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    draw(visualTime, true);
-  }
-
-  function readVoiceLevel() {
-    const raw = getComputedStyle(orb).getPropertyValue("--voice-level");
-    return clamp(Number.parseFloat(raw) || 0, 0, 1);
-  }
-
-  function organicSpherePath(cx, cy, radius, time, wobble) {
-    const path = new Path2D();
-    const steps = 96;
-
-    for (let i = 0; i <= steps; i += 1) {
-      const angle = (i / steps) * TAU;
-      const n = roundedNoise(angle, time);
-      const r = radius * (1 + n * wobble);
-      const x = cx + Math.cos(angle) * r;
-      const y = cy + Math.sin(angle) * r;
-      if (i === 0) path.moveTo(x, y);
-      else path.lineTo(x, y);
-    }
-
-    path.closePath();
-    return path;
-  }
-
-  function drawAura(cx, cy, radius, time, tuning, level) {
-    const pulse = 1 + Math.sin(time * 1.35) * 0.025 + level * 0.08;
-    const auraRadius = radius * (1.44 + tuning.glow * 0.11) * pulse;
-
-    const aura = ctx.createRadialGradient(cx, cy, radius * 0.48, cx, cy, auraRadius);
-    aura.addColorStop(0, `rgba(87, 118, 255, ${0.12 + tuning.glow * 0.07})`);
-    aura.addColorStop(0.35, `rgba(72, 99, 255, ${0.09 + tuning.glow * 0.08})`);
-    aura.addColorStop(0.62, `rgba(132, 74, 255, ${0.045 + tuning.glow * 0.045})`);
-    aura.addColorStop(1, "rgba(20, 25, 46, 0)");
-
-    ctx.fillStyle = aura;
-    ctx.beginPath();
-    ctx.arc(cx, cy, auraRadius, 0, TAU);
-    ctx.fill();
-
-    const cyanX = cx - radius * (0.54 + Math.sin(time * 0.42) * 0.06);
-    const cyanY = cy + radius * (0.26 + Math.cos(time * 0.39) * 0.04);
-    const cyan = ctx.createRadialGradient(cyanX, cyanY, 0, cyanX, cyanY, radius * 0.88);
-    cyan.addColorStop(0, `rgba(48, 203, 255, ${0.08 + tuning.energy * 0.05})`);
-    cyan.addColorStop(1, "rgba(48, 203, 255, 0)");
-    ctx.fillStyle = cyan;
-    ctx.beginPath();
-    ctx.arc(cyanX, cyanY, radius * 0.9, 0, TAU);
-    ctx.fill();
-  }
-
-  function drawOrbitalRings(cx, cy, radius, time, tuning) {
-    ctx.save();
-    ctx.lineCap = "round";
-    ctx.globalCompositeOperation = "screen";
-
-    const ringDefs = [
-      { r: 1.17, squash: 0.54, tilt: -0.34, speed: 0.31, alpha: 0.18 },
-      { r: 1.28, squash: 0.72, tilt: 0.58, speed: -0.21, alpha: 0.11 },
-      { r: 1.08, squash: 0.43, tilt: 1.02, speed: 0.42, alpha: 0.10 },
-    ];
-
-    ringDefs.forEach((ring, index) => {
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(ring.tilt + time * ring.speed * tuning.speed);
-      ctx.scale(1, ring.squash);
-
-      ctx.strokeStyle = `rgba(${index === 1 ? "154, 101, 255" : "104, 174, 255"}, ${ring.alpha * (0.52 + tuning.ring)})`;
-      ctx.lineWidth = 0.75 + tuning.ring * 0.55;
-
-      const rr = radius * ring.r;
-      const start = time * ring.speed * 0.8 + index * 1.7;
-      ctx.beginPath();
-      ctx.arc(0, 0, rr, start, start + Math.PI * (0.86 + tuning.ring * 0.25));
-      ctx.stroke();
-
-      ctx.strokeStyle = `rgba(231, 240, 255, ${0.07 + tuning.ring * 0.07})`;
-      ctx.lineWidth = 0.55;
-      ctx.beginPath();
-      ctx.arc(0, 0, rr, start + Math.PI * 1.18, start + Math.PI * 1.56);
-      ctx.stroke();
-      ctx.restore();
-    });
-
-    ctx.restore();
-  }
-
-  function drawFluidInterior(cx, cy, radius, time, tuning, level, spherePath) {
-    ctx.save();
-    ctx.clip(spherePath);
-
-    const base = ctx.createRadialGradient(
-      cx - radius * 0.34,
-      cy - radius * 0.38,
-      radius * 0.05,
-      cx + radius * 0.08,
-      cy + radius * 0.12,
-      radius * 1.15,
-    );
-    base.addColorStop(0, "rgba(38, 52, 98, 0.88)");
-    base.addColorStop(0.32, "rgba(12, 20, 47, 0.98)");
-    base.addColorStop(0.72, "rgba(5, 8, 20, 1)");
-    base.addColorStop(1, "rgba(1, 3, 8, 1)");
-    ctx.fillStyle = base;
-    ctx.fillRect(cx - radius * 1.2, cy - radius * 1.2, radius * 2.4, radius * 2.4);
-
-    ctx.globalCompositeOperation = "screen";
-
-    const blobs = [
-      { color: [49, 113, 255], ax: 0.45, ay: 0.37, phase: 0.3, size: 0.72 },
-      { color: [73, 207, 255], ax: 0.50, ay: 0.32, phase: 2.0, size: 0.54 },
-      { color: [126, 72, 255], ax: 0.38, ay: 0.50, phase: 3.8, size: 0.66 },
-      { color: [70, 79, 255], ax: 0.34, ay: 0.44, phase: 5.1, size: 0.48 },
-    ];
-
-    blobs.forEach((blob, index) => {
-      const localTime = time * (0.34 + index * 0.055) * tuning.speed + blob.phase;
-      const x = cx + Math.sin(localTime * 1.11) * radius * blob.ax;
-      const y = cy + Math.cos(localTime * 0.89 + index) * radius * blob.ay;
-      const rr = radius * blob.size * (1 + level * 0.08);
-      const gradient = ctx.createRadialGradient(x, y, 0, x, y, rr);
-      const alpha = 0.22 + tuning.energy * 0.14 + (index === 1 ? level * 0.05 : 0);
-      gradient.addColorStop(0, `rgba(${blob.color[0]}, ${blob.color[1]}, ${blob.color[2]}, ${alpha})`);
-      gradient.addColorStop(0.45, `rgba(${blob.color[0]}, ${blob.color[1]}, ${blob.color[2]}, ${alpha * 0.55})`);
-      gradient.addColorStop(1, `rgba(${blob.color[0]}, ${blob.color[1]}, ${blob.color[2]}, 0)`);
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.arc(x, y, rr, 0, TAU);
-      ctx.fill();
-    });
-
-    const ribbonWidth = radius * (0.14 + tuning.energy * 0.045 + level * 0.025);
-    const ribbonAlpha = 0.08 + tuning.energy * 0.08;
-
-    for (let i = 0; i < 3; i += 1) {
-      const phase = time * (0.55 + i * 0.08) * tuning.speed + i * 2.1;
-      const yOffset = Math.sin(phase) * radius * 0.22 + (i - 1) * radius * 0.18;
-      const gradient = ctx.createLinearGradient(cx - radius, cy, cx + radius, cy);
-      if (i === 1) {
-        gradient.addColorStop(0, "rgba(77, 207, 255, 0)");
-        gradient.addColorStop(0.45, `rgba(77, 207, 255, ${ribbonAlpha * 1.2})`);
-        gradient.addColorStop(1, "rgba(90, 95, 255, 0)");
-      } else {
-        gradient.addColorStop(0, "rgba(110, 78, 255, 0)");
-        gradient.addColorStop(0.52, `rgba(110, 78, 255, ${ribbonAlpha})`);
-        gradient.addColorStop(1, "rgba(76, 166, 255, 0)");
+      mat2 rot(float a) {
+        float s = sin(a), c = cos(a);
+        return mat2(c, -s, s, c);
       }
 
-      ctx.strokeStyle = gradient;
-      ctx.lineWidth = ribbonWidth * (i === 1 ? 0.74 : 1);
-      ctx.lineCap = "round";
-      ctx.shadowColor = i === 1 ? "rgba(80, 205, 255, 0.35)" : "rgba(112, 82, 255, 0.32)";
-      ctx.shadowBlur = radius * 0.12;
-      ctx.beginPath();
-      ctx.moveTo(cx - radius * 1.04, cy + yOffset);
-      ctx.bezierCurveTo(
-        cx - radius * 0.44,
-        cy + yOffset - Math.cos(phase * 0.9) * radius * 0.42,
-        cx + radius * 0.34,
-        cy + yOffset + Math.sin(phase * 1.1) * radius * 0.38,
-        cx + radius * 1.04,
-        cy + yOffset - Math.sin(phase * 0.7) * radius * 0.12,
+      float hash31(vec3 p) {
+        p = fract(p * 0.1031);
+        p += dot(p, p.yzx + 33.33);
+        return fract((p.x + p.y) * p.z);
+      }
+
+      float noise3(vec3 p) {
+        vec3 i = floor(p);
+        vec3 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+
+        float n000 = hash31(i + vec3(0.0, 0.0, 0.0));
+        float n100 = hash31(i + vec3(1.0, 0.0, 0.0));
+        float n010 = hash31(i + vec3(0.0, 1.0, 0.0));
+        float n110 = hash31(i + vec3(1.0, 1.0, 0.0));
+        float n001 = hash31(i + vec3(0.0, 0.0, 1.0));
+        float n101 = hash31(i + vec3(1.0, 0.0, 1.0));
+        float n011 = hash31(i + vec3(0.0, 1.0, 1.0));
+        float n111 = hash31(i + vec3(1.0, 1.0, 1.0));
+
+        float nx00 = mix(n000, n100, f.x);
+        float nx10 = mix(n010, n110, f.x);
+        float nx01 = mix(n001, n101, f.x);
+        float nx11 = mix(n011, n111, f.x);
+        float nxy0 = mix(nx00, nx10, f.y);
+        float nxy1 = mix(nx01, nx11, f.y);
+        return mix(nxy0, nxy1, f.z);
+      }
+
+      float fbm(vec3 p) {
+        float value = 0.0;
+        float amplitude = 0.52;
+        for (int i = 0; i < 5; i++) {
+          value += noise3(p) * amplitude;
+          p = p * 2.02 + vec3(13.1, 7.7, 5.3);
+          amplitude *= 0.49;
+        }
+        return value;
+      }
+
+      vec2 sphereHit(vec3 ro, vec3 rd, float radius) {
+        float b = dot(ro, rd);
+        float c = dot(ro, ro) - radius * radius;
+        float h = b * b - c;
+        if (h < 0.0) return vec2(-1.0);
+        h = sqrt(h);
+        return vec2(-b - h, -b + h);
+      }
+
+      vec3 rotateVolume(vec3 p, float t) {
+        p.xz = rot(t * 0.31 + uPointer.x * 0.16) * p.xz;
+        p.yz = rot(-t * 0.18 + uPointer.y * 0.11) * p.yz;
+        p.xy = rot(t * 0.07) * p.xy;
+        return p;
+      }
+
+      vec3 spectralPalette(float t, float depth) {
+        vec3 indigo = vec3(0.075, 0.105, 0.31);
+        vec3 blue = vec3(0.10, 0.31, 0.92);
+        vec3 cyan = vec3(0.18, 0.82, 1.00);
+        vec3 violet = vec3(0.46, 0.20, 0.98);
+        vec3 coldWhite = vec3(0.74, 0.90, 1.00);
+
+        vec3 c = mix(indigo, blue, smoothstep(0.18, 0.66, t));
+        c = mix(c, violet, smoothstep(0.57, 0.96, t) * (0.52 + 0.20 * uPhase));
+        c = mix(c, cyan, smoothstep(0.62, 0.94, 1.0 - abs(t - 0.56) * 1.35) * 0.34);
+        c = mix(c, coldWhite, smoothstep(0.82, 1.0, t) * 0.15);
+        return c * (0.76 + depth * 0.44);
+      }
+
+      float starPoint(vec3 p, float scale, float threshold) {
+        vec3 cell = floor(p * scale);
+        vec3 local = fract(p * scale) - 0.5;
+        float seed = hash31(cell + 17.0);
+        float enabled = smoothstep(threshold, 1.0, seed);
+        float d2 = dot(local, local);
+        return enabled * exp(-d2 * 620.0);
+      }
+
+      void main() {
+        vec2 frag = gl_FragCoord.xy;
+        vec2 uv = (frag * 2.0 - uResolution.xy) / min(uResolution.x, uResolution.y);
+
+        float radial = length(uv);
+        float halo = exp(-pow(max(radial - 0.56, 0.0) * 3.7, 2.0));
+        halo *= smoothstep(1.10, 0.55, radial);
+
+        float cameraBreathe = sin(uTime * 0.38) * 0.012;
+        vec3 ro = vec3(uPointer.x * 0.035, uPointer.y * 0.028, 3.05 + cameraBreathe);
+        vec3 rd = normalize(vec3(uv * 1.06, -2.68));
+        vec2 hit = sphereHit(ro, rd, 0.985);
+
+        if (hit.x < 0.0) {
+          vec3 haloColor = mix(vec3(0.10, 0.18, 0.62), vec3(0.25, 0.12, 0.62), 0.5 + 0.5 * sin(uTime * 0.19));
+          float a = halo * (0.018 + uEnergy * 0.022);
+          outColor = vec4(haloColor * a, a);
+          return;
+        }
+
+        float tNear = max(hit.x, 0.0);
+        float tFar = hit.y;
+        float travel = max(tFar - tNear, 0.001);
+        float stepSize = travel / 46.0;
+        float t = tNear + stepSize * 0.35;
+
+        vec3 accum = vec3(0.0);
+        float alpha = 0.0;
+        float timeFlow = uTime * (0.16 + uEnergy * 0.16);
+
+        for (int i = 0; i < 46; i++) {
+          vec3 p = ro + rd * t;
+          vec3 q = rotateVolume(p, timeFlow);
+
+          float radialInside = saturate(1.0 - length(p));
+          float n1 = fbm(q * 2.05 + vec3(0.0, timeFlow * 0.22, -timeFlow * 0.12));
+          float n2 = fbm(q * 3.75 + vec3(timeFlow * 0.15, -timeFlow * 0.09, 4.3));
+          float n3 = fbm(q * 6.4 - vec3(2.7, timeFlow * 0.12, timeFlow * 0.08));
+
+          float ribbonA = abs(q.y + 0.20 * sin(q.x * 3.1 + timeFlow * 1.35) + 0.12 * sin(q.z * 5.0 - timeFlow));
+          float ribbonB = abs(q.x * 0.68 + q.y * 0.26 + 0.18 * sin(q.z * 4.4 + timeFlow * 0.7));
+          float ribbon = exp(-ribbonA * 5.8) * 0.58 + exp(-ribbonB * 6.7) * 0.30;
+
+          float cloud = smoothstep(0.47, 0.82, n1 * 0.76 + n2 * 0.34);
+          cloud *= 0.54 + n3 * 0.54;
+          float density = (cloud * 0.70 + ribbon * (0.22 + uEnergy * 0.20));
+          density *= smoothstep(0.0, 0.19, radialInside);
+          density *= 0.70 + uEnergy * 0.56 + uLevel * 0.20;
+
+          float paletteT = saturate(n1 * 0.72 + n2 * 0.38 + q.y * 0.08 + 0.05 * sin(timeFlow));
+          vec3 sampleColor = spectralPalette(paletteT, radialInside);
+          sampleColor *= 0.52 + ribbon * 0.92 + n3 * 0.22;
+
+          float starA = starPoint(rotateVolume(q + vec3(0.12), -timeFlow * 0.55), 10.5, 0.979);
+          float starB = starPoint(rotateVolume(q * 1.13 - vec3(0.6), timeFlow * 0.28), 15.5, 0.987);
+          float stars = (starA * 1.0 + starB * 0.72) * smoothstep(0.03, 0.22, radialInside);
+          vec3 starColor = mix(vec3(0.50, 0.82, 1.0), vec3(0.88, 0.92, 1.0), hash31(floor(q * 9.0)));
+
+          float localAlpha = density * stepSize * (0.78 + uEnergy * 0.58);
+          localAlpha = clamp(localAlpha, 0.0, 0.16);
+
+          accum += (1.0 - alpha) * sampleColor * localAlpha * 1.72;
+          accum += (1.0 - alpha) * starColor * stars * (0.10 + uEnergy * 0.10);
+          alpha += (1.0 - alpha) * localAlpha;
+
+          t += stepSize;
+        }
+
+        vec3 surfacePos = ro + rd * tNear;
+        vec3 normal = normalize(surfacePos);
+        vec3 viewDir = normalize(-rd);
+        vec3 lightDir = normalize(vec3(-0.55, 0.72, 0.82));
+        vec3 halfDir = normalize(lightDir + viewDir);
+
+        float ndv = saturate(dot(normal, viewDir));
+        float fresnel = pow(1.0 - ndv, 3.15);
+        float spec = pow(saturate(dot(normal, halfDir)), 92.0);
+        float broadSpec = pow(saturate(dot(normal, halfDir)), 20.0);
+        float topLight = smoothstep(-0.25, 0.95, normal.y) * smoothstep(-0.9, 0.2, -normal.x);
+
+        vec3 baseGlass = vec3(0.015, 0.022, 0.055);
+        vec3 rimR = vec3(0.36, 0.30, 1.00) * fresnel * (0.28 + 0.16 * normal.x);
+        vec3 rimG = vec3(0.08, 0.62, 1.00) * fresnel * 0.20;
+        vec3 rimB = vec3(0.32, 0.84, 1.00) * fresnel * (0.25 - 0.11 * normal.x);
+        vec3 chroma = rimR + rimG + rimB;
+
+        vec3 glass = baseGlass * (0.35 + 0.65 * fresnel);
+        glass += chroma * (0.42 + uEnergy * 0.26);
+        glass += vec3(0.82, 0.93, 1.0) * spec * (0.30 + uEnergy * 0.16);
+        glass += vec3(0.18, 0.31, 0.58) * broadSpec * 0.13;
+        glass += vec3(0.18, 0.27, 0.56) * topLight * 0.035;
+
+        float lowerShade = smoothstep(-0.15, -0.92, normal.y);
+        accum *= 1.0 - lowerShade * 0.28;
+
+        float innerGlow = smoothstep(0.90, 0.0, radial) * (0.025 + uEnergy * 0.025);
+        vec3 finalColor = accum + glass + vec3(0.10, 0.18, 0.52) * innerGlow;
+
+        float shellAlpha = 0.84 + fresnel * 0.16;
+        float finalAlpha = max(shellAlpha, saturate(alpha * 1.65));
+
+        finalColor = finalColor / (vec3(1.0) + finalColor * 0.46);
+        finalColor = pow(max(finalColor, 0.0), vec3(0.92));
+
+        outColor = vec4(finalColor, finalAlpha);
+      }
+    `;
+
+    const program = createProgram(gl, vertexSource, fragmentSource);
+
+    if (!program) {
+      drawFallback();
+    } else {
+      const buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+        gl.STATIC_DRAW,
       );
-      ctx.stroke();
-      ctx.shadowBlur = 0;
+
+      const positionLocation = gl.getAttribLocation(program, "aPosition");
+      gl.enableVertexAttribArray(positionLocation);
+      gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+      const uniforms = {
+        resolution: gl.getUniformLocation(program, "uResolution"),
+        pointer: gl.getUniformLocation(program, "uPointer"),
+        time: gl.getUniformLocation(program, "uTime"),
+        energy: gl.getUniformLocation(program, "uEnergy"),
+        level: gl.getUniformLocation(program, "uLevel"),
+        phase: gl.getUniformLocation(program, "uPhase"),
+      };
+
+      const stateTuning = {
+        idle: { energy: 0.40, speed: 0.72, phase: 0.20 },
+        connecting: { energy: 0.72, speed: 1.55, phase: 0.42 },
+        listening: { energy: 0.58, speed: 0.92, phase: 0.32 },
+        thinking: { energy: 0.96, speed: 1.92, phase: 0.78 },
+        speaking: { energy: 0.82, speed: 1.26, phase: 0.58 },
+      };
+
+      let width = 1;
+      let height = 1;
+      let dpr = 1;
+      let raf = 0;
+      let pageVisible = !document.hidden;
+      let lastNow = performance.now();
+      let visualTime = 0;
+      let currentEnergy = stateTuning.idle.energy;
+      let currentSpeed = stateTuning.idle.speed;
+      let currentPhase = stateTuning.idle.phase;
+      let smoothLevel = 0;
+      let pointerX = 0;
+      let pointerY = 0;
+      let targetPointerX = 0;
+      let targetPointerY = 0;
+
+      gl.useProgram(program);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      gl.clearColor(0, 0, 0, 0);
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.35 : 1.75);
+        width = Math.max(1, Math.round(rect.width * dpr));
+        height = Math.max(1, Math.round(rect.height * dpr));
+
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+          gl.viewport(0, 0, width, height);
+        }
+      }
+
+      function readVoiceLevel() {
+        const value = Number.parseFloat(getComputedStyle(orb).getPropertyValue("--voice-level"));
+        return Math.min(1, Math.max(0, Number.isFinite(value) ? value : 0));
+      }
+
+      function frame(now) {
+        if (!pageVisible) return;
+
+        const dt = Math.min(0.05, Math.max(0.001, (now - lastNow) / 1000));
+        lastNow = now;
+
+        const state = stateTuning[orb.dataset.state] || stateTuning.idle;
+        const easing = 1 - Math.exp(-dt * 4.7);
+        currentEnergy += (state.energy - currentEnergy) * easing;
+        currentSpeed += (state.speed - currentSpeed) * easing;
+        currentPhase += (state.phase - currentPhase) * easing;
+        smoothLevel += (readVoiceLevel() - smoothLevel) * (1 - Math.exp(-dt * 10.0));
+        pointerX += (targetPointerX - pointerX) * (1 - Math.exp(-dt * 4.0));
+        pointerY += (targetPointerY - pointerY) * (1 - Math.exp(-dt * 4.0));
+
+        const motionScale = reducedMotion.matches ? 0.08 : 1;
+        visualTime += dt * currentSpeed * motionScale;
+
+        resize();
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.useProgram(program);
+        gl.uniform2f(uniforms.resolution, width, height);
+        gl.uniform2f(uniforms.pointer, pointerX, pointerY);
+        gl.uniform1f(uniforms.time, visualTime);
+        gl.uniform1f(uniforms.energy, Math.min(1.15, currentEnergy + smoothLevel * 0.14));
+        gl.uniform1f(uniforms.level, smoothLevel);
+        gl.uniform1f(uniforms.phase, currentPhase);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        raf = requestAnimationFrame(frame);
+      }
+
+      function updatePointer(event) {
+        const rect = orb.getBoundingClientRect();
+        const point = event.touches?.[0] || event;
+        const x = ((point.clientX - rect.left) / rect.width) * 2 - 1;
+        const y = ((point.clientY - rect.top) / rect.height) * 2 - 1;
+        targetPointerX = Math.min(1, Math.max(-1, x));
+        targetPointerY = Math.min(1, Math.max(-1, -y));
+      }
+
+      orb.addEventListener("pointermove", updatePointer, { passive: true });
+      orb.addEventListener("pointerleave", () => {
+        targetPointerX = 0;
+        targetPointerY = 0;
+      }, { passive: true });
+      orb.addEventListener("touchmove", updatePointer, { passive: true });
+
+      const resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(orb);
+
+      document.addEventListener("visibilitychange", () => {
+        pageVisible = !document.hidden;
+        if (pageVisible) {
+          lastNow = performance.now();
+          cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(frame);
+        } else {
+          cancelAnimationFrame(raf);
+        }
+      });
+
+      reducedMotion.addEventListener?.("change", () => {
+        lastNow = performance.now();
+      });
+
+      resize();
+      raf = requestAnimationFrame(frame);
+    }
+  }
+
+  function createShader(context, type, source) {
+    const shader = context.createShader(type);
+    context.shaderSource(shader, source);
+    context.compileShader(shader);
+    if (!context.getShaderParameter(shader, context.COMPILE_STATUS)) {
+      console.error("Voice orb shader compile error:", context.getShaderInfoLog(shader));
+      context.deleteShader(shader);
+      return null;
+    }
+    return shader;
+  }
+
+  function createProgram(context, vertexSource, fragmentSource) {
+    const vertexShader = createShader(context, context.VERTEX_SHADER, vertexSource);
+    const fragmentShader = createShader(context, context.FRAGMENT_SHADER, fragmentSource);
+    if (!vertexShader || !fragmentShader) return null;
+
+    const program = context.createProgram();
+    context.attachShader(program, vertexShader);
+    context.attachShader(program, fragmentShader);
+    context.linkProgram(program);
+    context.deleteShader(vertexShader);
+    context.deleteShader(fragmentShader);
+
+    if (!context.getProgramParameter(program, context.LINK_STATUS)) {
+      console.error("Voice orb program link error:", context.getProgramInfoLog(program));
+      context.deleteProgram(program);
+      return null;
     }
 
-    ctx.globalCompositeOperation = "screen";
-    signalPoints.forEach((point, index) => {
-      const angle = point.angle + time * point.drift * tuning.speed;
-      const drift = 1 + Math.sin(time * 0.73 + point.phase) * 0.035;
-      const px = cx + Math.cos(angle) * radius * point.radius * drift;
-      const py = cy + Math.sin(angle * 0.94 + point.phase * 0.1) * radius * point.radius * 0.82 * drift;
-      const twinkle = 0.34 + 0.48 * (0.5 + Math.sin(time * (1.1 + point.drift) + point.phase) * 0.5);
-      const alpha = twinkle * (0.34 + tuning.energy * 0.28);
-      const size = point.size * (0.72 + tuning.energy * 0.18);
+    return program;
+  }
 
-      ctx.fillStyle = index % 4 === 0
-        ? `rgba(112, 216, 255, ${alpha})`
-        : `rgba(224, 235, 255, ${alpha * 0.82})`;
+  function drawFallback() {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    function render() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = Math.max(1, Math.round(rect.width * dpr));
+      canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const r = Math.min(rect.width, rect.height) * 0.35;
+      const g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.42, r * 0.03, cx, cy, r);
+      g.addColorStop(0, "rgba(225,246,255,.95)");
+      g.addColorStop(0.06, "rgba(89,180,255,.7)");
+      g.addColorStop(0.28, "rgba(74,91,255,.58)");
+      g.addColorStop(0.58, "rgba(29,31,84,.96)");
+      g.addColorStop(1, "rgba(3,4,11,1)");
+      ctx.fillStyle = g;
       ctx.beginPath();
-      ctx.arc(px, py, size, 0, TAU);
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fill();
-    });
-
-    const lowerShade = ctx.createLinearGradient(cx, cy - radius, cx, cy + radius);
-    lowerShade.addColorStop(0, "rgba(255,255,255,0.035)");
-    lowerShade.addColorStop(0.48, "rgba(255,255,255,0)");
-    lowerShade.addColorStop(1, "rgba(0,0,0,0.38)");
-    ctx.globalCompositeOperation = "source-over";
-    ctx.fillStyle = lowerShade;
-    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
-
-    const sheenX = cx - radius * 0.36 + Math.sin(time * 0.31) * radius * 0.04;
-    const sheenY = cy - radius * 0.42;
-    const sheen = ctx.createRadialGradient(sheenX, sheenY, 0, sheenX, sheenY, radius * 0.64);
-    sheen.addColorStop(0, `rgba(255,255,255,${0.19 + tuning.energy * 0.05})`);
-    sheen.addColorStop(0.18, "rgba(211,231,255,0.08)");
-    sheen.addColorStop(0.62, "rgba(180,211,255,0.014)");
-    sheen.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = sheen;
-    ctx.beginPath();
-    ctx.arc(sheenX, sheenY, radius * 0.64, 0, TAU);
-    ctx.fill();
-
-    ctx.restore();
-  }
-
-  function drawRim(cx, cy, radius, time, tuning, spherePath, level) {
-    ctx.save();
-    ctx.globalCompositeOperation = "screen";
-
-    ctx.strokeStyle = `rgba(160, 194, 255, ${0.15 + tuning.glow * 0.12})`;
-    ctx.lineWidth = 1.1;
-    ctx.shadowColor = "rgba(80, 126, 255, 0.42)";
-    ctx.shadowBlur = 14 + tuning.glow * 16 + level * 10;
-    ctx.stroke(spherePath);
-
-    ctx.shadowBlur = 0;
-    const rim = ctx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
-    rim.addColorStop(0, "rgba(255,255,255,0.62)");
-    rim.addColorStop(0.18, "rgba(142,196,255,0.26)");
-    rim.addColorStop(0.55, "rgba(83,110,255,0.08)");
-    rim.addColorStop(0.82, "rgba(117,83,255,0.22)");
-    rim.addColorStop(1, "rgba(255,255,255,0.10)");
-    ctx.strokeStyle = rim;
-    ctx.lineWidth = 0.85;
-    ctx.stroke(spherePath);
-
-    const glintAngle = -2.18 + Math.sin(time * 0.27) * 0.08;
-    ctx.strokeStyle = `rgba(241, 248, 255, ${0.23 + tuning.energy * 0.08})`;
-    ctx.lineWidth = 1.35;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius * 0.992, glintAngle, glintAngle + 0.54);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  function drawCorePulse(cx, cy, radius, time, tuning, level) {
-    if (tuning.energy < 0.6 && level < 0.08) return;
-
-    const pulse = 0.5 + 0.5 * Math.sin(time * (2.6 + tuning.speed * 0.6));
-    const r = radius * (0.18 + tuning.energy * 0.09 + level * 0.04);
-    const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    gradient.addColorStop(0, `rgba(172, 202, 255, ${0.035 + pulse * 0.035 + level * 0.035})`);
-    gradient.addColorStop(0.4, `rgba(84, 131, 255, ${0.028 + tuning.energy * 0.025})`);
-    gradient.addColorStop(1, "rgba(84,131,255,0)");
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, TAU);
-    ctx.fill();
-  }
-
-  function draw(t, force = false) {
-    if (!ctx || !cssWidth || !cssHeight) return;
-
-    const state = orb.dataset.state || "idle";
-    const tuning = stateTuning[state] || stateTuning.idle;
-    const rawLevel = readVoiceLevel();
-    const speakingPulse = state === "speaking"
-      ? 0.18 + (0.5 + Math.sin(t * 7.5) * 0.5) * 0.12
-      : 0;
-    const targetLevel = state === "listening" ? rawLevel : speakingPulse;
-
-    smoothLevel = lerp(smoothLevel, targetLevel, force ? 1 : 0.15);
-    smoothEnergy = lerp(smoothEnergy, tuning.energy, force ? 1 : 0.055);
-
-    const cx = cssWidth / 2;
-    const cy = cssHeight / 2;
-    const baseRadius = Math.min(cssWidth, cssHeight) * 0.272;
-    const breathe = 1 + Math.sin(t * 1.05) * 0.008;
-    const stateBoost = state === "thinking" ? 0.012 : 0;
-    const radius = baseRadius * (breathe + smoothLevel * 0.032 + stateBoost);
-
-    ctx.clearRect(0, 0, cssWidth, cssHeight);
-
-    drawAura(cx, cy, radius, t, { ...tuning, energy: smoothEnergy }, smoothLevel);
-    drawOrbitalRings(cx, cy, radius, t, tuning);
-
-    const spherePath = organicSpherePath(
-      cx,
-      cy,
-      radius,
-      t * tuning.speed,
-      tuning.wobble + smoothLevel * 0.008,
-    );
-
-    drawFluidInterior(cx, cy, radius, t, tuning, smoothLevel, spherePath);
-    drawCorePulse(cx, cy, radius, t, tuning, smoothLevel);
-    drawRim(cx, cy, radius, t, tuning, spherePath, smoothLevel);
-  }
-
-  function render(now, force = false) {
-    if (!pageVisible && !force) return;
-
-    const delta = Math.min(50, Math.max(0, now - lastTime));
-    lastTime = now;
-    visualTime += delta / 1000;
-
-    draw(visualTime, force);
-    lastRenderedState = orb.dataset.state || "idle";
-
-    if (!force && !reducedMotion.matches && pageVisible) {
-      raf = requestAnimationFrame(render);
     }
+
+    render();
+    window.addEventListener("resize", render, { passive: true });
   }
-
-  function restart() {
-    if (raf) cancelAnimationFrame(raf);
-    raf = 0;
-    lastTime = performance.now();
-    if (reducedMotion.matches) render(lastTime, true);
-    else raf = requestAnimationFrame(render);
-  }
-
-  const observer = new ResizeObserver(resize);
-  observer.observe(orb);
-
-  const stateObserver = new MutationObserver(() => {
-    const state = orb.dataset.state || "idle";
-    if (state !== lastRenderedState && reducedMotion.matches) {
-      draw(visualTime, true);
-    }
-  });
-  stateObserver.observe(orb, { attributes: true, attributeFilter: ["data-state"] });
-
-  reducedMotion.addEventListener?.("change", restart);
-
-  document.addEventListener("visibilitychange", () => {
-    pageVisible = !document.hidden;
-    if (pageVisible) restart();
-    else if (raf) {
-      cancelAnimationFrame(raf);
-      raf = 0;
-    }
-  });
-
-  resize();
-  restart();
 }

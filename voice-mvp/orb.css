@@ -15,7 +15,7 @@
 .voice-orb::before {
   content: "";
   position: absolute;
-  inset: 7%;
+  inset: 2%;
   z-index: -2;
   border-radius: 50%;
   background: radial-gradient(circle at 50% 55%, rgba(80,112,255,.16), rgba(99,73,255,.08) 35%, transparent 72%);
@@ -28,7 +28,7 @@
 .voice-orb::after {
   content: "";
   position: absolute;
-  inset: 14.5%;
+  inset: 4.5%;
   z-index: 4;
   pointer-events: none;
   border-radius: 50%;
@@ -53,7 +53,7 @@
 
 .orb-lens {
   position: absolute;
-  inset: 15%;
+  inset: 5%;
   z-index: 5;
   border-radius: 50%;
   pointer-events: none;
@@ -69,10 +69,10 @@
   position: absolute;
   z-index: 6;
   pointer-events: none;
-  width: 36%;
-  height: 14%;
-  top: 19%;
-  left: 24%;
+  width: 40%;
+  height: 15%;
+  top: 11%;
+  left: 18%;
   border-radius: 50%;
   background: radial-gradient(ellipse, rgba(235,248,255,.11), rgba(194,223,255,.025) 46%, transparent 72%);
   filter: blur(7px);

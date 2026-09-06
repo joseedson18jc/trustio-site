@@ -66,5 +66,5 @@ Abra `http://localhost:8080` no navegador.
 
 ## Fontes e licenças
 
-Schibsted Grotesk, IBM Plex e Instrument Serif são distribuídas sob a SIL Open Font License.
+Geist, Geist Mono e Instrument Serif são distribuídas sob a SIL Open Font License.
 As licenças estão em `assets/licenses/` e `assets/fonts/`.

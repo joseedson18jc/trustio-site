@@ -318,7 +318,7 @@
   border-radius: 999px;
   color: #9abfec;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--label);
   letter-spacing: 0.08em;
 }
 
@@ -383,7 +383,7 @@
   border-bottom: 1px solid var(--line);
   color: #77869d;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--label);
   letter-spacing: 0.11em;
 }
 
@@ -442,7 +442,7 @@
   padding: 16px 22px;
   color: #718096;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--label);
   letter-spacing: 0.08em;
 }
 
@@ -496,7 +496,7 @@
 .evidence-metrics span {
   color: #6d7b91;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--label);
   letter-spacing: 0.1em;
 }
 
@@ -584,7 +584,7 @@
   margin-bottom: 5px;
   color: #7691b4;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--label);
   letter-spacing: 0.08em;
 }
 
@@ -644,7 +644,7 @@
   margin: 52px 0 10px;
   color: #6f8099;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--label);
   letter-spacing: 0.1em;
 }
 
@@ -731,7 +731,7 @@
   .legal-signals {
     gap: 10px;
     margin-top: 40px;
-    font-size: 9px;
+    font-size: var(--label);
   }
 
   .legal-orbit-a {

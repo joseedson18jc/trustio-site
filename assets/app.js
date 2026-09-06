@@ -131,6 +131,8 @@ class TrustioDotField {
     this.startTime = performance.now();
     this.pointer = { x: 0, y: 0, active: false, lastMove: 0 };
     this.isManifesto = document.body.classList.contains("manifesto-page") || Boolean(canvas.closest(".hero-field"));
+    this.tabVisible = !document.hidden;
+    this.inViewport = true;
     this.visible = true;
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.parent);
@@ -153,11 +155,26 @@ class TrustioDotField {
     });
 
     document.addEventListener("visibilitychange", () => {
-      this.visible = !document.hidden;
-      if (this.visible && !this.animationFrame && !reducedMotion.matches) {
-        this.animationFrame = window.requestAnimationFrame((time) => this.draw(time));
-      }
+      this.tabVisible = !document.hidden;
+      this.syncVisibility();
     });
+
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          this.inViewport = entry.isIntersecting;
+          this.syncVisibility();
+        });
+      }, { threshold: 0.02 }).observe(this.parent);
+    }
+  }
+
+  // Draw only while the tab is active AND the hero is on screen — saves a full-canvas repaint per frame otherwise.
+  syncVisibility() {
+    this.visible = this.tabVisible && this.inViewport;
+    if (this.visible && !this.animationFrame && !reducedMotion.matches) {
+      this.animationFrame = window.requestAnimationFrame((time) => this.draw(time));
+    }
   }
 
   resize() {
@@ -265,36 +282,33 @@ if (serverPanel) {
   }
 }
 
-function ensureJuridicoNavigation() {
-  const currentPath = window.location.pathname.replace(/\/+$/, "") || "/";
-  const juridicoPath = "/juridico";
-
-  document.querySelectorAll(".desktop-nav, .mobile-nav").forEach((nav) => {
-    let link = nav.querySelector('a[href="/juridico/"], a[href="/juridico"]');
-    if (!link) {
-      link = document.createElement("a");
-      link.href = "/juridico/";
-      link.textContent = "Jurídico";
-      const manifesto = nav.querySelector('a[href="manifesto.html"], a[href="/manifesto.html"]');
-      if (manifesto) nav.insertBefore(link, manifesto);
-      else nav.appendChild(link);
+// Contact card: copy the e-mail address without depending on a configured mail client.
+document.querySelectorAll(".copy-email[data-copy]").forEach((button) => {
+  let resetTimer = 0;
+  button.addEventListener("click", async () => {
+    const value = button.dataset.copy;
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(value);
+      copied = true;
+    } catch {
+      const scratch = document.createElement("textarea");
+      scratch.value = value;
+      scratch.setAttribute("readonly", "");
+      scratch.style.position = "fixed";
+      scratch.style.opacity = "0";
+      document.body.appendChild(scratch);
+      scratch.select();
+      try { copied = document.execCommand("copy"); } catch { copied = false; }
+      scratch.remove();
     }
-
-    if (currentPath === juridicoPath || currentPath.startsWith(`${juridicoPath}/`)) {
-      link.classList.add("is-active");
-      link.setAttribute("aria-current", "page");
-    }
+    if (!copied) return;
+    button.classList.add("is-copied");
+    button.setAttribute("aria-label", "E-mail copiado");
+    window.clearTimeout(resetTimer);
+    resetTimer = window.setTimeout(() => {
+      button.classList.remove("is-copied");
+      button.setAttribute("aria-label", "Copiar endereço de e-mail");
+    }, 2200);
   });
-
-  document.querySelectorAll(".footer-links > div:first-child").forEach((group) => {
-    if (group.querySelector('a[href="/juridico/"], a[href="/juridico"]')) return;
-    const link = document.createElement("a");
-    link.href = "/juridico/";
-    link.textContent = "Jurídico";
-    const security = Array.from(group.querySelectorAll("a")).find((item) => item.textContent.trim() === "Segurança");
-    if (security) group.insertBefore(link, security);
-    else group.appendChild(link);
-  });
-}
-
-ensureJuridicoNavigation();
+});

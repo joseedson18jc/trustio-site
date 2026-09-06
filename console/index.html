@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05070b">
+  <meta name="color-scheme" content="dark">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>Agentes de voz · Trustio Console</title>
+  <meta name="description" content="Console da Trustio: crie, ajuste e implante agentes de voz privados — modelo, voz, playbook, ferramentas e guardrails, com testes ao vivo no navegador.">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <link rel="preload" href="../assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <link rel="stylesheet" href="../assets/console.css">
+  <script defer src="../assets/orb.js"></script>
+  <script defer src="../assets/console.js"></script>
+</head>
+<body class="console-page">
+<a class="skip-link" href="#main">Ir para o conteúdo</a>
+
+<div class="shell">
+  <!-- ─────────── sidebar ─────────── -->
+  <aside class="side" id="side">
+    <a class="side-brand" href="../index.html">
+      <img src="../assets/trustio-mark.svg" alt="" width="28" height="28">
+      <span>Trust<strong>io</strong></span>
+      <em>Console</em>
+    </a>
+
+    <button class="team" type="button" aria-haspopup="listbox" aria-expanded="false" id="teamBtn">
+      <span class="team-av">TR</span>
+      <span class="team-txt"><b>Trustio · Brasil</b><small>team_9f2c…4e1a</small></span>
+      <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+    </button>
+
+    <nav class="side-nav" aria-label="Navegação do console">
+      <p class="side-k">Voz</p>
+      <a href="#" class="is-active" aria-current="page"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10M6 6v7M14 6v7M2.5 8.5v3M17.5 8.5v3"/></svg>Agentes <span class="pill">5</span></a>
+      <a href="#" data-soon><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 3.5h3l1.5 4-2 1.2a9 9 0 0 0 4.3 4.3l1.2-2 4 1.5v3a1 1 0 0 1-1.1 1A13.5 13.5 0 0 1 3.5 4.6a1 1 0 0 1 1-1.1Z"/></svg>Números</a>
+      <a href="#" data-soon><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5.5h14M3 10h14M3 14.5h9"/></svg>Chamadas</a>
+      <a href="#" data-soon><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 3.5h10v13H5zM7.5 7h5M7.5 10h5M7.5 13h3"/></svg>Conhecimento</a>
+      <a href="#" data-soon><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 3.5 4 6v5l4 2.5 4-2.5V6zM12 8.5l4 2.5v5l-4 2.5-4-2.5"/></svg>Ferramentas</a>
+      <p class="side-k">Plataforma</p>
+      <a href="#" data-soon><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16V9M8 16V4M13 16v-5M18 16v-9"/></svg>Uso e custos</a>
+      <a href="#" data-soon><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4a3.5 3.5 0 1 0-3.3 4.7L4 14v2.5h2.5L12 11a3.5 3.5 0 0 0 .5-7Z"/></svg>Chaves de API</a>
+      <a href="../voice.html"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15ZM2.6 10h14.8M10 2.6a13 13 0 0 1 0 14.8 13 13 0 0 1 0-14.8"/></svg>Site público</a>
+    </nav>
+
+    <div class="side-foot">
+      <div class="env" role="group" aria-label="Ambiente">
+        <button type="button" class="is-on" data-env="prod">Produção</button>
+        <button type="button" data-env="sandbox">Sandbox</button>
+      </div>
+      <p class="side-note"><i></i> Região <b>br-sao-1</b> · dados no Brasil</p>
+    </div>
+  </aside>
+
+  <!-- ─────────── main ─────────── -->
+  <main class="main" id="main">
+    <header class="topbar">
+      <button class="side-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" id="sideToggle"><span></span><span></span><span></span></button>
+      <nav class="crumbs" aria-label="Trilha"><a href="../index.html">Trustio</a><span>/</span><a href="#">Voz</a><span>/</span><b>Agentes</b></nav>
+      <div class="topbar-right">
+        <label class="search"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.4"/></svg><input type="search" id="q" placeholder="Buscar agentes…" aria-label="Buscar agentes"></label>
+        <a class="btn btn-ghost" href="../voice.html">Documentação</a>
+        <button class="btn btn-primary" type="button" id="newAgent">Criar agente</button>
+      </div>
+    </header>
+
+    <!-- ── list view ── -->
+    <section class="view" id="listView">
+      <div class="page-head">
+        <div>
+          <h1>Agentes de voz</h1>
+          <p>Cinco agentes em produção no perímetro <b>br-sao-1</b>. Selecione um para editar o playbook, as ferramentas e testar ao vivo.</p>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><b>1.284</b><small>chamadas · 24 h</small></div>
+          <div class="stat"><b>412<em>ms</em></b><small>latência p95</small></div>
+          <div class="stat"><b>92<em>%</em></b><small>resolvidas sem humano</small></div>
+          <div class="stat"><b>0</b><small>bytes fora do perímetro</small></div>
+        </div>
+      </div>
+
+      <div class="filters" role="tablist" aria-label="Filtrar agentes">
+        <button role="tab" aria-selected="true" data-filter="all">Todos <span>5</span></button>
+        <button role="tab" aria-selected="false" data-filter="live" tabindex="-1">Em produção <span>3</span></button>
+        <button role="tab" aria-selected="false" data-filter="draft" tabindex="-1">Rascunho <span>1</span></button>
+        <button role="tab" aria-selected="false" data-filter="paused" tabindex="-1">Pausados <span>1</span></button>
+      </div>
+
+      <div class="tablewrap">
+        <table class="agents" id="agentsTable">
+          <thead><tr>
+            <th scope="col">Agente</th><th scope="col">Modelo</th><th scope="col">Voz</th>
+            <th scope="col">Ferramentas</th><th scope="col">Chamadas 24 h</th><th scope="col">p95</th>
+            <th scope="col">Status</th><th scope="col">Atualizado</th><th><span class="vh">Ações</span></th>
+          </tr></thead>
+          <tbody><!-- rendered by console.js --></tbody>
+        </table>
+      </div>
+      <p class="foot-note">Nomenclatura de modelos da Trustio (<code>trustio-voice-latest</code>, <code>trustio-voice-xAI-fast-2.0</code>); o motor de fala-a-fala por trás é o da xAI. Métricas ilustrativas deste ambiente de demonstração.</p>
+    </section>
+
+    <!-- ── builder view ── -->
+    <section class="view" id="buildView" hidden>
+      <div class="build-head">
+        <button class="back" type="button" id="backBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 3 5 8l4.5 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> Agentes</button>
+        <div class="build-title"><h1 id="bName">Ara</h1><span class="chip" id="bStatus">Em produção</span></div>
+        <div class="build-actions">
+          <span class="saved" id="saved">Salvo automaticamente</span>
+          <button class="btn btn-ghost" type="button" id="revertBtn">Reverter</button>
+          <button class="btn btn-primary" type="button" id="deployBtn">Publicar</button>
+        </div>
+      </div>
+
+      <div class="build-grid">
+        <!-- config -->
+        <div class="cfg">
+          <div class="card">
+            <div class="card-h"><h2>Identidade</h2><span>agent_<span id="bId">7Qk2…Ara</span></span></div>
+            <div class="grid2">
+              <label>Nome<input type="text" id="fName" value="Ara"></label>
+              <label>Setor
+                <select id="fSector"><option>Atendimento</option><option>Vendas</option><option>Cobrança</option><option>Suporte técnico</option><option>Jurídico</option></select>
+              </label>
+              <label>Modelo
+                <select id="fModel">
+                  <option value="trustio-voice-latest">trustio-voice-latest</option>
+                  <option value="trustio-voice-xAI-fast-2.0" selected>trustio-voice-xAI-fast-2.0</option>
+                  <option value="trustio-voice-xAI-fast-1.0">trustio-voice-xAI-fast-1.0 (depreciado)</option>
+                </select>
+              </label>
+              <label>Voz
+                <select id="fVoice"><option>ara</option><option>eve</option><option>leo</option><option>rex</option><option>sal</option><option>voz clonada · Trustio</option></select>
+              </label>
+              <label>Idioma principal
+                <select id="fLang"><option>Português (Brasil)</option><option>Espanhol (LATAM)</option><option>Inglês (US)</option><option>Detecção automática</option></select>
+              </label>
+              <label>Detecção de turno
+                <select id="fVad"><option value="server_vad">server_vad (recomendado)</option><option value="semantic_vad">semantic_vad</option><option value="none">manual</option></select>
+              </label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><h2>Playbook</h2><span id="promptCount">612 caracteres</span></div>
+            <textarea id="fPrompt" rows="12" spellcheck="false">Você é a Ara, agente de voz da Trustio para atendimento.
+
+TOM: calorosa, direta, frases curtas. Fale como uma pessoa ao telefone, nunca como uma URA.
+
+FLUXO
+1. Cumprimente pelo nome quando o número for reconhecido e confirme o motivo da ligação em uma frase.
+2. Consulte o pedido com consultar_pedido(numero). Se o cliente não souber o número, busque por CPF ou e-mail.
+3. Aplique politica_troca() antes de prometer qualquer devolução ou reembolso.
+4. Feche com o protocolo e envie a confirmação por WhatsApp.
+
+LIMITES
+- Nunca leia em voz alta cartão, CPF completo ou senha; confirme apenas os quatro últimos dígitos.
+- Reembolso acima de R$ 500 exige aprovação humana: chame transferir_para_humano(financeiro).
+- Se o cliente pedir para falar com uma pessoa, transfira imediatamente, sem insistir.</textarea>
+            <div class="slider-row">
+              <label>Temperatura <input type="range" id="fTemp" min="0" max="1" step="0.05" value="0.6"><output id="oTemp">0.60</output></label>
+              <label>Velocidade da fala <input type="range" id="fRate" min="0.8" max="1.3" step="0.05" value="1"><output id="oRate">1.00×</output></label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><h2>Ferramentas</h2><span>4 de 12 ativas</span></div>
+            <ul class="tools" id="toolList">
+              <li><label><input type="checkbox" checked><b>consultar_pedido</b><small>REST · ERP interno (VPC)</small></label><span class="tag ok">no perímetro</span></li>
+              <li><label><input type="checkbox" checked><b>politica_troca</b><small>RAG · base de conhecimento</small></label><span class="tag ok">no perímetro</span></li>
+              <li><label><input type="checkbox" checked><b>criar_etiqueta</b><small>MCP · logística</small></label><span class="tag ok">no perímetro</span></li>
+              <li><label><input type="checkbox" checked><b>transferir_para_humano</b><small>SIP · fila financeiro</small></label><span class="tag">telefonia</span></li>
+              <li><label><input type="checkbox"><b>consultar_nota_fiscal</b><small>REST · SEFAZ</small></label><span class="tag warn">externo</span></li>
+              <li><label><input type="checkbox"><b>agendar_visita</b><small>Google Calendar</small></label><span class="tag warn">externo</span></li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><h2>Guardrails</h2><span>LGPD by design</span></div>
+            <ul class="guards">
+              <li><span class="dot ok"></span><b>Mascaramento de PII</b> antes de sair do perímetro <em>obrigatório</em></li>
+              <li><span class="dot ok"></span><b>Gravação e transcrição</b> retidas em br-sao-1 <em>90 dias</em></li>
+              <li><span class="dot ok"></span><b>Aprovação humana</b> acima de R$ 500 <em>ativo</em></li>
+              <li><span class="dot warn"></span><b>Palavras bloqueadas</b> lista da marca <em>3 termos</em></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- test panel -->
+        <aside class="test">
+          <div class="test-card">
+            <div class="test-h"><span class="dot live" id="tDot"></span><span id="tState">Pronto</span><span class="lat" id="tLat">—</span></div>
+            <div class="orb-wrap">
+              <div class="orb" id="testOrb" data-colors="#c9e6ff,#2f7dff,#081a3a" data-glow="#7abeff" data-arch="0" data-hero></div>
+            </div>
+            <p class="test-hint" id="tHint">Toque na esfera para ouvir o agente responder.</p>
+            <div class="test-actions">
+              <button class="btn btn-primary" type="button" id="callBtn">Iniciar teste</button>
+              <a class="btn btn-ghost" href="https://voice.trustio.com.br/credito-jus" rel="noopener">Chamada real ↗</a>
+            </div>
+          </div>
+
+          <div class="test-card">
+            <div class="card-h"><h2>Transcrição</h2><span id="tClock">00:00</span></div>
+            <div class="log" id="tLog" aria-live="polite"><p class="muted">A transcrição aparece aqui durante o teste.</p></div>
+          </div>
+
+          <div class="test-card">
+            <div class="card-h"><h2>Eventos</h2><span>realtime</span></div>
+            <pre class="events" id="tEvents">session.update      · voice=ara, vad=server_vad
+session.created     · br-sao-1
+</pre>
+          </div>
+
+          <div class="test-card">
+            <div class="card-h"><h2>Conectar</h2><span>WebSocket</span></div>
+            <pre class="code"><span class="c">// token efêmero emitido pelo backend Trustio</span>
+<span class="k">const</span> ws = <span class="k">new</span> WebSocket(
+  <span class="s">"wss://voz.trustio.com.br/v1/realtime"</span>,
+  [<span class="s">`trustio-client-secret.${token}`</span>]
+);
+ws.send(JSON.stringify({
+  type: <span class="s">"session.update"</span>,
+  session: { voice: <span class="s">"ara"</span>, turn_detection: { type: <span class="s">"server_vad"</span> } }
+}));</pre>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+</div>
+</body>
+</html>

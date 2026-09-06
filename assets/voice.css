@@ -28,7 +28,7 @@
 .transcript{width:100%;display:grid;gap:8px;pointer-events:none;min-height:96px;align-content:start}
 .transcript span{justify-self:start;max-width:62%;padding:8px 12px;border-radius:12px 12px 12px 4px;background:rgba(11,14,20,.85);border:1px solid var(--line,rgba(160,179,211,.16));font-size:13px;color:#dfe6f2;opacity:0;transform:translateY(8px);animation:tr-in .5s var(--ease,ease) forwards}
 .transcript span.me{justify-self:end;border-radius:12px 12px 4px 12px;background:rgba(37,99,235,.28);border-color:rgba(94,167,255,.3)}
-.transcript span:nth-child(2){animation-delay:2.2s}.transcript span:nth-child(3){animation-delay:4.6s}
+.transcript span:nth-child(2){animation-delay:2.2s}.transcript span:nth-child(3){animation-delay:4.6s}.transcript span:nth-child(4){animation-delay:7s}
 @keyframes tr-in{to{opacity:1;transform:none}}
 
 /* --- Voices --- */

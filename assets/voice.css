@@ -125,3 +125,7 @@
 .br-strip span{color:var(--muted,#a9b4c6);font-size:13px;line-height:1.5}
 @media(max-width:960px){.channels{grid-template-columns:repeat(2,1fr)}.omni-brain{grid-template-columns:1fr}.br-strip{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:520px){.channels,.br-strip{grid-template-columns:1fr}}
+
+/* Passe tipográfico: números e rótulos da página de voz */
+.powered b,.ch b,.br-strip b{letter-spacing:-.015em}
+.bench-card .t,.call .bar,.flow{font-variant-numeric:tabular-nums}

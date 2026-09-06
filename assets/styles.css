@@ -2234,22 +2234,23 @@ h3 { letter-spacing: -0.018em; }
 .insight-rows b { color: var(--ice); font-weight: 500; }
 
 /* Linha de insight para listas e etapas, onde não cabe um bloco inteiro. */
+/* Sempre visível: é conteúdo real, e nos cards sem link não existe
+   descendente focável — esconder no hover deixaria quem navega por
+   teclado sem acesso a ele. O hover apenas destaca. */
 .insight-line {
   margin: 10px 0 0;
-  color: var(--blue-signal);
+  color: var(--label-color);
   font-family: var(--mono);
   font-size: var(--label);
   line-height: 1.5;
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 240ms var(--ease), transform 240ms var(--ease);
+  transition: color 240ms ease;
 }
 
 .has-insight:hover .insight-line,
-.has-insight:focus-within .insight-line { opacity: 1; transform: none; }
+.has-insight:focus-within .insight-line { color: var(--blue-signal); }
 
 @media (hover: none) {
-  .insight, .insight-line { opacity: 1; transform: none; }
+  .insight { opacity: 1; transform: none; }
 }
 
 /* Card inteiro clicável: o link cobre o card sem aninhar links no conteúdo. */

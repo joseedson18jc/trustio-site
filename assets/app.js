@@ -284,7 +284,19 @@ if (serverPanel) {
 
 // Contact card: copy the e-mail address without depending on a configured mail client.
 document.querySelectorAll(".copy-email[data-copy]").forEach((button) => {
+  const row = button.closest(".contact-email-row");
+  const status = row?.querySelector("[data-copy-status]");
+  const address = row?.querySelector(".contact-email");
+  const idleLabel = "Copiar endereço de e-mail";
   let resetTimer = 0;
+
+  function setState(state, label, announcement) {
+    button.classList.remove("is-copied", "is-failed");
+    if (state) button.classList.add(state);
+    button.setAttribute("aria-label", label);
+    if (status) status.textContent = announcement;
+  }
+
   button.addEventListener("click", async () => {
     const value = button.dataset.copy;
     let copied = false;
@@ -302,13 +314,21 @@ document.querySelectorAll(".copy-email[data-copy]").forEach((button) => {
       try { copied = document.execCommand("copy"); } catch { copied = false; }
       scratch.remove();
     }
-    if (!copied) return;
-    button.classList.add("is-copied");
-    button.setAttribute("aria-label", "E-mail copiado");
+
     window.clearTimeout(resetTimer);
-    resetTimer = window.setTimeout(() => {
-      button.classList.remove("is-copied");
-      button.setAttribute("aria-label", "Copiar endereço de e-mail");
-    }, 2200);
+    if (copied) {
+      setState("is-copied", "E-mail copiado", "Endereço de e-mail copiado.");
+    } else {
+      // Nothing we can write to the clipboard: say so, and leave the address selected so a manual copy works.
+      setState("is-failed", "Não foi possível copiar. Selecione o endereço ao lado.", "Não foi possível copiar automaticamente. O endereço foi selecionado para você copiar.");
+      if (address && window.getSelection) {
+        const range = document.createRange();
+        range.selectNodeContents(address);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+    resetTimer = window.setTimeout(() => setState("", idleLabel, ""), copied ? 2200 : 4000);
   });
 });

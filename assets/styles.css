@@ -1212,9 +1212,14 @@ p {
 .copy-email:hover { background: rgba(255,255,255,.16); }
 .copy-email svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .copy-email.is-copied { background: rgba(107, 201, 107, .22); }
-.copy-email .copy-label-done { display: none; }
-.copy-email.is-copied .copy-label { display: none; }
-.copy-email.is-copied .copy-label-done { display: inline; }
+.copy-email.is-failed { background: rgba(245, 115, 115, .26); }
+.copy-email .copy-label-done,
+.copy-email .copy-label-failed { display: none; }
+.copy-email.is-copied .copy-label,
+.copy-email.is-failed .copy-label { display: none; }
+.copy-email.is-copied .copy-label-done,
+.copy-email.is-failed .copy-label-failed { display: inline; }
+.contact-email::selection { background: rgba(255,255,255,.35); color: #ffffff; }
 
 .home-page .contact { padding-block: 0; }
 .home-page .contact-card {
@@ -1955,11 +1960,11 @@ html { scrollbar-color: #1c2739 var(--abyss); }
 .server-wordmark { color: #f5f7fa; font-family: var(--display); font-size: clamp(22px, 4.2vw, 52px); font-weight: 800; letter-spacing: -0.04em; white-space: nowrap; }
 .server-wordmark span { color: var(--blue-signal); animation: serverIoGlow 4.5s ease-in-out infinite; animation-delay: 1.05s; animation-play-state: paused; }
 .server-panel.is-live .server-wordmark span { animation-play-state: running; }
-.server-tag { max-width: 18ch; color: rgba(148, 197, 255, 0.82); font-family: var(--mono); font-size: var(--label); letter-spacing: 0.18em; line-height: 1.4; text-align: center; text-transform: uppercase; }
+.server-tag { color: rgba(148, 197, 255, 0.82); font-family: var(--mono); font-size: var(--label); letter-spacing: 0.18em; line-height: 1.4; text-align: center; text-transform: uppercase; white-space: nowrap; }
 @keyframes serverLedPulse { 0% { transform: scale(1); background: #2e3542; box-shadow: none; } 4% { transform: scale(1.45); background: var(--blue-signal); box-shadow: 0 0 8px 2px rgba(94, 167, 255, 0.95), 0 0 18px 5px rgba(94, 167, 255, 0.4); } 16%, 100% { transform: scale(1); background: #2e3542; box-shadow: none; } }
 @keyframes serverIoGlow { 0% { text-shadow: 0 0 6px rgba(94, 167, 255, 0.18); } 6% { text-shadow: 0 0 22px rgba(94, 167, 255, 0.95), 0 0 46px rgba(94, 167, 255, 0.5); } 22%, 100% { text-shadow: 0 0 6px rgba(94, 167, 255, 0.18); } }
 @keyframes serverSensorPulse { 0%, 100% { transform: scale(1); opacity: 0.55; box-shadow: 0 0 10px 3px rgba(94, 167, 255, 0.45); } 50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 24px 8px rgba(94, 167, 255, 0.9); } }
-@media (max-width: 640px) { .server-panel { aspect-ratio: 1040 / 430; } }
+@media (max-width: 640px) { .server-panel { aspect-ratio: 1040 / 430; } .server-tag { max-width: 14ch; white-space: normal; } }
 @media (prefers-reduced-motion: reduce) { .server-led, .server-wordmark span, .server-sensor { animation: none !important; } }
 
 /* ---------- Modelos Poderosos (modelos.html) ---------- */

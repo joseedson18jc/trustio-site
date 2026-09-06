@@ -37,6 +37,11 @@ const sourceFiles = [
   "manifesto.html",
   "fundador.html",
   "juridico/index.html",
+  "voice.html",
+  "planos.html",
+  "planos-teste.html",
+  "obrigado.html",
+  "console/index.html",
   "404.html",
   "robots.txt",
   "sitemap.xml",
@@ -108,6 +113,9 @@ export default {
     if (path === "/") path = "/index.html";
     if (path === "/manifesto" || path === "/manifesto/") path = "/manifesto.html";
     if (path === "/juridico" || path === "/juridico/") path = "/juridico/index.html";
+    if (path === "/voice" || path === "/voice/") path = "/voice.html";
+    if (path === "/planos" || path === "/planos/") path = "/planos.html";
+    if (path === "/console" || path === "/console/") path = "/console/index.html";
 
     const file = FILES[path];
     if (file) return respond(request, file);

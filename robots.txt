@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /console/
+Disallow: /planos-teste.html
+Disallow: /obrigado.html
 
 Sitemap: https://trustio.com.br/sitemap.xml

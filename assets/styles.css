@@ -268,7 +268,7 @@ p {
 .desktop-nav {
   display: flex;
   align-items: center;
-  gap: clamp(20px, 2.5vw, 38px);
+  gap: clamp(16px, 1.6vw, 30px);
 }
 
 .desktop-nav a {
@@ -276,8 +276,11 @@ p {
   color: var(--muted-strong);
   font-size: 14px;
   font-weight: 500;
+  white-space: nowrap;
   transition: color 180ms ease;
 }
+
+.header-cta { white-space: nowrap; }
 
 .desktop-nav a::after {
   position: absolute;
@@ -1746,10 +1749,14 @@ html { scrollbar-color: #1c2739 var(--abyss); }
 }
 
 /* Responsive */
-@media (max-width: 1060px) {
+/* With eight items the desktop menu needs ~1240px; below that the hamburger takes over (matches app.js). */
+@media (max-width: 1240px) {
   .desktop-nav { display: none; }
   .menu-toggle { display: block; }
   .header-cta { margin-left: auto; }
+}
+
+@media (max-width: 1060px) {
   .hero { min-height: auto; }
   .hero-grid { grid-template-columns: 1fr; }
   .hero-copy { max-width: 850px; }
@@ -2067,3 +2074,78 @@ html { scrollbar-color: #1c2739 var(--abyss); }
   .model-grid { grid-template-columns: 1fr; }
   .models-hero h1 { font-size: clamp(40px, 13vw, 60px); }
 }
+
+/* VoiceAI menu label */
+.nav-voice small{display:inline-block;white-space:nowrap;font-family:var(--mono);font-size:var(--label);letter-spacing:.1em;text-transform:uppercase;color:var(--blue-signal);margin-left:6px;vertical-align:middle}
+.mobile-nav .nav-voice small{font-size:var(--label-lg)}
+
+
+/* ---------- Seats banner — segunda dobra da home ---------- */
+/* Campo de pontos em CSS puro de proposito: o hero ja roda um <canvas>
+   animado, e duplicar aquele canvas devolveria o custo de CPU que a
+   auditoria de performance removeu. */
+.seats-banner {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid rgba(160, 179, 211, 0.12);
+  border-bottom: 1px solid rgba(160, 179, 211, 0.12);
+  background: #070a10;
+}
+
+.seats-field {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(94, 167, 255, 0.30) 1px, transparent 1.7px),
+    radial-gradient(circle at 50% 44%, rgba(37, 99, 235, 0.20), transparent 64%);
+  background-size: 34px 34px, 100% 100%;
+  background-position: center center, center center;
+  -webkit-mask-image: radial-gradient(circle at 50% 48%, #000 0, rgba(0, 0, 0, 0.6) 44%, transparent 78%);
+  mask-image: radial-gradient(circle at 50% 48%, #000 0, rgba(0, 0, 0, 0.6) 44%, transparent 78%);
+  pointer-events: none;
+}
+
+.seats-inner {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.seats-banner .eyebrow { justify-content: center; }
+
+.seats-banner h2 {
+  max-width: none;
+  margin: 32px auto 26px;
+  font-size: clamp(38px, 5.3vw, 76px);
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+  text-wrap: balance;
+  text-shadow: 0 0 90px rgba(37, 99, 235, 0.12);
+}
+
+.seats-banner h2 span {
+  display: block;
+  background: linear-gradient(105deg, #f4f6fa 10%, #b9d8ff 52%, var(--blue-signal) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.seats-banner .hero-lead {
+  max-width: 720px;
+  margin: 36px auto 32px;
+  font-size: clamp(17px, 1.7vw, 21px);
+}
+
+.seats-banner .hero-actions { justify-content: center; }
+.seats-banner .hero-signals { margin-top: 40px; }
+
+@media (max-width: 700px) {
+  .seats-banner h2 { margin: 26px auto 22px; font-size: clamp(34px, 9.2vw, 52px); line-height: 1.02; }
+  .seats-banner .hero-lead { margin: 28px auto 26px; }
+  .seats-banner .hero-signals { margin-top: 32px; }
+}
+
+/* Home capability card: link to the VoiceAI page */
+.capability-link { position: relative; z-index: 2; margin-top: 18px; color: var(--blue-signal); font-size: 14px; }
+.capability-link:hover { color: var(--ice); }

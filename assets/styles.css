@@ -2149,3 +2149,39 @@ html { scrollbar-color: #1c2739 var(--abyss); }
 /* Home capability card: link to the VoiceAI page */
 .capability-link { position: relative; z-index: 2; margin-top: 18px; color: var(--blue-signal); font-size: 14px; }
 .capability-link:hover { color: var(--ice); }
+
+/* ---------- Passe tipográfico: ajuste óptico do Geist ---------- */
+/* O Geist é uma fonte variável (100–900). Desligar a síntese faz o navegador
+   usar os pesos reais do arquivo em vez de engrossar o traço artificialmente,
+   e o optical sizing ajusta o desenho ao corpo em que a letra é usada. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-optical-sizing: auto;
+  font-synthesis: none;
+  line-height: 1.65;
+}
+
+/* Tracking óptico: quanto maior o corpo, mais fechado o espacejamento.
+   Um valor único para todos os títulos deixa o H1 solto e o H3 apertado. */
+h1 { letter-spacing: -0.042em; }
+h2 { letter-spacing: -0.032em; }
+h3 { letter-spacing: -0.018em; }
+
+/* Texto corrido: medida confortável e quebra sem palavra órfã na última linha. */
+.hero-lead,
+.legal-lead,
+.statement-content > p,
+.section-heading > p,
+.security-copy > p,
+.manifesto-intro { max-width: 68ch; }
+
+/* Algarismos de largura fixa: números alinham em coluna e não dançam ao animar. */
+.metric-value,
+.evidence-metrics strong,
+.footer-bottom p,
+.contact-card .price,
+.api-terminal { font-variant-numeric: tabular-nums; }

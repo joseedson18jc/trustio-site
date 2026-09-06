@@ -8,11 +8,11 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
-  <title>VoiceAI powered by xSpace | Trustio — agentes de voz privados no Brasil</title>
-  <meta name="description" content="Agentes de voz humanos e rápidos com os modelos Grok Voice da xAI, orquestrados pela Trustio: telefonia, ferramentas, guardrails e gravações hospedadas no Brasil.">
+  <title>VoiceAI powered by xSpace | Trustio — agentes omnicanal de voz e texto no Brasil</title>
+  <meta name="description" content="Agentes omnicanal: voz, WhatsApp, Telegram, e-mail, SMS, iMessage e agenda. Modelos Grok Voice da xAI orquestrados pela Trustio, com telefonia, guardrails e registros hospedados no Brasil.">
   <link rel="canonical" href="https://trustio.com.br/voice.html">
   <meta property="og:type" content="website"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="Trustio">
-  <meta property="og:title" content="Trustio VoiceAI · powered by xSpace"><meta property="og:description" content="Agentes de voz que resolvem de verdade. Em português, no seu perímetro.">
+  <meta property="og:title" content="Trustio VoiceAI · powered by xSpace"><meta property="og:description" content="Um agente, todos os canais: voz, WhatsApp, Telegram, e-mail, SMS e agenda. Em português do Brasil, no seu perímetro.">
   <meta property="og:url" content="https://trustio.com.br/voice.html"><meta property="og:image" content="https://trustio.com.br/assets/social-card.png">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon-32.png" sizes="32x32">
@@ -25,7 +25,7 @@
   <script defer src="assets/orb.js"></script>
   <script defer src="assets/voice.js"></script>
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"Product","name":"Trustio VoiceAI","description":"Agentes de voz com modelos Grok Voice da xAI, orquestrados e hospedados no Brasil pela Trustio.","brand":{"@type":"Organization","name":"Trustio"},"url":"https://trustio.com.br/voice.html","isRelatedTo":{"@type":"Product","name":"Grok Voice","brand":{"@type":"Organization","name":"xAI"}}}
+  {"@context":"https://schema.org","@type":"Product","name":"Trustio VoiceAI","description":"Agentes omnicanal de voz e texto (telefone, WhatsApp, Telegram, e-mail, SMS, iMessage e agenda) com modelos Grok Voice da xAI, orquestrados e hospedados no Brasil pela Trustio.","brand":{"@type":"Organization","name":"Trustio"},"url":"https://trustio.com.br/voice.html","isRelatedTo":{"@type":"Product","name":"Grok Voice","brand":{"@type":"Organization","name":"xAI"}}}
   </script>
 </head>
 <body class="voice-page">
@@ -74,30 +74,105 @@
   <section class="voice-hero section-shell" aria-labelledby="voice-title">
     <div class="container voice-hero-grid">
       <div>
-        <span class="beta"><i></i> VoiceAI · powered by xSpace · Beta</span>
-        <h1 id="voice-title">Agentes de voz que resolvem de verdade.<span>Em português, no seu perímetro.</span></h1>
-        <p class="lead">Construa, ajuste e implante agentes de voz humanos e rápidos — com os modelos Grok Voice da xAI e a camada de controle da Trustio: telefonia, ferramentas, guardrails e registros hospedados no Brasil.</p>
+        <span class="beta"><i></i> VoiceAI · powered by xSpace · Omnicanal</span>
+        <h1 id="voice-title">Agentes que resolvem de verdade.<span>Por voz, por texto, em todo canal.</span></h1>
+        <p class="lead">VoiceAI não é só voz. É o mesmo agente atendendo a ligação, respondendo no WhatsApp, escrevendo o e-mail e confirmando na agenda — com os modelos Grok Voice da xAI e a camada de controle da Trustio: telefonia, ferramentas, guardrails e registros hospedados no Brasil.</p>
         <div class="voice-actions">
           <a class="button button-primary" href="console/">Abrir o Agent Builder <span aria-hidden="true">↗</span></a>
           <a class="button button-outline" href="#demo" data-demo>Ouvir o agente <span aria-hidden="true">▶</span></a>
           <a class="button button-outline" href="https://voice.trustio.com.br/credito-jus" rel="noopener">Chamada real <span aria-hidden="true">↗</span></a>
           <a class="text-link" href="#contato">Planejar uma implantação <span aria-hidden="true">↗</span></a>
         </div>
-        <div class="powered"><span>Modelo de voz <b>Grok Voice · xAI</b></span><span>Orquestração <b>Trustio</b></span><span>Latência <b>&lt; 1 s</b></span><span>Idiomas <b>25+</b></span></div>
+        <div class="powered"><span>Modelo de voz <b>Grok Voice · xAI</b></span><span>Orquestração <b>Trustio</b></span><span>Canais <b>8</b></span><span>Latência <b>&lt; 1 s</b></span><span>Idiomas <b>25+</b></span></div>
       </div>
       <div class="orb-stage" id="demo">
-        <div class="transcript" aria-hidden="true"><span class="me">Oi, preciso remarcar minha consulta.</span><span>Claro. Tenho quinta às 10h ou sexta às 15h. Qual prefere?</span><span class="me">Quinta às 10h.</span></div>
+        <div class="transcript" aria-hidden="true"><span class="me">Oi, preciso remarcar minha consulta.</span><span>Claro. Tenho quinta às 10h ou sexta às 15h. Qual prefere?</span><span class="me">Quinta às 10h.</span><span>Marcado. Mandei a confirmação no seu WhatsApp e coloquei na sua agenda.</span></div>
         <div class="orb" data-hero-orb data-console="console/" data-colors="#bfe0ff,#2563eb,#081536" data-glow="#5ea7ff" data-arch="0" role="link" tabindex="0" aria-label="Abrir o Agent Builder da Trustio"></div>
         <div class="orb-caption"><b data-caption>Toque na esfera para abrir o Agent Builder</b>Console · criar, ajustar e testar agentes</div>
       </div>
     </div>
   </section>
 
+
+  <section class="vsec" id="canais" aria-labelledby="omni-title">
+    <div class="container">
+      <div class="head">
+        <div><p class="section-kicker">Não é só voz</p><h2 id="omni-title">Um agente. Todos os canais.</h2></div>
+        <p>VoiceAI começa no telefone e não para nele. O cliente liga, some, volta no WhatsApp e responde um e-mail dois dias depois — para o agente, é a mesma conversa. Um playbook, uma memória, um registro.</p>
+      </div>
+
+      <div class="channels" role="list">
+        <article class="ch" role="listitem">
+          <img src="assets/connectors/phone.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
+          <b>Ligação de voz</b>
+          <small>Números locais com o DDD da sua cidade. Recebe e faz chamadas, com transferência para humano.</small>
+        </article>
+        <article class="ch" role="listitem">
+          <img src="assets/connectors/whatsapp.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
+          <b>WhatsApp</b>
+          <small>O canal que o Brasil usa. Texto, áudio e documentos na API oficial de negócios.</small>
+        </article>
+        <article class="ch" role="listitem">
+          <img src="assets/connectors/telegram.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
+          <b>Telegram</b>
+          <small>Bots e grupos atendidos pelo mesmo agente, com as mesmas permissões.</small>
+        </article>
+        <article class="ch" role="listitem">
+          <img src="assets/connectors/gmail.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
+          <b>Gmail</b>
+          <small>Lê, responde e encaminha na caixa da empresa, com rascunho para aprovação quando você quiser.</small>
+        </article>
+        <article class="ch" role="listitem">
+          <img src="assets/connectors/outlook.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
+          <b>Outlook</b>
+          <small>Microsoft 365 com as mesmas regras, filas e registros da operação.</small>
+        </article>
+        <article class="ch" role="listitem">
+          <img src="assets/connectors/calendar.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
+          <b>Agenda</b>
+          <small>Google Calendar e Outlook: agenda, remarca, confirma e evita o no-show.</small>
+        </article>
+        <article class="ch" role="listitem">
+          <img src="assets/connectors/imessage.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
+          <b>iMessage</b>
+          <small>Mensagens Apple com o nome da sua marca no lugar de um número desconhecido.</small>
+        </article>
+        <article class="ch" role="listitem">
+          <img src="assets/connectors/sms.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
+          <b>SMS</b>
+          <small>Confirmações, códigos e avisos onde não há internet nem aplicativo.</small>
+        </article>
+      </div>
+
+      <div class="omni-brain">
+        <div>
+          <h3>Um cérebro, muitos canais.</h3>
+          <p>Cada canal costuma virar uma ferramenta, uma equipe e uma regra diferente. Aqui não: o agente é definido uma vez e aparece em todos eles.</p>
+          <ul class="points">
+            <li><span><b>Um playbook.</b> A mesma política de atendimento na ligação e no WhatsApp.</span></li>
+            <li><span><b>Uma memória.</b> O que foi dito por voz continua valendo no e-mail seguinte.</span></li>
+            <li><span><b>As mesmas ferramentas.</b> CRM, ERP e bases internas por MCP, com as mesmas permissões.</span></li>
+            <li><span><b>Um registro.</b> Gravações, transcrições e eventos de todos os canais na mesma trilha de auditoria.</span></li>
+          </ul>
+        </div>
+        <div class="flow" aria-label="Fluxo omnicanal">
+          <div><span>Voz · WhatsApp · Telegram · E-mail · SMS</span><small>canais</small></div>
+          <div class="core"><span>Trustio · playbook, memória, guardrails</span><small>BR</small></div>
+          <div class="ext"><span>xAI · Grok Voice (fala ↔ fala)</span><small>modelo</small></div>
+          <div class="core"><span>Ferramentas · CRM, agenda, registros</span><small>BR</small></div>
+          <div><span>Humano · transferência com contexto</span><small>quando preciso</small></div>
+        </div>
+      </div>
+
+      <p class="disclaimer">Marcas de terceiros usadas apenas para identificar os canais integrados (uso nominativo); não indicam parceria ou endosso. A disponibilidade de cada canal depende dos termos do provedor e da arquitetura contratada. Telefonia com numeração local prestada por operadoras autorizadas pela Anatel.</p>
+    </div>
+  </section>
+
   <section class="vsec" aria-labelledby="voices-title">
     <div class="container">
       <div class="head">
-        <div><p class="section-kicker">Vozes expressivas</p><h2 id="voices-title">Vozes que conversam. Não uma URA.</h2></div>
-        <p>Calorosas, expressivas e rápidas no improviso. Escolha entre as vozes Grok da xAI ou clone a voz da sua marca a partir de dois minutos de áudio. Toque em uma esfera para ouvir uma prévia.</p>
+        <div><p class="section-kicker">Sotaque e cultura</p><h2 id="voices-title">Soa brasileiro. Não soa traduzido.</h2></div>
+        <p>Calorosas, expressivas e rápidas no improviso — falando português do Brasil de verdade, não um texto vertido do inglês. Escolha entre as vozes Grok da xAI ou clone a voz da sua marca a partir de dois minutos de áudio. Toque em uma esfera para ouvir uma prévia.</p>
       </div>
       <div class="voices" role="list">
         <div class="voice" role="listitem" tabindex="0" data-voice="ara" data-sample="Oi, eu sou a Ara. Posso ajudar com o seu pedido, com a sua fatura ou com um agendamento. O que você precisa hoje?"><div class="orb ice" data-bg="#0b0e14" data-colors="#c9e6ff,#2f7dff,#081a3a" data-glow="#7abeff"></div><b>Ara</b><small>Acolhedora e clara. Atendimento e recepção.</small><span class="play">▶ Ouvir</span></div>
@@ -105,6 +180,12 @@
         <div class="voice" role="listitem" tabindex="0" data-voice="leo" data-sample="Boa tarde, sou o Leo. Confirmo o pagamento de duzentos e trinta reais recebido hoje. Posso enviar o comprovante por e-mail?"><div class="orb amber" data-bg="#0b0e14" data-colors="#ffe4a8,#ff9a3c,#3a1606" data-glow="#ffb454"></div><b>Leo</b><small>Firme e tranquilo. Cobrança e confirmações.</small><span class="play">▶ Ouvir</span></div>
         <div class="voice" role="listitem" tabindex="0" data-voice="rex" data-sample="Aqui é o Rex. Sua ocorrência foi registrada com prioridade alta. Um técnico entra em contato em até duas horas."><div class="orb mint" data-bg="#0b0e14" data-colors="#c6fff0,#22c48f,#052a1e" data-glow="#3ddc97"></div><b>Rex</b><small>Grave e objetivo. Suporte técnico.</small><span class="play">▶ Ouvir</span></div>
         <div class="voice" role="listitem" tabindex="0" data-voice="sal" data-sample="Olá, sou a Sal. Encontrei três decisões recentes do STJ sobre o tema. Quer o resumo agora ou por e-mail?"><div class="orb rose" data-bg="#0b0e14" data-colors="#ffd0dd,#ff4f8a,#33081a" data-glow="#ff7aa8"></div><b>Sal</b><small>Precisa e discreta. Jurídico e pesquisa.</small><span class="play">▶ Ouvir</span></div>
+      </div>
+      <div class="br-strip">
+        <div><b>Ritmo e sotaque do Brasil</b><span>Prosódia brasileira, com sotaque neutro ou regional conforme o público que atende.</span></div>
+        <div><b>Números como a gente fala</b><span>“Mil duzentos e trinta e quatro reais e cinquenta e seis” — não “um dois três quatro”.</span></div>
+        <div><b>Vocabulário daqui</b><span>Pix, boleto, CPF, CNPJ, DDD, segunda via, parcelamento: termos que o agente já entende e usa.</span></div>
+        <div><b>Trato certo</b><span>Você ou senhor, formal ou próximo, feriados e horário comercial brasileiros por regra.</span></div>
       </div>
       <p class="disclaimer">Prévias geradas com vozes neurais (clipes de 7 s); em produção, as vozes são geradas em tempo real pelos modelos Grok Voice da xAI. Nomes de vozes são da biblioteca xAI.</p>
     </div>
@@ -212,6 +293,7 @@
         <article><h3>Fala para texto</h3><p>Transcrição de chamadas, reuniões e vídeos, em lote ou ao vivo.</p><b>Transcrição</b></article>
         <article><h3>Texto para fala</h3><p>Voz natural e expressiva em 25+ idiomas.</p><b>Síntese</b></article>
         <article><h3>Clonagem de voz</h3><p>A voz da sua marca a partir de dois minutos de áudio.</p><b>Voz própria</b></article>
+        <article><h3>Mensageria</h3><p>WhatsApp, Telegram, SMS, iMessage e e-mail com o mesmo agente.</p><b>Omnicanal</b></article>
         <article><h3>Tradução ao vivo</h3><p>Fale em um idioma e seja ouvido em outro.</p><b>Em breve</b></article>
       </div>
       <p class="disclaimer">Preços dos modelos xAI conforme tabela pública da xAI; o plano Trustio inclui orquestração, telefonia e hospedagem no Brasil — veja <a href="planos.html">Planos</a> ou solicite uma proposta.</p>
@@ -221,7 +303,7 @@
   <section class="vsec" id="contato" aria-labelledby="cta-title">
     <div class="container">
       <div class="voice-cta">
-        <div><p class="section-kicker">O próximo passo</p><h2 id="cta-title">Coloque um agente de voz no ar em duas semanas.</h2><p>Conte o fluxo — atendimento, vendas, cobrança, agendamento. Voltamos com o playbook, a voz e a arquitetura privada para rodá-lo.</p>
+        <div><p class="section-kicker">O próximo passo</p><h2 id="cta-title">Coloque um agente omnicanal no ar em duas semanas.</h2><p>Conte o fluxo — atendimento, vendas, cobrança, agendamento — e em quais canais ele acontece. Voltamos com o playbook, a voz e a arquitetura privada para rodá-lo.</p>
           <div class="acts"><a class="button button-light" href="console/">Construir meu agente <span aria-hidden="true">↗</span></a><a class="button button-outline" href="https://voice.trustio.com.br/credito-jus" rel="noopener">Chamada real <span aria-hidden="true">↗</span></a><a class="button button-outline" href="mailto:contato@trustio.com.br?subject=VoiceAI%20Trustio%20%E2%80%94%20planejar%20agente%20de%20voz">Planejar meu agente</a><a class="button button-outline" href="planos.html">Ver planos</a></div></div>
         <div class="orb" data-colors="#ffffff,#9ad0ff,#0b1730" data-glow="#dfe9ff" data-bg="#1b48b8" data-arch="2" data-fps="30"></div>
       </div>

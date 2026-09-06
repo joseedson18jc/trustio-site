@@ -2185,3 +2185,83 @@ h3 { letter-spacing: -0.018em; }
 .footer-bottom p,
 .contact-card .price,
 .api-terminal { font-variant-numeric: tabular-nums; }
+
+/* ---------- Cards interativos: insight ao passar o mouse ---------- */
+/* O insight ocupa o espaço dele desde o carregamento e só muda de opacidade,
+   então o hover nunca empurra o layout. Onde não há mouse, ele já aparece. */
+.has-insight { position: relative; }
+
+.insight {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 240ms var(--ease), transform 240ms var(--ease);
+}
+
+.has-insight:hover .insight,
+.has-insight:focus-within .insight { opacity: 1; transform: none; }
+
+.insight-label {
+  margin: 0;
+  color: var(--blue-signal);
+  font-family: var(--mono);
+  font-size: var(--label);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.insight p { margin: 0; color: var(--muted-strong); font-size: 13.5px; line-height: 1.5; }
+.insight .note { color: var(--label-color); font-family: var(--mono); font-size: var(--label); }
+
+.insight-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.insight-chips span {
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(94, 167, 255, 0.07);
+  color: #c3ccdb;
+  font-family: var(--mono);
+  font-size: var(--label);
+  letter-spacing: 0.06em;
+}
+
+.insight-rows { display: grid; gap: 5px; font-family: var(--mono); font-size: var(--label); color: var(--label-color); }
+.insight-rows div { display: flex; justify-content: space-between; gap: 12px; }
+.insight-rows b { color: var(--ice); font-weight: 500; }
+
+/* Linha de insight para listas e etapas, onde não cabe um bloco inteiro. */
+.insight-line {
+  margin: 10px 0 0;
+  color: var(--blue-signal);
+  font-family: var(--mono);
+  font-size: var(--label);
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 240ms var(--ease), transform 240ms var(--ease);
+}
+
+.has-insight:hover .insight-line,
+.has-insight:focus-within .insight-line { opacity: 1; transform: none; }
+
+@media (hover: none) {
+  .insight, .insight-line { opacity: 1; transform: none; }
+}
+
+/* Card inteiro clicável: o link cobre o card sem aninhar links no conteúdo. */
+.has-link { cursor: pointer; }
+.card-link { position: absolute; inset: 0; z-index: 4; border-radius: inherit; }
+.card-link:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: -3px; }
+.has-link:hover { border-color: var(--line-bright); }
+
+/* O grafismo decorativo recua para o insight aparecer no lugar dele. */
+.capability-card .card-visual { transition: opacity 300ms ease; }
+.capability-card:hover .card-visual { opacity: 0.18; }
+
+/* Famílias de card que também revelam uma linha de insight. */
+.ch, .legal-feature-card, .model-card { position: relative; }
+.ch .insight-line, .legal-feature-card .insight-line, .model-card .insight-line { margin-top: 8px; }

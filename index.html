@@ -164,20 +164,42 @@
         </div>
       </div>
       <div class="container principle-grid">
-        <article class="principle-card reveal">
+        <article class="principle-card has-insight has-link reveal">
+          <a class="card-link" href="#seguranca" aria-label="Ver como a Trustio protege os dados"></a>
           <span class="card-number">01</span>
           <h3>Seus dados permanecem seus</h3>
           <p>Processamento em ambientes privados e isolados, com arquitetura definida de acordo com as políticas da organização.</p>
+                  <div class="insight">
+          <p class="insight-label">Perímetro</p>
+          <p>Ambiente dedicado e hospedado no Brasil. Acesso, retenção e descarte seguem a política da sua empresa.</p>
+          <div class="insight-chips"><span>AMBIENTE DEDICADO</span><span>DADOS NO BRASIL</span><span>LGPD BY DESIGN</span></div>
+          </div>
         </article>
-        <article class="principle-card reveal reveal-delay-1">
+        <article class="principle-card has-insight has-link reveal reveal-delay-1">
+          <a class="card-link" href="modelos.html" aria-label="Ver o catálogo de modelos"></a>
           <span class="card-number">02</span>
           <h3>Escolha sem aprisionamento</h3>
           <p>Use o modelo mais adequado a cada caso e preserve a liberdade para evoluir sua arquitetura ao longo do tempo.</p>
+                  <div class="insight">
+          <p class="insight-label">Modelos</p>
+          <p>Troque de modelo sem reescrever código: os endpoints seguem o padrão OpenAI.</p>
+          <div class="insight-chips"><span>GPT</span><span>CLAUDE</span><span>KIMI</span><span>ABERTOS</span></div>
+          </div>
         </article>
-        <article class="principle-card reveal reveal-delay-2">
+        <article class="principle-card has-insight has-link reveal reveal-delay-2">
+          <a class="card-link" href="#seguranca" aria-label="Ver os controles de governança"></a>
           <span class="card-number">03</span>
           <h3>Governança incorporada</h3>
           <p>Controles, rastreabilidade e observabilidade fazem parte da implantação, não de uma correção posterior.</p>
+                  <div class="insight">
+          <p class="insight-label">Trilha de auditoria</p>
+          <div class="insight-rows">
+            <div><span>09:41 · acesso concedido</span><b>analista</b></div>
+            <div><span>09:41 · chamada registrada</span><b>modelo</b></div>
+            <div><span>09:42 · aprovação humana</span><b>publicação</b></div>
+          </div>
+          <p class="note">Exemplo ilustrativo dos eventos registrados.</p>
+          </div>
         </article>
       </div>
     </section>
@@ -192,7 +214,8 @@
       </div>
 
       <div class="container capability-grid">
-        <article class="capability-card capability-featured reveal">
+        <article class="capability-card has-insight has-link capability-featured reveal">
+          <a class="card-link" href="#api" aria-label="Ver a compatibilidade de API"></a>
           <div class="capability-icon" aria-hidden="true">
             <svg viewBox="0 0 32 32"><path d="M5 9.5 16 4l11 5.5v13L16 28 5 22.5v-13Z"/><path d="m5 9.5 11 5.6 11-5.6M16 15.1V28"/></svg>
           </div>
@@ -207,43 +230,75 @@
           <div class="card-visual nodes-visual" aria-hidden="true">
             <i></i><i></i><i></i><i></i><i></i>
           </div>
+                  <div class="insight">
+          <p class="insight-label">Compatibilidade</p>
+          <p>Endpoints no padrão OpenAI: os SDKs oficiais e frameworks como LangChain funcionam sem adaptação.</p>
+          </div>
         </article>
 
-        <article class="capability-card reveal reveal-delay-1">
+        <article class="capability-card has-insight has-link reveal reveal-delay-1">
+          <a class="card-link" href="/juridico/#capacidades" aria-label="Ver RAG sobre acervos"></a>
           <div class="capability-icon" aria-hidden="true">
             <svg viewBox="0 0 32 32"><circle cx="14" cy="14" r="8"/><path d="m20 20 7 7M10 11h8M10 15h6"/></svg>
           </div>
           <span class="capability-tag">KNOWLEDGE</span>
           <h3>RAG e busca inteligente</h3>
           <p>Transforme documentos e bases internas em respostas contextualizadas, com acesso controlado à informação.</p>
+                  <div class="insight">
+          <p class="insight-label">Pipeline</p>
+          <div class="insight-chips"><span>INDEXAR</span><span>RECUPERAR</span><span>CITAR</span></div>
+          <p>Cada pessoa recupera apenas o que tem permissão para ver.</p>
+          </div>
         </article>
 
-        <article class="capability-card reveal reveal-delay-2">
+        <article class="capability-card has-insight has-link reveal reveal-delay-2">
+          <a class="card-link" href="/juridico/#capacidades" aria-label="Ver agentes em operação"></a>
           <div class="capability-icon" aria-hidden="true">
             <svg viewBox="0 0 32 32"><path d="M8 9h16v12H13l-5 5V9Z"/><path d="M12 13h8M12 17h5"/></svg>
           </div>
           <span class="capability-tag">AUTOMATION</span>
           <h3>Agentes corporativos</h3>
           <p>Automatize fluxos com agentes conectados a sistemas, políticas e dados autorizados pela sua empresa.</p>
+                  <div class="insight">
+          <p class="insight-label">Fluxo do agente</p>
+          <div class="insight-chips"><span>GATILHO</span><span>POLÍTICA</span><span>AÇÃO</span><span>REGISTRO</span></div>
+          <p>Ações sensíveis podem exigir aprovação humana antes de sair do ambiente.</p>
+          </div>
         </article>
 
-        <article class="capability-card reveal">
+        <article class="capability-card has-insight has-link reveal">
+          <a class="card-link" href="/juridico/#capacidades" aria-label="Ver OCR e extração estruturada"></a>
           <div class="capability-icon" aria-hidden="true">
             <svg viewBox="0 0 32 32"><rect x="6" y="4" width="20" height="24" rx="2"/><path d="M11 10h10M11 15h10M11 20h6"/></svg>
           </div>
           <span class="capability-tag">DOCUMENT AI</span>
           <h3>OCR e processamento</h3>
           <p>Extraia, classifique e valide informações de documentos com pipelines adaptados aos seus processos.</p>
+                  <div class="insight">
+          <p class="insight-label">Extração</p>
+          <div class="insight-rows">
+            <div><span>CNPJ</span><b>••.•••.•••/0001-••</b></div>
+            <div><span>Valor</span><b>R$ 12.480,00</b></div>
+            <div><span>Vencimento</span><b>10/03/2026</b></div>
+          </div>
+          <p class="note">Exemplo ilustrativo dos campos extraídos.</p>
+          </div>
         </article>
 
-        <article class="capability-card reveal reveal-delay-1">
+        <article class="capability-card has-insight has-link reveal reveal-delay-1">
+          <a class="card-link" href="voice.html" aria-label="Conhecer o VoiceAI"></a>
           <div class="capability-icon" aria-hidden="true">
             <svg viewBox="0 0 32 32"><path d="M7 17v-2M12 22V10M17 26V6M22 21V11M27 18v-4"/></svg>
           </div>
           <span class="capability-tag">VOICE AI · POWERED BY XSPACE</span>
           <h3>Voz e atendimento</h3>
           <p>Agentes de voz em português, com os modelos Grok Voice da xAI orquestrados pela Trustio: telefonia, ferramentas, guardrails e gravações no Brasil.</p>
-          <a class="text-link capability-link" href="voice.html">Conhecer o VoiceAI <span aria-hidden="true">→</span></a>
+          <span class="text-link capability-link">Conhecer o VoiceAI <span aria-hidden="true">→</span></span>
+                  <div class="insight">
+          <p class="insight-label">Omnicanal</p>
+          <div class="insight-chips"><span>VOZ</span><span>WHATSAPP</span><span>TELEGRAM</span><span>E-MAIL</span><span>SMS</span></div>
+          <p>O mesmo agente em todos os canais, com um só registro.</p>
+          </div>
         </article>
       </div>
 
@@ -305,21 +360,21 @@
           <p>A segurança da Trustio começa na arquitetura. Cada implantação considera isolamento, identidade, acesso, registros e ciclo de vida dos dados como componentes essenciais da solução.</p>
 
           <div class="security-list">
-            <article>
+            <article class="has-insight">
               <span>01</span>
-              <div><h3>Soberania de dados</h3><p>Processamento e hospedagem no Brasil para reduzir exposição e apoiar políticas de residência de dados.</p></div>
+              <div><h3>Soberania de dados</h3><p>Processamento e hospedagem no Brasil para reduzir exposição e apoiar políticas de residência de dados.</p><p class="insight-line">Inferência, gravações e registros permanecem em infraestrutura nacional.</p></div>
             </article>
-            <article>
+            <article class="has-insight">
               <span>02</span>
-              <div><h3>Ambientes isolados</h3><p>Recursos dedicados e segmentados conforme a criticidade, a escala e o perfil de risco da operação.</p></div>
+              <div><h3>Ambientes isolados</h3><p>Recursos dedicados e segmentados conforme a criticidade, a escala e o perfil de risco da operação.</p><p class="insight-line">Isolamento por cliente: rede, identidade e armazenamento separados.</p></div>
             </article>
-            <article>
+            <article class="has-insight">
               <span>03</span>
-              <div><h3>Rastreabilidade</h3><p>Visibilidade sobre acessos, chamadas e eventos para apoiar auditoria, investigação e melhoria contínua.</p></div>
+              <div><h3>Rastreabilidade</h3><p>Visibilidade sobre acessos, chamadas e eventos para apoiar auditoria, investigação e melhoria contínua.</p><p class="insight-line">Quem acessou, o que foi chamado e quando — exportável para auditoria.</p></div>
             </article>
-            <article>
+            <article class="has-insight">
               <span>04</span>
-              <div><h3>LGPD by Design</h3><p>Privacidade e governança consideradas desde o desenho, de acordo com o contexto e as obrigações do cliente.</p></div>
+              <div><h3>LGPD by Design</h3><p>Privacidade e governança consideradas desde o desenho, de acordo com o contexto e as obrigações do cliente.</p><p class="insight-line">Base legal, minimização e descarte definidos já no desenho da solução.</p></div>
             </article>
           </div>
         </div>
@@ -355,29 +410,33 @@
       </div>
 
       <div class="container deployment-track">
-        <article class="deployment-step reveal">
+        <article class="deployment-step has-insight reveal">
           <div class="step-index"><span>01</span><i></i></div>
           <p class="step-label">DESCOBERTA</p>
           <h3>Priorizar o que gera valor</h3>
           <p>Mapeamos o processo, os dados, os riscos e o resultado esperado para definir o primeiro caso de uso.</p>
+          <p class="insight-line">Entrega: caso de uso priorizado, riscos mapeados e critério de sucesso.</p>
         </article>
-        <article class="deployment-step reveal reveal-delay-1">
+        <article class="deployment-step has-insight reveal reveal-delay-1">
           <div class="step-index"><span>02</span><i></i></div>
           <p class="step-label">ARQUITETURA</p>
           <h3>Desenhar para o seu contexto</h3>
           <p>Selecionamos modelos, integrações, controles e capacidade de infraestrutura de acordo com a operação.</p>
+          <p class="insight-line">Entrega: desenho da infraestrutura, com modelos e integrações escolhidos.</p>
         </article>
-        <article class="deployment-step reveal reveal-delay-2">
+        <article class="deployment-step has-insight reveal reveal-delay-2">
           <div class="step-index"><span>03</span><i></i></div>
           <p class="step-label">IMPLANTAÇÃO</p>
           <h3>Entrar em produção com confiança</h3>
           <p>Integramos, testamos e validamos a solução em um ambiente privado, com critérios claros de aceite.</p>
+          <p class="insight-line">Entrega: ambiente privado no ar, integrado e testado com critérios de aceite.</p>
         </article>
-        <article class="deployment-step reveal reveal-delay-3">
+        <article class="deployment-step has-insight reveal reveal-delay-3">
           <div class="step-index"><span>04</span></div>
           <p class="step-label">EVOLUÇÃO</p>
           <h3>Operar, observar e melhorar</h3>
           <p>Acompanhamos desempenho e uso para evoluir a arquitetura sem comprometer a liberdade tecnológica.</p>
+          <p class="insight-line">Entrega: painel de uso, custo e qualidade, com ciclo de melhoria contínua.</p>
         </article>
       </div>
     </section>

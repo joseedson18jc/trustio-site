@@ -85,3 +85,30 @@
 @media(max-width:960px){.lista{grid-template-columns:1fr;gap:24px}}
 @media(max-width:600px){.seg{display:flex;width:100%}.seg button{flex:1;justify-content:center;padding:10px 12px;font-size:13px}.seg button small{display:none}}
 @media(prefers-reduced-motion:reduce){.seg-panel{animation:none}}
+
+/* ── Lista de espera (espera.html) ── */
+.espera-stats{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:30px}
+.espera-stats>div{min-width:180px;padding:16px 22px;border:1px solid var(--line,rgba(160,179,211,.16));border-radius:14px;background:var(--surface,#0b0e14);text-align:center}
+.espera-stats b{display:block;font-family:var(--display,sans-serif);font-size:30px;font-weight:800;letter-spacing:-.035em;line-height:1;font-variant-numeric:tabular-nums;color:var(--ice,#f4f6fa)}
+.espera-stats b i{font-style:normal;font-family:var(--mono,ui-monospace);font-size:12px;font-weight:500;color:var(--blue-signal,#5ea7ff);margin:0 6px 0 2px;letter-spacing:.06em}
+.espera-stats small{display:block;margin-top:8px;font-family:var(--mono,ui-monospace);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8d9ab0}
+.espera-lista{margin-top:36px}
+.espera-passos{list-style:none;counter-reset:p;margin:18px 0 0;padding:0;display:grid;gap:14px}
+.espera-passos li{display:grid;grid-template-columns:34px 1fr;grid-template-rows:auto auto;column-gap:12px;row-gap:3px;counter-increment:p}
+.espera-passos li::before{grid-row:1/3}
+.espera-passos b,.espera-passos span{grid-column:2}
+.espera-passos li::before{content:counter(p);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;border:1px solid rgba(94,167,255,.4);background:rgba(37,99,235,.14);font-family:var(--mono,ui-monospace);font-size:12px;color:var(--blue-signal,#5ea7ff)}
+.espera-passos b{display:block;font-size:15px;color:var(--ice,#f4f6fa)}
+.espera-passos span{display:block;font-size:14px;color:var(--muted,#a9b4c6);line-height:1.5}
+.espera-nota{margin-top:18px;padding:12px 14px;border-left:2px solid var(--blue-signal,#5ea7ff);border-radius:0 10px 10px 0;background:rgba(94,167,255,.06);font-size:13.5px;color:#c3ccdb;line-height:1.5}
+.lead-form input[type=text]{width:100%;min-height:50px;padding:0 14px;border:1px solid var(--line,rgba(160,179,211,.16));border-radius:12px;background:#0d121b;color:var(--ice,#f4f6fa);font:inherit;font-size:16px}
+.lead-pick label small{font-family:var(--mono,ui-monospace);font-size:9.5px;letter-spacing:.06em;color:#7d889b;margin-left:auto;text-align:right}
+.cond{display:grid;gap:8px}
+.cond[hidden]{display:none}
+.espera-links{display:flex;flex-wrap:wrap;gap:8px 22px;justify-content:center;margin-top:28px}
+.espera-links a{font-size:14px;font-weight:600;color:#c3ccdb;display:inline-flex;gap:6px;align-items:center}
+.espera-links a:hover{color:#fff}
+@media(max-width:600px){.espera-stats>div{flex:1 1 calc(50% - 6px);min-width:0;padding:14px}.espera-stats b{font-size:24px}.lead-pick label small{display:none}}
+.b2b-espera{margin:22px auto 0;max-width:760px;padding:14px 18px;border:1px dashed rgba(94,167,255,.35);border-radius:14px;background:rgba(94,167,255,.05);font-size:14.5px;color:var(--muted,#a9b4c6);line-height:1.55;text-align:center}
+.b2b-espera b{color:var(--ice,#f4f6fa);font-weight:600}
+.b2b-espera a{color:var(--blue-signal,#5ea7ff);font-weight:600;text-decoration:underline;text-underline-offset:3px}

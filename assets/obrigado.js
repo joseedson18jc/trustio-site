@@ -7,7 +7,10 @@ const plans = {
   dedicado: ["Plano Dedicado ativo.", "Recebemos sua assinatura. Um arquiteto dedicado entra em contato em até 1 dia útil para desenhar GPU, rede e identidade do seu ambiente."]
 };
 const qs = new URLSearchParams(location.search);
-if (qs.get("lista") === "pessoal") {
+if (qs.get("lista") === "espera") {
+  document.querySelector("[data-plan-title]").textContent = "Você está na lista de espera.";
+  document.querySelector("[data-plan-lead]").textContent = "Lançamento em 1º de outubro de 2026. No dia, você recebe o link de acesso por e-mail e WhatsApp, na ordem da lista, com 5 perguntas grátis no modelo sem censura. Empresas: um arquiteto entra em contato antes para desenhar o ambiente.";
+} else if (qs.get("lista") === "pessoal") {
   document.querySelector("[data-plan-title]").textContent = "Você está na lista.";
   document.querySelector("[data-plan-lead]").textContent = "Recebemos seu pedido de acesso individual. Avisamos por e-mail (e pelo WhatsApp, se você deixou) assim que o seu lote abrir. Nada é cobrado até você escolher pagar.";
 }

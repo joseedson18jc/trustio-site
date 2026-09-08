@@ -9,7 +9,7 @@
   width:min(260px,72vw);
   aspect-ratio:620/496;
   margin:0 0 18px;
-  background:url("xspace-logo.webp") center/contain no-repeat;
+  background:url("xspace-logo.webp?v=20260908-1548") center/contain no-repeat;
   border-radius:16px;
   box-shadow:0 18px 48px rgba(0,0,0,.32);
 }

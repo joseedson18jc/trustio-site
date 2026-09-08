@@ -46,6 +46,7 @@ function meter() {
 }
 function stop() {
   cancelAnimationFrame(raf);
+  if (typeof heroStop === "function" && current && stageOrb?.classList.contains("playing")) heroStop();
   if (current) { orbs.get(current.orb)?.setLevel(0); current.orb.style.setProperty("--lv", "0"); current.orb.classList.remove("speaking"); current.card?.classList.remove("speaking"); current = null; }
   player.pause();
 }
@@ -63,15 +64,76 @@ function play(key, orb, caption) {
 player.addEventListener("ended", stop);
 function flashCaption(orb, msg) { const cap = orb.closest(".orb-stage")?.querySelector("[data-caption]"); if (cap) cap.textContent = msg; }
 
-// --- hero orb: opens the Agent Builder console (the orb speaks there)
+// --- hero stage: pick a voice, tap the orb, watch it talk (the console has its own button)
+const HERO = {
+  bruna:   { file: "hero-bruna",   who: "a Bruna",   line: "Oi, tudo bem? Aqui é a Trustio! Achei seu pedido: sai hoje e chega na quinta. Quer que eu já mande o rastreio no seu WhatsApp?" },
+  matheus: { file: "hero-matheus", who: "o Matheus", line: "Oi, tudo bem? Aqui é a Trustio! Achei seu pedido: sai hoje e chega na quinta. Quer que eu já mande o rastreio no seu WhatsApp?" },
+  hero:    { file: "hero",         who: "a voz original", line: "Olá! Aqui é a Trustio. Posso confirmar seu agendamento de quinta-feira às dez, ou você prefere outro horário?" }
+};
 const heroOrb = document.querySelector("[data-hero-orb]");
-const heroLine = "Olá! Aqui é a Trustio. Posso confirmar seu agendamento de quinta-feira às dez, ou você prefere outro horário?";
-function openConsole() { stop(); location.href = heroOrb?.dataset.console || "console/"; }
-heroOrb?.addEventListener("click", openConsole);
-heroOrb?.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openConsole(); } });
-// "Ouvir o agente" keeps the preview in place on this page
-function heroSpeak() { if (heroOrb) play("hero", heroOrb, heroLine); }
-document.querySelectorAll("[data-demo]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); heroSpeak(); heroOrb?.scrollIntoView({ behavior: rm.matches ? "auto" : "smooth", block: "center" }); }));
+const stageOrb = heroOrb?.closest(".stage-orb");
+const ring = stageOrb?.querySelector(".orb-ring .prog");
+const stateEl = document.querySelector("[data-state]"), stateWrap = stateEl?.closest(".orb-state");
+const live = document.querySelector("[data-caption]");
+const picks = [...document.querySelectorAll("[data-pick]")];
+let heroKey = "bruna", words = [];
+const RING = 301.6;
+
+function setState(text, mode) { if (!stateEl) return; stateEl.textContent = text; stateWrap.classList.toggle("live", mode === "live"); stateWrap.classList.toggle("done", mode === "done"); }
+function prepCaption(key) {
+  if (!live) return;
+  live.textContent = ""; words = [];
+  live.dataset.preview = HERO[key].line;
+}
+function buildCaption(key) {
+  if (!live) return;
+  live.textContent = "";
+  words = HERO[key].line.split(" ").map((w, i, arr) => { const el = document.createElement("span"); el.textContent = w + (i < arr.length - 1 ? " " : ""); live.appendChild(el); return el; });
+}
+let tickRaf = 0;
+function tick() {
+  cancelAnimationFrame(tickRaf);
+  if (!current || current.key !== HERO[heroKey].file) return;
+  tickRaf = requestAnimationFrame(tick); // currentTime advances continuously; timeupdate alone is only ~4 Hz
+  const d = player.duration || 0, t = player.currentTime || 0, p = d ? Math.min(1, t / d) : 0;
+  if (ring) ring.style.strokeDashoffset = (RING * (1 - p)).toFixed(1) + "px";
+  // words land a hair ahead of the audio so the eye never waits for the ear
+  const n = Math.min(words.length, Math.ceil((p + 0.06) * words.length));
+  for (let i = 0; i < words.length; i++) words[i].classList.toggle("on", i < n);
+}
+function heroStop() {
+  cancelAnimationFrame(tickRaf);
+  stageOrb?.classList.remove("playing"); heroOrb?.setAttribute("aria-pressed", "false");
+  if (ring) ring.style.strokeDashoffset = RING + "px";
+  setState(`Toque para ouvir ${HERO[heroKey].who} de novo`, "done");
+}
+function heroSpeak() {
+  if (!heroOrb) return;
+  const v = HERO[heroKey];
+  if (current && current.key === v.file) { stop(); heroStop(); setState(`Toque para ouvir ${v.who} de novo`, "done"); return; }
+  buildCaption(heroKey);
+  play(v.file, heroOrb);
+  stageOrb?.classList.add("playing"); heroOrb.setAttribute("aria-pressed", "true");
+  setState(`${v.who.replace(/^(a|o) /, (m) => m.toUpperCase())} falando…`, "live");
+}
+function pickVoice(key, andPlay) {
+  heroKey = key;
+  picks.forEach((b) => { const on = b.dataset.pick === key; b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; });
+  if (current && Object.values(HERO).some((v) => v.file === current.key)) { stop(); heroStop(); }
+  prepCaption(key);
+  if (andPlay) heroSpeak(); else setState(`Toque na esfera para ouvir ${HERO[key].who}`);
+}
+heroOrb?.addEventListener("click", heroSpeak);
+heroOrb?.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); heroSpeak(); } });
+picks.forEach((b, i) => {
+  b.addEventListener("click", () => pickVoice(b.dataset.pick, true));
+  b.addEventListener("keydown", (e) => { const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0; if (!d) return; e.preventDefault(); const n = picks[(i + d + picks.length) % picks.length]; n.focus(); pickVoice(n.dataset.pick, false); });
+});
+player.addEventListener("playing", tick);
+player.addEventListener("ended", () => { if (words.length) words.forEach((w) => w.classList.add("on")); heroStop(); if (Object.values(HERO).some((v) => v.file === (current?.key))) return; setState(`Toque para ouvir ${HERO[heroKey].who} de novo`, "done"); });
+// "Ouvir o agente" in the hero copy plays the selected voice and brings the orb into view
+document.querySelectorAll("[data-demo]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); heroOrb?.scrollIntoView({ behavior: rm.matches ? "auto" : "smooth", block: "center" }); if (!(current && current.key === HERO[heroKey].file)) heroSpeak(); }));
+prepCaption(heroKey);
 
 // --- voice library
 document.querySelectorAll(".voice").forEach((card) => {

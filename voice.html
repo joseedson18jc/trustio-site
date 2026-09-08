@@ -86,9 +86,23 @@
         <div class="powered"><span>Modelo de voz <b>Grok Voice · xAI</b></span><span>Orquestração <b>Trustio</b></span><span>Canais <b>8</b></span><span>Latência <b>&lt; 1 s</b></span><span>Idiomas <b>25+</b></span></div>
       </div>
       <div class="orb-stage" id="demo">
-        <div class="transcript" aria-hidden="true"><span class="me">Oi, preciso remarcar minha consulta.</span><span>Claro. Tenho quinta às 10h ou sexta às 15h. Qual prefere?</span><span class="me">Quinta às 10h.</span><span>Marcado. Mandei a confirmação no seu WhatsApp e coloquei na sua agenda.</span></div>
-        <div class="orb" data-hero-orb data-console="console/" data-colors="#bfe0ff,#2563eb,#081536" data-glow="#5ea7ff" data-arch="0" role="link" tabindex="0" aria-label="Abrir o Agent Builder da Trustio"></div>
-        <div class="orb-caption"><b data-caption>Toque na esfera para abrir o Agent Builder</b>Console · criar, ajustar e testar agentes</div>
+        <div class="voice-pick" role="radiogroup" aria-label="Voz da demonstra&ccedil;&atilde;o">
+          <button type="button" role="radio" aria-checked="true" data-pick="bruna"><i></i>Bruna <small>energ&eacute;tica</small></button>
+          <button type="button" role="radio" aria-checked="false" data-pick="matheus"><i></i>Matheus <small>energ&eacute;tico</small></button>
+          <button type="button" role="radio" aria-checked="false" data-pick="hero"><i></i>Calma <small>original</small></button>
+        </div>
+        <div class="stage-orb">
+          <svg class="orb-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="48"/><circle class="prog" cx="50" cy="50" r="48"/></svg>
+          <div class="orb" data-hero-orb data-colors="#bfe0ff,#2563eb,#081536" data-glow="#5ea7ff" data-arch="0" role="button" tabindex="0" aria-pressed="false" aria-label="Ouvir o agente de voz"></div>
+          <span class="orb-glyph" aria-hidden="true"><b class="play">&#9654;</b><b class="pause">&#10074;&#10074;</b></span>
+        </div>
+        <div class="stage-info">
+          <p class="orb-state"><i></i><span data-state>Toque na esfera para ouvir a Bruna</span></p>
+          <p class="orb-live" data-caption aria-live="polite"></p>
+          <div class="stage-actions">
+            <a class="button button-outline" href="console/">Criar um agente assim <span aria-hidden="true">&#8599;</span></a>
+          </div>
+        </div>
       </div>
     </div>
   </section>

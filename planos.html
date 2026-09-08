@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="assets/planos.css">
   <link rel="stylesheet" href="assets/voice.css">
   <script type="module" src="assets/app.js"></script>
+  <script defer src="assets/contador.js"></script>
   <script defer src="assets/planos.js"></script>
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"OfferCatalog","name":"Planos Trustio","url":"https://trustio.com.br/planos.html","itemListElement":[
@@ -30,9 +31,9 @@
     {"@type":"Offer","name":"Trustio Pro","price":"7900.00","priceCurrency":"BRL","priceSpecification":{"@type":"UnitPriceSpecification","price":"7900.00","priceCurrency":"BRL","billingIncrement":1,"unitCode":"MON"}},
     {"@type":"Offer","name":"Trustio Dedicado","price":"19900.00","priceCurrency":"BRL","priceSpecification":{"@type":"UnitPriceSpecification","price":"19900.00","priceCurrency":"BRL","billingIncrement":1,"unitCode":"MON"}},
     {"@type":"Offer","name":"Diagnóstico de caso de uso","price":"4900.00","priceCurrency":"BRL"},
-    {"@type":"Offer","name":"Trustio Pessoal (mensal)","price":"79.00","priceCurrency":"BRL","priceSpecification":{"@type":"UnitPriceSpecification","price":"79.00","priceCurrency":"BRL","billingDuration":1,"unitCode":"MON"}},
-    {"@type":"Offer","name":"Trustio Pessoal — passe de 7 dias","price":"24.90","priceCurrency":"BRL"},
-    {"@type":"Offer","name":"Trustio Pessoal (anual)","price":"790.00","priceCurrency":"BRL","priceSpecification":{"@type":"UnitPriceSpecification","price":"790.00","priceCurrency":"BRL","billingDuration":1,"unitCode":"ANN"}}]}
+    {"@type":"Offer","name":"Trustio Pessoal (mensal)","url":"https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08","price":"79.00","priceCurrency":"BRL","priceSpecification":{"@type":"UnitPriceSpecification","price":"79.00","priceCurrency":"BRL","billingDuration":1,"unitCode":"MON"}},
+    {"@type":"Offer","name":"Trustio Pessoal — passe de 7 dias","url":"https://buy.stripe.com/8x228rgiKetN2LRfRl5wI09","price":"24.90","priceCurrency":"BRL"},
+    {"@type":"Offer","name":"Trustio Pessoal (anual)","url":"https://buy.stripe.com/cNifZhd6yfxR9afgVp5wI0a","price":"790.00","priceCurrency":"BRL","priceSpecification":{"@type":"UnitPriceSpecification","price":"790.00","priceCurrency":"BRL","billingDuration":1,"unitCode":"ANN"}}]}
   </script>
 </head>
 <body class="planos-page">
@@ -54,6 +55,7 @@
         <a href="index.html#implantacao">Implantação</a>
         <a href="/juridico/">Jurídico</a>
         <a href="planos.html" aria-current="page">Planos</a>
+        <a href="espera.html">Lista de espera</a>
         <a href="manifesto.html">Manifesto</a>
       </nav>
 
@@ -72,6 +74,7 @@
       <a href="index.html#implantacao">Implantação</a>
       <a href="/juridico/">Jurídico</a>
       <a href="planos.html" aria-current="page">Planos</a>
+      <a href="espera.html">Lista de espera</a>
       <a href="manifesto.html">Manifesto</a>
       <a href="index.html#contato">Falar com a Trustio</a>
     </nav>
@@ -141,7 +144,7 @@
           <a class="button button-light" href="https://buy.stripe.com/3cI4gz8Qi0CXdqv5cH5wI04" rel="noopener">Contratar diagnóstico <span aria-hidden="true">↗</span></a>
         </div>
       </div>
-        <p class="b2b-espera">Quer come&ccedil;ar pelo <b>VoiceAI</b>, pelo <b>Jur&iacute;dico</b> ou por <b>Sa&uacute;de</b>? O lan&ccedil;amento dos modelos &eacute; em 1&ordm; de outubro &mdash; <a href="espera.html?tipo=b2b">entre na lista de espera da sua empresa</a> e um arquiteto desenha o ambiente antes.</p>
+        <p class="b2b-espera">Quer come&ccedil;ar pelo <b>VoiceAI</b>, pelo <b>Jur&iacute;dico</b> ou por <b>Sa&uacute;de</b>? O lan&ccedil;amento dos modelos &eacute; em 1&ordm; de outubro &mdash; <a href="espera.html?tipo=b2b">entre na lista de espera da sua empresa</a> e um arquiteto desenha o ambiente antes. Empresas que assinam um plano antes do lan&ccedil;amento entram em <b>23 de setembro</b>, uma semana antes.</p>
       </div>
 
       <div class="seg-panel" id="pessoal" role="tabpanel" aria-labelledby="tab-pessoal" hidden>
@@ -157,9 +160,10 @@
             <h2>Acesso completo</h2>
             <p class="desc">Chat privado e sem censura, com os melhores modelos abertos, por um pre&ccedil;o fixo por m&ecirc;s.</p>
             <div class="price"><small>R$</small><b>79</b><small>/m&ecirc;s</small></div>
-            <p class="note">A partir de 1&ordm;/10 &middot; 5 perguntas gr&aacute;tis antes de pagar &middot; Pix ou cart&atilde;o</p>
+            <p class="note">Pr&eacute;-assine e entre em <b>23/09</b> &middot; ou espere 1&ordm;/10 com 5 perguntas gr&aacute;tis &middot; Pix ou cart&atilde;o</p>
             <ul><li>Modelo sem censura e sem filtro do fornecedor</li><li>Conversas privadas: nunca usadas para treinar</li><li>Infer&ecirc;ncia e dados no Brasil</li><li>Uso justo generoso, sem contar tokens</li><li>Hist&oacute;rico, arquivos e busca</li><li>Pre&ccedil;o em reais, sem IOF</li></ul>
-            <a class="button button-primary" href="#lista" data-interesse="mensal">Quero acesso <span aria-hidden="true">&#8595;</span></a>
+            <a class="button button-primary" href="https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08" rel="noopener">Pr&eacute;-assinar &middot; entrar em 23/09 <span aria-hidden="true">&#8599;</span></a>
+            <a class="text-link plan-alt" href="#lista" data-interesse="mensal">Ou entrar na lista gr&aacute;tis <span aria-hidden="true">&#8595;</span></a>
             <p class="methods">Pix &middot; Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
           </article>
           <article class="plan">
@@ -167,9 +171,10 @@
             <h2>Experimente uma semana</h2>
             <p class="desc">Sete dias de acesso completo, pagos uma vez. Sem renova&ccedil;&atilde;o autom&aacute;tica, sem cart&atilde;o preso.</p>
             <div class="price"><small>R$</small><b>24<i>,90</i></b><small>por 7 dias</small></div>
-            <p class="note">Pagamento &uacute;nico &middot; n&atilde;o renova sozinho</p>
+            <p class="note">Pagamento &uacute;nico &middot; n&atilde;o renova sozinho &middot; os 7 dias contam a partir do acesso</p>
             <ul><li>Tudo do plano mensal, por 7 dias</li><li>Ideal para testar antes de assinar</li><li>Pix na hora</li></ul>
-            <a class="button button-outline" href="#lista" data-interesse="semanal">Quero testar <span aria-hidden="true">&#8595;</span></a>
+            <a class="button button-outline" href="https://buy.stripe.com/8x228rgiKetN2LRfRl5wI09" rel="noopener">Comprar passe &middot; acesso em 23/09 <span aria-hidden="true">&#8599;</span></a>
+            <a class="text-link plan-alt" href="#lista" data-interesse="semanal">Ou entrar na lista gr&aacute;tis <span aria-hidden="true">&#8595;</span></a>
             <p class="methods">Pix &middot; Cart&atilde;o</p>
           </article>
           <article class="plan b2c-annual">
@@ -177,9 +182,10 @@
             <h2>Dois meses gr&aacute;tis</h2>
             <p class="desc">Doze meses pelo pre&ccedil;o de dez. Para quem j&aacute; sabe que vai usar.</p>
             <div class="price"><small>R$</small><b>790</b><small>/ano</small></div>
-            <p class="note">Equivale a R$ 65,80 por m&ecirc;s</p>
+            <p class="note">Equivale a R$ 65,80 por m&ecirc;s &middot; pr&eacute;-assinantes entram em <b>23/09</b></p>
             <ul><li>Tudo do plano mensal</li><li>Pre&ccedil;o travado por 12 meses</li><li>Pix ou cart&atilde;o, em at&eacute; 12&times;</li></ul>
-            <a class="button button-outline" href="#lista" data-interesse="anual">Quero acesso <span aria-hidden="true">&#8595;</span></a>
+            <a class="button button-outline" href="https://buy.stripe.com/cNifZhd6yfxR9afgVp5wI0a" rel="noopener">Pr&eacute;-assinar &middot; entrar em 23/09 <span aria-hidden="true">&#8599;</span></a>
+            <a class="text-link plan-alt" href="#lista" data-interesse="anual">Ou entrar na lista gr&aacute;tis <span aria-hidden="true">&#8595;</span></a>
             <p class="methods">Pix &middot; Cart&atilde;o</p>
           </article>
         </div>
@@ -187,15 +193,15 @@
         <div class="lista" id="lista">
           <div>
             <p class="section-kicker">Lista de acesso</p>
-            <h2>Entre na lista. Leva 20 segundos.</h2>
-            <p>Lan&ccedil;amento em <b>1&ordm; de outubro de 2026</b>. J&aacute; s&atilde;o 1.317 pessoas na lista. Deixe seu e-mail e, no dia, voc&ecirc; recebe o acesso com <b>5 perguntas gr&aacute;tis</b> no modelo sem censura &mdash; depois escolhe um plano, sem cobran&ccedil;a autom&aacute;tica.</p>
-            <ul class="lista-pontos"><li>S&oacute; o e-mail &eacute; obrigat&oacute;rio</li><li>Nada &eacute; cobrado at&eacute; voc&ecirc; escolher pagar</li><li>Seu contato n&atilde;o vai para terceiros</li></ul>
+            <h2>Entre na lista. Leva 20 segundos.<span>Ou pr&eacute;-assine e entre em 23 de setembro.</span></h2>
+            <p>Lan&ccedil;amento em <b>1&ordm; de outubro de 2026</b>. J&aacute; s&atilde;o <span data-count="1317">1.317</span> pessoas na lista. Deixe seu e-mail e, no dia, voc&ecirc; recebe o acesso com <b>5 perguntas gr&aacute;tis</b> no modelo sem censura &mdash; depois escolhe um plano, sem cobran&ccedil;a autom&aacute;tica.</p>
+            <ul class="lista-pontos"><li>S&oacute; o e-mail &eacute; obrigat&oacute;rio</li><li>Nada &eacute; cobrado at&eacute; voc&ecirc; escolher pagar</li><li>Pr&eacute;-assinantes entram uma semana antes, em 23/09</li><li>Seu contato n&atilde;o vai para terceiros</li></ul>
           </div>
           <form class="lead-form" action="https://formsubmit.co/contato@trustio.com.br" method="POST">
             <input type="hidden" name="_subject" value="Lista de espera (B2C via planos) — trustio.com.br">
             <input type="hidden" name="_template" value="table">
             <input type="hidden" name="_captcha" value="false">
-            <input type="hidden" name="_next" value="https://trustio.com.br/obrigado.html?lista=espera">
+            <input type="hidden" name="_next" value="https://trustio.com.br/obrigado.html?lista=espera" data-next>
             <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
             <input type="hidden" name="origem" value="planos.html#pessoal"><input type="hidden" name="tipo" value="B2C — para mim">
             <label for="lead-email">E-mail <span>obrigat&oacute;rio</span></label>
@@ -208,9 +214,14 @@
               <label><input type="radio" name="plano" value="semanal">Passe 7 dias &middot; R$ 24,90</label>
               <label><input type="radio" name="plano" value="anual">Anual &middot; R$ 790</label>
             </fieldset>
+            <fieldset class="lead-pick lead-acesso">
+              <legend>Como voc&ecirc; quer entrar?</legend>
+              <label><input type="radio" name="acesso" value="Lista gratuita — acesso em 1º/10" data-acesso="lista" checked>Lista gr&aacute;tis <small>1&ordm;/10 &middot; 5 perguntas gr&aacute;tis</small></label>
+              <label><input type="radio" name="acesso" value="Pré-assinatura — acesso antecipado em 23/09" data-acesso="pre">Pr&eacute;-assinar <small>acesso em 23/09 &middot; link de pagamento por e-mail</small></label>
+            </fieldset>
             <label for="lead-uso">Como voc&ecirc; pretende usar? <span>opcional</span></label>
             <select id="lead-uso" name="uso"><option value="">Escolher&hellip;</option><option>Trabalho e estudo</option><option>Escrita e criatividade</option><option>Pesquisa e c&oacute;digo</option><option>Conversas pessoais</option><option>Outro</option></select>
-            <button class="button button-primary" type="submit">Quero acesso <span aria-hidden="true">&#8599;</span></button>
+            <button class="button button-primary" type="submit" data-submit>Quero acesso <span aria-hidden="true">&#8599;</span></button>
             <p class="lead-legal">Usamos seu contato apenas para avisar sobre o acesso individual e pode pedir a exclus&atilde;o quando quiser (LGPD). Sem spam.</p>
           </form>
         </div>

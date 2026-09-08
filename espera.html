@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="assets/planos.css">
   <link rel="stylesheet" href="assets/voice.css">
   <script type="module" src="assets/app.js"></script>
+  <script defer src="assets/contador.js"></script>
   <script defer src="assets/espera.js"></script>
 </head>
 <body class="planos-page espera-page">
@@ -44,6 +45,7 @@
         <a href="index.html#implantacao">Implantação</a>
         <a href="/juridico/">Jurídico</a>
         <a href="planos.html">Planos</a>
+        <a href="espera.html" aria-current="page">Lista de espera</a>
         <a href="manifesto.html">Manifesto</a>
       </nav>
 
@@ -62,6 +64,7 @@
       <a href="index.html#implantacao">Implantação</a>
       <a href="/juridico/">Jurídico</a>
       <a href="planos.html">Planos</a>
+      <a href="espera.html" aria-current="page">Lista de espera</a>
       <a href="manifesto.html">Manifesto</a>
       <a href="index.html#contato">Falar com a Trustio</a>
     </nav>
@@ -72,10 +75,11 @@
     <div class="container">
       <p class="eyebrow"><span class="status-dot"></span> Lan&ccedil;amento em 1&ordm; de outubro de 2026</p>
       <h1 id="espera-title">Entre na lista de espera.<span>Seu acesso abre no lan&ccedil;amento.</span></h1>
-      <p class="lead">Os modelos ainda n&atilde;o est&atilde;o dispon&iacute;veis ao p&uacute;blico. Deixe seu contato e avisamos no dia &mdash; para voc&ecirc; ou para a sua empresa. Nada &eacute; cobrado agora.</p>
+      <p class="lead">Os modelos ainda n&atilde;o est&atilde;o dispon&iacute;veis ao p&uacute;blico. Deixe seu contato e avisamos no dia &mdash; para voc&ecirc; ou para a sua empresa. Nada &eacute; cobrado agora. <b>Quem pr&eacute;-assina entra em 23 de setembro</b>, uma semana antes do lan&ccedil;amento.</p>
       <div class="espera-stats" aria-label="Situa&ccedil;&atilde;o da lista">
         <div><b data-count="1317">1.317</b><small>pessoas na lista</small></div>
         <div class="cd" data-countdown="2026-10-01T09:00:00-03:00"><b><span data-cd="d">&mdash;</span><i>d</i> <span data-cd="h">&mdash;</span><i>h</i> <span data-cd="m">&mdash;</span><i>min</i></b><small>para o lan&ccedil;amento</small></div>
+        <div class="early"><b>23<i>set</i></b><small>acesso antecipado &middot; pr&eacute;-assinantes</small></div>
         <div><b>5</b><small>perguntas gr&aacute;tis ao abrir</small></div>
       </div>
     </div>
@@ -86,20 +90,21 @@
       <div class="lista espera-lista" id="lista">
         <div>
           <p class="section-kicker">Como funciona</p>
-          <h2>Leva 30 segundos. Sem cart&atilde;o.</h2>
+          <h2>Leva 30 segundos. Sem cart&atilde;o.<span>Ou pr&eacute;-assine e entre uma semana antes.</span></h2>
           <ol class="espera-passos">
             <li><b>Voc&ecirc; entra na lista</b><span>Nome, contato e o que interessa: para voc&ecirc; ou para a empresa.</span></li>
             <li><b>1&ordm; de outubro: seu acesso abre</b><span>Voc&ecirc; recebe o link por e-mail e WhatsApp, na ordem da lista.</span></li>
+            <li class="early"><b>Quer entrar antes? Pr&eacute;-assine</b><span>Quem paga o plano antes do lan&ccedil;amento recebe o acesso em <strong>23 de setembro</strong> &mdash; uma semana antes de todo mundo. Marque &ldquo;Pr&eacute;-assinar&rdquo; no formul&aacute;rio e enviamos o link de pagamento (Pix ou cart&atilde;o).</span></li>
             <li><b>5 perguntas gr&aacute;tis</b><span>Teste o modelo sem censura de verdade. Depois da quinta pergunta, a plataforma trava at&eacute; voc&ecirc; escolher um plano &mdash; sem cobran&ccedil;a autom&aacute;tica.</span></li>
           </ol>
-          <p class="espera-nota">Empresas: al&eacute;m das 5 perguntas, um arquiteto entra em contato para desenhar o ambiente (VoiceAI, Jur&iacute;dico, Sa&uacute;de ou outro nicho).</p>
+          <p class="espera-nota">Empresas: al&eacute;m das 5 perguntas, um arquiteto entra em contato para desenhar o ambiente (VoiceAI, Jur&iacute;dico, Sa&uacute;de ou outro nicho). Empresas que contratam um plano antes do lan&ccedil;amento tamb&eacute;m entram em 23 de setembro.</p>
         </div>
 
         <form class="lead-form" action="https://formsubmit.co/contato@trustio.com.br" method="POST" id="espera-form">
           <input type="hidden" name="_subject" value="Lista de espera — trustio.com.br">
           <input type="hidden" name="_template" value="table">
           <input type="hidden" name="_captcha" value="false">
-          <input type="hidden" name="_next" value="https://trustio.com.br/obrigado.html?lista=espera">
+          <input type="hidden" name="_next" value="https://trustio.com.br/obrigado.html?lista=espera" data-next>
           <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
           <input type="hidden" name="origem" value="espera.html" data-origem>
 
@@ -134,11 +139,17 @@
             <select id="w-tam" name="tamanho"><option value="">Escolher&hellip;</option><option>At&eacute; 10 pessoas</option><option>11 a 50</option><option>51 a 200</option><option>201 a 1.000</option><option>Mais de 1.000</option></select>
           </div>
 
+          <fieldset class="lead-pick lead-acesso">
+            <legend>Como voc&ecirc; quer entrar?</legend>
+            <label><input type="radio" name="acesso" value="Lista gratuita — acesso em 1º/10" data-acesso="lista" checked>Lista gr&aacute;tis <small>acesso em 1&ordm;/10 &middot; 5 perguntas gr&aacute;tis &middot; nada cobrado agora</small></label>
+            <label><input type="radio" name="acesso" value="Pré-assinatura — acesso antecipado em 23/09" data-acesso="pre">Pr&eacute;-assinar <small>acesso em 23/09, uma semana antes &middot; enviamos o link de pagamento</small></label>
+          </fieldset>
+
           <label for="w-obs">Algo que devemos saber? <span>opcional</span></label>
           <input id="w-obs" name="observacao" type="text" placeholder="Caso de uso, prazo, volume&hellip;">
 
-          <button class="button button-primary" type="submit">Entrar na lista de espera <span aria-hidden="true">&#8599;</span></button>
-          <p class="lead-legal">Usamos seus dados s&oacute; para avisar sobre o lan&ccedil;amento e liberar o acesso. Voc&ecirc; pode pedir exclus&atilde;o quando quiser (LGPD). Sem spam.</p>
+          <button class="button button-primary" type="submit" data-submit>Entrar na lista de espera <span aria-hidden="true">&#8599;</span></button>
+          <p class="lead-legal">Pr&eacute;-assinatura: nada &eacute; cobrado neste formul&aacute;rio &mdash; o pagamento acontece no link que enviamos (Pix ou cart&atilde;o) e o acesso abre em 23/09. Usamos seus dados s&oacute; para avisar sobre o lan&ccedil;amento e liberar o acesso. Voc&ecirc; pode pedir exclus&atilde;o quando quiser (LGPD). Sem spam.</p>
         </form>
       </div>
 

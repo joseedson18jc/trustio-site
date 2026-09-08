@@ -1,21 +1,45 @@
 @import url("voice-base.css");
 
-/* xSpace logo above the VoiceAI powered-by badge.
-   Keep it in normal document flow so it cannot be clipped or disappear
-   because of absolute positioning. */
-.voice-hero-grid > div:first-child::before{
-  content:"";
-  display:block;
-  width:min(260px,72vw);
-  aspect-ratio:620/496;
-  margin:0 0 18px;
-  background:url("xspace-logo.webp?v=20260908-1548") center/contain no-repeat;
-  border-radius:16px;
-  box-shadow:0 18px 48px rgba(0,0,0,.32);
+/* O arquivo assets/xspace-logo.webp está truncado (6.236 de 16.300 bytes
+   declarados no cabeçalho RIFF), então nenhum navegador consegue decodificá-lo:
+   a regra antiga deixava apenas uma caixa vazia com sombra no topo do hero.
+   A prova de tecnologia fica no card .tech-proof, logo abaixo do CTA.
+   Para voltar a exibir a imagem, suba um arquivo válido e reative esta regra. */
+
+/* ── Selo "VoiceAI · powered by xSpace" ──────────────────────────────
+   Lockup tipográfico: nome, régua que carrega a forma de onda da fala
+   (envoltória decaindo para a direita) e linha de status em monoespaçada.
+   Desenho próprio em SVG, sem depender de arquivo de imagem. */
+.xspace-lockup{display:inline-grid;gap:9px;justify-items:start;margin:0 0 24px}
+.xs-name{
+  font-family:var(--display,inherit);
+  font-size:clamp(19px,2vw,22px);
+  font-weight:700;
+  letter-spacing:-.032em;
+  line-height:1;
+  color:var(--ice,#f4f6fa);
 }
-@media (max-width:680px){
-  .voice-hero-grid > div:first-child::before{
-    width:min(210px,68vw);
-    margin-bottom:14px;
-  }
+.xs-sig{display:block;width:clamp(214px,21vw,272px);height:16px}
+.xs-base{fill:none;stroke:url(#xsLine);stroke-width:1.1}
+.xs-wave{fill:none;stroke:url(#xsWave);stroke-width:3;stroke-linecap:round}
+.xs-meta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-family:var(--mono,ui-monospace);
+  font-size:9.5px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:#7f8a9d;
 }
+.xs-meta i{
+  width:5px;height:5px;border-radius:50%;flex:0 0 auto;
+  background:#3ddc97;
+  box-shadow:0 0 0 3px rgba(61,220,151,.16);
+}
+.xs-meta em{font-style:normal;color:#cfd7e4}
+.xs-x{color:var(--blue-signal,#5ea7ff)}
+@media (prefers-reduced-motion:no-preference){
+  .xs-wave{animation:xs-breathe 5.5s ease-in-out infinite}
+}
+@keyframes xs-breathe{0%,100%{opacity:.82}50%{opacity:1}}

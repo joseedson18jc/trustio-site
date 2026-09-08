@@ -1,23 +1,21 @@
 @import url("voice-base.css");
 
-/* xSpace logo above the VoiceAI powered-by badge */
-.voice-hero .beta{
-  position:relative;
-  margin-top:184px;
-}
-.voice-hero .beta::before{
+/* xSpace logo above the VoiceAI powered-by badge.
+   Keep it in normal document flow so it cannot be clipped or disappear
+   because of absolute positioning. */
+.voice-hero-grid > div:first-child::before{
   content:"";
-  position:absolute;
-  left:0;
-  bottom:calc(100% + 16px);
-  width:min(240px,72vw);
+  display:block;
+  width:min(260px,72vw);
   aspect-ratio:620/496;
+  margin:0 0 18px;
   background:url("xspace-logo.webp") center/contain no-repeat;
   border-radius:16px;
   box-shadow:0 18px 48px rgba(0,0,0,.32);
-  pointer-events:none;
 }
 @media (max-width:680px){
-  .voice-hero .beta{margin-top:154px}
-  .voice-hero .beta::before{width:min(200px,68vw);bottom:calc(100% + 14px)}
+  .voice-hero-grid > div:first-child::before{
+    width:min(210px,68vw);
+    margin-bottom:14px;
+  }
 }

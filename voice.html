@@ -117,53 +117,92 @@
 
       <div class="channels" role="list">
         <article class="ch has-insight" role="listitem">
+          <button type="button" class="ch-btn" data-ch="phone" aria-expanded="false" aria-controls="ch-detail">
           <img src="assets/connectors/phone.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>Ligação de voz</b>
           <small>Números locais com o DDD da sua cidade. Recebe e faz chamadas, com transferência para humano.</small>
           <p class="insight-line">Recebe, transfere e devolve o contexto ao humano.</p>
+          </button>
         </article>
         <article class="ch has-insight" role="listitem">
+          <button type="button" class="ch-btn" data-ch="whatsapp" aria-expanded="false" aria-controls="ch-detail">
           <img src="assets/connectors/whatsapp.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>WhatsApp</b>
           <small>O canal que o Brasil usa. Texto, áudio e documentos na API oficial de negócios.</small>
           <p class="insight-line">API oficial de negócios, com opt-in e janela de 24 h.</p>
+          </button>
         </article>
         <article class="ch has-insight" role="listitem">
+          <button type="button" class="ch-btn" data-ch="telegram" aria-expanded="false" aria-controls="ch-detail">
           <img src="assets/connectors/telegram.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>Telegram</b>
           <small>Bots e grupos atendidos pelo mesmo agente, com as mesmas permissões.</small>
           <p class="insight-line">Bots e grupos com as mesmas permissões do agente.</p>
+          </button>
         </article>
         <article class="ch has-insight" role="listitem">
+          <button type="button" class="ch-btn" data-ch="gmail" aria-expanded="false" aria-controls="ch-detail">
           <img src="assets/connectors/gmail.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>Gmail</b>
           <small>Lê, responde e encaminha na caixa da empresa, com rascunho para aprovação quando você quiser.</small>
           <p class="insight-line">Rascunho para aprovação ou envio direto, por regra.</p>
+          </button>
         </article>
         <article class="ch has-insight" role="listitem">
+          <button type="button" class="ch-btn" data-ch="outlook" aria-expanded="false" aria-controls="ch-detail">
           <img src="assets/connectors/outlook.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>Outlook</b>
           <small>Microsoft 365 com as mesmas regras, filas e registros da operação.</small>
           <p class="insight-line">Microsoft 365 com as filas e registros da operação.</p>
+          </button>
         </article>
         <article class="ch has-insight" role="listitem">
+          <button type="button" class="ch-btn" data-ch="calendar" aria-expanded="false" aria-controls="ch-detail">
           <img src="assets/connectors/calendar.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>Agenda</b>
           <small>Google Calendar e Outlook: agenda, remarca, confirma e evita o no-show.</small>
           <p class="insight-line">Confirma, remarca e reduz o no-show antes dele acontecer.</p>
+          </button>
         </article>
         <article class="ch has-insight" role="listitem">
+          <button type="button" class="ch-btn" data-ch="imessage" aria-expanded="false" aria-controls="ch-detail">
           <img src="assets/connectors/imessage.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>iMessage</b>
           <small>Mensagens Apple com o nome da sua marca no lugar de um número desconhecido.</small>
           <p class="insight-line">Nome da marca no lugar de um número desconhecido.</p>
+          </button>
         </article>
         <article class="ch has-insight" role="listitem">
+          <button type="button" class="ch-btn" data-ch="sms" aria-expanded="false" aria-controls="ch-detail">
           <img src="assets/connectors/sms.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>SMS</b>
           <small>Confirmações, códigos e avisos onde não há internet nem aplicativo.</small>
           <p class="insight-line">Chega onde não há internet nem aplicativo instalado.</p>
+          </button>
         </article>
+      </div>
+
+      <div class="ch-detail" id="ch-detail" hidden aria-live="polite">
+        <button type="button" class="ch-close" data-ch-close aria-label="Fechar detalhes">&#215;</button>
+        <div class="ch-detail-head">
+          <img data-cd="icon" src="assets/connectors/phone.svg" alt="" width="34" height="34">
+          <div><p class="section-kicker" data-cd="kicker">Canal</p><h3 data-cd="title">&nbsp;</h3><p class="ch-lede" data-cd="lede"></p></div>
+        </div>
+        <div class="ch-detail-body">
+          <div>
+            <h4>Como funciona na Trustio</h4>
+            <p data-cd="how"></p>
+            <h4>Ideal para</h4>
+            <div class="ch-tags" data-cd="uses"></div>
+          </div>
+          <div>
+            <dl class="ch-facts-list" data-cd="facts"></dl>
+            <div class="ch-cta">
+              <a class="button button-primary" href="#contato" data-cd="cta">Ativar este canal <span aria-hidden="true">&#8599;</span></a>
+              <a class="button button-outline" href="console/">Testar no Agent Builder <span aria-hidden="true">&#8599;</span></a>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="omni-brain">

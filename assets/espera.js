@@ -30,7 +30,24 @@ function applyTipo() {
 }
 tipoInputs.forEach((i) => i.addEventListener("change", applyTipo));
 
-// --- deep links: ?tipo=b2b|b2c  &seg=voiceai|juridico|saude|financeiro  &plano=mensal|semanal|anual
+// --- acesso: lista gratuita (1º/10) ou pré-assinatura (acesso antecipado em 23/09)
+const acessoInputs = [...document.querySelectorAll('input[name="acesso"]')];
+const nextInput = document.querySelector("[data-next]");
+const submitBtn = document.querySelector("[data-submit]");
+const subjInput = form?.querySelector('input[name="_subject"]');
+function applyAcesso() {
+  const pre = acessoInputs.find((i) => i.checked)?.dataset.acesso === "pre";
+  const t = tipoInputs.find((i) => i.checked)?.dataset.tipo || "b2c";
+  const pv = document.querySelector('input[name="plano"]:checked')?.value || "";
+  const planoKey = t === "b2b" ? "empresa" : pv.startsWith("Passe") ? "semanal" : pv.startsWith("Anual") ? "anual" : "mensal";
+  if (nextInput) nextInput.value = pre ? `https://trustio.com.br/obrigado.html?lista=pre&plano=${planoKey}` : "https://trustio.com.br/obrigado.html?lista=espera";
+  if (subjInput) subjInput.value = pre ? "PRÉ-ASSINATURA (acesso 23/09) — trustio.com.br" : "Lista de espera — trustio.com.br";
+  if (submitBtn) submitBtn.firstChild.textContent = pre ? "Quero pré-assinar e entrar em 23/09 " : "Entrar na lista de espera ";
+}
+acessoInputs.forEach((i) => i.addEventListener("change", applyAcesso));
+document.querySelectorAll('input[name="plano"], input[name="tipo"]').forEach((i) => i.addEventListener("change", applyAcesso));
+
+// --- deep links: ?tipo=b2b|b2c  &seg=voiceai|juridico|saude|financeiro  &plano=mensal|semanal|anual  &acesso=pre
 const tipo = qs.get("tipo");
 if (tipo === "b2b" || tipo === "b2c") { const r = tipoInputs.find((i) => i.dataset.tipo === tipo); if (r) r.checked = true; }
 const segMap = { voiceai: "VoiceAI", juridico: "Jurídico", saude: "Saúde", financeiro: "Financeiro", varejo: "Varejo", industria: "Indústria", publico: "Setor público" };
@@ -39,5 +56,7 @@ if (seg && segSel && segMap[seg]) { const opt = [...segSel.options].find((o) => 
 const planoMap = { mensal: "Mensal", semanal: "Passe", anual: "Anual" };
 const plano = qs.get("plano");
 if (plano && planoMap[plano]) { const r = [...document.querySelectorAll('input[name="plano"]')].find((i) => i.value.startsWith(planoMap[plano])); if (r) r.checked = true; }
+if (qs.get("acesso") === "pre") { const r = acessoInputs.find((i) => i.dataset.acesso === "pre"); if (r) r.checked = true; }
 applyTipo();
-if (qs.has("tipo") || qs.has("seg")) setTimeout(() => document.getElementById("lista")?.scrollIntoView({ behavior: rm.matches ? "auto" : "smooth", block: "start" }), 150);
+applyAcesso();
+if (qs.has("tipo") || qs.has("seg") || qs.has("acesso")) setTimeout(() => document.getElementById("lista")?.scrollIntoView({ behavior: rm.matches ? "auto" : "smooth", block: "start" }), 150);

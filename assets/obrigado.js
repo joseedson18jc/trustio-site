@@ -6,7 +6,12 @@ const plans = {
   pro: ["Plano Pro ativo.", "Recebemos sua assinatura. Um arquiteto da Trustio entra em contato em até 1 dia útil para configurar SSO, integrações e o primeiro caso de uso."],
   dedicado: ["Plano Dedicado ativo.", "Recebemos sua assinatura. Um arquiteto dedicado entra em contato em até 1 dia útil para desenhar GPU, rede e identidade do seu ambiente."]
 };
-const plan = new URLSearchParams(location.search).get("plano");
+const qs = new URLSearchParams(location.search);
+if (qs.get("lista") === "pessoal") {
+  document.querySelector("[data-plan-title]").textContent = "Você está na lista.";
+  document.querySelector("[data-plan-lead]").textContent = "Recebemos seu pedido de acesso individual. Avisamos por e-mail (e pelo WhatsApp, se você deixou) assim que o seu lote abrir. Nada é cobrado até você escolher pagar.";
+}
+const plan = qs.get("plano");
 if (plans[plan]) {
   document.querySelector("[data-plan-title]").textContent = plans[plan][0];
   document.querySelector("[data-plan-lead]").textContent = plans[plan][1];

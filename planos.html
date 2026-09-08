@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://formsubmit.co">
   <title>Planos e pagamentos | Trustio — infraestrutura privada de IA no Brasil</title>
   <meta name="description" content="Planos Starter, Pro e Dedicado de infraestrutura privada de IA, com pagamento por Pix, cartão, Apple Pay e Google Pay. Diagnóstico de caso de uso com valor abatido do primeiro mês.">
   <link rel="canonical" href="https://trustio.com.br/planos.html">
@@ -23,12 +23,16 @@
   <link rel="stylesheet" href="assets/planos.css">
   <link rel="stylesheet" href="assets/voice.css">
   <script type="module" src="assets/app.js"></script>
+  <script defer src="assets/planos.js"></script>
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"OfferCatalog","name":"Planos Trustio","url":"https://trustio.com.br/planos.html","itemListElement":[
     {"@type":"Offer","name":"Trustio Starter","price":"2900.00","priceCurrency":"BRL","priceSpecification":{"@type":"UnitPriceSpecification","price":"2900.00","priceCurrency":"BRL","billingIncrement":1,"unitCode":"MON"}},
     {"@type":"Offer","name":"Trustio Pro","price":"7900.00","priceCurrency":"BRL","priceSpecification":{"@type":"UnitPriceSpecification","price":"7900.00","priceCurrency":"BRL","billingIncrement":1,"unitCode":"MON"}},
     {"@type":"Offer","name":"Trustio Dedicado","price":"19900.00","priceCurrency":"BRL","priceSpecification":{"@type":"UnitPriceSpecification","price":"19900.00","priceCurrency":"BRL","billingIncrement":1,"unitCode":"MON"}},
-    {"@type":"Offer","name":"Diagnóstico de caso de uso","price":"4900.00","priceCurrency":"BRL"}]}
+    {"@type":"Offer","name":"Diagnóstico de caso de uso","price":"4900.00","priceCurrency":"BRL"},
+    {"@type":"Offer","name":"Trustio Pessoal (mensal)","price":"79.00","priceCurrency":"BRL","priceSpecification":{"@type":"UnitPriceSpecification","price":"79.00","priceCurrency":"BRL","billingDuration":1,"unitCode":"MON"}},
+    {"@type":"Offer","name":"Trustio Pessoal — passe de 7 dias","price":"24.90","priceCurrency":"BRL"},
+    {"@type":"Offer","name":"Trustio Pessoal (anual)","price":"790.00","priceCurrency":"BRL","priceSpecification":{"@type":"UnitPriceSpecification","price":"790.00","priceCurrency":"BRL","billingDuration":1,"unitCode":"ANN"}}]}
   </script>
 </head>
 <body class="planos-page">
@@ -78,14 +82,19 @@
     <div class="container">
       <p class="eyebrow"><span class="status-dot"></span> Planos e pagamentos</p>
       <h1 id="plans-title">Infraestrutura privada de IA.<span>Contratada em minutos.</span></h1>
-      <p class="lead">Escolha o plano, pague com Pix, cartão, Apple Pay ou Google Pay em um checkout seguro da Stripe, e receba seu ambiente no Brasil em até 5 dias úteis. Sem fidelidade: cancele quando quiser.</p>
+      <p class="lead">Para empresas, ambientes privados no Brasil. Para voc&ecirc;, IA privada e sem censura por assinatura. Pague em reais, com Pix, cart&atilde;o, Apple Pay ou Google Pay.</p>
+      <div class="seg" role="tablist" aria-label="Tipo de plano">
+        <button type="button" role="tab" id="tab-empresas" aria-selected="true" aria-controls="empresas" data-seg="empresas">Para empresas</button>
+        <button type="button" role="tab" id="tab-pessoal" aria-selected="false" aria-controls="pessoal" data-seg="pessoal" tabindex="-1">Para voc&ecirc; <small>sem censura</small></button>
+      </div>
       <div class="pay-methods" aria-label="Formas de pagamento"><span><i></i>Pix</span><span><i></i>Cartão de crédito</span><span><i></i>Apple Pay</span><span><i></i>Google Pay</span><span><i></i>Nota e recibo automáticos</span></div>
       
     </div>
   </section>
 
-  <section class="section-shell pt0" aria-label="Planos mensais">
+  <section class="section-shell pt0" aria-label="Planos">
     <div class="container">
+      <div class="seg-panel" id="empresas" role="tabpanel" aria-labelledby="tab-empresas">
       <div class="plan-grid">
         <article class="plan">
           <p class="k">Starter</p>
@@ -130,6 +139,79 @@
           <div class="price"><small>R$</small><b>4.900</b><small>pagamento único</small></div>
           <p class="note">Pix · cartão · Apple Pay · Google Pay</p>
           <a class="button button-light" href="https://buy.stripe.com/3cI4gz8Qi0CXdqv5cH5wI04" rel="noopener">Contratar diagnóstico <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      </div>
+
+      <div class="seg-panel" id="pessoal" role="tabpanel" aria-labelledby="tab-pessoal" hidden>
+        <div class="b2c-head">
+          <p class="section-kicker">Para pessoas f&iacute;sicas</p>
+          <h2>IA privada e sem censura. Para voc&ecirc;.</h2>
+          <p>Os mesmos modelos abertos que rodamos para empresas, num acesso individual. Sem filtro de conte&uacute;do imposto pelo fornecedor, suas conversas n&atilde;o treinam ningu&eacute;m e tudo roda no Brasil. Cobrado em reais &mdash; sem IOF, sem surpresa de d&oacute;lar, sem cobran&ccedil;a por token.</p>
+        </div>
+        <div class="plan-grid b2c-grid">
+          <article class="plan featured">
+            <span class="tag">Recomendado</span>
+            <p class="k">Pessoal &middot; mensal</p>
+            <h2>Acesso completo</h2>
+            <p class="desc">Chat privado e sem censura, com os melhores modelos abertos, por um pre&ccedil;o fixo por m&ecirc;s.</p>
+            <div class="price"><small>R$</small><b>79</b><small>/m&ecirc;s</small></div>
+            <p class="note">Cobran&ccedil;a mensal &middot; cancele quando quiser &middot; Pix ou cart&atilde;o</p>
+            <ul><li>Modelo sem censura e sem filtro do fornecedor</li><li>Conversas privadas: nunca usadas para treinar</li><li>Infer&ecirc;ncia e dados no Brasil</li><li>Uso justo generoso, sem contar tokens</li><li>Hist&oacute;rico, arquivos e busca</li><li>Pre&ccedil;o em reais, sem IOF</li></ul>
+            <a class="button button-primary" href="#lista" data-interesse="mensal">Quero acesso <span aria-hidden="true">&#8595;</span></a>
+            <p class="methods">Pix &middot; Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
+          </article>
+          <article class="plan">
+            <p class="k">Passe &middot; 7 dias</p>
+            <h2>Experimente uma semana</h2>
+            <p class="desc">Sete dias de acesso completo, pagos uma vez. Sem renova&ccedil;&atilde;o autom&aacute;tica, sem cart&atilde;o preso.</p>
+            <div class="price"><small>R$</small><b>24<i>,90</i></b><small>por 7 dias</small></div>
+            <p class="note">Pagamento &uacute;nico &middot; n&atilde;o renova sozinho</p>
+            <ul><li>Tudo do plano mensal, por 7 dias</li><li>Ideal para testar antes de assinar</li><li>Pix na hora</li></ul>
+            <a class="button button-outline" href="#lista" data-interesse="semanal">Quero testar <span aria-hidden="true">&#8595;</span></a>
+            <p class="methods">Pix &middot; Cart&atilde;o</p>
+          </article>
+          <article class="plan b2c-annual">
+            <p class="k">Anual</p>
+            <h2>Dois meses gr&aacute;tis</h2>
+            <p class="desc">Doze meses pelo pre&ccedil;o de dez. Para quem j&aacute; sabe que vai usar.</p>
+            <div class="price"><small>R$</small><b>790</b><small>/ano</small></div>
+            <p class="note">Equivale a R$ 65,80 por m&ecirc;s</p>
+            <ul><li>Tudo do plano mensal</li><li>Pre&ccedil;o travado por 12 meses</li><li>Pix ou cart&atilde;o, em at&eacute; 12&times;</li></ul>
+            <a class="button button-outline" href="#lista" data-interesse="anual">Quero acesso <span aria-hidden="true">&#8595;</span></a>
+            <p class="methods">Pix &middot; Cart&atilde;o</p>
+          </article>
+        </div>
+
+        <div class="lista" id="lista">
+          <div>
+            <p class="section-kicker">Lista de acesso</p>
+            <h2>Entre na lista. Leva 20 segundos.</h2>
+            <p>O acesso individual est&aacute; sendo liberado em lotes. Deixe seu e-mail e avisamos assim que o seu abrir &mdash; sem cobrar nada agora.</p>
+            <ul class="lista-pontos"><li>S&oacute; o e-mail &eacute; obrigat&oacute;rio</li><li>Nada &eacute; cobrado at&eacute; voc&ecirc; escolher pagar</li><li>Seu contato n&atilde;o vai para terceiros</li></ul>
+          </div>
+          <form class="lead-form" action="https://formsubmit.co/contato@trustio.com.br" method="POST">
+            <input type="hidden" name="_subject" value="Lista de acesso individual — trustio.com.br">
+            <input type="hidden" name="_template" value="table">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="hidden" name="_next" value="https://trustio.com.br/obrigado.html?lista=pessoal">
+            <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <input type="hidden" name="origem" value="planos.html#pessoal">
+            <label for="lead-email">E-mail <span>obrigat&oacute;rio</span></label>
+            <input id="lead-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com" required>
+            <label for="lead-zap">WhatsApp <span>opcional &middot; para avisar mais r&aacute;pido</span></label>
+            <input id="lead-zap" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 9 9999-9999">
+            <fieldset class="lead-pick">
+              <legend>Plano de interesse</legend>
+              <label><input type="radio" name="plano" value="mensal" checked>Mensal &middot; R$ 79</label>
+              <label><input type="radio" name="plano" value="semanal">Passe 7 dias &middot; R$ 24,90</label>
+              <label><input type="radio" name="plano" value="anual">Anual &middot; R$ 790</label>
+            </fieldset>
+            <label for="lead-uso">Como voc&ecirc; pretende usar? <span>opcional</span></label>
+            <select id="lead-uso" name="uso"><option value="">Escolher&hellip;</option><option>Trabalho e estudo</option><option>Escrita e criatividade</option><option>Pesquisa e c&oacute;digo</option><option>Conversas pessoais</option><option>Outro</option></select>
+            <button class="button button-primary" type="submit">Quero acesso <span aria-hidden="true">&#8599;</span></button>
+            <p class="lead-legal">Usamos seu contato apenas para avisar sobre o acesso individual e pode pedir a exclus&atilde;o quando quiser (LGPD). Sem spam.</p>
+          </form>
         </div>
       </div>
 

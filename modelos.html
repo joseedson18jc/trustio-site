@@ -172,6 +172,87 @@
       </div>
     </section>
 
+    <section class="voice-layer section-shell" id="voz" aria-labelledby="voice-layer-title">
+      <div class="container section-heading reveal">
+        <div>
+          <p class="section-kicker">Camada de voz</p>
+          <h2 id="voice-layer-title">Nem todo agente de voz &eacute; feito do mesmo jeito.</h2>
+        </div>
+        <p>A qualidade de uma liga&ccedil;&atilde;o com IA se decide menos no roteiro e mais na arquitetura por tr&aacute;s dela. Hoje existem tr&ecirc;s abordagens no mercado, e a diferen&ccedil;a entre elas &eacute; audível para o cliente do outro lado da linha.</p>
+      </div>
+
+      <div class="container reveal">
+        <div class="vc-wrap">
+          <table class="voice-compare">
+            <caption class="visually-hidden">Compara&ccedil;&atilde;o entre arquiteturas de agentes de voz</caption>
+            <thead>
+              <tr>
+                <th scope="col">Crit&eacute;rio</th>
+                <th scope="col">Fala &harr; fala nativo<small>grok-voice &middot; xAI</small></th>
+                <th scope="col">S&iacute;ntese de alta fidelidade<small>ElevenLabs</small></th>
+                <th scope="col">Pipeline em cascata<small>gera&ccedil;&atilde;o anterior</small></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Como funciona</td>
+                <td class="ok">Um &uacute;nico modelo ouve o &aacute;udio e responde em &aacute;udio</td>
+                <td>Texto convertido em voz dirigida, com identidade pr&oacute;pria</td>
+                <td>Tr&ecirc;s sistemas em s&eacute;rie: transcrever, decidir, sintetizar</td>
+              </tr>
+              <tr>
+                <td>Lat&ecirc;ncia</td>
+                <td class="ok">Abaixo de 1 s, ponta a ponta</td>
+                <td>Depende de o texto chegar antes</td>
+                <td>Soma das tr&ecirc;s etapas &mdash; a pausa depois que o cliente para de falar</td>
+              </tr>
+              <tr>
+                <td>Interrup&ccedil;&atilde;o no meio da fala</td>
+                <td class="ok">O modelo para, escuta e retoma</td>
+                <td>Depende do orquestrador que a controla</td>
+                <td>Ponto fraco cl&aacute;ssico: atropela ou trava</td>
+              </tr>
+              <tr>
+                <td>Pros&oacute;dia e emo&ccedil;&atilde;o</td>
+                <td class="ok">Preservadas &mdash; o &aacute;udio nunca vira texto</td>
+                <td class="ok">Control&aacute;veis por dire&ccedil;&atilde;o de voz</td>
+                <td>Perdidas na transcri&ccedil;&atilde;o e remontadas artificialmente</td>
+              </tr>
+              <tr>
+                <td>Portugu&ecirc;s do Brasil</td>
+                <td class="ok">Nativo, entre 25+ idiomas</td>
+                <td class="ok">Forte, multil&iacute;ngue</td>
+                <td>Varia conforme o motor de transcri&ccedil;&atilde;o contratado</td>
+              </tr>
+              <tr>
+                <td>Identidade de voz</td>
+                <td>Vozes do pr&oacute;prio modelo</td>
+                <td class="ok">Voz de marca, consistente entre canais</td>
+                <td>Limitada ao cat&aacute;logo do fornecedor</td>
+              </tr>
+              <tr>
+                <td>Afer&iacute;&ccedil;&atilde;o independente</td>
+                <td>Modelo fala&harr;fala &mdash; rankings de TTS medem s&oacute; a s&iacute;ntese, n&atilde;o a conversa</td>
+                <td class="ok">v3 Conversational: 8&ordm; lugar, Elo 1210 no leaderboard da Artificial Analysis</td>
+                <td>N&atilde;o aparece: integradores de voz n&atilde;o constroem modelos, licenciam os de terceiros</td>
+              </tr>
+              <tr>
+                <td>Onde a Trustio usa</td>
+                <td class="ok">Conversa em tempo real: liga&ccedil;&atilde;o e voz no WhatsApp</td>
+                <td class="ok">Locu&ccedil;&otilde;es, pr&eacute;vias e voz de marca</td>
+                <td>&Eacute; o que estamos substituindo</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="vc-note">
+          <p><strong>Por que isso decide a liga&ccedil;&atilde;o.</strong> No pipeline em cascata, cada etapa cobra seu tempo e a transcri&ccedil;&atilde;o joga fora tudo que n&atilde;o &eacute; palavra &mdash; pressa, d&uacute;vida, irrita&ccedil;&atilde;o. &Eacute; por isso que esses agentes soam corretos e mesmo assim artificiais: eles respondem ao texto do que foi dito, n&atilde;o ao jeito como foi dito. No modo fala&harr;fala n&atilde;o existe etapa de texto no meio &mdash; e &eacute; essa aus&ecirc;ncia, mais do que qualquer roteiro, que faz a conversa parecer conversa.</p>
+          <p class="vc-src">Compara&ccedil;&atilde;o por arquitetura: as caracter&iacute;sticas acima decorrem de como cada abordagem &eacute; construída, n&atilde;o de opini&atilde;o sobre fornecedores. Lat&ecirc;ncia medida no ambiente da Trustio em <b>br-sao-1</b>. Qualidade de s&iacute;ntese conforme o leaderboard p&uacute;blico da <a href="https://artificialanalysis.ai/text-to-speech/leaderboard/provider-voice" rel="noopener nofollow">Artificial Analysis</a>, consultado em 09/09/2026. <a href="voice.html">Ver o VoiceAI em opera&ccedil;&atilde;o</a>.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="contact section-shell" id="contato" aria-labelledby="contact-title">
       <div class="contact-card reveal">
         <div class="contact-pattern" aria-hidden="true"></div>

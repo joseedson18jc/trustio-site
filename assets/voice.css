@@ -1,10 +1,11 @@
 @import url("voice-base.css");
 
-/* O arquivo assets/xspace-logo.webp está truncado (6.236 de 16.300 bytes
-   declarados no cabeçalho RIFF), então nenhum navegador consegue decodificá-lo:
-   a regra antiga deixava apenas uma caixa vazia com sombra no topo do hero.
-   A prova de tecnologia fica no card .tech-proof, logo abaixo do CTA.
-   Para voltar a exibir a imagem, suba um arquivo válido e reative esta regra. */
+/* O antigo assets/xspace-logo.webp estava truncado (6.236 de 16.300 bytes
+   declarados no cabeçalho RIFF), nenhum navegador o decodificava e a regra
+   que o usava deixava só uma caixa vazia com sombra no topo do hero. O
+   arquivo foi removido do repositório em 09/09/2026 (recuperável no commit
+   11ac57f, se algum dia fizer falta). A prova de tecnologia agora é o card
+   .tech-proof, com a marca oficial da xAI em assets/xai-mark.webp. */
 
 /* ── Selo "VoiceAI · powered by xSpace" ──────────────────────────────
    Lockup tipográfico: nome, régua que carrega a forma de onda da fala

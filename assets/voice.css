@@ -43,3 +43,37 @@
   .xs-wave{animation:xs-breathe 5.5s ease-in-out infinite}
 }
 @keyframes xs-breathe{0%,100%{opacity:.82}50%{opacity:1}}
+
+/* ── Atribuição do fornecedor do modelo (marca oficial da xAI) ─────── */
+.tech-vendor{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:12px 14px;
+  border-bottom:1px solid var(--line,rgba(160,179,211,.16));
+}
+.tech-vendor img{
+  width:34px;height:34px;
+  flex:0 0 auto;
+  display:block;
+  opacity:.96;
+}
+.tech-vendor span{display:grid;gap:3px;min-width:0}
+.tech-vendor span>b{
+  font-family:var(--mono,ui-monospace);
+  font-size:12.5px;
+  font-weight:600;
+  letter-spacing:-.01em;
+  color:var(--ice,#f4f6fa);
+}
+.tech-vendor small{
+  font-family:var(--body,sans-serif);
+  font-size:11.5px;
+  line-height:1.35;
+  color:#8d9ab0;
+}
+.tech-vendor small b{font-weight:600;color:#c3ccdb}
+@media(max-width:520px){
+  .tech-vendor{gap:11px;padding:11px 13px}
+  .tech-vendor img{width:29px;height:29px}
+}

@@ -2272,3 +2272,82 @@ h3 { letter-spacing: -0.018em; }
 /* Famílias de card que também revelam uma linha de insight. */
 .ch, .legal-feature-card, .model-card { position: relative; }
 .ch .insight-line, .legal-feature-card .insight-line, .model-card .insight-line { margin-top: 8px; }
+
+/* ── Camada de voz: comparação por arquitetura (modelos.html) ───────── */
+.vc-wrap {
+  overflow-x: auto;
+  margin-top: 30px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.voice-compare {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.voice-compare th,
+.voice-compare td {
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+.voice-compare thead th {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--muted-strong);
+  background: rgba(11, 23, 48, 0.35);
+}
+.voice-compare thead th small {
+  display: block;
+  margin-top: 5px;
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: var(--blue-signal);
+}
+.voice-compare thead th:last-child small { color: #7d889b; }
+.voice-compare tbody td { color: var(--muted); line-height: 1.45; }
+.voice-compare tbody td:first-child {
+  color: var(--ice);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.voice-compare tbody td.ok { color: #dfe6f2; }
+.voice-compare tbody td.ok::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin: 0 8px 3px 0;
+  border-radius: 50%;
+  background: #3ddc97;
+  vertical-align: middle;
+}
+.voice-compare tbody tr:last-child td { border-bottom: 0; }
+.voice-compare tbody td:last-child { color: #8d9ab0; }
+
+.vc-note {
+  margin-top: 26px;
+  padding: 18px 20px;
+  border-left: 2px solid var(--blue-signal);
+  border-radius: 0 12px 12px 0;
+  background: rgba(94, 167, 255, 0.05);
+}
+.vc-note p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.vc-note strong { color: var(--ice); }
+.vc-src {
+  margin-top: 12px !important;
+  font-size: 12.5px !important;
+  color: #8d9ab0 !important;
+}
+.vc-src b { color: var(--muted-strong); font-weight: 600; }
+.vc-src a { color: var(--blue-signal); text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 700px) {
+  .voice-compare th, .voice-compare td { padding: 12px 13px; }
+  .vc-note { padding: 15px 16px; }
+}

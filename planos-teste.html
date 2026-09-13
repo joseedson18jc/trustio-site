@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="noindex, nofollow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self' https://formsubmit.co">
   <title>Planos e pagamentos | Trustio — infraestrutura privada de IA no Brasil</title>
   <meta name="description" content="Planos Starter, Pro e Dedicado de infraestrutura privada de IA, com pagamento por Pix, cartão, Apple Pay e Google Pay. Diagnóstico de caso de uso com valor abatido do primeiro mês.">
   <link rel="canonical" href="https://trustio.com.br/planos-teste.html">
@@ -196,5 +196,7 @@
       <p>Construída e hospedada no Brasil <span class="brazil-dot" aria-hidden="true"></span></p>
     </div>
   </footer>
+<!-- Cloudflare Web Analytics (sem cookies, LGPD-friendly) — ative colando o token do painel Web Analytics -->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "SEU_TOKEN_CLOUDFLARE_AQUI"}'></script>
 </body>
 </html>

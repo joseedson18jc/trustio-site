@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow, max-image-preview:large">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self' https://formsubmit.co">
   <title>Trustio Jurídico | IA privada para escritórios e departamentos jurídicos</title>
   <meta name="description" content="Infraestrutura privada de IA para o setor jurídico: jurisprudência monitorada, agentes jurídicos, RAG, OCR, petições e inteligência de decisões, com dados no Brasil e LGPD by Design.">
   <meta name="keywords" content="IA jurídica, inteligência artificial jurídica, legal AI, jurisprudência, agentes jurídicos, RAG jurídico, OCR jurídico, petições com IA, analytics jurídico, LGPD, IA privada">
@@ -360,5 +360,7 @@
       <p>Construída e hospedada no Brasil <span class="brazil-dot" aria-hidden="true"></span></p>
     </div>
   </footer>
+<!-- Cloudflare Web Analytics (sem cookies, LGPD-friendly) — ative colando o token do painel Web Analytics -->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "SEU_TOKEN_CLOUDFLARE_AQUI"}'></script>
 </body>
 </html>

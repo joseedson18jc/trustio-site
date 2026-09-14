@@ -27,6 +27,9 @@
 
     var payload = {};
     new FormData(form).forEach(function (v, k) { payload[k] = v; });
+    // normalizacao: formularios sem todos os campos (ex.: planos.html usa whatsapp e nao tem nome)
+    if (!payload.nome) payload.nome = String(payload.email || "").split("@")[0] || "Assinante";
+    if (!payload.telefone && payload.whatsapp) payload.telefone = payload.whatsapp;
 
     fetch(ENDPOINT, {
       method: "POST",

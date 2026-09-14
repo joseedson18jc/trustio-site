@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self' https://formsubmit.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://api.trustio.com.br; object-src 'none'; base-uri 'self'; form-action 'self' https://api.trustio.com.br">
   <title>Lista de espera | Trustio — lançamento em 1º de outubro de 2026</title>
   <meta name="description" content="Entre na lista de espera da Trustio: IA privada e sem censura para pessoas físicas e ambientes privados para empresas (VoiceAI, Jurídico, Saúde). Lançamento em 1º de outubro de 2026.">
   <link rel="canonical" href="https://trustio.com.br/espera.html">
@@ -25,6 +25,7 @@
   <script type="module" src="assets/app.js"></script>
   <script defer src="assets/contador.js"></script>
   <script defer src="assets/espera.js"></script>
+  <script defer src="assets/optin.js"></script>
 </head>
 <body class="planos-page espera-page">
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -100,11 +101,7 @@
           <p class="espera-nota">Empresas: al&eacute;m das 5 perguntas, um arquiteto entra em contato para desenhar o ambiente (VoiceAI, Jur&iacute;dico, Sa&uacute;de ou outro nicho). Empresas que contratam um plano antes do lan&ccedil;amento tamb&eacute;m entram em 23 de setembro.</p>
         </div>
 
-        <form class="lead-form" action="https://formsubmit.co/diretor@trustio.com.br" method="POST" id="espera-form">
-          <input type="hidden" name="_subject" value="Lista de espera — trustio.com.br">
-          <input type="hidden" name="_template" value="table">
-          <input type="hidden" name="_captcha" value="false">
-          <input type="hidden" name="_next" value="https://trustio.com.br/obrigado.html?lista=espera" data-next>
+        <form class="lead-form" action="https://api.trustio.com.br/signup" method="POST" id="espera-form">
           <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
           <input type="hidden" name="origem" value="espera.html" data-origem>
 
@@ -149,7 +146,7 @@
           <input id="w-obs" name="observacao" type="text" placeholder="Caso de uso, prazo, volume&hellip;">
 
           <button class="button button-primary" type="submit" data-submit>Entrar na lista de espera <span aria-hidden="true">&#8599;</span></button>
-          <p class="lead-legal">Pr&eacute;-assinatura: nada &eacute; cobrado neste formul&aacute;rio &mdash; o pagamento acontece no link que enviamos (Pix ou cart&atilde;o) e o acesso abre em 23/09. Usamos seus dados s&oacute; para avisar sobre o lan&ccedil;amento e liberar o acesso. Voc&ecirc; pode pedir exclus&atilde;o quando quiser (LGPD). Sem spam.</p>
+          <p class="lead-legal">Voc&ecirc; recebe um e-mail para confirmar a inscri&ccedil;&atilde;o. Usamos seus dados s&oacute; para avisar sobre o lan&ccedil;amento e liberar o acesso (LGPD). Sem spam.</p>
         </form>
       </div>
 
@@ -192,6 +189,6 @@
     </div>
   </footer>
 <!-- Cloudflare Web Analytics (sem cookies, LGPD-friendly) — ative colando o token do painel Web Analytics -->
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "68961161fc6848c0b9e1d755f829fd30"}'></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "689611…fd30"}'></script>
 </body>
 </html>

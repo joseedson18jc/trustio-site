@@ -10,7 +10,13 @@ publicado em **https://trustio.com.br** via GitHub Pages.
 - `manifesto.html`: experiência editorial dedicada ao Manifesto.
 - `fundador.html`: página do fundador.
 - `404.html`: página de erro personalizada (usa caminhos absolutos, obrigatório para funcionar em URLs aninhadas).
-- `assets/styles.css`: identidade visual e responsividade.
+- `assets/styles.css`: identidade visual e responsividade. Tokens em `:root` (cores, gradientes compostos,
+  `--container`, `--cta-gradient`, escala de espaçamento `--space-N`) e tema claro em `:root[data-theme="light"]`.
+- `assets/theme.js`: aplica o tema salvo antes da primeira pintura. Carregado de forma síncrona no `<head>`,
+  antes do CSS, em todas as páginas. O escuro é o padrão; o claro é opt-in pelo alternador do cabeçalho
+  e persiste em `localStorage` (`trustio-theme`).
+- `design-system/`: bundle de sincronização com o claude.ai/design (tokens, previews de componentes,
+  fotografia e artes). Não é usado pelo site; bloqueado em `robots.txt`. Veja `design-system/README.md`.
 - `assets/app.js`: navegação, animações, campo digital de pontos e painel LED do servidor.
 - `assets/fonts/`: fontes oficiais hospedadas localmente.
 - `SECURITY.md`: controles incorporados e cabeçalhos recomendados.
@@ -51,7 +57,13 @@ locais. Blocos `application/ld+json` são permitidos por não serem executáveis
 ## Ajustes antes de cada lançamento
 
 - Ao adicionar página: incluir em `sitemap.xml`, na navegação (desktop + mobile + rodapé),
-  em `vite.config.js` e em `scripts/build-worker.mjs`.
+  em `vite.config.js` e em `scripts/build-worker.mjs`. Copiar também o `<script src="assets/theme.js">`
+  antes do CSS e o botão `.theme-toggle` do cabeçalho.
+- Superfícies que ficam escuras nos dois temas (terminal de API, painel de servidor, cartão de contato,
+  finale do manifesto) redeclaram os tokens localmente em `[data-theme="light"]`; ao criar uma superfície
+  assim, adicione o seletor a essa regra em vez de fixar cores.
+- Espaçamento novo: use `var(--space-N)` (4 a 140). Cores novas: use os tokens semânticos
+  (`--text-strong`, `--on-surface-rgb`, `--card-gradient*`) para que o tema claro continue coerente.
 - Revisar os textos institucionais com as áreas jurídica e de segurança.
 - Selos de conformidade no rodapé: manter rastreabilidade (número do certificado e organismo
   certificador) para due diligence de clientes enterprise.

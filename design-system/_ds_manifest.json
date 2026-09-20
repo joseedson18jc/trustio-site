@@ -1,0 +1,164 @@
+[
+  {
+    "name": "Cores",
+    "path": "design-system/fundamentos/cores.html",
+    "group": "Fundamentos",
+    "subtitle": "18 tokens · escuro e claro",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Tipografia",
+    "path": "design-system/fundamentos/tipografia.html",
+    "group": "Fundamentos",
+    "subtitle": "Geist · Geist Mono · Instrument Serif",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Espaçamento",
+    "path": "design-system/fundamentos/espacamento.html",
+    "group": "Fundamentos",
+    "subtitle": "Escala declarada · 16 passos",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Tema claro e escuro",
+    "path": "design-system/fundamentos/tema.html",
+    "group": "Fundamentos",
+    "subtitle": "Escuro padrão · claro opt-in",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Botões",
+    "path": "design-system/componentes/botoes.html",
+    "group": "Componentes",
+    "subtitle": "Primário / ghost / outline / light · 2 tamanhos",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Cards",
+    "path": "design-system/componentes/cards.html",
+    "group": "Componentes",
+    "subtitle": "Metric · Pillar · Card clicável",
+    "viewport": {
+      "width": 1100
+    }
+  },
+  {
+    "name": "Rótulos e chips",
+    "path": "design-system/componentes/rotulos.html",
+    "group": "Componentes",
+    "subtitle": "Eyebrow · kicker · tag · chips · status",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Links",
+    "path": "design-system/componentes/links.html",
+    "group": "Componentes",
+    "subtitle": "Text link · navegação · rodapé",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Selos de conformidade",
+    "path": "design-system/componentes/selos.html",
+    "group": "Componentes",
+    "subtitle": "LGPD · ANPD · ISO 27001 (rodapé)",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Cabeçalho",
+    "path": "design-system/componentes/cabecalho.html",
+    "group": "Componentes",
+    "subtitle": "Marca · navegação · CTA · alternador de tema · menu",
+    "viewport": {
+      "width": 1200
+    }
+  },
+  {
+    "name": "Retrato do fundador",
+    "path": "design-system/fotografia/fundador.html",
+    "group": "Fotografia",
+    "subtitle": "founder-photo · jpg + webp",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Faixa Brasil",
+    "path": "design-system/fotografia/brasil.html",
+    "group": "Fotografia",
+    "subtitle": "brazil-banner · jpg + webp",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Social card",
+    "path": "design-system/fotografia/social-card.html",
+    "group": "Fotografia",
+    "subtitle": "1200 × 630 · og:image de todas as páginas",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Marca xAI (parceria)",
+    "path": "design-system/fotografia/xai.html",
+    "group": "Fotografia",
+    "subtitle": "xai-mark · png + webp",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Marca Trustio",
+    "path": "design-system/artes/marca.html",
+    "group": "Artes",
+    "subtitle": "Símbolo · favicon SVG · social card (fonte)",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Favicons e ícones de app",
+    "path": "design-system/artes/favicons.html",
+    "group": "Artes",
+    "subtitle": "16 · 32 · 192 · 512 · apple-touch",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Selos de conformidade (arte)",
+    "path": "design-system/artes/selos.html",
+    "group": "Artes",
+    "subtitle": "LGPD · ANPD · ISO 27001 · png + webp",
+    "viewport": {
+      "width": 900
+    }
+  },
+  {
+    "name": "Ícones de conectores",
+    "path": "design-system/artes/conectores.html",
+    "group": "Artes",
+    "subtitle": "9 canais · SVG monocromático",
+    "viewport": {
+      "width": 1000
+    }
+  }
+]

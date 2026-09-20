@@ -221,6 +221,8 @@
     renderConversations();
     sb.from("messages").select("role,content,created_at").eq("conversation_id", id).order("created_at", { ascending: true })
       .then(function (r) {
+        // O usuário pode ter trocado de conversa enquanto esta carregava: só renderiza se ainda for a ativa.
+        if (state.conversationId !== id || state.threadInner !== inner) return;
         inner.innerHTML = "";
         (r.data || []).forEach(function (m) { appendMessage(m.role, m.content); });
         scrollBottom();

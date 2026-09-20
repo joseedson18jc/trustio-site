@@ -1,5 +1,5 @@
 // Trustio · função de chat (Supabase Edge Function, projeto yxkgdgcdvngltnykleig · sa-east-1).
-// Recebe a mensagem do cliente autenticado, aplica a cota do plano, chama o modelo
+// Recebe a mensagem do cliente autenticado, reserva a cota do plano de forma atômica, chama o modelo
 // (qualquer API compatível com OpenAI: xAI, OpenAI, vLLM…) e devolve a resposta em streaming.
 // A chave do modelo nunca chega ao navegador.
 //
@@ -36,6 +36,11 @@ function json(status: number, body: unknown, origin: string | null) {
   });
 }
 
+type Reservation = {
+  ok: boolean; error?: string; lead_id?: string; used?: number; limit?: number;
+  subscriber?: boolean; remaining?: number | null;
+};
+
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin) });
@@ -57,20 +62,23 @@ Deno.serve(async (req) => {
   if (!message) return json(400, { error: "mensagem_vazia" }, origin);
   if (message.length > 12000) return json(413, { error: "mensagem_longa" }, origin);
 
-  // Lead do CRM + cota.
-  const { data: lead } = await admin.from("crm_leads").select("id,status,mensagens_usadas,plano").eq("user_id", user.id).maybeSingle();
-  const { data: limitRow } = await admin.from("app_settings").select("value").eq("key", "free_message_limit").maybeSingle();
-  const limit = limitRow && limitRow.value !== null ? Number(limitRow.value) : 0; // 0 = sem limite
-  const used = lead?.mensagens_usadas ?? 0;
-  const subscriber = lead?.status === "assinante";
-  if (!subscriber && limit > 0 && used >= limit) {
-    if (lead && lead.status !== "trial_esgotado") {
-      await admin.from("crm_leads").update({ status: "trial_esgotado" }).eq("id", lead.id);
-    }
-    return json(402, { error: "trial_esgotado", used, limit }, origin);
-  }
-
+  // Sem chave do modelo nada é consumido nem gravado.
   if (!LLM_API_KEY) return json(503, { error: "modelo_nao_configurado" }, origin);
+
+  // Reserva a cota ANTES de chamar o modelo, numa única instrução no banco
+  // (requisições paralelas não passam pelo mesmo contador). Cria o lead se faltar.
+  const { data: reservationData, error: reservationError } = await admin.rpc("reserve_chat_message", { p_user_id: user.id });
+  if (reservationError || !reservationData) {
+    console.error("reserve_error", reservationError);
+    return json(500, { error: "cota_indisponivel" }, origin);
+  }
+  const reservation = reservationData as Reservation;
+  if (!reservation.ok) {
+    const status = reservation.error === "trial_esgotado" ? 402 : 403;
+    return json(status, { error: reservation.error, used: reservation.used, limit: reservation.limit }, origin);
+  }
+  const leadId = reservation.lead_id!;
+  const release = () => admin.rpc("release_chat_message", { p_lead_id: leadId });
 
   // Conversa (cria se necessário; confere que pertence ao usuário).
   let conversationId = body.conversation_id ?? null;
@@ -81,38 +89,47 @@ Deno.serve(async (req) => {
   if (!conversationId) {
     const title = message.length > 60 ? message.slice(0, 57).trimEnd() + "…" : message;
     const { data: conv, error } = await admin.from("conversations").insert({ user_id: user.id, title }).select("id").single();
-    if (error || !conv) return json(500, { error: "conversa_nao_criada" }, origin);
+    if (error || !conv) { await release(); return json(500, { error: "conversa_nao_criada" }, origin); }
     conversationId = conv.id;
   }
 
-  await admin.from("messages").insert({ conversation_id: conversationId, user_id: user.id, role: "user", content: message });
-
   const { data: history } = await admin.from("messages").select("role,content")
-    .eq("conversation_id", conversationId).order("created_at", { ascending: false }).limit(HISTORY);
+    .eq("conversation_id", conversationId).order("created_at", { ascending: false }).limit(HISTORY - 1);
   const { data: promptRow } = await admin.from("app_settings").select("value").eq("key", "system_prompt").maybeSingle();
   const systemPrompt = typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.";
 
   const messages = [
     { role: "system", content: systemPrompt },
     ...(history ?? []).reverse().map((m) => ({ role: m.role, content: m.content })),
+    { role: "user", content: message },
   ];
 
-  const upstream = await fetch(`${LLM_BASE_URL}/chat/completions`, {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: LLM_MODEL, messages, stream: true, temperature: 0.7 }),
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${LLM_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: LLM_MODEL, messages, stream: true, temperature: 0.7 }),
+    });
+  } catch (err) {
+    console.error("llm_fetch_error", err);
+    await release();
+    return json(502, { error: "modelo_indisponivel" }, origin);
+  }
   if (!upstream.ok || !upstream.body) {
     const detail = await upstream.text().catch(() => "");
     console.error("llm_error", upstream.status, detail.slice(0, 500));
+    await release();
     return json(502, { error: "modelo_indisponivel", status: upstream.status }, origin);
   }
+
+  // O modelo aceitou: a mensagem do usuário entra no histórico.
+  await admin.from("messages").insert({ conversation_id: conversationId, user_id: user.id, role: "user", content: message });
 
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   let full = "";
   const convId = conversationId;
-  const leadId = lead?.id ?? null;
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -144,19 +161,16 @@ Deno.serve(async (req) => {
         send({ error: "stream_interrompido" });
       }
 
-      // Persistência + contadores (após o streaming, sem bloquear a resposta).
       if (full) {
         await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full, model: LLM_MODEL });
         await admin.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
       }
-      let remaining: number | null = null;
-      if (leadId) {
-        const nextUsed = used + 1;
-        const nextStatus = subscriber ? "assinante" : (limit > 0 && nextUsed >= limit ? "trial_esgotado" : "ativo");
-        await admin.from("crm_leads").update({ mensagens_usadas: nextUsed, status: nextStatus, last_seen_at: new Date().toISOString() }).eq("id", leadId);
-        remaining = subscriber || limit === 0 ? null : Math.max(0, limit - nextUsed);
-      }
-      send({ done: true, conversation_id: convId, remaining, limit: subscriber ? null : limit });
+      send({
+        done: true,
+        conversation_id: convId,
+        remaining: reservation.remaining ?? null,
+        limit: reservation.subscriber ? null : reservation.limit,
+      });
       controller.close();
     },
   });

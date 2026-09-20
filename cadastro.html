@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05070b">
+  <meta name="color-scheme" content="dark light">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="index, follow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://yxkgdgcdvngltnykleig.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Criar conta | Trustio — IA privada e sem censura</title>
+  <meta name="description" content="Crie sua conta na Trustio: confirme o e-mail e entre direto no chat com IA privada, sem censura e com dados no Brasil.">
+  <link rel="canonical" href="https://trustio.com.br/cadastro.html">
+  <meta property="og:type" content="website"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="Trustio">
+  <meta property="og:title" content="Criar conta · Trustio"><meta property="og:description" content="Confirme o e-mail e entre direto no chat. IA privada, sem censura, dados no Brasil.">
+  <meta property="og:url" content="https://trustio.com.br/cadastro.html"><meta property="og:image" content="https://trustio.com.br/assets/social-card.png">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preload" href="assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <script src="assets/theme.js?v=393a296c"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=5ae5a270">
+  <link rel="stylesheet" href="assets/planos.css?v=bad5c608">
+  <link rel="stylesheet" href="assets/conta.css?v=7d045616">
+  <script type="module" src="assets/app.js?v=650c9f12"></script>
+  <script defer src="assets/vendor/supabase.js?v=84ee9bf4"></script>
+  <script defer src="assets/auth-config.js?v=def1b812"></script>
+  <script defer src="assets/conta.js?v=6c7bfb0d"></script>
+</head>
+<body class="planos-page conta-page">
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+
+  <header class="site-header" data-header>
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="Trustio, página inicial">
+        <img class="brand-mark" src="assets/trustio-mark.svg" alt="" width="34" height="34">
+        <span class="brand-word"><span>Trust</span><strong>io</strong></span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="Navegação principal">
+        <a href="index.html#plataforma">Plataforma</a>
+        <a href="modelos.html">Modelos Poderosos</a>
+        <a href="voice.html" class="nav-voice">VoiceAI <small>powered by xSpace</small></a>
+        <a href="index.html#seguranca">Segurança</a>
+        <a href="index.html#implantacao">Implantação</a>
+        <a href="/juridico/">Jurídico</a>
+        <a href="planos.html">Planos</a>
+        <a href="espera.html">Lista de espera</a>
+        <a href="manifesto.html">Manifesto</a>
+      </nav>
+
+      <a class="header-login" href="entrar.html">Entrar</a>
+      <a class="button button-small button-ghost header-cta" href="index.html#contato">Falar com a Trustio</a>
+
+      <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Ativar tema claro" title="Alternar tema">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Abrir menu">
+        <span></span><span></span>
+      </button>
+    </div>
+
+    <nav class="mobile-nav" id="mobile-menu" aria-label="Navegação para dispositivos móveis" hidden>
+      <a href="index.html#plataforma">Plataforma</a>
+      <a href="modelos.html">Modelos Poderosos</a>
+      <a href="voice.html" class="nav-voice">VoiceAI <small>powered by xSpace</small></a>
+      <a href="index.html#seguranca">Segurança</a>
+      <a href="index.html#implantacao">Implantação</a>
+      <a href="/juridico/">Jurídico</a>
+      <a href="planos.html">Planos</a>
+      <a href="espera.html">Lista de espera</a>
+      <a href="manifesto.html">Manifesto</a>
+      <a href="entrar.html">Entrar</a>
+      <a href="cadastro.html" aria-current="page">Criar conta</a>
+      <a href="index.html#contato">Falar com a Trustio</a>
+    </nav>
+  </header>
+
+<main id="conteudo">
+  <section class="plans-hero section-shell conta-hero" aria-labelledby="cadastro-title">
+    <div class="container">
+      <p class="eyebrow"><span class="status-dot"></span> Conta Trustio</p>
+      <h1 id="cadastro-title">Crie sua conta.<span>Confirme o e-mail e caia direto no chat.</span></h1>
+      <p class="lead">IA privada, sem censura e com dados no Brasil. Suas conversas ficam no seu ambiente, e cada nova conta entra no nosso atendimento para liberar o acesso, planos e suporte.</p>
+    </div>
+  </section>
+
+  <section class="section-shell pt0" aria-label="Formulário de cadastro">
+    <div class="container">
+      <div class="lista conta-lista">
+        <div>
+          <p class="section-kicker">Como funciona</p>
+          <h2>Três passos.<span>Nada é cobrado agora.</span></h2>
+          <ol class="conta-passos">
+            <li><b>Você cria a conta</b>Nome, e-mail, telefone e uma senha. Para empresas, o segmento.</li>
+            <li><b>Confirma o e-mail</b>Enviamos um link. Ao clicar, você já entra autenticado no chat, sem senha de novo.</li>
+            <li><b>Conversa sem censura</b>As primeiras perguntas são grátis. Depois, você escolhe um plano quando quiser, sem cobrança automática.</li>
+          </ol>
+          <div class="conta-tags" aria-label="Garantias">
+            <span>Dados no Brasil</span><span>Sem censura</span><span>LGPD</span><span>Sem cartão</span>
+          </div>
+          <p class="conta-alt conta-alt-left">Já tem conta? <a href="entrar.html">Entrar</a></p>
+        </div>
+
+        <div class="conta-card">
+          <h2>Criar conta</h2>
+          <p>Leva menos de um minuto.</p>
+          <form class="lead-form" id="cadastro-form" novalidate>
+            <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+            <label for="c-nome">Nome <span>obrigatório</span></label>
+            <input id="c-nome" name="nome" type="text" autocomplete="name" placeholder="Seu nome" required>
+            <label for="c-email">E-mail <span>obrigatório</span></label>
+            <input id="c-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com" required>
+            <label for="c-tel">Telefone / WhatsApp <span>obrigatório</span></label>
+            <input id="c-tel" name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 9 9999-9999" required>
+            <label for="c-senha">Senha <span>mínimo 8 caracteres</span></label>
+            <input id="c-senha" name="senha" type="password" autocomplete="new-password" minlength="8" placeholder="••••••••" required>
+
+            <fieldset class="lead-pick">
+              <legend>Interesse</legend>
+              <label><input type="radio" name="tipo" value="b2c" data-tipo="b2c" checked>Para mim <small>IA privada e sem censura</small></label>
+              <label><input type="radio" name="tipo" value="b2b" data-tipo="b2b">Para minha empresa <small>ambiente privado, VoiceAI, Jurídico, Saúde</small></label>
+            </fieldset>
+
+            <div class="cond" data-when="b2b" hidden>
+              <label for="c-seg">Segmento <span>obrigatório para empresas</span></label>
+              <select id="c-seg" name="segmento" data-req-b2b><option value="">Escolher…</option><option>VoiceAI · agentes de voz e omnicanal</option><option>Jurídico · escritórios e departamentos jurídicos</option><option>Saúde · hospitais e clínicas</option><option>Financeiro · bancos, fintechs e crédito</option><option>Varejo e e-commerce</option><option>Indústria e logística</option><option>Setor público</option><option>Outro nicho</option></select>
+              <label for="c-emp">Empresa <span>opcional</span></label>
+              <input id="c-emp" name="empresa" type="text" autocomplete="organization" placeholder="Nome da empresa">
+            </div>
+
+            <button class="button button-primary" type="submit" data-submit>Criar conta e receber o link <span aria-hidden="true">↗</span></button>
+            <p class="lead-legal" data-status role="status" aria-live="polite"></p>
+            <div class="conta-done" data-done hidden>
+              <b>Falta só confirmar.</b> Abra o e-mail enviado para <code data-done-email></code> e clique em <b>Confirmar e entrar</b>. Não chegou? Confira o spam ou peça um novo link em <a href="entrar.html">Entrar</a>.
+            </div>
+            <p class="lead-legal">Usamos seus dados para criar a conta, liberar o acesso e falar com você sobre planos e suporte (LGPD). Sem spam.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <a class="brand footer-brand" href="index.html" aria-label="Trustio, página inicial">
+          <img class="brand-mark" src="assets/trustio-mark.svg" alt="" width="34" height="34">
+          <span class="brand-word"><span>Trust</span><strong>io</strong></span>
+        </a>
+        <p>Infraestrutura privada de inteligência artificial para empresas.</p>
+      </div>
+      <div class="footer-links">
+        <div><span>EXPLORAR</span><a href="index.html#plataforma">Plataforma</a><a href="modelos.html">Modelos Poderosos</a><a href="voice.html">VoiceAI · xSpace</a><a href="/juridico/">Jurídico</a><a href="index.html#seguranca">Segurança</a><a href="index.html#implantacao">Implantação</a><a href="planos.html">Planos</a><a href="espera.html">Lista de espera</a></div>
+        <div><span>CONTA</span><a href="entrar.html">Entrar</a><a href="cadastro.html" aria-current="page">Criar conta</a><a href="manifesto.html">Manifesto</a><a href="fundador.html">Fundador</a><a href="mailto:contato@trustio.com.br">Contato</a></div>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>© <span data-year>2026</span> Trustio. Todos os direitos reservados.</p>
+      <p>Construída e hospedada no Brasil <span class="brazil-dot" aria-hidden="true"></span></p>
+    </div>
+  </footer>
+</body>
+</html>

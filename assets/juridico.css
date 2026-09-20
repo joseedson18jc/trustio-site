@@ -7,7 +7,7 @@
 
 .juridico-page .desktop-nav a.is-active,
 .juridico-page .mobile-nav a.is-active {
-  color: var(--white);
+  color: var(--text-strong);
 }
 
 .juridico-page .desktop-nav a.is-active::after {

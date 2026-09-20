@@ -422,7 +422,7 @@ p {
   transition: color 180ms ease;
 }
 
-.header-cta { white-space: nowrap; }
+.header-cta { flex: 0 0 auto; white-space: nowrap; }
 
 .desktop-nav a::after {
   position: absolute;
@@ -532,7 +532,7 @@ p {
   width: 18px;
   height: 1px;
   margin: 5px auto;
-  background: white;
+  background: var(--text-strong);
   transition: transform 220ms ease;
 }
 
@@ -1891,14 +1891,22 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
 }
 
 /* Responsive */
-/* With eight items the desktop menu needs ~1240px; below that the hamburger takes over (matches app.js). */
-@media (max-width: 1460px) and (min-width: 1241px) {
-  .header-inner { gap: 18px; }
+/* Cabeçalho: nove itens + CTA + alternador de tema precisam de ~1270px; a faixa do cabeçalho
+   cresce até 1360px (mais larga que o container de conteúdo) e, abaixo de 1321px, o menu
+   hambúrguer assume (breakpoint espelhado em app.js). */
+@media (min-width: 1321px) {
+  .header-inner { width: min(1360px, calc(100vw - 48px)); gap: var(--space-16); }
   .desktop-nav { gap: var(--space-12); }
   .desktop-nav a { font-size: 13.5px; }
 }
 
-@media (max-width: 1240px) {
+@media (min-width: 1601px) {
+  .header-inner { gap: var(--space-20); }
+  .desktop-nav { gap: var(--space-16); }
+  .desktop-nav a { font-size: 14px; }
+}
+
+@media (max-width: 1320px) {
   .desktop-nav { display: none; }
   .menu-toggle { display: block; }
   .header-cta { margin-left: auto; }

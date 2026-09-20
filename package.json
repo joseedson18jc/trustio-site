@@ -6,7 +6,9 @@
   "scripts": {
     "build": "node scripts/build-worker.mjs",
     "build:static": "vite build",
-    "validate": "node scripts/validate-artifact.mjs"
+    "validate": "node scripts/validate-artifact.mjs",
+    "stamp": "node scripts/stamp-asset-versions.mjs",
+    "stamp:check": "node scripts/stamp-asset-versions.mjs --check"
   },
   "devDependencies": {
     "vite": "7.0.6"

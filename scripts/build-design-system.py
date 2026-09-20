@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate design-system/ : sync-ready preview cards for claude.ai/design (/design-sync)."""
-import json, pathlib, re
+import json, pathlib, re, shutil, subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DS = ROOT / "design-system"
@@ -328,3 +328,10 @@ for group, items in groups.items():
 manifest = [{"name": t, "path": f"design-system/{p}", "group": g, "subtitle": s, "viewport": {"width": w}} for p, g, t, s, w in cards]
 (DS / "_ds_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
 print("cards:", len(cards), "| groups:", {g: len(v) for g, v in groups.items()})
+
+# Os previews recém-gerados saem sem `?v=`; o carimbo de versão dos assets (scripts/stamp-asset-versions.mjs)
+# reescreve os links com o hash do conteúdo. Sem node disponível, avisa para rodar `npm run stamp` à mão.
+if shutil.which("node"):
+    subprocess.run(["node", str(ROOT / "scripts/stamp-asset-versions.mjs")], check=True)
+else:
+    print("aviso: node não encontrado — rode `npm run stamp` para carimbar as versões dos assets.")

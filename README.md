@@ -44,6 +44,10 @@ páginas geram conteúdo duplicado indexável e prejudicam o SEO. O `.gitignore`
 - `npm run build:static` → `vite build`. Ao criar uma página nova, adicione-a a
   `rollupOptions.input` em `vite.config.js`.
 - `npm run validate` → `scripts/validate-artifact.mjs`.
+- `npm run stamp` → `scripts/stamp-asset-versions.mjs`, carimba `?v=<hash do conteúdo>` nos links locais
+  de CSS/JS das páginas (e nos `@import` de CSS). Isso faz parte do caminho de deploy: o GitHub Pages
+  serve `styles.css` com cache de 4 h, então sem o carimbo um visitante recente pode receber o CSS antigo
+  com o HTML novo. `npm run stamp:check` só reporta (sai com 1 se houver algo desatualizado).
 
 ## Segurança
 
@@ -59,6 +63,9 @@ locais. Blocos `application/ld+json` são permitidos por não serem executáveis
 - Ao adicionar página: incluir em `sitemap.xml`, na navegação (desktop + mobile + rodapé),
   em `vite.config.js` e em `scripts/build-worker.mjs`. Copiar também o `<script src="assets/theme.js">`
   antes do CSS e o botão `.theme-toggle` do cabeçalho.
+- **Depois de alterar qualquer CSS/JS (ou criar página), rode `npm run stamp` antes do commit.** O script
+  atualiza o `?v=` só dos assets que mudaram; sem isso o cache do navegador segura a versão antiga por até 4 h.
+  `scripts/build-design-system.py` já chama o carimbo ao final.
 - Superfícies que ficam escuras nos dois temas (terminal de API, painel de servidor, cartão de contato,
   finale do manifesto) redeclaram os tokens localmente em `[data-theme="light"]`; ao criar uma superfície
   assim, adicione o seletor a essa regra em vez de fixar cores.

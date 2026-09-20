@@ -2611,3 +2611,20 @@ h3 { letter-spacing: -0.018em; }
 .signal-pix { display: inline-flex; align-items: center; gap: 0.4em; }
 .pay-pix { display: inline-flex; align-items: center; gap: 0.4em; }
 .pay-pix .pix-mark { width: 1.15em; height: 1.15em; }
+
+/* ---------- Mentoria de implantação (pessoal e empresa) ---------- */
+.mentoria { position: relative; padding-top: clamp(40px, 6vw, 72px); }
+.mentoria h2 { max-width: 760px; margin: 14px 0 clamp(26px, 4vw, 40px); font-size: clamp(30px, 4.4vw, 50px); letter-spacing: -0.035em; line-height: 1.05; }
+.mentoria h2 span { display: block; color: var(--muted-strong); font-weight: 500; }
+.mentoria-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(14px, 2vw, 22px); align-items: stretch; }
+.mentoria-card h3 { font-size: clamp(22px, 2.1vw, 26px); }
+.mentoria-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin: 6px 0 2px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(var(--on-surface-rgb), 0.035); }
+.mentoria-price b { font-family: var(--display); font-size: clamp(28px, 2.6vw, 36px); font-weight: 800; letter-spacing: -0.04em; color: var(--text-strong); font-variant-numeric: tabular-nums; }
+.mentoria-price small { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 13px; color: var(--muted); }
+.mentoria-price .pix-tag { font-family: var(--mono); font-size: var(--label); letter-spacing: 0.08em; text-transform: uppercase; color: var(--label-color); }
+.mentoria-pessoal::before { background: radial-gradient(ellipse at 20% 0%, rgba(94, 167, 255, 0.18), transparent 55%); }
+.mentoria-empresa::before { background: radial-gradient(ellipse at 80% 0%, rgba(37, 99, 235, 0.22), transparent 55%); }
+.home-page .mentoria { overflow: hidden; isolation: isolate; }
+.home-page .mentoria > .container { position: relative; z-index: 1; }
+.home-page .mentoria::before { content: ""; position: absolute; z-index: 0; pointer-events: none; inset: 0 0 0 50%; background: url("geo-plus.svg") repeat; background-size: 96px 96px; opacity: 0.25; -webkit-mask-image: radial-gradient(ellipse 70% 80% at 85% 20%, #000 15%, transparent 70%); mask-image: radial-gradient(ellipse 70% 80% at 85% 20%, #000 15%, transparent 70%); }
+@media (max-width: 900px) { .mentoria-grid { grid-template-columns: 1fr; } .home-page .mentoria::before { inset: 0; opacity: 0.18; } }

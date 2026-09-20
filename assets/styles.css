@@ -2570,3 +2570,37 @@ h3 { letter-spacing: -0.018em; }
 .omni-def-points li { display: grid; gap: 3px; padding-left: 16px; border-left: 2px solid var(--blue-signal); color: var(--muted); font-size: 14px; line-height: 1.5; }
 .omni-def-points b { color: var(--ice); font-weight: 600; font-size: 14.5px; }
 @media (max-width: 900px) { .omni-def { grid-template-columns: 1fr; } .omni-def > p, .omni-def-points { grid-column: 1; grid-row: auto; } }
+
+/* ---------- Figuras geométricas de fundo (home): quebram a monotonia sem competir com o texto ---------- */
+.home-page .segments, .home-page .statement, .home-page .security, .home-page .deployment { position: relative; overflow: hidden; isolation: isolate; }
+.home-page .segments > .container, .home-page .statement > .container, .home-page .security > .container, .home-page .deployment > .container { position: relative; z-index: 1; }
+.geo, .home-page .segments::before, .home-page .segments-b2b::after, .home-page .statement::before, .home-page .security::before, .home-page .security::after, .home-page .deployment::before {
+  content: ""; position: absolute; z-index: 0; pointer-events: none; background-repeat: no-repeat;
+}
+/* Bloco "Para você": linhas de circuito à direita. */
+.home-page .segments::before { inset: 0 0 0 40%; background-image: url("tech-lines.svg"); background-size: cover; background-position: right center; opacity: 0.55;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 35%, #000 85%, transparent); mask-image: linear-gradient(90deg, transparent, #000 35%, #000 85%, transparent); }
+/* Bloco "Para sua empresa": anéis concêntricos à direita, hairlines diagonais à esquerda. */
+.home-page .segments-b2b::before { inset: auto; top: -120px; right: -160px; width: 620px; height: 620px; background-image: url("geo-rings.svg"); background-size: 100% 100%; opacity: 0.55; animation: geoSpin 90s linear infinite; }
+.home-page .segments-b2b::after { left: -200px; bottom: -160px; width: 640px; height: 640px; background-image: url("geo-diagonals.svg"); background-size: 100% 100%; opacity: 0.4;
+  -webkit-mask-image: radial-gradient(circle at 30% 70%, #000 30%, transparent 70%); mask-image: radial-gradient(circle at 30% 70%, #000 30%, transparent 70%); }
+/* "O ponto de partida": grade de cruzes à direita. */
+.home-page .statement::before { inset: 0 0 0 55%; background-image: url("geo-plus.svg"); background-size: 96px 96px; background-repeat: repeat; opacity: 0.35;
+  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 80% 50%, #000 20%, transparent 75%); mask-image: radial-gradient(ellipse 70% 80% at 80% 50%, #000 20%, transparent 75%); }
+/* Segurança: diagonais no canto superior direito e um anel grande à esquerda. */
+.home-page .security::before { top: -220px; right: -220px; width: 720px; height: 720px; background-image: url("geo-diagonals.svg"); background-size: 100% 100%; opacity: 0.35;
+  -webkit-mask-image: radial-gradient(circle at 70% 30%, #000 25%, transparent 68%); mask-image: radial-gradient(circle at 70% 30%, #000 25%, transparent 68%); }
+.home-page .security::after { left: -260px; bottom: -260px; width: 560px; height: 560px; background-image: url("geo-rings.svg"); background-size: 100% 100%; opacity: 0.35; animation: geoSpin 120s linear infinite reverse; }
+/* Implantação: cruzes à esquerda, bem apagadas. */
+.home-page .deployment::before { inset: 0 55% 0 0; background-image: url("geo-plus.svg"); background-size: 96px 96px; background-repeat: repeat; opacity: 0.3;
+  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 15% 40%, #000 20%, transparent 75%); mask-image: radial-gradient(ellipse 70% 80% at 15% 40%, #000 20%, transparent 75%); }
+@keyframes geoSpin { to { transform: rotate(360deg); } }
+[data-theme="light"] .home-page .segments::before, [data-theme="light"] .home-page .segments-b2b::before, [data-theme="light"] .home-page .segments-b2b::after,
+[data-theme="light"] .home-page .statement::before, [data-theme="light"] .home-page .security::before, [data-theme="light"] .home-page .security::after, [data-theme="light"] .home-page .deployment::before { opacity: 0.22; }
+@media (max-width: 900px) {
+  .home-page .segments::before { inset: 0; opacity: 0.35; -webkit-mask-image: linear-gradient(180deg, #000, transparent 70%); mask-image: linear-gradient(180deg, #000, transparent 70%); }
+  .home-page .segments-b2b::before { top: -160px; right: -240px; width: 480px; height: 480px; }
+  .home-page .segments-b2b::after, .home-page .security::after { display: none; }
+  .home-page .statement::before, .home-page .deployment::before { inset: 0; opacity: 0.22; }
+}
+@media (prefers-reduced-motion: reduce) { .home-page .segments-b2b::before, .home-page .security::after { animation: none; } }

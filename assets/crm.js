@@ -106,8 +106,14 @@
 
   $("[data-export]").addEventListener("click", function () {
     var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "plano", "mensagens_usadas", "conversas", "created_at", "confirmed_at", "last_seen_at", "notas"];
+    // Valores vindos do cadastro público: neutraliza prefixos que planilhas interpretam como fórmula.
+    var cell = function (v) {
+      v = v == null ? "" : String(v);
+      if (/^[=+\-@\t\r]/.test(v)) v = "'" + v;
+      return '"' + v.replace(/"/g, '""') + '"';
+    };
     var csv = [cols.join(";")].concat(visible().map(function (l) {
-      return cols.map(function (c) { var v = l[c] == null ? "" : String(l[c]); return '"' + v.replace(/"/g, '""') + '"'; }).join(";");
+      return cols.map(function (c) { return cell(l[c]); }).join(";");
     })).join("\r\n");
     var blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
     var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "trustio-leads-" + new Date().toISOString().slice(0, 10) + ".csv"; a.click();

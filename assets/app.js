@@ -41,7 +41,7 @@ window.addEventListener("scroll", updateHeader, { passive: true });
 menuButton?.addEventListener("click", toggleMenu);
 mobileMenu?.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
 window.addEventListener("resize", () => {
-  if (window.innerWidth > 1240) closeMenu();
+  if (window.innerWidth > 1320) closeMenu();
 });
 
 const inPageLinks = Array.from(document.querySelectorAll('.desktop-nav a[href^="#"], .mobile-nav a[href^="#"]'));
@@ -332,3 +332,30 @@ document.querySelectorAll(".copy-email[data-copy]").forEach((button) => {
     resetTimer = window.setTimeout(() => setState("", idleLabel, ""), copied ? 2200 : 4000);
   });
 });
+
+/* ---------- Tema claro/escuro ---------- */
+const THEME_KEY = "trustio-theme";
+const THEME_COLORS = { dark: "#05070b", light: "#f4f6fa" };
+const themeToggle = document.querySelector(".theme-toggle");
+const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+
+function currentTheme() {
+  return document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+}
+
+function applyTheme(theme, persist) {
+  if (theme === "light") document.documentElement.setAttribute("data-theme", "light");
+  else document.documentElement.removeAttribute("data-theme");
+  if (themeColorMeta) themeColorMeta.setAttribute("content", THEME_COLORS[theme]);
+  if (themeToggle) {
+    const isLight = theme === "light";
+    themeToggle.setAttribute("aria-pressed", String(isLight));
+    themeToggle.setAttribute("aria-label", isLight ? "Ativar tema escuro" : "Ativar tema claro");
+  }
+  if (persist) {
+    try { localStorage.setItem(THEME_KEY, theme); } catch (error) { /* sem persistência */ }
+  }
+}
+
+applyTheme(currentTheme(), false);
+themeToggle?.addEventListener("click", () => applyTheme(currentTheme() === "light" ? "dark" : "light", true));

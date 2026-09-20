@@ -46,3 +46,19 @@
   padding: 6px 11px; border: 1px solid var(--line); border-radius: 999px;
   font-family: var(--mono); font-size: var(--label); letter-spacing: 0.08em; text-transform: uppercase; color: var(--label-color);
 }
+
+/* Fundo tecnológico das telas de conta (entrar / cadastro). */
+.conta-page .plans-hero { position: relative; isolation: isolate; overflow: hidden; }
+.conta-page .plans-hero::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(94, 167, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 167, 255, 0.07) 1px, transparent 1px),
+    url("tech-lines.svg");
+  background-size: 44px 44px, 44px 44px, cover;
+  background-position: center, center, center;
+  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 25%, transparent 80%);
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 25%, transparent 80%);
+  opacity: 0.85;
+}
+[data-theme="light"] .conta-page .plans-hero::before { opacity: 0.45; }

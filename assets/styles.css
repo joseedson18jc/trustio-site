@@ -2604,3 +2604,10 @@ h3 { letter-spacing: -0.018em; }
   .home-page .statement::before, .home-page .deployment::before { inset: 0; opacity: 0.22; }
 }
 @media (prefers-reduced-motion: reduce) { .home-page .segments-b2b::before, .home-page .security::after { animation: none; } }
+
+/* Marca do Pix: monocromática, herda a cor do texto e fica discreta para não competir com a marca. */
+.pix-mark { width: 1.05em; height: 1.05em; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; opacity: 0.85; vertical-align: -0.16em; }
+.pix-tag { display: inline-flex; align-items: center; gap: 0.35em; white-space: nowrap; color: inherit; opacity: 0.9; }
+.signal-pix { display: inline-flex; align-items: center; gap: 0.4em; }
+.pay-pix { display: inline-flex; align-items: center; gap: 0.4em; }
+.pay-pix .pix-mark { width: 1.15em; height: 1.15em; }

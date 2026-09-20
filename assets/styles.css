@@ -2501,3 +2501,9 @@ h3 { letter-spacing: -0.018em; }
   .voice-compare th, .voice-compare td { padding: var(--space-12) 13px; }
   .vc-note { padding: 15px var(--space-16); }
 }
+
+/* Link "Entrar" do cabeçalho (área do cliente). */
+.header-login { flex: 0 0 auto; margin-left: auto; padding: 8px 6px; font-size: 13.5px; font-weight: 600; color: var(--muted-strong); white-space: nowrap; }
+.header-login:hover { color: var(--ice); }
+.header-login + .header-cta { margin-left: 0; }
+@media (max-width: 960px) { .header-login { display: none; } }

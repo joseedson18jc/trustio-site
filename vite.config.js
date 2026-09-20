@@ -22,6 +22,10 @@ export default defineConfig({
         obrigado: resolve(import.meta.dirname, "obrigado.html"),
         espera: resolve(import.meta.dirname, "espera.html"),
         console: resolve(import.meta.dirname, "console/index.html"),
+        cadastro: resolve(import.meta.dirname, "cadastro.html"),
+        entrar: resolve(import.meta.dirname, "entrar.html"),
+        app: resolve(import.meta.dirname, "app/index.html"),
+        crm: resolve(import.meta.dirname, "crm/index.html"),
         notFound: resolve(import.meta.dirname, "404.html")
       }
     }

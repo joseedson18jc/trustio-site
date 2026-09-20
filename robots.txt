@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /console/
+Disallow: /app/
+Disallow: /crm/
 Disallow: /planos-teste.html
 Disallow: /obrigado.html
 Disallow: /design-system/

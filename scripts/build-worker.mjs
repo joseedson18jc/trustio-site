@@ -44,6 +44,10 @@ const sourceFiles = [
   "planos-teste.html",
   "obrigado.html",
   "espera.html",
+  "cadastro.html",
+  "entrar.html",
+  "app/index.html",
+  "crm/index.html",
   "console/index.html",
   "404.html",
   "robots.txt",
@@ -68,7 +72,7 @@ for (const sourceFile of sourceFiles.sort()) {
 const worker = `const FILES = ${JSON.stringify(files)};
 
 const SECURITY_HEADERS = {
-  "Content-Security-Policy": "default-src 'self'; base-uri 'self'; connect-src 'self' https://api.trustio.com.br; font-src 'self' data:; form-action 'self' mailto: https://formsubmit.co https://api.trustio.com.br; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self'; style-src 'self'; upgrade-insecure-requests",
+  "Content-Security-Policy": "default-src 'self'; base-uri 'self'; connect-src 'self' https://api.trustio.com.br https://yxkgdgcdvngltnykleig.supabase.co; font-src 'self' data:; form-action 'self' mailto: https://formsubmit.co https://api.trustio.com.br; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self'; style-src 'self'; upgrade-insecure-requests",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
@@ -119,6 +123,10 @@ export default {
     if (path === "/voice" || path === "/voice/") path = "/voice.html";
     if (path === "/planos" || path === "/planos/") path = "/planos.html";
     if (path === "/console" || path === "/console/") path = "/console/index.html";
+    if (path === "/app" || path === "/app/") path = "/app/index.html";
+    if (path === "/crm" || path === "/crm/") path = "/crm/index.html";
+    if (path === "/cadastro" || path === "/cadastro/") path = "/cadastro.html";
+    if (path === "/entrar" || path === "/entrar/") path = "/entrar.html";
 
     const file = FILES[path];
     if (file) return respond(request, file);

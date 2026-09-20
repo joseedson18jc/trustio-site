@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Confirme a troca de e-mail · Trustio</title>
+</head>
+<body style="margin:0;padding:0;background:#05070b;font-family:'Geist','Inter','Segoe UI',system-ui,-apple-system,sans-serif;color:#f4f6fa;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#05070b;padding:32px 16px;">
+  <tr><td align="center">
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+      <tr><td style="padding:0 8px 22px;">
+        <span style="font-size:22px;font-weight:800;letter-spacing:-0.04em;color:#f4f6fa;">Trust<span style="color:#5ea7ff;">io</span></span>
+      </td></tr>
+      <tr><td style="background:#0b0e14;border:1px solid rgba(160,179,211,0.16);border-radius:20px;padding:36px 32px;">
+        <p style="margin:0 0 14px;font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8d98aa;">Conta Trustio</p>
+        <h1 style="margin:0 0 14px;font-size:28px;line-height:1.15;letter-spacing:-0.03em;font-weight:800;color:#ffffff;">Confirme a troca de e-mail.</h1>
+        <p style="margin:0 0 26px;font-size:16px;line-height:1.6;color:#bdc5d1;">Você pediu para trocar o e-mail da conta de <strong style="color:#f4f6fa;">{{ .Email }}</strong> para <strong style="color:#f4f6fa;">{{ .NewEmail }}</strong>. Confirme para concluir.</p>
+        <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:14px;background:#2563eb;">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:16px 26px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:14px;">Confirmar troca</a>
+        </td></tr></table>
+        <hr style="border:0;border-top:1px solid rgba(160,179,211,0.16);margin:26px 0;">
+        <p style="margin:0;font-size:12.5px;line-height:1.6;color:#8d98aa;">Não pediu isso? Ignore este e-mail e sua conta continua com o e-mail atual.</p>
+      </td></tr>
+      <tr><td style="padding:22px 8px 0;font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:0.08em;color:#6f7c92;">
+        Trustio · construída e hospedada no Brasil · <a href="https://trustio.com.br/" style="color:#8d98aa;">trustio.com.br</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

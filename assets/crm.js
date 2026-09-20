@@ -11,6 +11,8 @@
   var state = { leads: [], filter: "", q: "" };
   var STATUS = ["novo", "email_confirmado", "ativo", "trial_esgotado", "assinante", "cancelado"];
   var LABEL = { novo: "Novo", email_confirmado: "E-mail confirmado", ativo: "Ativo", trial_esgotado: "Teste esgotado", assinante: "Assinante", cancelado: "Cancelado" };
+  var WA = ["nao_solicitado", "solicitado", "ativo", "encerrado"];
+  var WA_LABEL = { nao_solicitado: "Não pediu", solicitado: "Pedido", ativo: "Ativo", encerrado: "Encerrado" };
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function fmt(d) { if (!d) return "—"; var x = new Date(d); return x.toLocaleDateString("pt-BR") + " " + x.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }); }
@@ -54,7 +56,8 @@
   function visible() {
     var q = state.q.toLowerCase();
     return state.leads.filter(function (l) {
-      if (state.filter && l.status !== state.filter) return false;
+      if (state.filter && state.filter.indexOf("wa:") === 0) { if (l.whatsapp_trial_status !== state.filter.slice(3)) return false; }
+      else if (state.filter && l.status !== state.filter) return false;
       if (!q) return true;
       return [l.nome, l.email, l.empresa, l.telefone, l.segmento].join(" ").toLowerCase().indexOf(q) >= 0;
     });
@@ -71,6 +74,7 @@
         "<td><select data-field=\"status\" aria-label=\"Status\">" + STATUS.map(function (s) { return "<option value=\"" + s + "\"" + (s === l.status ? " selected" : "") + ">" + LABEL[s] + "</option>"; }).join("") + "</select></td>" +
         "<td><input type=\"text\" data-field=\"plano\" value=\"" + esc(l.plano || "") + "\" placeholder=\"Mensal, Anual…\" aria-label=\"Plano\"></td>" +
         "<td class=\"num\">" + Number(l.mensagens_usadas || 0) + " msg · " + Number(l.conversas || 0) + " conv</td>" +
+        "<td class=\"wa\">" + waCell(l) + "</td>" +
         "<td class=\"date\">" + fmt(l.created_at) + (l.confirmed_at ? "" : "<br><small>não confirmado</small>") + "</td>" +
         "<td class=\"date\">" + fmt(l.last_seen_at || l.ultima_mensagem) + "</td>" +
         "<td><textarea data-field=\"notas\" rows=\"1\" aria-label=\"Notas\" placeholder=\"Anotações internas\">" + esc(l.notas || "") + "</textarea></td>" +
@@ -78,10 +82,29 @@
     }).join("");
   }
 
+  function waCell(l) {
+    var s = l.whatsapp_trial_status || "nao_solicitado";
+    var num = l.whatsapp_numero ? "<small>" + esc(l.whatsapp_numero) + "</small>" : "";
+    var sel = "<select data-field=\"whatsapp_trial_status\" aria-label=\"Teste WhatsApp\">" + WA.map(function (k) { return "<option value=\"" + k + "\"" + (k === s ? " selected" : "") + ">" + WA_LABEL[k] + "</option>"; }).join("") + "</select>";
+    var extra = "";
+    if (s === "solicitado") extra = "<button type=\"button\" class=\"wa-go\" data-wa-activate>Ativar 3 dias</button>";
+    if (s === "ativo" && l.whatsapp_trial_ends_at) extra = "<small>até " + fmt(l.whatsapp_trial_ends_at) + "</small>";
+    return sel + num + extra;
+  }
+
+  rows.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-wa-activate]"); if (!b) return;
+    var id = b.closest("tr").dataset.id; b.disabled = true;
+    sb.rpc("activate_whatsapp_trial", { p_lead_id: id, p_days: 3 }).then(function (r) {
+      if (r.error) { alert("Não foi possível ativar: " + r.error.message); b.disabled = false; return; }
+      return loadLeads();
+    });
+  });
+
   rows.addEventListener("change", function (e) {
     var el = e.target.closest("[data-field]"); if (!el) return;
     var tr = el.closest("tr"), id = tr.dataset.id, patch = {}; patch[el.dataset.field] = el.value || null;
-    sb.from("crm_leads").update(patch).eq("id", id).select("id,status,plano,notas").single().then(function (r) {
+    sb.from("crm_leads").update(patch).eq("id", id).select("id,status,plano,notas,whatsapp_trial_status,whatsapp_trial_ends_at").single().then(function (r) {
       if (r.error) { el.classList.remove("saved"); alert("Não foi possível salvar: " + r.error.message); return; }
       var lead = state.leads.filter(function (l) { return l.id === id; })[0];
       if (lead) Object.assign(lead, r.data);
@@ -105,7 +128,7 @@
   });
 
   $("[data-export]").addEventListener("click", function () {
-    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "plano", "mensagens_usadas", "conversas", "created_at", "confirmed_at", "last_seen_at", "notas"];
+    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "created_at", "confirmed_at", "last_seen_at", "notas"];
     // Valores vindos do cadastro público: neutraliza prefixos que planilhas interpretam como fórmula.
     var cell = function (v) {
       v = v == null ? "" : String(v);

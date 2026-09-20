@@ -16,11 +16,11 @@
   <link rel="preload" href="../assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="../assets/theme.js?v=393a296c"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=13afaea9">
-  <link rel="stylesheet" href="../assets/chat.css?v=59d67d4a">
-  <link rel="stylesheet" href="../assets/crm.css?v=4498c04c">
+  <link rel="stylesheet" href="../assets/chat.css?v=7a4dfce4">
+  <link rel="stylesheet" href="../assets/crm.css?v=aa5381e9">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=def1b812"></script>
-  <script defer src="../assets/crm.js?v=45a56803"></script>
+  <script defer src="../assets/crm.js?v=0689124d"></script>
 </head>
 <body class="chat-page crm-page">
 <a class="skip-link" href="#leads">Ir para a lista de leads</a>
@@ -68,6 +68,8 @@
         <button type="button" data-filter="trial_esgotado">Teste esgotado</button>
         <button type="button" data-filter="assinante">Assinantes</button>
         <button type="button" data-filter="cancelado">Cancelados</button>
+        <button type="button" data-filter="wa:solicitado">WhatsApp pedido</button>
+        <button type="button" data-filter="wa:ativo">WhatsApp ativo</button>
       </div>
       <label class="search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg><input type="search" placeholder="Buscar nome, e-mail, empresa" data-search aria-label="Buscar"></label>
       <label class="setting">Perguntas grátis <input type="number" min="0" step="1" data-limit aria-label="Perguntas grátis por conta"> <small>0 = sem limite</small></label>
@@ -77,7 +79,7 @@
       <table class="leads">
         <thead>
           <tr>
-            <th>Lead</th><th>Contato</th><th>Tipo</th><th>Status</th><th>Plano</th><th>Uso</th><th>Cadastro</th><th>Último acesso</th><th>Notas</th>
+            <th>Lead</th><th>Contato</th><th>Tipo</th><th>Status</th><th>Plano</th><th>Uso</th><th>WhatsApp · 3 dias</th><th>Cadastro</th><th>Último acesso</th><th>Notas</th>
           </tr>
         </thead>
         <tbody data-rows></tbody>

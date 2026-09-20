@@ -124,6 +124,7 @@
         gateHide();
         shell.dataset.state = "ready";
         renderMe();
+        renderOnboard(!(state.lead && state.lead.onboarding_seen_at));
         if (!state.user.email_confirmed_at) {
           showNotice("Seu e-mail ainda não foi confirmado. Abra o link que enviamos para começar a conversar. <button type=\"button\" data-resend-confirm>Reenviar link</button>");
         }
@@ -136,7 +137,7 @@
   }
 
   function loadLead() {
-    return sb.from("crm_leads").select("nome,email,tipo,status,plano,mensagens_usadas").eq("user_id", state.user.id).maybeSingle()
+    return sb.from("crm_leads").select("nome,email,telefone,tipo,status,plano,mensagens_usadas,onboarding_seen_at,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_requested_at,whatsapp_trial_started_at,whatsapp_trial_ends_at").eq("user_id", state.user.id).maybeSingle()
       .then(function (r) { state.lead = r.data || null; });
   }
   function loadLimit() {
@@ -157,6 +158,7 @@
     var label = status === "assinante" ? ("Assinante" + (plan ? " · " + plan : "")) : status === "trial_esgotado" ? "Teste encerrado" : "Teste grátis";
     $("[data-me-plan]").textContent = label;
     renderQuota(status, state.lead ? state.lead.mensagens_usadas : 0);
+    renderOnboardQuota();
   }
 
   function renderQuota(status, used) {
@@ -170,6 +172,103 @@
     paywall.hidden = !locked;
     input.disabled = locked; sendBtn.disabled = locked;
   }
+
+  // ---------------------------------------------------------------- widgets de boas-vindas
+  function fmtDate(d) { var x = new Date(d); return x.toLocaleDateString("pt-BR") + " às " + x.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }); }
+  function fmtPhone(n) {
+    var d = String(n || "").replace(/\D/g, "");
+    if (d.length === 13 && d.indexOf("55") === 0) d = d.slice(2);
+    if (d.length === 11) return "(" + d.slice(0, 2) + ") " + d.slice(2, 3) + " " + d.slice(3, 7) + "-" + d.slice(7);
+    if (d.length === 10) return "(" + d.slice(0, 2) + ") " + d.slice(2, 6) + "-" + d.slice(6);
+    return n || "";
+  }
+
+  function renderOnboard(first) {
+    var ob = $("[data-onboard]");
+    if (!ob) return;
+    welcome.dataset.mode = first ? "first" : "returning";
+    ob.hidden = false;
+    renderOnboardQuota();
+    renderWhatsapp();
+  }
+
+  function renderOnboardQuota() {
+    var status = state.lead ? state.lead.status : "novo";
+    var used = state.lead ? Number(state.lead.mensagens_usadas || 0) : 0;
+    var limitEl = $("[data-ob-limit]"), bar = $("[data-ob-bar]"), txt = $("[data-ob-quota]");
+    if (!limitEl) return;
+    if (status === "assinante" || !state.limit) {
+      limitEl.textContent = "∞"; bar.style.width = "100%";
+      txt.textContent = status === "assinante" ? "Plano ativo: sem limite de prompts." : "Sem limite de prompts neste ambiente.";
+      return;
+    }
+    limitEl.textContent = state.limit;
+    var left = Math.max(0, state.limit - used);
+    bar.style.width = Math.min(100, (used / state.limit) * 100) + "%";
+    txt.textContent = used === 0 ? "Você ainda não usou nenhum." : left === 0 ? "Você usou todos. Escolha um plano para continuar." : "Você usou " + used + ". Restam " + left + ".";
+  }
+
+  function renderWhatsapp() {
+    var form = $("[data-wa-form]"), st = $("[data-wa-status]"), num = $("#wa-num");
+    if (!form) return;
+    var l = state.lead || {};
+    var status = l.whatsapp_trial_status || "nao_solicitado";
+    if (status === "nao_solicitado") {
+      form.hidden = false; st.hidden = true;
+      if (!num.value) num.value = fmtPhone(l.whatsapp_numero || l.telefone || "");
+      return;
+    }
+    form.hidden = true; st.hidden = false; st.className = "";
+    if (status === "solicitado") {
+      st.classList.add("is-ok");
+      st.textContent = "Pedido recebido" + (l.whatsapp_trial_requested_at ? " em " + fmtDate(l.whatsapp_trial_requested_at) : "") + ". Vamos ativar e chamar você no " + fmtPhone(l.whatsapp_numero) + ".";
+    } else if (status === "ativo") {
+      var ends = l.whatsapp_trial_ends_at ? new Date(l.whatsapp_trial_ends_at) : null;
+      var hours = ends ? Math.max(0, Math.round((ends - Date.now()) / 36e5)) : null;
+      st.classList.add("is-ok");
+      st.textContent = "Agente ativo no " + fmtPhone(l.whatsapp_numero) + (ends ? " até " + fmtDate(ends) + (hours !== null ? " (faltam " + (hours >= 48 ? Math.round(hours / 24) + " dias" : hours + " h") + ")" : "") : "") + ".";
+    } else {
+      st.textContent = "Seus 3 dias no WhatsApp terminaram. Para continuar com o agente, escolha um plano.";
+    }
+  }
+
+  var waForm = $("[data-wa-form]");
+  if (waForm) waForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var btn = $("[data-wa-submit]"), st = $("[data-wa-status]"), num = $("#wa-num").value;
+    if (num.replace(/\D/g, "").length < 10) { st.hidden = false; st.className = "is-error"; st.textContent = "Digite o número com DDD."; return; }
+    btn.disabled = true; btn.textContent = "Enviando…";
+    sb.rpc("request_whatsapp_trial", { p_numero: num }).then(function (r) {
+      if (r.error) throw r.error;
+      var d = r.data || {};
+      if (!d.ok) throw new Error(d.error || "erro");
+      if (state.lead) { state.lead.whatsapp_trial_status = d.status; state.lead.whatsapp_numero = d.numero; state.lead.whatsapp_trial_requested_at = d.requested_at; state.lead.whatsapp_trial_started_at = d.started_at; state.lead.whatsapp_trial_ends_at = d.ends_at; }
+      renderWhatsapp();
+    }).catch(function (err) {
+      btn.disabled = false; btn.textContent = "Quero os 3 dias";
+      st.hidden = false; st.className = "is-error";
+      st.textContent = String(err.message || "").indexOf("numero_invalido") >= 0 ? "Número inválido. Use DDD + número." : "Não foi possível registrar agora. Tente de novo.";
+    });
+  });
+
+  var obStart = $("[data-ob-start]");
+  if (obStart) obStart.addEventListener("click", function () {
+    welcome.dataset.mode = "returning";
+    if (state.lead && !state.lead.onboarding_seen_at) {
+      state.lead.onboarding_seen_at = new Date().toISOString();
+      sb.rpc("mark_onboarding_seen").then(function () {});
+    }
+    input.focus();
+  });
+
+  var obOpen = $("[data-ob-open]");
+  if (obOpen) obOpen.addEventListener("click", function () {
+    if (state.sending) return;
+    resetThread();
+    renderOnboard(true);
+    thread.scrollTop = 0;
+    closeSide();
+  });
 
   // ---------------------------------------------------------------- conversas
   function loadConversations() {

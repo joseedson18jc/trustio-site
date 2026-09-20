@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none" stroke="#5ea7ff" stroke-width="1.2">
+  <!-- Anéis concêntricos com mira: figura geométrica de apoio (home). -->
+  <g opacity="0.6"><circle cx="300" cy="300" r="290"/><circle cx="300" cy="300" r="230"/><circle cx="300" cy="300" r="170"/><circle cx="300" cy="300" r="110"/><circle cx="300" cy="300" r="50"/></g>
+  <g opacity="0.45" stroke-dasharray="3 9"><circle cx="300" cy="300" r="260"/><circle cx="300" cy="300" r="140"/></g>
+  <g opacity="0.7"><path d="M300 0v70M300 530v70M0 300h70M530 300h70"/><path d="M300 250v100M250 300h100" stroke-width="1"/></g>
+  <g opacity="0.9" fill="#5ea7ff" stroke="none"><circle cx="300" cy="10" r="3"/><circle cx="590" cy="300" r="3"/><circle cx="300" cy="300" r="3.5"/><circle cx="505" cy="95" r="2.5"/><circle cx="95" cy="505" r="2.5"/></g>
+  <rect x="88" y="88" width="424" height="424" rx="2" opacity="0.35" transform="rotate(45 300 300)"/>
+</svg>

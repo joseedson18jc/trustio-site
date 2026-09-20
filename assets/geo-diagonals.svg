@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" fill="none" stroke="#5ea7ff" stroke-linecap="round">
+  <!-- Hairlines a 45° com três traços de ênfase e nós nas pontas. -->
+  <g opacity="0.35" stroke-width="1">
+    <path d="M-40 200 L200 -40M-40 300 L300 -40M-40 400 L400 -40M-40 500 L500 -40M-40 600 L600 -40M-40 700 L700 -40M-40 800 L800 -40M60 840 L840 60M160 840 L840 160M260 840 L840 260M360 840 L840 360M460 840 L840 460"/>
+  </g>
+  <g opacity="0.75" stroke-width="1.6">
+    <path d="M40 620 L620 40"/><path d="M180 760 L760 180"/><path d="M-20 470 L470 -20"/>
+  </g>
+  <g opacity="0.9" fill="#5ea7ff" stroke="none">
+    <circle cx="620" cy="40" r="3"/><circle cx="40" cy="620" r="3"/><circle cx="760" cy="180" r="3"/><circle cx="180" cy="760" r="3"/><circle cx="470" cy="-20" r="3"/>
+  </g>
+  <g opacity="0.5" stroke-width="1.2"><rect x="560" y="560" width="120" height="120" rx="3"/><rect x="590" y="590" width="60" height="60" rx="2"/></g>
+</svg>

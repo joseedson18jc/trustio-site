@@ -2550,3 +2550,13 @@ h3 { letter-spacing: -0.018em; }
 .fine-print { margin: 14px 0 0; max-width: 72ch; color: var(--label-color); font-size: var(--label); line-height: 1.5; }
 .seats-banner .fine-print { margin: 18px auto 0; text-align: center; }
 .welcome .fine-print { margin: -14px auto 22px; text-align: center; }
+
+/* "Para quem" em dois blocos na ordem B2C → B2B: cada card ocupa a largura toda (texto | lista). */
+.segments-grid { grid-template-columns: minmax(0, 1fr); }
+.segment-wide { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 18px clamp(24px, 4vw, 56px); align-items: start; }
+.segment-wide .segment-copy, .segment-wide .segment-list { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.segment-wide .segment-list ul { margin: 0; }
+.segment-wide .segment-actions { margin-top: 6px; }
+.segments-b2b { padding-top: clamp(40px, 6vw, 72px); }
+.segments-b2b .segment-b2b::before { opacity: 1; }
+@media (max-width: 900px) { .segment-wide { grid-template-columns: 1fr; gap: 10px; } }

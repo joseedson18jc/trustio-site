@@ -99,15 +99,6 @@
     }
   },
   {
-    "name": "Faixa Brasil",
-    "path": "design-system/fotografia/brasil.html",
-    "group": "Fotografia",
-    "subtitle": "brazil-banner · jpg + webp",
-    "viewport": {
-      "width": 900
-    }
-  },
-  {
     "name": "Social card",
     "path": "design-system/fotografia/social-card.html",
     "group": "Fotografia",

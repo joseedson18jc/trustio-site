@@ -1,0 +1,70 @@
+# Configuração do projeto Supabase da Trustio (yxkgdgcdvngltnykleig · sa-east-1).
+# Aplicada automaticamente pelo GitHub Actions (.github/workflows/supabase.yml) a cada push na main
+# que toque em supabase/, ou manualmente com `supabase config push` (ver supabase/README.md).
+# Nunca coloque segredos aqui: use env(NOME) e defina o valor como secret do repositório.
+
+project_id = "yxkgdgcdvngltnykleig"
+
+[auth]
+# Para onde o link do e-mail de confirmação leva: o cliente cai direto no chat, já autenticado.
+site_url = "https://trustio.com.br/app/"
+additional_redirect_urls = [
+  "https://trustio.com.br/**",
+  "https://www.trustio.com.br/**",
+  "http://localhost:8765/**",
+]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+enable_anonymous_sign_ins = false
+minimum_password_length = 8
+
+[auth.rate_limit]
+email_sent = 30
+sign_in_sign_ups = 30
+token_refresh = 150
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+# Confirmação de e-mail obrigatória: sem clicar no link a conta não entra no chat.
+enable_confirmations = true
+secure_password_change = false
+max_frequency = "1m"
+otp_length = 6
+otp_expiry = 3600
+
+# Remetente do domínio. O remetente padrão do Supabase serve só para testes (poucos e-mails por hora).
+# Os valores abaixo assumem Resend (smtp.resend.com); troque host/porta/usuário para outro provedor.
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(SMTP_PASS)"
+admin_email = "contato@trustio.com.br"
+sender_name = "Trustio"
+
+[auth.email.template.confirmation]
+subject = "Confirme seu e-mail e entre na Trustio"
+content_path = "./supabase/templates/confirmacao.html"
+
+[auth.email.template.recovery]
+subject = "Redefinir sua senha na Trustio"
+content_path = "./supabase/templates/recuperacao.html"
+
+[auth.email.template.magic_link]
+subject = "Seu link de acesso à Trustio"
+content_path = "./supabase/templates/link-magico.html"
+
+[auth.email.template.email_change]
+subject = "Confirme a troca de e-mail na Trustio"
+content_path = "./supabase/templates/troca-email.html"
+
+[auth.email.template.invite]
+subject = "Você foi convidado para a Trustio"
+content_path = "./supabase/templates/convite.html"
+
+[functions.chat]
+verify_jwt = true

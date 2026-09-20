@@ -17,6 +17,7 @@ O site continua estático. Tudo que precisa de servidor vive aqui:
 2. Gatilho `on_auth_user_created` cria a linha em `crm_leads` (status `novo`).
 3. O cliente clica no link do e-mail → `on_auth_user_updated` marca `email_confirmado` → o link abre `/app/` logado.
 4. Cada mensagem passa pela função `chat`: só e-mail confirmado; cota `free_message_limit` (padrão 5; `0` = sem limite); status vira `ativo` e, ao esgotar, `trial_esgotado`. Status `assinante` ignora a cota.
+5. No primeiro acesso ao `/app/` aparecem os widgets do teste grátis (5 prompts, 3 dias de agente no WhatsApp, dicas). "Começar a conversar" chama `mark_onboarding_seen()`; o pedido do WhatsApp chama `request_whatsapp_trial(numero)` e vira `whatsapp_trial_status = 'solicitado'` no CRM. No `/crm/`, o botão "Ativar 3 dias" chama `activate_whatsapp_trial(lead_id, 3)` e grava início e fim. A ativação do agente no WhatsApp em si é feita pela equipe (não há integração automática neste repositório).
 
 ## O que falta configurar no painel (uma vez)
 

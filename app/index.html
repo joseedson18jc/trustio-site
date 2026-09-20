@@ -17,10 +17,10 @@
   <link rel="preload" href="../assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="../assets/theme.js?v=393a296c"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=13afaea9">
-  <link rel="stylesheet" href="../assets/chat.css?v=59d67d4a">
+  <link rel="stylesheet" href="../assets/chat.css?v=7a4dfce4">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=def1b812"></script>
-  <script defer src="../assets/chat.js?v=1139887b"></script>
+  <script defer src="../assets/chat.js?v=4e4c98ea"></script>
 </head>
 <body class="chat-page">
 <a class="skip-link" href="#composer">Ir para a caixa de mensagem</a>
@@ -54,6 +54,7 @@
         <span class="me-txt"><b data-me-name>Carregando…</b><small data-me-plan>—</small></span>
       </div>
       <div class="side-actions">
+        <button class="side-link" type="button" data-ob-open>Instruções</button>
         <a class="side-link" href="../planos.html">Planos</a>
         <a class="side-link" href="../crm/" data-admin-link hidden>CRM</a>
         <button class="side-link" type="button" data-logout>Sair</button>
@@ -84,6 +85,46 @@
         <div class="welcome-mark" aria-hidden="true"></div>
         <h1>Pergunte o que quiser.</h1>
         <p>Modelo privado, respostas diretas, sem filtros de conteúdo adicionados por nós. Suas conversas ficam guardadas só na sua conta.</p>
+
+        <section class="onboard" data-onboard aria-label="Como funciona o seu teste grátis">
+          <p class="onboard-k"><span class="status-dot"></span> Seu teste grátis</p>
+          <div class="onboard-grid">
+            <article class="widget widget-quota">
+              <span class="widget-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M4 5.5h12M4 10h12M4 14.5h7"/></svg></span>
+              <b><span data-ob-limit>5</span> prompts grátis</b>
+              <p>Cada pergunta enviada conta um. Ao terminar, o chat trava até você escolher um plano. Nada é cobrado sozinho.</p>
+              <div class="widget-meter" aria-hidden="true"><span data-ob-bar></span></div>
+              <small data-ob-quota>Você ainda não usou nenhum.</small>
+            </article>
+
+            <article class="widget widget-wa">
+              <span class="widget-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 2.5a7.5 7.5 0 0 0-6.4 11.4L2.5 17.5l3.7-1.1A7.5 7.5 0 1 0 10 2.5Z"/><path d="M7.4 7.2c.1-.4.6-.5.9-.2l.7 1.2c.1.2 0 .5-.2.7l-.4.4c.5 1 1.4 1.8 2.4 2.3l.4-.4c.2-.2.5-.2.7-.1l1.2.7c.3.2.2.7-.1.9-.7.5-1.6.5-2.4 0a7.9 7.9 0 0 1-3.3-3.3c-.4-.8-.4-1.6.1-2.2Z"/></svg></span>
+              <b>3 dias de agente no WhatsApp</b>
+              <p>Um agente de IA direto no seu WhatsApp, ajudando em praticamente qualquer tarefa: textos, pesquisas, planilhas, lembretes, resumos.</p>
+              <form class="widget-form" data-wa-form>
+                <label class="vh" for="wa-num">Seu WhatsApp</label>
+                <input id="wa-num" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 9 9999-9999" required>
+                <button class="btn btn-primary" type="submit" data-wa-submit>Quero os 3 dias</button>
+              </form>
+              <small data-wa-status hidden></small>
+            </article>
+
+            <article class="widget widget-how">
+              <span class="widget-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 2.5 4 6v5l6 3.5 6-3.5V6z"/><path d="M10 9.5v5M4 6l6 3.5L16 6"/></svg></span>
+              <b>Como aproveitar melhor</b>
+              <ul>
+                <li>Diga o contexto e o resultado que quer: "escreva um e-mail para X pedindo Y".</li>
+                <li>Peça o formato: lista, tabela, passo a passo, tom formal ou direto.</li>
+                <li>Continue a mesma conversa para refinar. Cada envio conta um prompt.</li>
+              </ul>
+            </article>
+          </div>
+          <div class="onboard-actions">
+            <button class="btn btn-primary" type="button" data-ob-start>Começar a conversar</button>
+            <span class="onboard-note">Dados no Brasil · sem censura · LGPD</span>
+          </div>
+        </section>
+
         <div class="starters">
           <button type="button" data-starter>Explique como funciona a LGPD para uma empresa pequena, sem juridiquês.</button>
           <button type="button" data-starter>Escreva um e-mail firme cobrando um pagamento atrasado.</button>

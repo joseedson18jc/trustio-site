@@ -2512,3 +2512,41 @@ h3 { letter-spacing: -0.018em; }
 .header-login:hover { color: var(--ice); }
 .header-login + .header-cta { margin-left: 0; }
 @media (max-width: 960px) { .header-login { display: none; } }
+
+/* ---------- Para quem: B2C x B2B (home) ---------- */
+.segments { position: relative; padding-top: clamp(40px, 6vw, 72px); }
+.segments h2 { max-width: 760px; margin: 14px 0 clamp(26px, 4vw, 40px); font-size: clamp(30px, 4.4vw, 50px); letter-spacing: -0.035em; line-height: 1.05; }
+.segments h2 span { display: block; color: var(--muted-strong); font-weight: 500; }
+.segments-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(14px, 2vw, 22px); }
+.segment {
+  position: relative; display: flex; flex-direction: column; gap: 14px; min-width: 0;
+  padding: clamp(24px, 3vw, 36px); border: 1px solid var(--line); border-radius: var(--radius-large);
+  background: var(--card-gradient-strong); box-shadow: inset 0 1px rgba(var(--on-surface-rgb), 0.05);
+  transition: border-color 0.25s var(--ease), transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+.segment::before { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; content: ""; opacity: 0; transition: opacity 0.3s ease; }
+.segment-b2c::before { background: radial-gradient(ellipse at 20% 0%, rgba(94, 167, 255, 0.18), transparent 55%); }
+.segment-b2b::before { background: radial-gradient(ellipse at 80% 0%, rgba(37, 99, 235, 0.22), transparent 55%); }
+.segment:hover { border-color: var(--line-bright); transform: translateY(-3px); box-shadow: 0 30px 70px -40px rgba(0, 0, 0, 0.7), inset 0 1px rgba(var(--on-surface-rgb), 0.06); }
+.segment:hover::before { opacity: 1; }
+.segment-tag { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: var(--label); letter-spacing: 0.16em; text-transform: uppercase; color: var(--blue-signal); }
+.segment-tag i { font-style: normal; color: var(--label-color); }
+.segment-b2b .segment-tag { color: #9cc4ff; }
+.segment h3 { margin: 4px 0 0; font-size: clamp(22px, 2.3vw, 28px); letter-spacing: -0.028em; line-height: 1.15; color: var(--text-strong); }
+.segment > p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.segment ul { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 9px; }
+.segment li { position: relative; padding-left: 22px; color: var(--muted-strong); font-size: 14.5px; line-height: 1.55; }
+.segment li::before { position: absolute; left: 0; top: 0; color: var(--blue-signal); font-family: var(--mono); content: "→"; }
+.segment-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: auto; padding-top: 12px; }
+.segment-actions .button { min-height: 48px; }
+@media (max-width: 900px) {
+  .segments-grid { grid-template-columns: 1fr; }
+  .segment-actions { flex-direction: column; align-items: stretch; }
+  .segment-actions .button { width: 100%; }
+  .segment-actions .text-link { justify-content: center; }
+}
+
+/* Nota de responsabilidade (asterisco em "sem censura"): fonte reduzida, dentro do piso de 11px. */
+.fine-print { margin: 14px 0 0; max-width: 72ch; color: var(--label-color); font-size: var(--label); line-height: 1.5; }
+.seats-banner .fine-print { margin: 18px auto 0; text-align: center; }
+.welcome .fine-print { margin: -14px auto 22px; text-align: center; }

@@ -218,9 +218,6 @@ def photo(path, title, subtitle, note, img, alt, extra=""):
 photo("fotografia/fundador.html", "Retrato do fundador", "founder-photo · jpg + webp",
       "Conteúdo editorial da página do fundador. Enquadramento vertical, luz neutra; usar sempre com o eyebrow e o nome por extenso.",
       "founder-photo.webp", "José Edson da Costa, fundador da Trustio", " · fallback <code>founder-photo.jpg</code>")
-photo("fotografia/brasil.html", "Faixa Brasil", "brazil-banner · jpg + webp",
-      "Faixa full-bleed que fecha a seção de compromisso com o Brasil. Exibida inteira, sem corte (.brazil-banner).",
-      "brazil-banner.webp", "Faixa institucional Trustio Brasil", " · fallback <code>brazil-banner.jpg</code>")
 photo("fotografia/social-card.html", "Social card", "1200 × 630 · og:image de todas as páginas",
       "Imagem de compartilhamento (Open Graph / Twitter). A fonte editável é <code>assets/social-card.svg</code> (grupo Artes).",
       "social-card.png", "Trustio, infraestrutura privada de inteligência artificial")

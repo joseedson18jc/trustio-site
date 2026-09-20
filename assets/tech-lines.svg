@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" fill="none" stroke="#5ea7ff" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Linhas geométricas "circuito": traços longos, ângulos de 45°, nós nas junções. -->
+  <g opacity="0.55">
+    <path d="M-40 160 H380 l90 90 H860"/>
+    <path d="M-40 720 H300 l70 -70 H640 l60 60 H1000"/>
+    <path d="M1640 120 H1240 l-80 80 H900"/>
+    <path d="M1640 600 H1320 l-60 -60 H1060 l-50 50 V860"/>
+    <path d="M540 -40 V140 l60 60 V420"/>
+    <path d="M1180 940 V700 l-40 -40 V520"/>
+    <path d="M260 940 V820 l40 -40 H440"/>
+    <path d="M1400 -40 V60 l-50 50 V300"/>
+  </g>
+  <g opacity="0.35" stroke-width="1">
+    <path d="M-40 430 H220 l40 40 H520"/>
+    <path d="M1640 400 H1440 l-40 40 H1240"/>
+    <path d="M760 940 V760 l30 -30 H980"/>
+    <path d="M900 -40 V120 l-30 30 H720"/>
+  </g>
+  <g fill="#5ea7ff" stroke="none" opacity="0.9">
+    <circle cx="380" cy="160" r="3"/><circle cx="860" cy="250" r="3"/><circle cx="640" cy="650" r="3"/><circle cx="1000" cy="710" r="3"/>
+    <circle cx="1240" cy="120" r="3"/><circle cx="900" cy="200" r="3"/><circle cx="1320" cy="600" r="3"/><circle cx="1060" cy="540" r="3"/>
+    <circle cx="600" cy="420" r="3"/><circle cx="1140" cy="520" r="3"/><circle cx="440" cy="780" r="3"/><circle cx="1350" cy="300" r="3"/>
+    <circle cx="520" cy="470" r="2.2"/><circle cx="1240" cy="440" r="2.2"/><circle cx="980" cy="730" r="2.2"/><circle cx="720" cy="150" r="2.2"/>
+  </g>
+  <g stroke="#5ea7ff" opacity="0.5" stroke-width="1">
+    <rect x="368" y="148" width="24" height="24" rx="3"/><rect x="1228" y="108" width="24" height="24" rx="3"/><rect x="1308" y="588" width="24" height="24" rx="3"/><rect x="628" y="638" width="24" height="24" rx="3"/>
+  </g>
+</svg>

@@ -16,8 +16,8 @@
   <link rel="preload" href="../assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="../assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="../assets/theme.js?v=393a296c"></script>
-  <link rel="stylesheet" href="../assets/styles.css?v=13afaea9">
-  <link rel="stylesheet" href="../assets/chat.css?v=7a4dfce4">
+  <link rel="stylesheet" href="../assets/styles.css?v=ed972b6c">
+  <link rel="stylesheet" href="../assets/chat.css?v=eb88e2cd">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=def1b812"></script>
   <script defer src="../assets/chat.js?v=4e4c98ea"></script>
@@ -67,7 +67,7 @@
       <button class="side-toggle" type="button" data-side-open aria-label="Abrir menu" aria-controls="side"><span></span><span></span></button>
       <div class="chat-title">
         <b data-conv-title>Nova conversa</b>
-        <small><i class="dot"></i> Privado · sem censura · dados no Brasil</small>
+        <small><i class="dot"></i> Privado · sem censura* · dados no Brasil</small>
       </div>
       <div class="chat-top-right">
         <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Ativar tema claro" title="Alternar tema">
@@ -84,7 +84,8 @@
       <div class="welcome" data-welcome>
         <div class="welcome-mark" aria-hidden="true"></div>
         <h1>Pergunte o que quiser.</h1>
-        <p>Modelo privado, respostas diretas, sem filtros de conteúdo adicionados por nós. Suas conversas ficam guardadas só na sua conta.</p>
+        <p>Modelo privado, respostas diretas, sem filtros de conteúdo adicionados por nós*. Suas conversas ficam guardadas só na sua conta.</p>
+        <p class="fine-print">* A responsabilidade pelo conteúdo dos prompts enviados e pelo uso das respostas é inteiramente de quem os envia.</p>
 
         <section class="onboard" data-onboard aria-label="Como funciona o seu teste grátis">
           <p class="onboard-k"><span class="status-dot"></span> Seu teste grátis</p>
@@ -148,7 +149,7 @@
       <button class="send" type="submit" aria-label="Enviar" data-send>
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M11 5l5 5-5 5"/></svg>
       </button>
-      <p class="composer-hint">A IA pode errar. Confira informações importantes. <span data-model-hint></span></p>
+      <p class="composer-hint">A IA pode errar. Confira informações importantes. * Os prompts enviados e o uso das respostas são de responsabilidade inteiramente sua. <span data-model-hint></span></p>
     </form>
   </main>
 </div>

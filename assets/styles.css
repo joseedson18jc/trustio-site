@@ -2560,3 +2560,13 @@ h3 { letter-spacing: -0.018em; }
 .segments-b2b { padding-top: clamp(40px, 6vw, 72px); }
 .segments-b2b .segment-b2b::before { opacity: 1; }
 @media (max-width: 900px) { .segment-wide { grid-template-columns: 1fr; gap: 10px; } }
+
+/* Faixa "O que é Omnichannel" (bloco B2B da home). */
+.omni-def { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 10px clamp(24px, 4vw, 56px); align-items: start; margin-top: clamp(16px, 2vw, 22px); padding: clamp(22px, 3vw, 32px); border: 1px solid var(--line); border-radius: var(--radius-large); background: linear-gradient(145deg, rgba(37, 99, 235, 0.10), rgba(8, 10, 15, 0.4)); }
+.omni-def .section-kicker { grid-column: 1 / -1; margin: 0 0 2px; }
+.omni-def h3 { margin: 0; font-size: clamp(21px, 2.2vw, 27px); letter-spacing: -0.028em; line-height: 1.15; color: var(--text-strong); }
+.omni-def > p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.6; grid-column: 1; }
+.omni-def-points { grid-column: 2; grid-row: 2 / span 2; margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.omni-def-points li { display: grid; gap: 3px; padding-left: 16px; border-left: 2px solid var(--blue-signal); color: var(--muted); font-size: 14px; line-height: 1.5; }
+.omni-def-points b { color: var(--ice); font-weight: 600; font-size: 14.5px; }
+@media (max-width: 900px) { .omni-def { grid-template-columns: 1fr; } .omni-def > p, .omni-def-points { grid-column: 1; grid-row: auto; } }

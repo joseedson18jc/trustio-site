@@ -23,6 +23,7 @@ for (const [path, expectedStatus, expectedType] of [
   ["/entrar.html", 200, "text/html"],
   ["/app/", 200, "text/html"],
   ["/crm/", 200, "text/html"],
+  ["/admin/", 200, "text/html"],
   ["/assets/vendor/supabase.js", 200, "text/javascript"],
   ["/assets/styles.css", 200, "text/css"],
   ["/assets/juridico.css", 200, "text/css"],

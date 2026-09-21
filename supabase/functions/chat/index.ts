@@ -44,11 +44,21 @@ type Reservation = {
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin) });
-  if (req.method !== "POST") return json(405, { error: "method_not_allowed" }, origin);
+  if (req.method !== "POST" && req.method !== "GET") return json(405, { error: "method_not_allowed" }, origin);
 
   const auth = req.headers.get("authorization") ?? "";
   const token = auth.replace(/^Bearer\s+/i, "");
   if (!token) return json(401, { error: "unauthorized" }, origin);
+
+  // Verificação de saúde para o painel mestre: nenhum segredo sai daqui, só se há chave e qual modelo.
+  if (req.method === "GET") {
+    return json(200, {
+      ok: true,
+      modelo_configurado: LLM_API_KEY.length > 0,
+      modelo: LLM_API_KEY ? LLM_MODEL : null,
+      provedor: LLM_API_KEY ? new URL(LLM_BASE_URL).host : null,
+    }, origin);
+  }
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const { data: userData, error: userError } = await admin.auth.getUser(token);

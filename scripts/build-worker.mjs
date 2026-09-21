@@ -48,6 +48,7 @@ const sourceFiles = [
   "entrar.html",
   "app/index.html",
   "crm/index.html",
+  "admin/index.html",
   "console/index.html",
   "404.html",
   "robots.txt",
@@ -125,6 +126,7 @@ export default {
     if (path === "/console" || path === "/console/") path = "/console/index.html";
     if (path === "/app" || path === "/app/") path = "/app/index.html";
     if (path === "/crm" || path === "/crm/") path = "/crm/index.html";
+    if (path === "/admin" || path === "/admin/") path = "/admin/index.html";
     if (path === "/cadastro" || path === "/cadastro/") path = "/cadastro.html";
     if (path === "/entrar" || path === "/entrar/") path = "/entrar.html";
 

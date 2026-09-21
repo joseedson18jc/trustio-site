@@ -26,6 +26,7 @@ export default defineConfig({
         entrar: resolve(import.meta.dirname, "entrar.html"),
         app: resolve(import.meta.dirname, "app/index.html"),
         crm: resolve(import.meta.dirname, "crm/index.html"),
+        admin: resolve(import.meta.dirname, "admin/index.html"),
         notFound: resolve(import.meta.dirname, "404.html")
       }
     }

@@ -25,7 +25,7 @@
   var deleteBtn = $("[data-delete]");
   var gate = $("[data-gate]");
 
-  var state = { user: null, lead: null, limit: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false };
+  var state = { user: null, lead: null, limit: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false, fechado: false, placeholderPadrao: "" };
 
   // ---------------------------------------------------------------- utilidades
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -103,6 +103,7 @@
   }
 
   function boot() {
+    state.placeholderPadrao = input.getAttribute("placeholder") || "";
     gateShow("Entrando…", "Um instante.");
     sb.auth.getSession().then(function (r) {
       var session = r.data && r.data.session;
@@ -140,17 +141,48 @@
     });
   }
 
-  // Pergunta à função se há modelo configurado. Nenhum segredo volta daqui, só sim ou não.
+  // Pergunta à função se esta conta já pode conversar. Nenhum segredo volta daqui.
   function verificarAbertura(token) {
     fetch(CFG.chatEndpoint, { method: "GET", headers: { "Authorization": "Bearer " + token, "apikey": CFG.key } })
       .then(function (res) { return res.ok ? res.json() : null; })
       .then(function (d) {
-        if (!d || d.modelo_configurado) return;
-        input.disabled = true; sendBtn.disabled = true;
-        input.placeholder = "O chat abre em 1\u00ba de outubro";
-        showNotice("<b>Sua conta est\u00e1 pronta \u2014 o chat ainda n\u00e3o abriu.</b> O acesso come\u00e7a em <b>1\u00ba de outubro de 2026</b>; quem pr\u00e9-assina um plano entra em <b>23 de setembro</b>. Voc\u00ea n\u00e3o precisa fazer mais nada: na data, esta tela abre sozinha e suas 5 perguntas gr\u00e1tis continuam intactas. <a href=\"../planos.html#pessoal\">Ver como entrar em 23/09</a>");
+        if (!d || d.chat_aberto) { fechar(false); return; }
+        fechar(true, d);
       })
-      .catch(function () { /* sem rede agora: o envio mostra o erro certo depois */ });
+      // Sem resposta agora não presumimos nada: o servidor recusa o envio se ainda estiver fechado.
+      .catch(function () { /* o envio mostra o motivo certo depois */ });
+  }
+
+  // "1º de outubro", "23 de setembro" — a mesma forma que o resto do site usa.
+  function dataCurta(iso) {
+    if (!iso) return null;
+    var d = new Date(iso);
+    if (isNaN(d)) return null;
+    var dia = d.getDate();
+    return (dia === 1 ? "1º" : String(dia)) + " de " + d.toLocaleDateString("pt-BR", { month: "long" });
+  }
+
+  // Estado, não um disable pontual: enquanto state.fechado for verdadeiro nada envia,
+  // nem pelo formulário, nem pelo Enter, nem pelos botões de sugestão.
+  function fechar(fechado, d) {
+    state.fechado = !!fechado;
+    if (!state.fechado) {
+      input.placeholder = state.placeholderPadrao || input.placeholder;
+      if (!(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; }
+      return;
+    }
+    d = d || {};
+    var abre = dataCurta(d.abre_em) || "1º de outubro";
+    var antes = dataCurta(d.antecipado_em) || "23 de setembro";
+    input.disabled = true; sendBtn.disabled = true;
+    input.placeholder = "O chat abre em " + abre;
+    showNotice(
+      d.motivo === "sem_modelo"
+        ? "<b>O chat está em manutenção.</b> Sua conta está pronta e suas perguntas grátis continuam intactas; assim que o modelo voltar, esta tela libera sozinha."
+        : "<b>Sua conta está pronta — o chat ainda não abriu.</b> O acesso começa em <b>" + esc(abre) + "</b>" +
+          (d.pre_assinante ? ", e a sua pré-assinatura entra em <b>" + esc(antes) + "</b>." : "; quem pré-assina um plano entra em <b>" + esc(antes) + "</b>.") +
+          " Você não precisa fazer mais nada: na data, esta tela abre sozinha e suas 5 perguntas grátis continuam intactas. " +
+          (d.pre_assinante ? "" : "<a href=\"../planos.html#pessoal\">Ver como entrar antes</a>"));
   }
 
   function loadLead() {
@@ -362,6 +394,7 @@
   function send(text) {
     text = String(text || "").trim();
     if (!text || state.sending) return;
+    if (state.fechado) { input.value = ""; autosize(); return; }
     if (!state.user.email_confirmed_at) { showNotice("Confirme seu e-mail antes de conversar. <button type=\"button\" data-resend-confirm>Reenviar link</button>"); return; }
     state.sending = true;
     showNotice("");
@@ -410,7 +443,8 @@
       var code = err && err.message;
       if (code === "trial_esgotado") { pending.remove(); if (state.lead) { state.lead.status = "trial_esgotado"; state.lead.mensagens_usadas = state.limit; } renderMe(); }
       else if (code === "email_nao_confirmado") { pending.remove(); showNotice("Confirme seu e-mail antes de conversar. <button type=\"button\" data-resend-confirm>Reenviar link</button>"); }
-      else if (code === "modelo_nao_configurado") { pending.remove(); showNotice("O modelo ainda não foi ativado neste ambiente. A equipe Trustio precisa configurar a chave do provedor. Sua mensagem não foi contada."); }
+      else if (code === "chat_ainda_fechado") { pending.remove(); fechar(true, (err && err.data) || {}); }
+      else if (code === "modelo_nao_configurado") { pending.remove(); fechar(true, { motivo: "sem_modelo" }); }
       else if (code === "modelo_indisponivel") { pending.remove(); showNotice("O modelo não respondeu agora. Tente novamente em instantes."); }
       else if (code === "sem_sessao" || (err && err.status === 401)) { location.replace(CFG.loginPath); }
       else { pending.remove(); showNotice("Não foi possível enviar. Verifique a conexão e tente de novo."); console.error(err); }
@@ -419,7 +453,7 @@
       if (!body.innerHTML && pending.parentNode) pending.remove();
       state.sending = false;
       thread.setAttribute("aria-busy", "false");
-      if (!(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; input.focus(); }
+      if (!state.fechado && !(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; input.focus(); }
     });
   }
 

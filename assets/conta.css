@@ -62,3 +62,11 @@
   opacity: 0.85;
 }
 [data-theme="light"] .conta-page .plans-hero::before { opacity: 0.45; }
+
+/* Auditoria UX F8: o bônus do WhatsApp não é um quarto passo — sai da lista numerada. */
+.conta-bonus{margin:22px 0 0;padding:16px 18px;border:1px dashed var(--line,rgba(160,179,211,.22));border-radius:14px;
+  background:rgba(94,167,255,.05)}
+.conta-bonus-tag{margin:0 0 6px;font-family:var(--mono,ui-monospace);font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--blue-signal,#5ea7ff)}
+.conta-bonus p{margin:0;font-size:14.5px;line-height:1.6;color:var(--muted-strong)}
+.conta-bonus b{color:var(--ice,#f4f6fa)}

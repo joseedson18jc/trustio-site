@@ -15,6 +15,7 @@ if (!worker || typeof worker.fetch !== "function") throw new Error("Worker must 
 for (const [path, expectedStatus, expectedType] of [
   ["/", 200, "text/html"],
   ["/manifesto.html", 200, "text/html"],
+  ["/privacidade.html", 200, "text/html"],
   ["/juridico/", 200, "text/html"],
   ["/voice.html", 200, "text/html"],
   ["/planos.html", 200, "text/html"],

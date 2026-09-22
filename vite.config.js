@@ -14,6 +14,7 @@ export default defineConfig({
         home: resolve(import.meta.dirname, "index.html"),
         modelos: resolve(import.meta.dirname, "modelos.html"),
         manifesto: resolve(import.meta.dirname, "manifesto.html"),
+        privacidade: resolve(import.meta.dirname, "privacidade.html"),
         fundador: resolve(import.meta.dirname, "fundador.html"),
         juridico: resolve(import.meta.dirname, "juridico/index.html"),
         voice: resolve(import.meta.dirname, "voice.html"),

@@ -37,6 +37,7 @@ const sourceFiles = [
   "index.html",
   "modelos.html",
   "manifesto.html",
+  "privacidade.html",
   "fundador.html",
   "juridico/index.html",
   "voice.html",
@@ -120,6 +121,7 @@ export default {
     }
     if (path === "/") path = "/index.html";
     if (path === "/manifesto" || path === "/manifesto/") path = "/manifesto.html";
+    if (path === "/privacidade" || path === "/privacidade/") path = "/privacidade.html";
     if (path === "/juridico" || path === "/juridico/") path = "/juridico/index.html";
     if (path === "/voice" || path === "/voice/") path = "/voice.html";
     if (path === "/planos" || path === "/planos/") path = "/planos.html";

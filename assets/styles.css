@@ -2628,3 +2628,49 @@ h3 { letter-spacing: -0.018em; }
 .home-page .mentoria > .container { position: relative; z-index: 1; }
 .home-page .mentoria::before { content: ""; position: absolute; z-index: 0; pointer-events: none; inset: 0 0 0 50%; background: url("geo-plus.svg") repeat; background-size: 96px 96px; opacity: 0.25; -webkit-mask-image: radial-gradient(ellipse 70% 80% at 85% 20%, #000 15%, transparent 70%); mask-image: radial-gradient(ellipse 70% 80% at 85% 20%, #000 15%, transparent 70%); }
 @media (max-width: 900px) { .mentoria-grid { grid-template-columns: 1fr; } .home-page .mentoria::before { inset: 0; opacity: 0.18; } }
+
+/* ── Auditoria UX (22/09/2026) ─────────────────────────────────────────────
+   F4 aviso de privacidade · F6 rótulo do CTA de mentoria · F7 microcópia
+   decisiva legível · F9 expectativa no contato. */
+
+/* F7: a nota de responsabilidade decide se a pessoa envia o prompt. */
+.fine-print{font-size:12.5px;line-height:1.6}
+
+/* F6: qualificador "serviço pago" dentro do botão secundário do hero */
+.button-ghost small{display:inline-block;margin-left:8px;padding:2px 7px;border:1px solid currentColor;
+  border-radius:999px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.75;font-weight:500}
+
+/* F9: o que escrever e em quanto tempo respondemos */
+.contact-brief{max-width:620px;margin:18px auto 0;font-size:14.5px;line-height:1.65;color:rgba(235,243,255,.92)}
+.contact-brief b{color:#fff}
+.contact-note{font-size:14px}
+
+/* F4: página de privacidade */
+.legal{max-width:76ch}
+.legal h2{margin:46px 0 12px;font-size:clamp(22px,2.6vw,30px);letter-spacing:-.02em;scroll-margin-top:96px}
+.legal h2:first-child{margin-top:0}
+.legal h3{margin:28px 0 8px;font-size:17px;letter-spacing:-.01em;color:var(--ice,#f4f6fa)}
+.legal p{margin:0 0 14px;font-size:16px;line-height:1.7;color:var(--muted-strong)}
+.legal a{color:var(--blue-signal,#5ea7ff)}
+.legal code{font-family:var(--mono,ui-monospace);font-size:.9em}
+.legal-lista{margin:0 0 18px;padding:0;list-style:none;display:grid;gap:10px}
+.legal-lista li{position:relative;padding-left:22px;font-size:15.5px;line-height:1.65;color:var(--muted-strong)}
+.legal-lista li::before{content:"";position:absolute;left:4px;top:.62em;width:6px;height:6px;border-radius:50%;
+  background:var(--blue-signal,#5ea7ff)}
+.legal-lista b,.legal p b{color:var(--ice,#f4f6fa)}
+.legal-data{margin-top:20px;font-family:var(--mono,ui-monospace);font-size:12.5px;line-height:1.7;color:var(--label-color)}
+.legal-data a{color:inherit}
+.legal-cta{margin:52px 0 0;padding:24px;border:1px solid var(--line,rgba(160,179,211,.16));border-radius:16px;
+  background:rgba(94,167,255,.05)}
+.legal-cta p{margin:0 0 16px}
+.legal-cta-acoes{display:flex;flex-wrap:wrap;gap:12px}
+@media (max-width:700px){ .legal h2{margin-top:36px} .legal p{font-size:15.5px} }
+/* hero e corpo da página de privacidade: não dependem do CSS de planos */
+.legal-hero{padding:clamp(110px,13vh,150px) 0 6px}
+.legal-hero h1{margin:0;font-size:clamp(32px,5vw,56px);letter-spacing:-.04em;line-height:1.02;max-width:20ch}
+.legal-hero h1 span{display:block;color:var(--blue-signal,#5ea7ff);font-weight:500}
+.legal-hero .lead{margin:20px 0 0;max-width:64ch;font-size:17px;line-height:1.65;color:var(--muted,#a9b4c6)}
+.legal-corpo{padding:34px 0 90px}
+/* a caixa de estado fica alinhada à esquerda mesmo dentro de um hero centralizado */
+.acesso-estado{text-align:left}
+.plans-hero .acesso-estado{margin-left:auto;margin-right:auto}

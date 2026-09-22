@@ -24,7 +24,7 @@ function cors(origin: string | null) {
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Vary": "Origin",
   };
 }
@@ -34,6 +34,22 @@ function json(status: number, body: unknown, origin: string | null) {
     status,
     headers: { ...cors(origin), "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
   });
+}
+
+type Liberacao = {
+  aberto: boolean; motivo?: string; abre_em?: string | null;
+  antecipado_em?: string | null; pre_assinante?: boolean;
+};
+
+// Uma fonte só para "esta conta pode conversar agora": a função acesso_do_chat no banco.
+// Se a consulta falhar, o chat fica fechado — melhor recusar do que abrir antes da data.
+async function liberacao(admin: ReturnType<typeof createClient>, userId: string): Promise<Liberacao> {
+  const { data, error } = await admin.rpc("acesso_do_chat", { p_user_id: userId });
+  if (error || !data) {
+    console.error("acesso_do_chat_error", error);
+    return { aberto: false, motivo: "indisponivel" };
+  }
+  return data as Liberacao;
 }
 
 type Reservation = {
@@ -50,20 +66,32 @@ Deno.serve(async (req) => {
   const token = auth.replace(/^Bearer\s+/i, "");
   if (!token) return json(401, { error: "unauthorized" }, origin);
 
-  // Verificação de saúde para o painel mestre: nenhum segredo sai daqui, só se há chave e qual modelo.
-  if (req.method === "GET") {
-    return json(200, {
-      ok: true,
-      modelo_configurado: LLM_API_KEY.length > 0,
-      modelo: LLM_API_KEY ? LLM_MODEL : null,
-      provedor: LLM_API_KEY ? new URL(LLM_BASE_URL).host : null,
-    }, origin);
-  }
-
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const { data: userData, error: userError } = await admin.auth.getUser(token);
   const user = userData?.user;
   if (userError || !user) return json(401, { error: "unauthorized" }, origin);
+
+  // Verificação de saúde. O chat usa para avisar que ainda não abriu, antes de a pessoa escrever.
+  // Nenhum segredo sai daqui: para o cliente, apenas sim ou não; o nome do modelo e o host do
+  // provedor ficam restritos a administradores, que são quem precisa deles no painel mestre.
+  if (req.method === "GET") {
+    const { data: ehAdmin } = await admin.from("admins").select("user_id").eq("user_id", user.id).maybeSingle();
+    const configurado = LLM_API_KEY.length > 0;
+    const acesso = await liberacao(admin, user.id);
+    return json(200, {
+      ok: true,
+      // Só está aberto quando a data já chegou para esta conta E existe modelo para responder.
+      chat_aberto: acesso.aberto && configurado,
+      motivo: acesso.aberto ? (configurado ? acesso.motivo : "sem_modelo") : acesso.motivo,
+      abre_em: acesso.abre_em ?? null,
+      antecipado_em: acesso.antecipado_em ?? null,
+      pre_assinante: acesso.pre_assinante ?? false,
+      modelo_configurado: configurado,
+      modelo: ehAdmin && configurado ? LLM_MODEL : null,
+      provedor: ehAdmin && configurado ? new URL(LLM_BASE_URL).host : null,
+    }, origin);
+  }
+
   if (!user.email_confirmed_at) return json(403, { error: "email_nao_confirmado" }, origin);
 
   let body: { conversation_id?: string; message?: string };
@@ -74,6 +102,20 @@ Deno.serve(async (req) => {
 
   // Sem chave do modelo nada é consumido nem gravado.
   if (!LLM_API_KEY) return json(503, { error: "modelo_nao_configurado" }, origin);
+
+  // As datas anunciadas no site valem aqui, não só no texto: ter a chave configurada
+  // para atender o acesso antecipado não pode abrir o chat para todo mundo. Vem antes
+  // da reserva de cota, então uma tentativa fora da data não consome nada.
+  const acesso = await liberacao(admin, user.id);
+  if (!acesso.aberto) {
+    return json(403, {
+      error: "chat_ainda_fechado",
+      motivo: acesso.motivo,
+      abre_em: acesso.abre_em ?? null,
+      antecipado_em: acesso.antecipado_em ?? null,
+      pre_assinante: acesso.pre_assinante ?? false,
+    }, origin);
+  }
 
   // Reserva a cota ANTES de chamar o modelo, numa única instrução no banco
   // (requisições paralelas não passam pelo mesmo contador). Cria o lead se faltar.

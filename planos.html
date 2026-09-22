@@ -20,8 +20,8 @@
   <link rel="preload" href="assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="assets/theme.js?v=393a296c"></script>
-  <link rel="stylesheet" href="assets/styles.css?v=f496f664">
-  <link rel="stylesheet" href="assets/planos.css?v=bad5c608">
+  <link rel="stylesheet" href="assets/styles.css?v=1c5d1116">
+  <link rel="stylesheet" href="assets/planos.css?v=db2cda23">
   <link rel="stylesheet" href="assets/voice.css?v=7e6b6fc8">
   <script type="module" src="assets/app.js?v=650c9f12"></script>
   <script defer src="assets/contador.js?v=d26b62f8"></script>
@@ -153,6 +153,36 @@
         </div>
       </div>
         <p class="b2b-espera">Quer come&ccedil;ar pelo <b>VoiceAI</b>, pelo <b>Jur&iacute;dico</b> ou por <b>Sa&uacute;de</b>? O lan&ccedil;amento dos modelos &eacute; em 1&ordm; de outubro &mdash; <a href="espera.html?tipo=b2b">entre na lista de espera da sua empresa</a> e um arquiteto desenha o ambiente antes. Empresas que assinam um plano antes do lan&ccedil;amento entram em <b>23 de setembro</b>, uma semana antes.</p>
+
+      <div class="compare">
+        <p class="section-kicker">Comparativo · empresas</p>
+        <h2>O que muda entre Starter, Pro e Dedicado.</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Recurso</th><th>Starter</th><th>Pro</th><th>Dedicado</th></tr></thead>
+          <tbody>
+            <tr><td>Casos de uso em produção</td><td>1</td><td>Até 5</td><td>Ilimitados</td></tr>
+            <tr><td>Isolamento</td><td>Privado compartilhado</td><td>Dedicado (VPC)</td><td>Dedicado (GPU, rede, identidade)</td></tr>
+            <tr><td>Modelos</td><td>Abertos selecionados</td><td>Abertos + fronteira sob contrato</td><td>Qualquer modelo, incluindo fine-tuning</td></tr>
+            <tr><td>RAG · Agentes · OCR</td><td>RAG</td><td class="ok">✓ todos</td><td class="ok">✓ todos + Voice AI</td></tr>
+            <tr><td>API compatível com OpenAI</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+            <tr><td>SSO e auditoria</td><td>Logs por equipe</td><td class="ok">✓ SSO + trilha completa</td><td class="ok">✓ + integração SIEM</td></tr>
+            <tr><td>SLA</td><td>Melhor esforço</td><td>99,5%</td><td>99,9%</td></tr>
+            <tr><td>Suporte</td><td>Horário comercial</td><td>Prioritário</td><td>Arquiteto dedicado</td></tr>
+            <tr><td>Pagamento</td><td>Cartão, wallets</td><td>Cartão, wallets</td><td>Cartão, wallets, Pix por fatura</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="faq">
+        <div><p class="section-kicker">Dúvidas frequentes · empresas</p><h2>Pagamento, nota e cancelamento nos planos empresariais.</h2></div>
+        <div>
+          <details><summary>Posso pagar os planos mensais com Pix?</summary><p>O Pix é aceito no Diagnóstico (pagamento único) e, no plano Dedicado, por fatura mensal enviada por e-mail. Assinaturas Starter e Pro usam cartão de crédito, Apple Pay ou Google Pay, que permitem cobrança recorrente automática.</p></details>
+          <details><summary>Recebo nota fiscal e recibo?</summary><p>A Stripe envia recibo e fatura em PDF a cada cobrança, com o CNPJ informado no checkout. A nota fiscal de serviço é emitida pela Trustio em até 5 dias úteis após a confirmação.</p></details>
+          <details><summary>Como cancelo ou troco de plano?</summary><p>Pelo portal do cliente (link no e-mail de confirmação) ou por <!--email_off-->contato@trustio.com.br<!--/email_off-->. O cancelamento vale para o próximo ciclo; não há multa nem fidelidade.</p></details>
+          <details><summary>Meus dados de pagamento passam pela Trustio?</summary><p>Não. O checkout é processado pela Stripe (PCI DSS nível 1). A Trustio recebe apenas a confirmação e os dados de contato necessários para provisionar o ambiente.</p></details>
+          <details><summary>Preciso do Diagnóstico antes de assinar?</summary><p>Não é obrigatório. Ele é recomendado quando o caso de uso ainda não está definido — e o valor é abatido do primeiro mês do plano escolhido.</p></details>
+        </div>
+      </div>
       </div>
 
       <div class="seg-panel" id="pessoal" role="tabpanel" aria-labelledby="tab-pessoal" hidden>
@@ -160,6 +190,7 @@
           <p class="section-kicker">Para pessoas f&iacute;sicas</p>
           <h2>IA privada e sem censura. Para voc&ecirc;.</h2>
           <p>Os mesmos modelos abertos que rodamos para empresas, num acesso individual. Sem filtro de conte&uacute;do imposto pelo fornecedor, suas conversas n&atilde;o treinam ningu&eacute;m e tudo roda no Brasil. Cobrado em reais &mdash; sem IOF, sem surpresa de d&oacute;lar, sem cobran&ccedil;a por token.</p>
+          <p class="acesso-estado"><b>Estado de hoje:</b> cadastro aberto, chat ainda fechado. <b>O chat abre em 1&ordm; de outubro de 2026</b> &mdash; quem pr&eacute;-assina qualquer plano abaixo entra em <b>23 de setembro</b>. Sem fila e sem aprova&ccedil;&atilde;o manual: na data, sua conta abre sozinha.</p>
         </div>
         <div class="plan-grid b2c-grid">
           <article class="plan featured">
@@ -230,40 +261,45 @@
             <label for="lead-uso">Como voc&ecirc; pretende usar? <span>opcional</span></label>
             <select id="lead-uso" name="uso"><option value="">Escolher&hellip;</option><option>Trabalho e estudo</option><option>Escrita e criatividade</option><option>Pesquisa e c&oacute;digo</option><option>Conversas pessoais</option><option>Outro</option></select>
             <button class="button button-primary" type="submit" data-submit>Quero acesso <span aria-hidden="true">&#8599;</span></button>
-            <p class="lead-legal">Usamos seu contato apenas para avisar sobre o acesso individual e pode pedir a exclus&atilde;o quando quiser (LGPD). Sem spam.</p>
+            <p class="lead-legal">Usamos seu contato apenas para avisar quando o acesso individual abrir, e voc&ecirc; pode pedir a exclus&atilde;o quando quiser. Sem spam. <a href="privacidade.html">Como tratamos seus dados</a></p>
           </form>
         </div>
-      </div>
 
-      <div class="compare">
-        <p class="section-kicker">Comparativo</p>
-        <h2>O que muda entre os planos.</h2>
-        <div class="tablewrap"><table>
-          <thead><tr><th>Recurso</th><th>Starter</th><th>Pro</th><th>Dedicado</th></tr></thead>
-          <tbody>
-            <tr><td>Casos de uso em produção</td><td>1</td><td>Até 5</td><td>Ilimitados</td></tr>
-            <tr><td>Isolamento</td><td>Privado compartilhado</td><td>Dedicado (VPC)</td><td>Dedicado (GPU, rede, identidade)</td></tr>
-            <tr><td>Modelos</td><td>Abertos selecionados</td><td>Abertos + fronteira sob contrato</td><td>Qualquer modelo, incluindo fine-tuning</td></tr>
-            <tr><td>RAG · Agentes · OCR</td><td>RAG</td><td class="ok">✓ todos</td><td class="ok">✓ todos + Voice AI</td></tr>
-            <tr><td>API compatível com OpenAI</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
-            <tr><td>SSO e auditoria</td><td>Logs por equipe</td><td class="ok">✓ SSO + trilha completa</td><td class="ok">✓ + integração SIEM</td></tr>
-            <tr><td>SLA</td><td>Melhor esforço</td><td>99,5%</td><td>99,9%</td></tr>
-            <tr><td>Suporte</td><td>Horário comercial</td><td>Prioritário</td><td>Arquiteto dedicado</td></tr>
-            <tr><td>Pagamento</td><td>Cartão, wallets</td><td>Cartão, wallets</td><td>Cartão, wallets, Pix por fatura</td></tr>
-          </tbody>
-        </table></div>
-      </div>
+        <div class="compare">
+          <p class="section-kicker">Comparativo &middot; para voc&ecirc;</p>
+          <h2>O que muda entre os tr&ecirc;s acessos pessoais.</h2>
+          <div class="tablewrap"><table>
+            <thead><tr><th>O que importa</th><th>Mensal &middot; R$ 79</th><th>Passe 7 dias &middot; R$ 24,90</th><th>Anual &middot; R$ 790</th></tr></thead>
+            <tbody>
+              <tr><td>Per&iacute;odo de acesso</td><td>1 m&ecirc;s</td><td>7 dias corridos</td><td>12 meses</td></tr>
+              <tr><td>Come&ccedil;a quando</td><td>1&ordm;/10 &mdash; ou 23/09 se pr&eacute;-assinar</td><td>No dia em que voc&ecirc; abre o acesso</td><td>1&ordm;/10 &mdash; ou 23/09 se pr&eacute;-assinar</td></tr>
+              <tr><td>Renova sozinho?</td><td class="ok">&check; Sim, todo m&ecirc;s, at&eacute; voc&ecirc; cancelar</td><td>N&atilde;o. Acaba e pronto</td><td class="ok">&check; Sim, a cada 12 meses</td></tr>
+              <tr><td>Como cancelar</td><td>A qualquer momento; vale at&eacute; o fim do m&ecirc;s pago</td><td>Nada a cancelar</td><td>A qualquer momento; vale at&eacute; o fim do ano pago</td></tr>
+              <tr><td>Pix</td><td class="ok">&check; Sim</td><td class="ok">&check; Sim</td><td class="ok">&check; Sim, em at&eacute; 12&times;</td></tr>
+              <tr><td>Cart&atilde;o, Apple Pay, Google Pay</td><td class="ok">&check;</td><td class="ok">&check;</td><td class="ok">&check;</td></tr>
+              <tr><td>Chat sem censura no site</td><td class="ok">&check; Ilimitado, uso justo</td><td class="ok">&check; Ilimitado, uso justo</td><td class="ok">&check; Ilimitado, uso justo</td></tr>
+              <tr><td>Agente no WhatsApp</td><td class="ok">&check; Incluso enquanto a assinatura estiver ativa</td><td class="ok">&check; Incluso nos 7 dias</td><td class="ok">&check; Incluso enquanto a assinatura estiver ativa</td></tr>
+              <tr><td>Agente no Telegram</td><td class="ok">&check; Mesmo agente, mesmo plano</td><td class="ok">&check; Mesmo agente, mesmo plano</td><td class="ok">&check; Mesmo agente, mesmo plano</td></tr>
+              <tr><td>Quando acaba</td><td>O chat trava at&eacute; voc&ecirc; renovar</td><td>O chat trava no 8&ordm; dia</td><td>O chat trava at&eacute; voc&ecirc; renovar</td></tr>
+              <tr><td>Hist&oacute;rico das conversas</td><td class="ok">&check; Fica guardado na sua conta</td><td class="ok">&check; Fica guardado na sua conta</td><td class="ok">&check; Fica guardado na sua conta</td></tr>
+            </tbody>
+          </table></div>
+          <p class="compare-nota">Sem plano ativo voc&ecirc; ainda tem <b>5 perguntas gr&aacute;tis</b> no chat, uma &uacute;nica vez, quando o acesso abrir. Nenhum plano cobra por token: o limite &eacute; uso justo, n&atilde;o contagem.</p>
+        </div>
 
-      <div class="faq">
-        <div><p class="section-kicker">Dúvidas frequentes</p><h2>Pagamento, nota e cancelamento.</h2></div>
-        <div>
-          <details><summary>Posso pagar os planos mensais com Pix?</summary><p>O Pix é aceito no Diagnóstico (pagamento único) e, no plano Dedicado, por fatura mensal enviada por e-mail. Assinaturas Starter e Pro usam cartão de crédito, Apple Pay ou Google Pay, que permitem cobrança recorrente automática.</p></details>
-          <details><summary>Recebo nota fiscal e recibo?</summary><p>A Stripe envia recibo e fatura em PDF a cada cobrança, com o CNPJ informado no checkout. A nota fiscal de serviço é emitida pela Trustio em até 5 dias úteis após a confirmação.</p></details>
-          <details><summary>Como cancelo ou troco de plano?</summary><p>Pelo portal do cliente (link no e-mail de confirmação) ou por <!--email_off-->contato@trustio.com.br<!--/email_off-->. O cancelamento vale para o próximo ciclo; não há multa nem fidelidade.</p></details>
-          <details><summary>Meus dados de pagamento passam pela Trustio?</summary><p>Não. O checkout é processado pela Stripe (PCI DSS nível 1). A Trustio recebe apenas a confirmação e os dados de contato necessários para provisionar o ambiente.</p></details>
-          <details><summary>Preciso do Diagnóstico antes de assinar?</summary><p>Não é obrigatório. Ele é recomendado quando o caso de uso ainda não está definido — e o valor é abatido do primeiro mês do plano escolhido.</p></details>
+        <div class="faq">
+          <div><p class="section-kicker">D&uacute;vidas frequentes &middot; para voc&ecirc;</p><h2>Cobran&ccedil;a, Pix e o que acontece depois do teste.</h2></div>
+          <div>
+            <details><summary>Posso pagar os planos pessoais com Pix?</summary><p>Sim. Mensal, Passe de 7 dias e Anual aceitam Pix, e o Anual parcela em at&eacute; 12&times;. Pagando por Pix n&atilde;o existe cobran&ccedil;a autom&aacute;tica: quando o per&iacute;odo acaba, avisamos por e-mail e voc&ecirc; decide se renova. <b>Esta resposta vale para os planos pessoais</b> &mdash; nos planos empresariais o Pix funciona de outro jeito, explicado na aba &ldquo;Para empresas&rdquo;.</p></details>
+            <details><summary>O plano mensal renova sozinho?</summary><p>No cart&atilde;o, sim: ele renova todo m&ecirc;s at&eacute; voc&ecirc; cancelar, e o cancelamento vale at&eacute; o fim do m&ecirc;s que voc&ecirc; j&aacute; pagou &mdash; sem multa. No Pix, n&atilde;o: nada &eacute; cobrado de novo sem voc&ecirc; pagar de novo. O Passe de 7 dias nunca renova sozinho, em nenhuma forma de pagamento.</p></details>
+            <details><summary>O que acontece depois das 5 perguntas gr&aacute;tis?</summary><p>O chat trava e nada &eacute; cobrado. Suas conversas continuam na conta, e voc&ecirc; escolhe um plano quando quiser &mdash; ou simplesmente n&atilde;o escolhe. As 5 perguntas s&atilde;o uma vez por conta, n&atilde;o por m&ecirc;s.</p></details>
+            <details><summary>O agente no WhatsApp e no Telegram est&aacute; incluso?</summary><p>Est&aacute;, nos tr&ecirc;s planos pessoais, enquanto o acesso estiver ativo &mdash; sem assinatura separada. Voc&ecirc; ativa informando o seu n&uacute;mero: o agente atende <b>somente no seu WhatsApp ou no seu Telegram</b>, nunca por computador ou terminal. Sem plano, o b&ocirc;nus de <b>3 dias</b> come&ccedil;a no dia em que voc&ecirc; ativa; quando termina, o chat no site continua funcionando normalmente.</p></details>
+            <details><summary>Quando o meu acesso abre?</summary><p>Em <b>1&ordm; de outubro de 2026</b>, no lan&ccedil;amento. Quem pr&eacute;-assina qualquer um dos tr&ecirc;s planos entra em <b>23 de setembro</b>, uma semana antes. N&atilde;o h&aacute; fila nem aprova&ccedil;&atilde;o manual: na data, sua conta abre sozinha.</p></details>
+            <details><summary>Preciso dar meu telefone?</summary><p>N&atilde;o. Para o chat no site bastam nome, e-mail e senha. O telefone s&oacute; &eacute; necess&aacute;rio se voc&ecirc; quiser o agente no WhatsApp, porque ele atende exatamente nesse n&uacute;mero.</p></details>
+          </div>
         </div>
       </div>
+
     </div>
   </section>
 </main>
@@ -279,7 +315,7 @@
       </div>
       <div class="footer-links">
         <div><span>EXPLORAR</span><a href="index.html#plataforma">Plataforma</a><a href="modelos.html">Modelos Poderosos</a><a href="voice.html">VoiceAI · xSpace</a><a href="/juridico/">Jurídico</a><a href="index.html#seguranca">Segurança</a><a href="index.html#implantacao">Implantação</a><a href="planos.html">Planos</a><a href="espera.html">Lista de espera</a></div>
-        <div><span>INSTITUCIONAL</span><a href="manifesto.html">Manifesto</a><a href="fundador.html">Fundador</a><!--email_off--><a href="mailto:contato@trustio.com.br">Contato</a><!--/email_off--></div>
+        <div><span>INSTITUCIONAL</span><a href="manifesto.html">Manifesto</a><a href="fundador.html">Fundador</a><a href="privacidade.html">Privacidade</a><!--email_off--><a href="mailto:contato@trustio.com.br">Contato</a><!--/email_off--></div>
       </div>
     </div>
     <div class="container footer-bottom">

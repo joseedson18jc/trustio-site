@@ -20,8 +20,8 @@
   <link rel="preload" href="assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="assets/theme.js?v=393a296c"></script>
-  <link rel="stylesheet" href="assets/styles.css?v=f496f664">
-  <link rel="stylesheet" href="assets/planos.css?v=bad5c608">
+  <link rel="stylesheet" href="assets/styles.css?v=1c5d1116">
+  <link rel="stylesheet" href="assets/planos.css?v=db2cda23">
   <link rel="stylesheet" href="assets/voice.css?v=7e6b6fc8">
   <script type="module" src="assets/app.js?v=650c9f12"></script>
   <script defer src="assets/contador.js?v=d26b62f8"></script>
@@ -84,6 +84,7 @@
       <p class="eyebrow"><span class="status-dot"></span> Lan&ccedil;amento em 1&ordm; de outubro de 2026</p>
       <h1 id="espera-title">Entre na lista de espera.<span>Seu acesso abre no lan&ccedil;amento.</span></h1>
       <p class="lead">Os modelos ainda n&atilde;o est&atilde;o dispon&iacute;veis ao p&uacute;blico. Deixe seu contato e avisamos no dia &mdash; para voc&ecirc; ou para a sua empresa. Nada &eacute; cobrado agora. <b>Quem pr&eacute;-assina entra em 23 de setembro</b>, uma semana antes do lan&ccedil;amento.</p>
+      <p class="acesso-estado"><b>Estado de hoje:</b> cadastro aberto, chat ainda fechado. Voc&ecirc; pode <a href="cadastro.html">criar sua conta agora</a> &mdash; ela fica pronta e abre sozinha em <b>1&ordm;/10</b>, ou em <b>23/09</b> se voc&ecirc; pr&eacute;-assinar. Entrar nesta lista n&atilde;o cria conta: s&oacute; garante o aviso no dia.</p>
       <div class="espera-stats" aria-label="Situa&ccedil;&atilde;o da lista">
         <div><b data-count="1317">1.317</b><small>pessoas na lista</small></div>
         <div class="cd" data-countdown="2026-10-01T09:00:00-03:00"><b><span data-cd="d">&mdash;</span><i>d</i> <span data-cd="h">&mdash;</span><i>h</i> <span data-cd="m">&mdash;</span><i>min</i></b><small>para o lan&ccedil;amento</small></div>
@@ -116,8 +117,9 @@
           <input id="w-nome" name="nome" type="text" autocomplete="name" placeholder="Seu nome" required>
           <label for="w-email">E-mail <span>obrigat&oacute;rio</span></label>
           <input id="w-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com" required>
-          <label for="w-tel">Telefone / WhatsApp <span>obrigat&oacute;rio</span></label>
-          <input id="w-tel" name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 9 9999-9999" required>
+          <label for="w-tel">Telefone / WhatsApp <span>opcional</span></label>
+          <input id="w-tel" name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 9 9999-9999" aria-describedby="w-tel-ajuda">
+          <small class="campo-ajuda" id="w-tel-ajuda">S&oacute; para avisar mais r&aacute;pido no dia da abertura, pelo WhatsApp. S&oacute; o e-mail &eacute; obrigat&oacute;rio.</small>
 
           <fieldset class="lead-pick">
             <legend>Interesse</legend>
@@ -153,7 +155,7 @@
           <input id="w-obs" name="observacao" type="text" placeholder="Caso de uso, prazo, volume&hellip;">
 
           <button class="button button-primary" type="submit" data-submit>Entrar na lista de espera <span aria-hidden="true">&#8599;</span></button>
-          <p class="lead-legal">Voc&ecirc; recebe um e-mail para confirmar a inscri&ccedil;&atilde;o. Usamos seus dados s&oacute; para avisar sobre o lan&ccedil;amento e liberar o acesso (LGPD). Sem spam.</p>
+          <p class="lead-legal">Voc&ecirc; recebe um e-mail para confirmar a inscri&ccedil;&atilde;o. Usamos seu contato s&oacute; para avisar sobre a abertura e liberar o acesso, e voc&ecirc; pode pedir a exclus&atilde;o quando quiser. Sem spam. <a href="privacidade.html">Como tratamos seus dados</a></p>
         </form>
       </div>
 
@@ -178,7 +180,7 @@
       </div>
       <div class="footer-links">
         <div><span>EXPLORAR</span><a href="index.html#plataforma">Plataforma</a><a href="modelos.html">Modelos Poderosos</a><a href="voice.html">VoiceAI · xSpace</a><a href="/juridico/">Jurídico</a><a href="index.html#seguranca">Segurança</a><a href="index.html#implantacao">Implantação</a><a href="planos.html">Planos</a><a href="espera.html" aria-current="page">Lista de espera</a></div>
-        <div><span>INSTITUCIONAL</span><a href="manifesto.html">Manifesto</a><a href="fundador.html">Fundador</a><!--email_off--><a href="mailto:contato@trustio.com.br">Contato</a><!--/email_off--></div>
+        <div><span>INSTITUCIONAL</span><a href="manifesto.html">Manifesto</a><a href="fundador.html">Fundador</a><a href="privacidade.html">Privacidade</a><!--email_off--><a href="mailto:contato@trustio.com.br">Contato</a><!--/email_off--></div>
       </div>
     </div>
     <div class="container footer-bottom">

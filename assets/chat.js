@@ -127,6 +127,10 @@
         renderOnboard(!(state.lead && state.lead.onboarding_seen_at));
         if (!state.user.email_confirmed_at) {
           showNotice("Seu e-mail ainda não foi confirmado. Abra o link que enviamos para começar a conversar. <button type=\"button\" data-resend-confirm>Reenviar link</button>");
+        } else {
+          // Sem chave do provedor o chat não responde a ninguém. Melhor dizer agora
+          // do que deixar a pessoa escrever uma pergunta para receber um erro depois.
+          verificarAbertura(session.access_token);
         }
         input.focus();
       });
@@ -134,6 +138,19 @@
       console.error(err);
       gateShow("Algo deu errado", "Recarregue a página ou entre novamente.", { actions: true });
     });
+  }
+
+  // Pergunta à função se há modelo configurado. Nenhum segredo volta daqui, só sim ou não.
+  function verificarAbertura(token) {
+    fetch(CFG.chatEndpoint, { method: "GET", headers: { "Authorization": "Bearer " + token, "apikey": CFG.key } })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (d) {
+        if (!d || d.modelo_configurado) return;
+        input.disabled = true; sendBtn.disabled = true;
+        input.placeholder = "O chat abre em 1\u00ba de outubro";
+        showNotice("<b>Sua conta est\u00e1 pronta \u2014 o chat ainda n\u00e3o abriu.</b> O acesso come\u00e7a em <b>1\u00ba de outubro de 2026</b>; quem pr\u00e9-assina um plano entra em <b>23 de setembro</b>. Voc\u00ea n\u00e3o precisa fazer mais nada: na data, esta tela abre sozinha e suas 5 perguntas gr\u00e1tis continuam intactas. <a href=\"../planos.html#pessoal\">Ver como entrar em 23/09</a>");
+      })
+      .catch(function () { /* sem rede agora: o envio mostra o erro certo depois */ });
   }
 
   function loadLead() {

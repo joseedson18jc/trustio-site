@@ -50,20 +50,25 @@ Deno.serve(async (req) => {
   const token = auth.replace(/^Bearer\s+/i, "");
   if (!token) return json(401, { error: "unauthorized" }, origin);
 
-  // Verificação de saúde para o painel mestre: nenhum segredo sai daqui, só se há chave e qual modelo.
-  if (req.method === "GET") {
-    return json(200, {
-      ok: true,
-      modelo_configurado: LLM_API_KEY.length > 0,
-      modelo: LLM_API_KEY ? LLM_MODEL : null,
-      provedor: LLM_API_KEY ? new URL(LLM_BASE_URL).host : null,
-    }, origin);
-  }
-
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const { data: userData, error: userError } = await admin.auth.getUser(token);
   const user = userData?.user;
   if (userError || !user) return json(401, { error: "unauthorized" }, origin);
+
+  // Verificação de saúde. O chat usa para avisar que ainda não abriu, antes de a pessoa escrever.
+  // Nenhum segredo sai daqui: para o cliente, apenas sim ou não; o nome do modelo e o host do
+  // provedor ficam restritos a administradores, que são quem precisa deles no painel mestre.
+  if (req.method === "GET") {
+    const { data: ehAdmin } = await admin.from("admins").select("user_id").eq("user_id", user.id).maybeSingle();
+    const configurado = LLM_API_KEY.length > 0;
+    return json(200, {
+      ok: true,
+      modelo_configurado: configurado,
+      modelo: ehAdmin && configurado ? LLM_MODEL : null,
+      provedor: ehAdmin && configurado ? new URL(LLM_BASE_URL).host : null,
+    }, origin);
+  }
+
   if (!user.email_confirmed_at) return json(403, { error: "email_nao_confirmado" }, origin);
 
   let body: { conversation_id?: string; message?: string };

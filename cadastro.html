@@ -20,9 +20,9 @@
   <link rel="preload" href="assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="assets/theme.js?v=393a296c"></script>
-  <link rel="stylesheet" href="assets/styles.css?v=f496f664">
-  <link rel="stylesheet" href="assets/planos.css?v=bad5c608">
-  <link rel="stylesheet" href="assets/conta.css?v=51317937">
+  <link rel="stylesheet" href="assets/styles.css?v=1c5d1116">
+  <link rel="stylesheet" href="assets/planos.css?v=db2cda23">
+  <link rel="stylesheet" href="assets/conta.css?v=98bfe117">
   <script type="module" src="assets/app.js?v=650c9f12"></script>
   <script defer src="assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="assets/auth-config.js?v=def1b812"></script>
@@ -82,8 +82,9 @@
   <section class="plans-hero section-shell conta-hero" aria-labelledby="cadastro-title">
     <div class="container">
       <p class="eyebrow"><span class="status-dot"></span> Conta Trustio</p>
-      <h1 id="cadastro-title">Crie sua conta.<span>Confirme o e-mail e caia direto no chat.</span></h1>
-      <p class="lead">IA privada, sem censura e com dados no Brasil. Suas conversas ficam no seu ambiente, e cada nova conta entra no nosso atendimento para liberar o acesso, planos e suporte.</p>
+      <h1 id="cadastro-title">Crie sua conta agora.<span>O chat abre em 1º de outubro.</span></h1>
+      <p class="lead">IA privada, sem censura e com dados no Brasil. A conta você cria hoje e confirma por e-mail em um minuto. O acesso ao chat abre no lançamento, em <b>1º de outubro de 2026</b> — quem pré-assina um plano entra em <b>23 de setembro</b>, uma semana antes. Nada é cobrado para criar a conta.</p>
+      <p class="acesso-estado"><b>Estado de hoje:</b> cadastro aberto, chat ainda fechado. Não há fila nem aprovação manual: assim que a data chega, sua conta entra sozinha. <a href="planos.html#pessoal">Ver como entrar em 23/09</a></p>
     </div>
   </section>
 
@@ -94,11 +95,14 @@
           <p class="section-kicker">Como funciona</p>
           <h2>Três passos.<span>Nada é cobrado agora.</span></h2>
           <ol class="conta-passos">
-            <li><b>Você cria a conta</b>Nome, e-mail, telefone e uma senha. Para empresas, o segmento.</li>
-            <li><b>Confirma o e-mail</b>Enviamos um link. Ao clicar, você já entra autenticado no chat, sem senha de novo.</li>
-            <li><b>Conversa sem censura*</b>Cinco prompts grátis no chat. Depois, você escolhe um plano quando quiser, sem cobrança automática. <span class="pix-tag"><svg class="pix-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.3 20.7 12 12 20.7 3.3 12z"/><path d="M6.9 8.2h1.9c.7 0 1.4.3 1.9.8l1.3 1.3 1.3-1.3c.5-.5 1.2-.8 1.9-.8h1.9M6.9 15.8h1.9c.7 0 1.4-.3 1.9-.8l1.3-1.3 1.3 1.3c.5.5 1.2.8 1.9.8h1.9"/></svg>Pix aceito</span></li>
-            <li><b>Bônus: 3 dias de agente no WhatsApp</b>Um agente de IA direto no seu WhatsApp, ajudando em praticamente qualquer tarefa. Você ativa no primeiro acesso.</li>
+            <li><b>Você cria a conta</b>Nome, e-mail e uma senha. Para empresas, o segmento. O telefone é opcional.</li>
+            <li><b>Confirma o e-mail</b>Enviamos um link. Ao clicar, você já entra autenticado, sem digitar senha de novo.</li>
+            <li><b>Conversa sem censura*</b>Na abertura, cinco prompts grátis no chat. Depois, você escolhe um plano quando quiser, sem cobrança automática. <span class="pix-tag"><svg class="pix-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.3 20.7 12 12 20.7 3.3 12z"/><path d="M6.9 8.2h1.9c.7 0 1.4.3 1.9.8l1.3 1.3 1.3-1.3c.5-.5 1.2-.8 1.9-.8h1.9M6.9 15.8h1.9c.7 0 1.4-.3 1.9-.8l1.3-1.3 1.3 1.3c.5.5 1.2.8 1.9.8h1.9"/></svg>Pix aceito</span></li>
           </ol>
+          <div class="conta-bonus">
+            <p class="conta-bonus-tag">Bônus opcional</p>
+            <p><b>3 dias de agente no WhatsApp.</b> Um agente de IA direto no seu WhatsApp, ajudando em praticamente qualquer tarefa. Não é um quarto passo: você ativa se quiser, no primeiro acesso, informando o número. Sem o número, o chat no site funciona igual.</p>
+          </div>
           <div class="conta-tags" aria-label="Garantias">
             <span>Dados no Brasil</span><span>Sem censura*</span><span>LGPD</span><span>Sem cartão</span>
           </div>
@@ -116,8 +120,9 @@
             <input id="c-nome" name="nome" type="text" autocomplete="name" placeholder="Seu nome" required>
             <label for="c-email">E-mail <span>obrigatório</span></label>
             <input id="c-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com" required>
-            <label for="c-tel">Telefone / WhatsApp <span>obrigatório</span></label>
-            <input id="c-tel" name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 9 9999-9999" required>
+            <label for="c-tel">Telefone / WhatsApp <span>opcional</span></label>
+            <input id="c-tel" name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 9 9999-9999" aria-describedby="c-tel-ajuda">
+            <small class="campo-ajuda" id="c-tel-ajuda">Só usamos para ativar o bônus do agente no WhatsApp, no número que você informar. Deixe em branco se quiser apenas o chat no site.</small>
             <label for="c-senha">Senha <span>mínimo 8 caracteres</span></label>
             <input id="c-senha" name="senha" type="password" autocomplete="new-password" minlength="8" placeholder="••••••••" required>
 
@@ -134,12 +139,13 @@
               <input id="c-emp" name="empresa" type="text" autocomplete="organization" placeholder="Nome da empresa">
             </div>
 
+            <p class="form-expectativa">Ao enviar, você recebe <b>um e-mail de confirmação em poucos minutos</b>. Confirmado o e-mail, a conta fica pronta e o chat abre em <b>1º/10</b> — ou em <b>23/09</b>, se você pré-assinar um plano. Nenhuma cobrança acontece aqui.</p>
             <button class="button button-primary" type="submit" data-submit>Criar conta e receber o link <span aria-hidden="true">↗</span></button>
             <p class="lead-legal" data-status role="status" aria-live="polite"></p>
             <div class="conta-done" data-done hidden>
               <b>Falta só confirmar.</b> Abra o e-mail enviado para <code data-done-email></code> e clique em <b>Confirmar e entrar</b>. Não chegou? Confira o spam ou peça um novo link em <a href="entrar.html">Entrar</a>.
             </div>
-            <p class="lead-legal">Usamos seus dados para criar a conta, liberar o acesso e falar com você sobre planos e suporte (LGPD). Sem spam.</p>
+            <p class="lead-legal">Usamos seu nome e e-mail para criar a conta e liberar o acesso, e o telefone apenas se você pedir o agente no WhatsApp. Você pode pedir a exclusão a qualquer momento. Sem spam. <a href="privacidade.html">Como tratamos seus dados</a></p>
           </form>
         </div>
       </div>
@@ -158,7 +164,7 @@
       </div>
       <div class="footer-links">
         <div><span>EXPLORAR</span><a href="index.html#plataforma">Plataforma</a><a href="modelos.html">Modelos Poderosos</a><a href="voice.html">VoiceAI · xSpace</a><a href="/juridico/">Jurídico</a><a href="index.html#seguranca">Segurança</a><a href="index.html#implantacao">Implantação</a><a href="planos.html">Planos</a><a href="espera.html">Lista de espera</a></div>
-        <div><span>CONTA</span><a href="entrar.html">Entrar</a><a href="cadastro.html" aria-current="page">Criar conta</a><a href="manifesto.html">Manifesto</a><a href="fundador.html">Fundador</a><!--email_off--><a href="mailto:contato@trustio.com.br">Contato</a><!--/email_off--></div>
+        <div><span>CONTA</span><a href="entrar.html">Entrar</a><a href="cadastro.html" aria-current="page">Criar conta</a><a href="manifesto.html">Manifesto</a><a href="fundador.html">Fundador</a><a href="privacidade.html">Privacidade</a><!--email_off--><a href="mailto:contato@trustio.com.br">Contato</a><!--/email_off--></div>
       </div>
     </div>
     <div class="container footer-bottom">

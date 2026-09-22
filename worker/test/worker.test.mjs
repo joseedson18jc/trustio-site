@@ -87,6 +87,24 @@ r = await worker.fetch(req("POST", "/signup", "email=sem-js%40exemplo.com.br&_ne
 ok(r.status === 303 && r.headers.get("location") === "https://trustio.com.br/obrigado.html",
    "sem JavaScript, redireciona", r.headers.get("location"));
 
+// 5b · o destino do redirect vem do corpo da requisição: só vale o próprio site,
+//      senão api.trustio.com.br vira trampolim de phishing.
+const PADRAO = "https://trustio.com.br/obrigado.html?lista=espera";
+for (const [bruto, esperado, caso] of [
+  ["https://atacante.example/phish", PADRAO, "domínio externo recusado"],
+  ["//atacante.example/phish", PADRAO, "barra dupla recusada"],
+  ["https://trustio.com.br.atacante.example/x", PADRAO, "domínio parecido recusado"],
+  ["javascript:alert(1)", PADRAO, "esquema javascript recusado"],
+  ["/obrigado.html?lista=pre", "https://trustio.com.br/obrigado.html?lista=pre", "caminho relativo aceito"],
+  ["https://www.trustio.com.br/obrigado.html", "https://www.trustio.com.br/obrigado.html", "subdomínio próprio aceito"],
+  ["", PADRAO, "sem _next usa o padrão"],
+]) {
+  r = await worker.fetch(req("POST", "/signup",
+    "email=redir%40exemplo.com.br&_next=" + encodeURIComponent(bruto),
+    "application/x-www-form-urlencoded"), env);
+  ok(r.status === 303 && r.headers.get("location") === esperado, caso, r.headers.get("location"));
+}
+
 // 6 · falha no envio não mente que deu certo
 const fetchBom = globalThis.fetch;
 globalThis.fetch = async (u, o) => u.includes("resend") ? new Response("dominio nao verificado", { status: 403 }) : fetchBom(u, o);

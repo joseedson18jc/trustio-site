@@ -48,6 +48,29 @@ function linkDeConfirmacao(env, token) {
   return url.toString();
 }
 
+/**
+ * Para onde redirecionar depois de um envio sem JavaScript.
+ *
+ * O `_next` vem do corpo da requisição, então um site qualquer pode postar aqui
+ * pedindo redirecionamento para o endereço dele — e a resposta sairia de
+ * api.trustio.com.br, emprestando a credibilidade do domínio a uma página de
+ * phishing. Só aceitamos destino no próprio site; qualquer outro vira o padrão.
+ */
+function destinoSeguro(bruto, env) {
+  const base = env.SITE_URL || "https://trustio.com.br";
+  const padrao = `${base}/obrigado.html?lista=espera`;
+  if (!bruto) return padrao;
+  let destino;
+  try {
+    destino = new URL(String(bruto), base);
+  } catch {
+    return padrao;
+  }
+  if (destino.protocol !== "https:" && destino.protocol !== "http:") return padrao;
+  if (!ORIGENS.test(destino.origin)) return padrao;
+  return destino.toString();
+}
+
 function escapar(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
@@ -224,8 +247,7 @@ export default {
       }
 
       if (veioDeFormulario) {
-        const destino = String(dados._next || `${env.SITE_URL || "https://trustio.com.br"}/obrigado.html?lista=espera`);
-        return Response.redirect(destino, 303);
+        return Response.redirect(destinoSeguro(dados._next, env), 303);
       }
       return json(200, { ok: true }, origin);
     }

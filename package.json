@@ -8,7 +8,8 @@
     "build:static": "vite build",
     "validate": "node scripts/validate-artifact.mjs",
     "stamp": "node scripts/stamp-asset-versions.mjs",
-    "stamp:check": "node scripts/stamp-asset-versions.mjs --check"
+    "stamp:check": "node scripts/stamp-asset-versions.mjs --check",
+    "test:worker": "node worker/test/worker.test.mjs"
   },
   "devDependencies": {
     "vite": "7.0.6"

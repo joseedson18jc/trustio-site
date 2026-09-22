@@ -37,13 +37,19 @@ otp_expiry = 3600
 
 # Remetente do domínio. O remetente padrão do Supabase serve só para testes (poucos e-mails por hora).
 # Os valores abaixo assumem Resend (smtp.resend.com); troque host/porta/usuário para outro provedor.
+#
+# ATENÇÃO ao admin_email: o provedor só aceita enviar de um domínio verificado na conta dele.
+# O e-mail da lista de espera já sai de no-reply@send.trustio.com.br, então send.trustio.com.br
+# é o domínio comprovadamente verificado — por isso ele é o padrão aqui. Se você também tiver
+# verificado trustio.com.br na Resend, defina o secret SMTP_SENDER com o endereço que preferir
+# (ex.: nao-responda@trustio.com.br) que o workflow substitui este valor antes de aplicar.
 [auth.email.smtp]
 enabled = true
 host = "smtp.resend.com"
 port = 465
 user = "resend"
 pass = "env(SMTP_PASS)"
-admin_email = "contato@trustio.com.br"
+admin_email = "no-reply@send.trustio.com.br"
 sender_name = "Trustio"
 
 [auth.email.template.confirmation]

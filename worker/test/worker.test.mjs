@@ -95,6 +95,9 @@ for (const [bruto, esperado, caso] of [
   ["//atacante.example/phish", PADRAO, "barra dupla recusada"],
   ["https://trustio.com.br.atacante.example/x", PADRAO, "domínio parecido recusado"],
   ["javascript:alert(1)", PADRAO, "esquema javascript recusado"],
+  ["http://localhost:8080/x", PADRAO, "localhost recusado em produção"],
+  ["http://127.0.0.1:8765/x", PADRAO, "loopback recusado em produção"],
+  ["http://trustio.com.br/x", PADRAO, "http no domínio próprio recusado"],
   ["/obrigado.html?lista=pre", "https://trustio.com.br/obrigado.html?lista=pre", "caminho relativo aceito"],
   ["https://www.trustio.com.br/obrigado.html", "https://www.trustio.com.br/obrigado.html", "subdomínio próprio aceito"],
   ["", PADRAO, "sem _next usa o padrão"],
@@ -104,6 +107,19 @@ for (const [bruto, esperado, caso] of [
     "application/x-www-form-urlencoded"), env);
   ok(r.status === 303 && r.headers.get("location") === esperado, caso, r.headers.get("location"));
 }
+
+// 5c · em desenvolvimento, o destino vale se bater com a origem de SITE_URL
+const envLocal = { ...env, SITE_URL: "http://localhost:8765" };
+r = await worker.fetch(req("POST", "/signup",
+  "email=dev%40exemplo.com.br&_next=" + encodeURIComponent("http://localhost:8765/obrigado.html"),
+  "application/x-www-form-urlencoded"), envLocal);
+ok(r.headers.get("location") === "http://localhost:8765/obrigado.html",
+   "em dev, a própria origem de SITE_URL é aceita", r.headers.get("location"));
+r = await worker.fetch(req("POST", "/signup",
+  "email=dev%40exemplo.com.br&_next=" + encodeURIComponent("http://localhost:9999/x"),
+  "application/x-www-form-urlencoded"), envLocal);
+ok(r.headers.get("location") === "http://localhost:8765/obrigado.html?lista=espera",
+   "em dev, outra porta continua recusada", r.headers.get("location"));
 
 // 6 · falha no envio não mente que deu certo
 const fetchBom = globalThis.fetch;

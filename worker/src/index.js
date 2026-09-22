@@ -55,20 +55,29 @@ function linkDeConfirmacao(env, token) {
  * pedindo redirecionamento para o endereço dele — e a resposta sairia de
  * api.trustio.com.br, emprestando a credibilidade do domínio a uma página de
  * phishing. Só aceitamos destino no próprio site; qualquer outro vira o padrão.
+ *
+ * A lista aqui é própria, e não a do CORS: aquela aceita localhost para o
+ * desenvolvimento, e um destino de redirecionamento não deve herdar essa folga.
+ * Em produção só vale https no domínio da Trustio; para rodar local, o destino
+ * precisa bater exatamente com a origem de SITE_URL.
  */
+const DESTINOS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$/;
+
 function destinoSeguro(bruto, env) {
   const base = env.SITE_URL || "https://trustio.com.br";
   const padrao = `${base}/obrigado.html?lista=espera`;
   if (!bruto) return padrao;
   let destino;
+  let origemDoSite;
   try {
     destino = new URL(String(bruto), base);
+    origemDoSite = new URL(base).origin;
   } catch {
     return padrao;
   }
-  if (destino.protocol !== "https:" && destino.protocol !== "http:") return padrao;
-  if (!ORIGENS.test(destino.origin)) return padrao;
-  return destino.toString();
+  if (DESTINOS.test(destino.origin)) return destino.toString();
+  if (destino.origin === origemDoSite) return destino.toString();
+  return padrao;
 }
 
 function escapar(s) {
@@ -274,8 +283,13 @@ export default {
         return pagina("Link expirado",
           "Este link valia por 48 horas. Faça a inscrição de novo e enviamos outro na hora.", env, 410);
       }
+      // Pedir a inscrição de novo emite um token novo e invalida o anterior, de propósito:
+      // um link antigo não deve continuar valendo. Quem se inscreveu duas vezes chega aqui
+      // pelo e-mail mais velho, então a mensagem manda procurar o mais recente.
       return pagina("Link inválido",
-        "Este link de confirmação não é válido — ele pode já ter sido usado. Se você não recebeu a confirmação, inscreva-se de novo.", env, 400);
+        "Este link não vale mais. Ele pode já ter sido usado, ou ter sido substituído por um mais " +
+        "recente — se você se inscreveu mais de uma vez, <b>abra o último e-mail que recebeu</b>. " +
+        "Se não encontrar, inscreva-se de novo e enviamos outro na hora.", env, 400);
     }
 
     return json(404, { ok: false, error: "nao_encontrado" }, origin);

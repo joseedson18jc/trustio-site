@@ -2274,6 +2274,7 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
 
 .seats-banner .eyebrow { justify-content: center; }
 
+.seats-banner h1,
 .seats-banner h2 {
   max-width: none;
   margin: var(--space-32) auto 26px;
@@ -2284,6 +2285,7 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   text-shadow: 0 0 90px rgba(37, 99, 235, 0.12);
 }
 
+.seats-banner h1 span,
 .seats-banner h2 span {
   display: block;
   background: linear-gradient(105deg, var(--text-gradient-start) 10%, var(--text-gradient-mid) 52%, var(--text-gradient-end) 100%);
@@ -2671,6 +2673,42 @@ h3 { letter-spacing: -0.018em; }
 .legal-hero h1 span{display:block;color:var(--blue-signal,#5ea7ff);font-weight:500}
 .legal-hero .lead{margin:20px 0 0;max-width:64ch;font-size:17px;line-height:1.65;color:var(--muted,#a9b4c6)}
 .legal-corpo{padding:34px 0 90px}
+/* Estado de acesso de hoje, ao lado de todo CTA principal (cadastro, planos,
+   lista de espera e /seats.html). Fica aqui, e não no CSS de planos, porque
+   nem toda página que o usa carrega aquele arquivo. */
+.acesso-estado{margin:18px 0 0;max-width:68ch;padding:12px 16px;border:1px solid var(--line,rgba(160,179,211,.16));
+  border-radius:12px;background:rgba(94,167,255,.06);font-size:14.5px;line-height:1.6;color:var(--muted-strong)}
+.acesso-estado b{color:var(--ice,#f4f6fa)}
+.acesso-estado a{color:var(--blue-signal,#5ea7ff)}
 /* a caixa de estado fica alinhada à esquerda mesmo dentro de um hero centralizado */
 .acesso-estado{text-align:left}
 .plans-hero .acesso-estado{margin-left:auto;margin-right:auto}
+
+/* ── /seats.html ───────────────────────────────────────────────────────────
+   A mesma faixa da home, agora como página inteira: sem seção antes dela,
+   precisa do respiro do cabeçalho fixo e de ocupar a altura da tela. */
+.seats-page .seats-banner{
+  border-top: 0;
+  padding-top: clamp(150px, 20vh, 230px);
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+}
+.seats-page .seats-acesso{
+  margin: var(--space-32) auto 0;
+  max-width: 62ch;
+}
+.seats-page .seats-voltar{
+  margin: 34px 0 0;
+  font-size: 14.5px;
+}
+.seats-page .seats-voltar a{
+  color: var(--muted-strong);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(160, 179, 211, 0.24);
+  padding-bottom: 2px;
+}
+.seats-page .seats-voltar a:hover{ color: var(--ice, #f4f6fa); }
+@media (max-width: 700px){
+  .seats-page .seats-banner{ min-height: 0; padding-top: clamp(120px, 16vh, 160px); display: block; }
+}

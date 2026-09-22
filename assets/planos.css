@@ -141,11 +141,7 @@
   border-left:3px solid var(--blue-signal,#5ea7ff);border-radius:10px;
   background:rgba(94,167,255,.06);font-size:13.5px;line-height:1.6;color:var(--muted-strong)}
 
-/* estado de acesso de hoje, no topo das páginas de conversão */
-.acesso-estado{margin:18px 0 0;max-width:68ch;padding:12px 16px;border:1px solid var(--line,rgba(160,179,211,.16));
-  border-radius:12px;background:rgba(94,167,255,.06);font-size:14.5px;line-height:1.6;color:var(--muted-strong)}
-.acesso-estado b{color:var(--ice,#f4f6fa)}
-.acesso-estado a{color:var(--blue-signal,#5ea7ff)}
+/* .acesso-estado vive em styles.css: é usado também fora das páginas de planos. */
 
 .compare-nota{margin-top:16px;max-width:72ch;font-size:13.5px;line-height:1.6;color:var(--muted)}
 .compare-nota b{color:var(--ice,#f4f6fa)}

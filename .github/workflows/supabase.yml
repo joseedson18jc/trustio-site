@@ -5,6 +5,7 @@
 #   SUPABASE_ACCESS_TOKEN  token pessoal (supabase.com/dashboard/account/tokens)    obrigatório
 #   SUPABASE_DB_PASSWORD   senha do banco do projeto (Project Settings → Database)  obrigatório
 #   SMTP_PASS              senha/API key do SMTP do domínio (ex.: Resend)           para e-mails pelo domínio
+#   SMTP_SENDER            remetente, se diferente do padrão do config.toml         opcional
 #   LLM_API_KEY            chave do provedor do modelo (xAI ou compatível)          para o chat responder
 #   LLM_BASE_URL, LLM_MODEL                                                         opcionais
 #   ADMIN_EMAILS           e-mails dos administradores do CRM, separados por vírgula
@@ -27,6 +28,7 @@ jobs:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       SMTP_PASS: ${{ secrets.SMTP_PASS }}
+      SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
       LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
       LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
       LLM_MODEL: ${{ secrets.LLM_MODEL }}
@@ -60,7 +62,12 @@ jobs:
             # Sem senha de SMTP, mantém o remetente padrão para não quebrar o envio.
             sed -i 's/^enabled = true$/enabled = false/' supabase/config.toml
             sed -i 's|^pass = "env(SMTP_PASS)"$|pass = ""|' supabase/config.toml
+          elif [ -n "$SMTP_SENDER" ]; then
+            # O provedor só aceita enviar de domínio verificado na conta dele.
+            sed -i "s|^admin_email = .*|admin_email = \"$SMTP_SENDER\"|" supabase/config.toml
           fi
+          echo "Remetente que será aplicado: $(grep '^admin_email' supabase/config.toml)"
+          echo "::notice::Se os e-mails não chegarem, confira se esse domínio está verificado no provedor de SMTP."
           supabase config push --yes
 
       - name: Publicar função de chat

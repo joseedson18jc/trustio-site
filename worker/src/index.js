@@ -277,7 +277,7 @@ export default {
       if (r?.ok) {
         return pagina("Inscrição confirmada",
           "Pronto: sua vaga está garantida. Avisamos por e-mail no dia da abertura, <b>1º de outubro de 2026</b>. " +
-          'Quem pré-assina um plano entra em <b>23 de setembro</b> — <a href="' + escapar(env.SITE_URL || "https://trustio.com.br") + '/planos.html#pessoal" style="color:#5ea7ff">ver como</a>.', env);
+          'Quem assina um plano entra antes do lançamento, em até 1 dia útil após a confirmação do pagamento — <a href="' + escapar(env.SITE_URL || "https://trustio.com.br") + '/planos.html#pessoal" style="color:#5ea7ff">ver como</a>.', env);
       }
       if (r?.error === "token_expirado") {
         return pagina("Link expirado",

@@ -173,14 +173,17 @@
     }
     d = d || {};
     var abre = dataCurta(d.abre_em) || "1º de outubro";
-    var antes = dataCurta(d.antecipado_em) || "23 de setembro";
+    // Só pré-assinante vê a data antecipada, e o servidor só o mantém fechado antes dela.
+    var antes = dataCurta(d.antecipado_em);
     input.disabled = true; sendBtn.disabled = true;
     input.placeholder = "O chat abre em " + abre;
     showNotice(
       d.motivo === "sem_modelo"
         ? "<b>O chat está em manutenção.</b> Sua conta está pronta e suas perguntas grátis continuam intactas; assim que o modelo voltar, esta tela libera sozinha."
         : "<b>Sua conta está pronta — o chat ainda não abriu.</b> O acesso começa em <b>" + esc(abre) + "</b>" +
-          (d.pre_assinante ? ", e a sua pré-assinatura entra em <b>" + esc(antes) + "</b>." : "; quem pré-assina um plano entra em <b>" + esc(antes) + "</b>.") +
+          (d.pre_assinante
+            ? (antes ? ", e a sua pré-assinatura entra em <b>" + esc(antes) + "</b>." : ", e a sua assinatura entra antes do lançamento.")
+            : "; quem assina um plano entra antes, em até 1 dia útil após a confirmação do pagamento.") +
           " Você não precisa fazer mais nada: na data, esta tela abre sozinha e suas 5 perguntas grátis continuam intactas. " +
           (d.pre_assinante ? "" : "<a href=\"../planos.html#pessoal\">Ver como entrar antes</a>"));
   }

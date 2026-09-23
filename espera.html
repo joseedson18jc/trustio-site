@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="assets/voice.css?v=7e6b6fc8">
   <script type="module" src="assets/app.js?v=650c9f12"></script>
   <script defer src="assets/contador.js?v=d26b62f8"></script>
-  <script defer src="assets/espera.js?v=62a9284d"></script>
+  <script defer src="assets/espera.js?v=a8b64677"></script>
   <script defer src="assets/optin.js?v=690f0023"></script>
 </head>
 <body class="planos-page espera-page">
@@ -83,8 +83,8 @@
     <div class="container">
       <p class="eyebrow"><span class="status-dot"></span> Lan&ccedil;amento em 1&ordm; de outubro de 2026</p>
       <h1 id="espera-title">Entre na lista de espera.<span>Seu acesso abre no lan&ccedil;amento.</span></h1>
-      <p class="lead">Os modelos ainda n&atilde;o est&atilde;o dispon&iacute;veis ao p&uacute;blico. Deixe seu contato e avisamos no dia &mdash; para voc&ecirc; ou para a sua empresa. Nada &eacute; cobrado agora. <b>Quem pr&eacute;-assina entra em 23 de setembro</b>, uma semana antes do lan&ccedil;amento.</p>
-      <p class="acesso-estado"><b>Estado de hoje:</b> cadastro aberto, chat ainda fechado. Voc&ecirc; pode <a href="cadastro.html">criar sua conta agora</a> &mdash; ela fica pronta e abre sozinha em <b>1&ordm;/10</b>, ou em <b>23/09</b> se voc&ecirc; pr&eacute;-assinar. Entrar nesta lista n&atilde;o cria conta: s&oacute; garante o aviso no dia.</p>
+      <p class="lead">Os modelos ainda n&atilde;o est&atilde;o dispon&iacute;veis ao p&uacute;blico. Deixe seu contato e avisamos no dia &mdash; para voc&ecirc; ou para a sua empresa. Nada &eacute; cobrado agora. <b>Quem assina agora entra antes do lan&ccedil;amento</b>, com a conta liberada em at&eacute; 1 dia &uacute;til ap&oacute;s a confirma&ccedil;&atilde;o do pagamento.</p>
+      <p class="acesso-estado"><b>Estado de hoje:</b> cadastro aberto, chat ainda fechado. Voc&ecirc; pode <a href="cadastro.html">criar sua conta agora</a> &mdash; ela fica pronta e abre sozinha em <b>1&ordm;/10</b>; se voc&ecirc; assinar um plano, entra antes, em at&eacute; 1 dia &uacute;til ap&oacute;s o pagamento. Entrar nesta lista n&atilde;o cria conta: s&oacute; garante o aviso no dia.</p>
       <div class="espera-stats" aria-label="Situa&ccedil;&atilde;o da lista">
         <div><b data-count="1317">1.317</b><small>pessoas na lista</small></div>
         <div class="cd" data-countdown="2026-10-01T09:00:00-03:00"><b><span data-cd="d">&mdash;</span><i>d</i> <span data-cd="h">&mdash;</span><i>h</i> <span data-cd="m">&mdash;</span><i>min</i></b><small>para o lan&ccedil;amento</small></div>
@@ -99,14 +99,14 @@
       <div class="lista espera-lista" id="lista">
         <div>
           <p class="section-kicker">Como funciona</p>
-          <h2>Leva 30 segundos. Sem cart&atilde;o.<span>Ou pr&eacute;-assine e entre uma semana antes.</span></h2>
+          <h2>Leva 30 segundos. Sem cart&atilde;o.<span>Ou assine agora e entre antes de 1&ordm; de outubro.</span></h2>
           <ol class="espera-passos">
             <li><b>Voc&ecirc; entra na lista</b><span>Nome, contato e o que interessa: para voc&ecirc; ou para a empresa.</span></li>
             <li><b>1&ordm; de outubro: seu acesso abre</b><span>Voc&ecirc; recebe o link por e-mail e WhatsApp, na ordem da lista.</span></li>
-            <li class="early"><b>Quer entrar antes? Pr&eacute;-assine</b><span>Quem paga o plano antes do lan&ccedil;amento recebe o acesso em <strong>23 de setembro</strong> &mdash; uma semana antes de todo mundo. Marque &ldquo;Pr&eacute;-assinar&rdquo; no formul&aacute;rio e enviamos o link de pagamento (Pix ou cart&atilde;o).</span></li>
+            <li class="early"><b>Quer entrar antes? Assine agora</b><span>O acesso antecipado j&aacute; abriu: quem paga o plano entra <strong>antes do lan&ccedil;amento</strong>, com a conta liberada em at&eacute; 1 dia &uacute;til ap&oacute;s a confirma&ccedil;&atilde;o do pagamento. Marque &ldquo;Assinar agora&rdquo; no formul&aacute;rio e enviamos o link de pagamento (Pix ou cart&atilde;o).</span></li>
             <li><b>5 perguntas gr&aacute;tis</b><span>Teste o modelo sem censura de verdade. Depois da quinta pergunta, a plataforma trava at&eacute; voc&ecirc; escolher um plano &mdash; sem cobran&ccedil;a autom&aacute;tica.</span></li>
           </ol>
-          <p class="espera-nota">Empresas: al&eacute;m das 5 perguntas, um arquiteto entra em contato para desenhar o ambiente (VoiceAI, Jur&iacute;dico, Sa&uacute;de ou outro nicho). Empresas que contratam um plano antes do lan&ccedil;amento tamb&eacute;m entram em 23 de setembro.</p>
+          <p class="espera-nota">Empresas: al&eacute;m das 5 perguntas, um arquiteto entra em contato para desenhar o ambiente (VoiceAI, Jur&iacute;dico, Sa&uacute;de ou outro nicho). Empresas que contratam um plano agora recebem o ambiente no prazo do plano escolhido.</p>
         </div>
 
         <form class="lead-form" action="https://api.trustio.com.br/signup" method="POST" id="espera-form">
@@ -148,7 +148,7 @@
           <fieldset class="lead-pick lead-acesso">
             <legend>Como voc&ecirc; quer entrar?</legend>
             <label><input type="radio" name="acesso" value="Lista gratuita — acesso em 1º/10" data-acesso="lista" checked>Lista gr&aacute;tis <small>acesso em 1&ordm;/10 &middot; 5 perguntas gr&aacute;tis &middot; nada cobrado agora</small></label>
-            <label><input type="radio" name="acesso" value="Pré-assinatura — acesso antecipado em 23/09" data-acesso="pre">Pr&eacute;-assinar <small>acesso em 23/09, uma semana antes &middot; enviamos o link de pagamento</small></label>
+            <label><input type="radio" name="acesso" value="Assinatura — acesso antecipado, antes de 1º/10" data-acesso="pre">Assinar agora <small>acesso antes de 1&ordm;/10 &middot; enviamos o link de pagamento</small></label>
           </fieldset>
 
           <label for="w-obs">Algo que devemos saber? <span>opcional</span></label>

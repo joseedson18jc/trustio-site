@@ -30,7 +30,7 @@ function applyTipo() {
 }
 tipoInputs.forEach((i) => i.addEventListener("change", applyTipo));
 
-// --- acesso: lista gratuita (1º/10) ou pré-assinatura (acesso antecipado em 23/09)
+// --- acesso: lista gratuita (1º/10) ou assinatura (acesso antecipado, em até 1 dia útil após o pagamento)
 const acessoInputs = [...document.querySelectorAll('input[name="acesso"]')];
 const nextInput = document.querySelector("[data-next]");
 const submitBtn = document.querySelector("[data-submit]");
@@ -41,8 +41,8 @@ function applyAcesso() {
   const pv = document.querySelector('input[name="plano"]:checked')?.value || "";
   const planoKey = t === "b2b" ? "empresa" : pv.startsWith("Passe") ? "semanal" : pv.startsWith("Anual") ? "anual" : "mensal";
   if (nextInput) nextInput.value = pre ? `https://trustio.com.br/obrigado.html?lista=pre&plano=${planoKey}` : "https://trustio.com.br/obrigado.html?lista=espera";
-  if (subjInput) subjInput.value = pre ? "PRÉ-ASSINATURA (acesso 23/09) — trustio.com.br" : "Lista de espera — trustio.com.br";
-  if (submitBtn) submitBtn.firstChild.textContent = pre ? "Quero pré-assinar e entrar em 23/09 " : "Entrar na lista de espera ";
+  if (subjInput) subjInput.value = pre ? "ASSINATURA (acesso antecipado) — trustio.com.br" : "Lista de espera — trustio.com.br";
+  if (submitBtn) submitBtn.firstChild.textContent = pre ? "Quero assinar e entrar em até 1 dia útil " : "Entrar na lista de espera ";
 }
 acessoInputs.forEach((i) => i.addEventListener("change", applyAcesso));
 document.querySelectorAll('input[name="plano"], input[name="tipo"]').forEach((i) => i.addEventListener("change", applyAcesso));

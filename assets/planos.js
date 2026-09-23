@@ -37,7 +37,7 @@ document.querySelectorAll("[data-interesse]").forEach((a) => a.addEventListener(
     const plano = document.querySelector('#pessoal input[name="plano"]:checked')?.value || "mensal";
     if (next) next.value = pre ? `https://trustio.com.br/obrigado.html?lista=pre&plano=${plano}` : "https://trustio.com.br/obrigado.html?lista=espera";
     if (subj) subj.value = pre ? "ASSINATURA B2C (acesso antecipado) — via planos" : "Lista de espera (B2C via planos) — trustio.com.br";
-    if (btn) btn.firstChild.textContent = pre ? "Quero assinar e entrar antes de 1º/10 " : "Quero acesso ";
+    if (btn) btn.firstChild.textContent = pre ? "Quero assinar e entrar em até 1 dia útil " : "Quero acesso ";
   };
   acesso.forEach((i) => i.addEventListener("change", apply));
   document.querySelectorAll('#pessoal input[name="plano"]').forEach((i) => i.addEventListener("change", apply));

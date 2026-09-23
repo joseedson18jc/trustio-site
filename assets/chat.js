@@ -182,8 +182,8 @@
         ? "<b>O chat está em manutenção.</b> Sua conta está pronta e suas perguntas grátis continuam intactas; assim que o modelo voltar, esta tela libera sozinha."
         : "<b>Sua conta está pronta — o chat ainda não abriu.</b> O acesso começa em <b>" + esc(abre) + "</b>" +
           (d.pre_assinante
-            ? (antes ? ", e a sua pré-assinatura entra em <b>" + esc(antes) + "</b>." : ", e a sua assinatura entra antes do lançamento.")
-            : "; quem assina um plano entra antes, em até 1 dia útil após a confirmação do pagamento.") +
+            ? (antes ? ", e a sua pré-assinatura entra em <b>" + esc(antes) + "</b>." : ".")
+            : "; quem assina um plano tem a conta liberada em até 1 dia útil após a confirmação do pagamento.") +
           " Você não precisa fazer mais nada: na data, esta tela abre sozinha e suas 5 perguntas grátis continuam intactas. " +
           (d.pre_assinante ? "" : "<a href=\"../planos.html#pessoal\">Ver como entrar antes</a>"));
   }

@@ -16,9 +16,17 @@ const LLM_API_KEY = Deno.env.get("LLM_API_KEY") ?? Deno.env.get("XAI_API_KEY") ?
 const LLM_BASE_URL = (Deno.env.get("LLM_BASE_URL") ?? "https://api.x.ai/v1").replace(/\/$/, "");
 const LLM_MODEL = Deno.env.get("LLM_MODEL") ?? "grok-4";
 const HISTORY = 30;
-// Teto de tokens por resposta (raciocínio + texto). O chat mostra o progresso contra
-// esse teto, porque o tamanho final da resposta não é conhecido de antemão.
-const LLM_MAX_TOKENS = Math.min(32768, Math.max(256, Number(Deno.env.get("LLM_MAX_TOKENS")) || 4096));
+// Teto de tokens por resposta (raciocínio + texto), opcional e explícito: só com o
+// segredo LLM_MAX_TOKENS a função limita o modelo, e só então o chat mostra a porcentagem
+// (contra esse teto, porque o tamanho final da resposta não é conhecido de antemão).
+// Uma resposta que bate no teto sai cortada e o chat avisa. Sem o segredo, não há teto.
+const tetoConfigurado = Number(Deno.env.get("LLM_MAX_TOKENS"));
+const LLM_MAX_TOKENS = tetoConfigurado > 0 ? Math.min(32768, Math.max(256, Math.floor(tetoConfigurado))) : null;
+// Contagem exata de tokens durante a geração: o llama.cpp a manda em cada trecho com
+// timings_per_token. É um parâmetro dele; não vai para a API da xAI (o padrão acima).
+const LLAMA_TIMINGS = (() => {
+  try { return !/(^|\.)x\.ai$/.test(new URL(LLM_BASE_URL).hostname); } catch { return false; }
+})();
 
 const ALLOWED_ORIGINS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$|^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
 
@@ -164,7 +172,12 @@ Deno.serve(async (req) => {
     upstream = await fetch(`${LLM_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: LLM_MODEL, messages, stream: true, temperature: 0.7, max_tokens: LLM_MAX_TOKENS }),
+      body: JSON.stringify({
+        model: LLM_MODEL, messages, stream: true, temperature: 0.7,
+        stream_options: { include_usage: true },
+        ...(LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
+        ...(LLAMA_TIMINGS ? { timings_per_token: true } : {}),
+      }),
     });
   } catch (err) {
     console.error("llm_fetch_error", err);
@@ -215,6 +228,27 @@ Deno.serve(async (req) => {
     let pensando = false;
     let interrompido = false;
     let fim: string | null = null;
+    // Tokens gerados: o número exato do modelo quando ele informa (timings/usage);
+    // senão, um por trecho recebido.
+    let tokens = 0;
+    let trechos = 0;
+
+    // O raciocínio vai ao navegador, mas o prompt de sistema não deve sair por ele: frases
+    // do prompt citadas literalmente viram "[instrução interna]". Para pegar uma frase
+    // que chega em pedaços, os últimos caracteres (o tamanho da maior frase) ficam
+    // retidos até a frase poder ser conferida inteira. Paráfrases não são pegas, então o
+    // prompt de sistema não deve conter segredo.
+    const frasesDoPrompt = systemPrompt.split(/(?<=[.!?;:])\s+|\n+/).map((f) => f.trim()).filter((f) => f.length >= 24);
+    const retencao = frasesDoPrompt.reduce((m, f) => Math.max(m, f.length), 0);
+    let raciocinioRetido = "";
+    const soltarRaciocinio = (tudo: boolean) => {
+      for (const f of frasesDoPrompt) raciocinioRetido = raciocinioRetido.split(f).join("[instrução interna]");
+      const corte = tudo ? raciocinioRetido.length : Math.max(0, raciocinioRetido.length - retencao);
+      if (corte > 0) {
+        send({ raciocinio: raciocinioRetido.slice(0, corte), n: tokens });
+        raciocinioRetido = raciocinioRetido.slice(corte);
+      }
+    };
     try {
       while (true) {
         const { done, value } = await reader.read();
@@ -228,18 +262,26 @@ Deno.serve(async (req) => {
           const payload = line.slice(5).trim();
           if (payload === "[DONE]") continue;
           try {
-            const escolha = JSON.parse(payload)?.choices?.[0] ?? {};
+            const pedaco = JSON.parse(payload) ?? {};
+            const escolha = pedaco.choices?.[0] ?? {};
             const d = escolha.delta ?? {};
             if (escolha.finish_reason) fim = escolha.finish_reason;
-            if (d.content) { full += d.content; send({ delta: d.content }); }
-            // Modelos com raciocínio mandam esse trecho em outro campo antes do texto. Vai
-            // ao navegador, que o mostra à parte; não entra no histórico nem no contexto.
-            else {
-              const raciocinio = d.reasoning_content || d.reasoning;
-              if (raciocinio) {
-                if (!pensando) { pensando = true; send({ pensando: true }); }
-                send({ raciocinio });
-              }
+            const raciocinio = d.reasoning_content || d.reasoning;
+            if (d.content || raciocinio) trechos++;
+            tokens = Math.max(tokens, trechos, Number(pedaco.timings?.predicted_n) || 0, Number(pedaco.usage?.completion_tokens) || 0);
+            // Modelos com raciocínio mandam esse trecho em outro campo, antes do texto. Vai ao
+            // navegador, que o mostra à parte; não entra no histórico nem no contexto.
+            if (raciocinio) {
+              if (!pensando) { pensando = true; send({ pensando: true }); }
+              raciocinioRetido += raciocinio;
+              soltarRaciocinio(false);
+            }
+            if (d.content) {
+              if (raciocinioRetido) soltarRaciocinio(true);
+              full += d.content;
+              send({ delta: d.content, n: tokens });
+            } else if (!raciocinio && pedaco.usage) {
+              send({ n: tokens });
             }
           } catch { /* fragmento incompleto */ }
         }
@@ -248,6 +290,7 @@ Deno.serve(async (req) => {
       interrompido = true;
       console.error("stream_error", err);
     }
+    if (raciocinioRetido) soltarRaciocinio(true);
 
     if (full) {
       await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full, model: LLM_MODEL });
@@ -258,6 +301,7 @@ Deno.serve(async (req) => {
         conversation_id: convId,
         // "length": a resposta bateu no teto de tokens e pode ter sido cortada.
         fim,
+        n: tokens,
         remaining: reservation.remaining ?? null,
         limit: reservation.subscriber ? null : reservation.limit,
       });

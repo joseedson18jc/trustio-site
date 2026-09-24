@@ -92,6 +92,7 @@
 .msg-progress-bar span { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #5ea7ff, #2563eb); transition: width 0.3s var(--ease); }
 .msg-progress small { font-family: var(--mono); font-size: var(--label); color: var(--label-color); letter-spacing: 0.04em; }
 .msg-progress.is-done .msg-progress-bar { display: none; }
+.msg-progress.is-open .msg-progress-bar { display: none; }
 @media (prefers-reduced-motion: reduce) { .msg-progress-bar span { transition: none; } }
 
 .notice { max-width: 800px; margin: 0 auto 8px; padding: 10px 14px; border: 1px solid rgba(255, 180, 84, 0.35); border-radius: 12px; background: rgba(255, 180, 84, 0.08); color: var(--ice); font-size: 13.5px; line-height: 1.5; }

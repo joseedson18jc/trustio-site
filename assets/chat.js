@@ -416,7 +416,8 @@
 
     // Raciocínio do modelo (à parte, recolhível) e progresso da resposta. O tamanho
     // final não é conhecido de antemão: a porcentagem é contra o teto de tokens que a
-    // função informa ("limite") e vai a 100% quando a resposta termina.
+    // função informa ("limite", só quando há teto configurado) e vai a 100% ao terminar.
+    // A contagem é a do modelo ("n"); sem ela, um por trecho recebido.
     var col = document.createElement("div");
     col.className = "msg-col";
     pending.replaceChild(col, body);
@@ -430,13 +431,20 @@
     prog.innerHTML = "<span class=\"msg-progress-bar\"><span></span></span><small></small>";
     var progFill = prog.querySelector(".msg-progress-bar span"), progTxt = prog.querySelector("small");
     col.appendChild(think); col.appendChild(body); col.appendChild(prog);
-    var limite = 4096, tokens = 0, tokensPensando = 0, inicio = Date.now();
-    function pct() { return Math.min(99, Math.floor(tokens / limite * 100)); }
+    var limite = 0, tokens = 0, tokensPensando = 0, inicio = Date.now(), interrompida = false;
+    function contar(d) { tokens = typeof d.n === "number" && d.n >= tokens ? d.n : tokens + 1; }
     function mostrarProgresso() {
-      var p = pct(), fase = full ? T("Escrevendo…", "Writing…") : T("Pensando…", "Thinking…");
-      progFill.style.width = p + "%";
-      prog.setAttribute("aria-valuenow", String(p));
-      progTxt.textContent = fase + " " + p + "% · " + tokens + T(" de até ", " of up to ") + limite + " tokens";
+      var fase = full ? T("Escrevendo…", "Writing…") : T("Pensando…", "Thinking…");
+      if (limite) {
+        var p = Math.min(99, Math.floor(tokens / limite * 100));
+        progFill.style.width = p + "%";
+        prog.setAttribute("aria-valuenow", String(p));
+        progTxt.textContent = fase + " " + p + "% · " + tokens + T(" de até ", " of up to ") + limite + " tokens";
+      } else {
+        prog.classList.add("is-open");
+        prog.removeAttribute("aria-valuenow");
+        progTxt.textContent = fase + " " + tokens + " tokens";
+      }
       thinkSum.textContent = T("Raciocínio", "Reasoning") + " · " + tokensPensando + " tokens";
     }
     mostrarProgresso();
@@ -466,9 +474,9 @@
             if (!line) return;
             var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
             if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; }
-            if (d.limite) { limite = Number(d.limite) || limite; mostrarProgresso(); }
+            if (d.limite) { limite = Number(d.limite) || 0; prog.classList.remove("is-open"); mostrarProgresso(); }
             if (d.raciocinio) {
-              tokens++; tokensPensando++;
+              contar(d); tokensPensando = tokens;
               if (think.hidden) think.hidden = false;
               var noFim = thinkText.scrollTop + thinkText.clientHeight >= thinkText.scrollHeight - 8;
               thinkText.textContent += d.raciocinio;
@@ -478,22 +486,27 @@
             if (d.delta) {
               // Primeiro trecho da resposta: o raciocínio recolhe e a resposta fica em foco.
               if (!full && !think.hidden) think.open = false;
-              tokens++; full += d.delta; body.innerHTML = render(full); mostrarProgresso(); scrollBottom();
+              contar(d); full += d.delta; body.innerHTML = render(full); mostrarProgresso(); scrollBottom();
             }
+            if (!d.delta && !d.raciocinio && typeof d.n === "number" && !d.done) { contar(d); mostrarProgresso(); }
             if (d.error) {
               avisado = true;
+              if (d.error === "stream_interrompido") interrompida = true;
               if (!full) body.textContent = "";
               showNotice(d.error === "resposta_vazia"
                 ? T("O modelo não devolveu resposta desta vez, e a mensagem não foi descontada. Tente enviar de novo.", "The model didn't return an answer this time, and the message wasn't counted. Try sending again.")
                 : T("A resposta foi interrompida. Tente enviar de novo.", "The answer was cut off. Try sending again."));
             }
             if (d.done) {
+              if (typeof d.n === "number") contar(d);
               var seg = ((Date.now() - inicio) / 1000).toFixed(1);
               progFill.style.width = "100%"; prog.setAttribute("aria-valuenow", "100");
               prog.classList.add("is-done");
-              progTxt.textContent = (d.fim === "length"
-                ? T("Resposta cortada no limite", "Answer cut off at the limit")
-                : T("Concluída", "Done")) + " · " + tokens + " tokens · " + (EN ? seg : seg.replace(".", ",")) + " s";
+              progTxt.textContent = (interrompida
+                ? T("Interrompida", "Interrupted")
+                : d.fim === "length"
+                  ? T("Resposta cortada no limite", "Answer cut off at the limit")
+                  : T("Concluída", "Done")) + " · " + tokens + " tokens · " + (EN ? seg : seg.replace(".", ",")) + " s";
               afterDone(d);
             }
           });

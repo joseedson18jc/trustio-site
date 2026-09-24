@@ -10,7 +10,6 @@ EMAIL_FROM = "Trustio <no-reply@send.trustio.com.br>"
 SUPABASE_URL = "https://mjdaluioyutnxlyomzyd.supabase.co"
 # "supabase" grava as inscrições no crm_leads do projeto Supabase. O D1 e o KV abaixo
 # ficam ligados só para links enviados antes da troca e para a importação.
-# O que entrou no D1 enquanto a chave do worker não batia (até 24/09) vai na importação.
 ARMAZENAMENTO = "supabase"
 
 [[d1_databases]]

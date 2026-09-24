@@ -1,9 +1,9 @@
-# Configuração do projeto Supabase da Trustio (yxkgdgcdvngltnykleig · sa-east-1).
+# Configuração do projeto Supabase da Trustio (mjdaluioyutnxlyomzyd · sa-east-1).
 # Aplicada automaticamente pelo GitHub Actions (.github/workflows/supabase.yml) a cada push na main
 # que toque em supabase/, ou manualmente com `supabase config push` (ver supabase/README.md).
 # Nunca coloque segredos aqui: use env(NOME) e defina o valor como secret do repositório.
 
-project_id = "yxkgdgcdvngltnykleig"
+project_id = "mjdaluioyutnxlyomzyd"
 
 [auth]
 # Para onde o link do e-mail de confirmação leva: o cliente cai direto no chat, já autenticado.

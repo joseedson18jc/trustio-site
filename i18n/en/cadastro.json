@@ -1,16 +1,11 @@
 {
   "text": {
     "Criar conta | Trustio — IA privada e sem censura": "Create account | Trustio — private, uncensored AI",
-    "Crie sua conta grátis na Trustio em um minuto. O chat com IA privada e sem censura abre em 1º de outubro de 2026 — quem pré-assina entra em 23 de setembro. Dados no Brasil.": "Create your free Trustio account in a minute. The private, uncensored AI chat opens on October 1, 2026 — pre-subscribers get in on September 23. Data in Brazil.",
     "Criar conta · Trustio": "Create account · Trustio",
     "Crie a conta agora; o chat abre em 1º de outubro. IA privada, sem censura, dados no Brasil.": "Create your account now; the chat opens October 1. Private, uncensored AI, with data in Brazil.",
     "Crie sua conta agora.": "Create your account now.",
     "O chat abre em 1º de outubro.": "The chat opens October 1.",
     "IA privada, sem censura e com dados no Brasil. A conta você cria hoje e confirma por e-mail em um minuto. O acesso ao chat abre no lançamento, em": "Private, uncensored AI, with data in Brazil. You create the account today and confirm it by email in a minute. Chat access opens at launch, on",
-    "— quem pré-assina um plano entra em": "— anyone who pre-subscribes to a plan gets in on",
-    ", uma semana antes. Nada é cobrado para criar a conta.": ", a week earlier. Creating an account costs nothing.",
-    "cadastro aberto, chat ainda fechado. Não há fila nem aprovação manual: assim que a data chega, sua conta entra sozinha.": "sign-ups open, chat not yet open. There's no queue and no manual approval: as soon as the date arrives, your account is let in on its own.",
-    "Ver como entrar em 23/09": "See how to get in on Sep 23",
     "Formulário de cadastro": "Sign-up form",
     "Três passos.": "Three steps.",
     "Nada é cobrado agora.": "Nothing is charged now.",
@@ -30,13 +25,17 @@
     "um e-mail de confirmação em poucos minutos": "a confirmation email within a few minutes",
     ". Confirmado o e-mail, a conta fica pronta e o chat abre em": ". Once your email is confirmed, your account is ready and the chat opens on",
     "— ou em": "— or on",
-    ", se você pré-assinar um plano. Nenhuma cobrança acontece aqui.": ", if you pre-subscribe to a plan. No charge happens here.",
     "Criar conta e receber o link": "Create account and get the link",
     "Falta só confirmar.": "Just one step left: confirm.",
     "Abra o e-mail enviado para": "Open the email sent to",
     "e clique em": "and click",
     "Confirmar e entrar": "Confirm and sign in",
     ". Não chegou? Confira o spam ou peça um novo link em": ". Didn't get it? Check your spam folder or request a new link on the",
-    "Usamos seu nome e e-mail para criar a conta e liberar o acesso, e o telefone apenas se você pedir o agente no WhatsApp. Você pode pedir a exclusão a qualquer momento. Sem spam.": "We use your name and email to create your account and grant access, and your phone only if you ask for the WhatsApp agent. You can ask us to delete your data at any time. No spam."
+    "Usamos seu nome e e-mail para criar a conta e liberar o acesso, e o telefone apenas se você pedir o agente no WhatsApp. Você pode pedir a exclusão a qualquer momento. Sem spam.": "We use your name and email to create your account and grant access, and your phone only if you ask for the WhatsApp agent. You can ask us to delete your data at any time. No spam.",
+    "Crie sua conta grátis na Trustio em um minuto. O chat com IA privada e sem censura abre em 1º de outubro de 2026; o acesso antecipado para assinantes já abriu. Dados no Brasil.": "Create your free Trustio account in a minute. The private, uncensored AI chat opens on October 1, 2026; early access for subscribers is already open. Data in Brazil.",
+    "— para quem assina um plano, o acesso antecipado já abriu: a conta é liberada em até 1 dia útil após o pagamento. Nada é cobrado para criar a conta.": "— if you subscribe to a plan, early access is already open: your account is released within 1 business day after payment. Creating an account costs nothing.",
+    "cadastro aberto e acesso antecipado aberto para assinantes. Sem plano, não há fila: em 1º/10 sua conta entra sozinha.": "sign-ups open, and early access open for subscribers. Without a plan there's no queue: on Oct 1 your account is let in on its own.",
+    "Ver como entrar antes": "See how to get in sooner",
+    "— ou em até 1 dia útil após o pagamento, se você assinar um plano. Nenhuma cobrança acontece aqui.": "— or within 1 business day after payment, if you subscribe to a plan. No charge happens here."
   }
 }

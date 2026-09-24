@@ -178,14 +178,17 @@
     }
     d = d || {};
     var abre = dataCurta(d.abre_em) || T("1º de outubro", "October 1");
-    var antes = dataCurta(d.antecipado_em) || "23 de setembro";
+    // Só pré-assinante vê a data antecipada, e o servidor só o mantém fechado antes dela.
+    var antes = dataCurta(d.antecipado_em);
     input.disabled = true; sendBtn.disabled = true;
     input.placeholder = T("O chat abre em ", "The chat opens on ") + abre;
     showNotice(
       d.motivo === "sem_modelo"
         ? T("<b>O chat está em manutenção.</b> Sua conta está pronta e suas perguntas grátis continuam intactas; assim que o modelo voltar, esta tela libera sozinha.", "<b>The chat is under maintenance.</b> Your account is ready and your free questions are untouched; as soon as the model is back, this screen unlocks on its own.")
         : T("<b>Sua conta está pronta — o chat ainda não abriu.</b> O acesso começa em <b>", "<b>Your account is ready — the chat hasn't opened yet.</b> Access starts on <b>") + esc(abre) + "</b>" +
-          (d.pre_assinante ? T(", e a sua pré-assinatura entra em <b>", ", and your pre-subscription gets you in on <b>") + esc(antes) + "</b>." : T("; quem pré-assina um plano entra em <b>", "; anyone who pre-subscribes to a plan gets in on <b>") + esc(antes) + "</b>.") +
+          (d.pre_assinante
+            ? (antes ? T(", e a sua pré-assinatura entra em <b>", ", and your pre-subscription gets you in on <b>") + esc(antes) + "</b>." : ".")
+            : T("; quem assina um plano tem a conta liberada em até 1 dia útil após a confirmação do pagamento.", "; if you subscribe to a plan, your account is released within 1 business day after payment is confirmed.")) +
           T(" Você não precisa fazer mais nada: na data, esta tela abre sozinha e suas 5 perguntas grátis continuam intactas. ", " You don't need to do anything else: on that date, this screen opens on its own and your 5 free questions stay intact. ") +
           (d.pre_assinante ? "" : "<a href=\"../planos.html#pessoal\">" + T("Ver como entrar antes", "See how to get in sooner") + "</a>"));
   }

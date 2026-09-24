@@ -185,7 +185,7 @@ card("componentes/links.html", "Componentes", "Links", "Text link · navegação
      "Links herdam a cor; .text-link ganha seta animada. Links de navegação usam sublinhado deslizante via ::after.",
      """<div class="ds-stack ds-col">
   <p><a class="text-link" href="#">Ler o manifesto <span aria-hidden="true">↓</span></a></p>
-  <nav class="desktop-nav" aria-label="Exemplo"><a href="#">Plataforma</a><a href="#" class="is-active">Segurança</a><a href="#" class="nav-voice">VoiceAI <small>powered by xSpace</small></a></nav>
+  <nav class="desktop-nav" aria-label="Exemplo"><a href="#">Plataforma</a><a href="#" class="is-active">Segurança</a><a href="#" class="nav-voice">VoiceAI <small>powered by xAI</small></a></nav>
   <p class="footer-links"><a href="#">Política de privacidade</a> · <a href="#">Termos</a></p>
 </div>""")
 
@@ -203,7 +203,7 @@ card("componentes/cabecalho.html", "Componentes", "Cabeçalho", "Marca · navega
 <header class="site-header is-scrolled" style="position: relative">
   <div class="container header-inner">
     <a class="brand" href="#"><img class="brand-mark" src="../../assets/trustio-mark.svg" alt="" width="34" height="34"><span class="brand-word"><span>Trust</span><strong>io</strong></span></a>
-    <nav class="desktop-nav" aria-label="Exemplo"><a href="#">Plataforma</a><a href="#">Modelos</a><a href="#" class="nav-voice">VoiceAI <small>powered by xSpace</small></a><a href="#">Segurança</a><a href="#">Planos</a></nav>
+    <nav class="desktop-nav" aria-label="Exemplo"><a href="#">Plataforma</a><a href="#">Modelos</a><a href="#" class="nav-voice">VoiceAI <small>powered by xAI</small></a><a href="#">Segurança</a><a href="#">Planos</a></nav>
     <a class="button button-small button-ghost header-cta" href="#">Falar com a Trustio</a>
     <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Ativar tema claro"><svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-label="Abrir menu" style="display:block"><span></span><span></span></button>

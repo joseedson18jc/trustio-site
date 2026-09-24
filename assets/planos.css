@@ -146,3 +146,6 @@
 .compare-nota{margin-top:16px;max-width:72ch;font-size:13.5px;line-height:1.6;color:var(--muted)}
 .compare-nota b{color:var(--ice,#f4f6fa)}
 .compare td{font-size:14px;line-height:1.5}
+
+/* diagnóstico: caminho de conversa para quem ainda não quer pagar */
+.diag .diag-alt{display:block;margin-top:14px;font-size:13.5px}

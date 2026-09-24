@@ -18,15 +18,16 @@ document.querySelectorAll(".orb").forEach((el) => {
   }));
 });
 
-// --- audio engine: one <audio>, one AnalyserNode, RMS → orb level
-let ctx, analyser, data, source, current = null, raf = 0;
+// --- audio engine: one <audio>, one AnalyserNode, RMS → orb level, spectrum → VoiceAI equalizer
+let ctx, analyser, data, freq, source, current = null, raf = 0;
+const eq = document.querySelector("[data-xs-eq]"), eqBars = eq ? [...eq.children] : [], eqLevels = eqBars.map(() => 0);
 const player = new Audio(); player.preload = "auto"; player.crossOrigin = "anonymous";
 function ensureAudio() {
   if (ctx) return;
   try {
     ctx = new (window.AudioContext || window.webkitAudioContext)();
     analyser = ctx.createAnalyser(); analyser.fftSize = 1024; analyser.smoothingTimeConstant = 0.6;
-    data = new Uint8Array(analyser.fftSize);
+    data = new Uint8Array(analyser.fftSize); freq = new Uint8Array(analyser.frequencyBinCount);
     source = ctx.createMediaElementSource(player); source.connect(analyser); analyser.connect(ctx.destination);
   } catch (e) { ctx = null; }
 }
@@ -42,10 +43,38 @@ function meter() {
   }
   orbs.get(current.orb)?.setLevel(level);
   current.orb.style.setProperty("--lv", (0.35 + 0.65 * level).toFixed(2));
+  drawEq(level);
   raf = requestAnimationFrame(meter);
+}
+// Speech lives roughly between 90 Hz and 5 kHz: spread the bars over those bins, low tones on the left.
+function drawEq(level) {
+  if (!eqBars.length || rm.matches) return;
+  if (!eq.classList.contains("is-live")) eq.classList.add("is-live");
+  const bins = freq ? freq.length : 0, hz = ctx ? ctx.sampleRate / 2 / bins : 0;
+  if (analyser && bins) analyser.getByteFrequencyData(freq);
+  eqBars.forEach((bar, i) => {
+    let v;
+    if (analyser && bins) {
+      // log-spaced centre frequency, read between bins so narrow low bands don't share one value
+      const x = (i + 0.5) / eqBars.length, pos = Math.min(bins - 2, (90 * Math.pow(5000 / 90, x)) / hz), k = Math.floor(pos), w = pos - k;
+      const tilt = 0.9 + 0.6 * x; // speech energy falls off with frequency; lift the right side a little
+      const db = freq[k] * (1 - w) + freq[k + 1] * w; // byte scale is already in dB: cut the noise floor, then add contrast
+      v = Math.pow(Math.max(0, (db - 70) / 185), 1.6) * tilt;
+    } else {
+      v = level * (0.5 + 0.5 * Math.abs(Math.sin(performance.now() / 120 + i * 0.7)));
+    }
+    eqLevels[i] = Math.max(v, eqLevels[i] * 0.86); // rise instantly, fall back gently between syllables
+    bar.style.transform = `scaleY(${Math.max(0.1, Math.min(1, eqLevels[i])).toFixed(3)})`;
+  });
+}
+function resetEq() {
+  if (!eq) return;
+  eq.classList.remove("is-live");
+  eqBars.forEach((bar, i) => { bar.style.transform = ""; eqLevels[i] = 0; });
 }
 function stop() {
   cancelAnimationFrame(raf);
+  resetEq();
   if (typeof heroStop === "function" && current && stageOrb?.classList.contains("playing")) heroStop();
   if (current) { orbs.get(current.orb)?.setLevel(0); current.orb.style.setProperty("--lv", "0"); current.orb.classList.remove("speaking"); current.card?.classList.remove("speaking"); current = null; }
   player.pause();

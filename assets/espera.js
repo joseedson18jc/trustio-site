@@ -30,11 +30,12 @@ function applyTipo() {
 }
 tipoInputs.forEach((i) => i.addEventListener("change", applyTipo));
 
-// --- acesso: lista gratuita (1º/10) ou assinatura (acesso antecipado)
+// --- acesso: lista gratuita (1º/10) ou assinatura (acesso antecipado, em até 1 dia útil após o pagamento)
 const acessoInputs = [...document.querySelectorAll('input[name="acesso"]')];
 const nextInput = document.querySelector("[data-next]");
 const submitBtn = document.querySelector("[data-submit]");
 const subjInput = form?.querySelector('input[name="_subject"]');
+const preNota = document.querySelector("[data-pre-nota]");
 function applyAcesso() {
   const pre = acessoInputs.find((i) => i.checked)?.dataset.acesso === "pre";
   const t = tipoInputs.find((i) => i.checked)?.dataset.tipo || "b2c";
@@ -42,7 +43,9 @@ function applyAcesso() {
   const planoKey = t === "b2b" ? "empresa" : pv.startsWith("Passe") ? "semanal" : pv.startsWith("Anual") ? "anual" : "mensal";
   if (nextInput) nextInput.value = pre ? `https://trustio.com.br/obrigado.html?lista=pre&plano=${planoKey}` : "https://trustio.com.br/obrigado.html?lista=espera";
   if (subjInput) subjInput.value = pre ? "ASSINATURA (acesso antecipado) — trustio.com.br" : "Lista de espera — trustio.com.br";
-  if (submitBtn) submitBtn.firstChild.textContent = pre ? "Quero assinar agora " : "Entrar na lista de espera ";
+  // Empresa não entra em 1 dia útil: o arquiteto faz contato nesse prazo e a implantação segue o prazo do plano.
+  if (preNota) preNota.textContent = t === "b2b" ? "arquiteto em até 1 dia útil · proposta e link de pagamento" : "acesso em até 1 dia útil · enviamos o link de pagamento";
+  if (submitBtn) submitBtn.firstChild.textContent = !pre ? "Entrar na lista de espera " : t === "b2b" ? "Quero assinar e falar com um arquiteto " : "Quero assinar e entrar em até 1 dia útil ";
 }
 acessoInputs.forEach((i) => i.addEventListener("change", applyAcesso));
 document.querySelectorAll('input[name="plano"], input[name="tipo"]').forEach((i) => i.addEventListener("change", applyAcesso));

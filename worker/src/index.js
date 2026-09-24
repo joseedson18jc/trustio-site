@@ -10,7 +10,6 @@
  *   POST /signup           inscreve e dispara o e-mail de confirmação
  *   GET  /confirm?token=   confirma a inscrição
  *   GET  /saude            diz se as variáveis estão configuradas (sem revelá-las)
- *   GET  /saude?verificar=supabase&sha256=   confere a chave configurada com a esperada
  *
  * Variáveis (wrangler secret put NOME)
  *   SUPABASE_URL                https://mjdaluioyutnxlyomzyd.supabase.co
@@ -107,51 +106,6 @@ function cabecalhosServico(chave) {
   if (String(chave).startsWith("eyJ")) h.Authorization = `Bearer ${chave}`;
   return h;
 }
-// Para GET /saude?verificar=supabase&sha256=<hex>: diz se a chave configurada é a que o
-// operador espera e se o projeto a aceita. Só quem já conhece a chave certa sabe o
-// sha256 dela, então quem não sabe recebe só "não confere": nenhum detalhe da chave
-// configurada e nenhuma chamada ao Supabase. Com o sha256 certo, o worker testa a
-// chave no projeto e devolve o status; nenhum trecho dela sai, nem se o Supabase a ecoar.
-function semAspasNemEspacos(chave) {
-  return String(chave).trim().replace(/^["']+|["']+$/g, "").trim();
-}
-async function sha256Hex(texto) {
-  const bytes = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto)));
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
-async function verificarChaveSupabase(env, esperado) {
-  const alvo = String(esperado || "").trim().toLowerCase();
-  if (!/^[a-f0-9]{64}$/.test(alvo)) {
-    return { confere: null, erro: "informe sha256=<64 hex> com o sha256 da chave esperada" };
-  }
-  const chave = env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!chave) return { confere: "não", motivo: "SUPABASE_SERVICE_ROLE_KEY ausente" };
-  const limpa = semAspasNemEspacos(chave);
-  let confere;
-  if (await sha256Hex(String(chave)) === alvo) confere = "sim";
-  else if (limpa !== String(chave) && await sha256Hex(limpa) === alvo) confere = "sim, mas com espaço, quebra de linha ou aspas em volta";
-  else return { confere: "não" };
-
-  const info = { confere, projeto: null, resposta_do_supabase: null, mensagem: null };
-  try { info.projeto = new URL(env.SUPABASE_URL).host; } catch { info.mensagem = "SUPABASE_URL inválida"; return info; }
-  try {
-    const { "Content-Type": _, ...cabecalhos } = cabecalhosServico(chave);
-    const r = await fetch(`${env.SUPABASE_URL}/rest/v1/`, { headers: cabecalhos, signal: AbortSignal.timeout(5000) });
-    info.resposta_do_supabase = r.status;
-    if (!r.ok) {
-      // Tira a chave do texto inteiro antes de cortar: cortar antes deixaria um pedaço dela.
-      let msg = await r.text();
-      try { msg = JSON.parse(msg).message || msg; } catch { /* texto puro */ }
-      msg = String(msg);
-      for (const c of [String(chave), limpa]) if (c) msg = msg.split(c).join("…");
-      info.mensagem = msg.slice(0, 160);
-    }
-  } catch (err) {
-    info.mensagem = err?.name === "TimeoutError" ? "sem resposta em 5 s" : "falha de rede";
-  }
-  return info;
-}
-
 async function rpc(env, nome, args) {
   const r = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/${nome}`, {
     method: "POST",
@@ -483,8 +437,7 @@ export default {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin) });
 
-    // ---- saúde: diz o que falta configurar, sem revelar valor nenhum.
-    // Com ?verificar=supabase&sha256=…, confere a chave (ver verificarChaveSupabase).
+    // ---- saúde: diz o que falta configurar, sem revelar valor nenhum
     if (url.pathname === "/saude" && req.method === "GET") {
       return json(200, {
         ok: true,
@@ -494,9 +447,6 @@ export default {
         resend: Boolean(env.RESEND_API_KEY),
         remetente: env.EMAIL_FROM || null,
         exemplo_de_link: linkDeConfirmacao(env, "TOKEN_DE_EXEMPLO"),
-        ...(url.searchParams.get("verificar") === "supabase"
-          ? { chave_supabase: await verificarChaveSupabase(env, url.searchParams.get("sha256")) }
-          : {}),
       }, origin);
     }
 

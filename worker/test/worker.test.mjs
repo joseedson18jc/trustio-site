@@ -50,55 +50,17 @@ ok(d.supabase && d.resend, "/saude confirma configuração");
 ok(d.exemplo_de_link === "https://api.trustio.com.br/confirm?token=TOKEN_DE_EXEMPLO",
    "link de exemplo bem formado", d.exemplo_de_link);
 ok(!/[}{]/.test(d.exemplo_de_link), "link sem chave sobrando (o bug antigo)");
-ok(!("chave_supabase" in d), "/saude sem ?verificar não chama o Supabase");
 
-// 1b · /saude?verificar=supabase&sha256=: só quem conhece a chave certa recebe detalhes
+// 1b · o diagnóstico da chave saiu: /saude não chama o Supabase nem diz nada da chave
 {
-  const { createHash } = await import("node:crypto");
-  const sha = (t) => createHash("sha256").update(t).digest("hex");
   const fetchOriginal = globalThis.fetch;
-  const chaveBoa = "sb_secret_" + "A".repeat(31);
-  let chamadas = [];
-  const verifica = async (chave, hash, resposta = () => new Response("{}", { status: 200 })) => {
-    chamadas = [];
-    globalThis.fetch = async (u, o) => { chamadas.push({ url: String(u), headers: o?.headers }); return resposta(); };
-    const q = "/saude?verificar=supabase" + (hash === undefined ? "" : "&sha256=" + hash);
-    const r = await worker.fetch(req("GET", q), { ...env, SUPABASE_SERVICE_ROLE_KEY: chave });
-    globalThis.fetch = fetchOriginal;
-    const corpo = await r.text();
-    return { corpo, c: JSON.parse(corpo).chave_supabase };
-  };
-
-  let { corpo, c } = await verifica(chaveBoa, undefined);
-  ok(c.confere === null && /sha256/.test(c.erro) && chamadas.length === 0, "verificar: sem sha256 não chama o Supabase", JSON.stringify(c));
-  ({ c } = await verifica(chaveBoa, sha("outra-chave")));
-  ok(c.confere === "não" && Object.keys(c).length === 1 && chamadas.length === 0,
-     "verificar: sha256 errado recebe só 'não', sem detalhe nem chamada", JSON.stringify(c));
-
-  ({ corpo, c } = await verifica(chaveBoa, sha(chaveBoa)));
-  ok(c.confere === "sim" && c.resposta_do_supabase === 200 && c.projeto === "exemplo.supabase.co",
-     "verificar: chave certa e aceita", JSON.stringify(c));
-  ok(chamadas[0]?.url === "https://exemplo.supabase.co/rest/v1/" && chamadas[0].headers.apikey === chaveBoa
-     && !chamadas[0].headers.Authorization, "verificar: usa os mesmos cabeçalhos da inscrição");
-  ok(!corpo.includes("AAAAAAAA"), "verificar: a resposta não traz a chave");
-
-  ({ corpo, c } = await verifica(chaveBoa + "\n", sha(chaveBoa), () =>
-    new Response(JSON.stringify({ message: "Invalid API key" }), { status: 401 })));
-  ok(/^sim, mas/.test(c.confere) && c.resposta_do_supabase === 401 && /Invalid API key/.test(c.mensagem),
-     "verificar: chave certa colada com quebra de linha aparece como tal", JSON.stringify(c));
-
-  // eco da chave atravessando o antigo corte de 300 caracteres
-  ({ corpo, c } = await verifica(chaveBoa, sha(chaveBoa), () =>
-    new Response(JSON.stringify({ message: "x".repeat(280) + chaveBoa }), { status: 401 })));
-  ok(!corpo.includes("AAAAAAAA") && !corpo.includes("sb_secret_A"), "verificar: eco da chave no corte não vaza", c.mensagem.slice(-20));
-  ({ corpo } = await verifica(chaveBoa, sha(chaveBoa), () =>
-    new Response("erro: " + chaveBoa, { status: 401 })));
-  ok(!corpo.includes("AAAAAAAA"), "verificar: eco em texto puro também não vaza");
-
-  ({ c } = await verifica(chaveBoa, sha(chaveBoa), () => { throw new TypeError("rede"); }));
-  ok(c.resposta_do_supabase === null && c.mensagem === "falha de rede", "verificar: falha de rede não derruba /saude");
-  ({ c } = await verifica("", sha(chaveBoa)));
-  ok(c.confere === "não" && chamadas.length === 0, "verificar: chave ausente");
+  let chamou = false;
+  globalThis.fetch = async () => { chamou = true; return new Response("{}", { status: 200 }); };
+  const r = await worker.fetch(req("GET", "/saude?verificar=supabase&sha256=" + "0".repeat(64)), env);
+  globalThis.fetch = fetchOriginal;
+  const corpo = await r.text();
+  ok(!chamou && !corpo.includes("chave_supabase") && !corpo.includes(env.SUPABASE_SERVICE_ROLE_KEY),
+     "/saude?verificar não chama o Supabase nem descreve a chave");
 }
 
 // 2 · inscrição por JSON

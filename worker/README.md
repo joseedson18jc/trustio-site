@@ -23,7 +23,6 @@ mostra um link de exemplo para você conferir a olho antes de qualquer disparo.
 | `POST /signup` | Inscreve e dispara o e-mail. Aceita JSON (o site manda assim) e formulário comum (quem está sem JavaScript), respondendo com redirect nesse caso. |
 | `GET /confirm?token=…` | Confirma a inscrição. Token de uso único, válido por 48 horas. |
 | `GET /saude` | Diz o que está configurado, sem revelar valor nenhum, e mostra um link de exemplo. |
-| `GET /saude?verificar=supabase&sha256=…` | Confere a `SUPABASE_SERVICE_ROLE_KEY` com a chave esperada, passada como sha256 (`printf %s "$CHAVE" \| shasum -a 256`). Com o sha256 certo, diz `confere: "sim"` (ou "sim, mas com espaço…") e o status do Supabase para a chave; com outro, só `confere: "não"`, sem chamar o Supabase. Nenhum trecho da chave sai. |
 
 ## Onde os dados ficam
 

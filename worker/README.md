@@ -33,6 +33,21 @@ CRM junto com o resto — uma lista de clientes só, não duas.
 
 Ao confirmar, o lead passa de `novo` para `email_confirmado` e o token sai do banco.
 
+### Provisório: KV `SIGNUPS`
+
+Enquanto o banco do projeto Supabase novo não existe, `ARMAZENAMENTO = "kv"` no
+`wrangler.toml` grava as inscrições no KV `SIGNUPS`:
+
+| Chave | Conteúdo |
+|---|---|
+| `lead:<e-mail>` | o lead (JSON), com `status` `pendente` ou `confirmado` |
+| `token:<token>` | o e-mail dono do link de confirmação; some depois de 7 dias |
+| `envio:<e-mail>` | marca de e-mail enviado há menos de 5 minutos, para não duplicar |
+
+Uma inscrição repetida atualiza o mesmo `lead:` em vez de criar outro, e só manda um
+link novo depois de 5 minutos. Na troca para o Supabase, `ARMAZENAMENTO` volta a
+`"supabase"` e as chaves `lead:` são importadas para o `crm_leads`.
+
 ## Publicar
 
 Dentro desta pasta:
@@ -72,6 +87,8 @@ daí, cada push na `main` substitui o worker em produção.
 
 | Nome | Onde | Valor |
 |---|---|---|
+| `ARMAZENAMENTO` | `wrangler.toml` | `kv` (provisório) ou `supabase` |
+| `SIGNUPS` | `wrangler.toml` (KV) | onde ficam as inscrições no modo `kv` |
 | `SUPABASE_URL` | `wrangler.toml` | endereço do projeto |
 | `SITE_URL`, `API_URL` | `wrangler.toml` | endereços públicos |
 | `EMAIL_FROM` | `wrangler.toml` | remetente; o domínio precisa estar **verificado na Resend** |

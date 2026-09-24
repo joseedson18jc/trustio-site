@@ -152,5 +152,104 @@ ok(r.status === 404, "rota desconhecida devolve 404");
 r = await worker.fetch(req("OPTIONS", "/signup"), env);
 ok(r.status === 204 && r.headers.get("access-control-allow-origin") === "https://trustio.com.br", "preflight ok");
 
+// 9 · e-mail com formato inválido é recusado antes de gravar
+rpcs = []; enviados = [];
+r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "sem-arroba.com.br" })), env);
+ok(r.status === 400 && (await r.json()).error === "email_invalido" && !rpcs.length && !enviados.length,
+   "e-mail inválido recusado sem gravar nem enviar");
+
+// 10 · modo KV (provisório): grava no SIGNUPS em vez do Supabase
+function kvFalso() {
+  const dados = new Map();
+  return {
+    dados,
+    async get(k) { return dados.has(k) ? dados.get(k).v : null; },
+    async put(k, v, o = {}) { dados.set(k, { v: String(v), ttl: o.expirationTtl }); },
+    async delete(k) { dados.delete(k); },
+  };
+}
+const kv = kvFalso();
+const envKV = { ...env, ARMAZENAMENTO: "kv", SIGNUPS: kv };
+const chaves = (prefixo) => [...kv.dados.keys()].filter((k) => k.startsWith(prefixo));
+const leadKV = (e) => JSON.parse(kv.dados.get("lead:" + e)?.v || "null");
+const linkDe = (m) => (m?.html || "").match(/confirm\?token=([a-f0-9]{64})/)?.[1];
+
+d = await (await worker.fetch(req("GET", "/saude"), envKV)).json();
+ok(d.armazenamento === "kv" && d.kv === true, "/saude mostra o modo kv");
+
+rpcs = []; enviados = [];
+const inscricao = JSON.stringify({
+  _honey: "", origem: "espera.html", nome: "Pessoa KV", email: " Pessoa.KV@Exemplo.com.BR ", telefone: "",
+  tipo: "B2C — para mim", plano: "Mensal R$ 79", acesso: "Lista gratuita — acesso em 1º/10",
+});
+r = await worker.fetch(req("POST", "/signup", inscricao), envKV);
+d = await r.json();
+let lk = leadKV("pessoa.kv@exemplo.com.br");
+ok(r.status === 200 && d.ok, "kv: POST /signup aceita");
+ok(rpcs.length === 0, "kv: não chama o Supabase");
+ok(chaves("lead:").length === 1 && lk?.status === "pendente" && lk.nome === "Pessoa KV" && lk.tipo === "b2c",
+   "kv: um lead pendente gravado", JSON.stringify(lk));
+ok(/Mensal R\$ 79/.test(lk?.notas || ""), "kv: extras viram notas");
+ok(enviados.length === 1 && linkDe(enviados[0]) === lk?.token, "kv: um e-mail com o token do lead");
+ok(kv.dados.has("token:" + lk?.token) && kv.dados.get("token:" + lk?.token).ttl > 0, "kv: token gravado com validade");
+ok(kv.dados.get("envio:pessoa.kv@exemplo.com.br")?.ttl >= 60, "kv: marca de envio com TTL válido no KV");
+
+// envio repetido logo em seguida: mesmo lead, nenhum e-mail a mais
+r = await worker.fetch(req("POST", "/signup", inscricao), envKV);
+ok(r.status === 200 && (await r.json()).ok, "kv: reenvio imediato responde ok");
+ok(enviados.length === 1 && chaves("lead:").length === 1 && chaves("token:").length === 1,
+   "kv: reenvio imediato não duplica lead, token nem e-mail");
+
+// passado o intervalo, um link novo sai e o antigo deixa de valer
+const tokenVelho = lk.token;
+kv.dados.delete("envio:pessoa.kv@exemplo.com.br");
+r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "pessoa.kv@exemplo.com.br", telefone: "+55 11 90000-0000" })), envKV);
+lk = leadKV("pessoa.kv@exemplo.com.br");
+ok(r.status === 200 && enviados.length === 2 && lk.token !== tokenVelho, "kv: depois do intervalo, envia link novo");
+ok(lk.nome === "Pessoa KV" && lk.telefone === "+55 11 90000-0000", "kv: campo vazio não apaga, campo novo entra");
+ok(!kv.dados.has("token:" + tokenVelho) && chaves("lead:").length === 1, "kv: token antigo removido, ainda um lead só");
+
+r = await worker.fetch(req("GET", "/confirm?token=" + tokenVelho), envKV);
+ok(r.status === 400, "kv: link antigo não confirma");
+r = await worker.fetch(req("GET", "/confirm?token=" + lk.token), envKV);
+ok(r.status === 200 && /Inscrição confirmada/.test(await r.text()), "kv: link novo confirma");
+lk = leadKV("pessoa.kv@exemplo.com.br");
+ok(lk.status === "confirmado" && lk.confirmado_em && !lk.token && !chaves("token:").length, "kv: lead confirmado, token apagado");
+r = await worker.fetch(req("GET", "/confirm?token=" + linkDe(enviados[1])), envKV);
+ok(r.status === 400, "kv: o mesmo link não vale duas vezes");
+
+kv.dados.delete("envio:pessoa.kv@exemplo.com.br");
+r = await worker.fetch(req("POST", "/signup", inscricao), envKV);
+ok(r.status === 200 && enviados.length === 2 && leadKV("pessoa.kv@exemplo.com.br").status === "confirmado",
+   "kv: quem já confirmou não recebe outro e-mail nem volta a pendente");
+
+// link vencido
+await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "vence@exemplo.com.br" })), envKV);
+const vence = leadKV("vence@exemplo.com.br");
+kv.dados.set("lead:vence@exemplo.com.br", { v: JSON.stringify({ ...vence, token_expira_em: new Date(Date.now() - 1000).toISOString() }) });
+r = await worker.fetch(req("GET", "/confirm?token=" + vence.token), envKV);
+ok(r.status === 410, "kv: link vencido diz que expirou");
+
+// falha no envio: erro honesto, sem marca de envio, e a nova tentativa manda o e-mail
+globalThis.fetch = async (u, o) => u.includes("resend") ? new Response("erro", { status: 500 }) : fetchBom(u, o);
+r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "falha.kv@exemplo.com.br" })), envKV);
+ok(r.status === 502 && (await r.json()).error === "email_nao_enviado" && !kv.dados.has("envio:falha.kv@exemplo.com.br"),
+   "kv: envio falhou → erro honesto e sem marca de envio");
+globalThis.fetch = fetchBom;
+const antes = enviados.length;
+r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "falha.kv@exemplo.com.br" })), envKV);
+ok(r.status === 200 && enviados.length === antes + 1, "kv: nova tentativa depois da falha envia");
+
+// formulário sem JavaScript no modo kv
+r = await worker.fetch(req("POST", "/signup", "email=sem-js.kv%40exemplo.com.br&_next=%2Fobrigado.html%3Flista%3Despera",
+  "application/x-www-form-urlencoded"), envKV);
+ok(r.status === 303 && leadKV("sem-js.kv@exemplo.com.br")?.status === "pendente", "kv: sem JavaScript grava e redireciona");
+
+r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "x@exemplo.com.br" })), { ...env, ARMAZENAMENTO: "kv" });
+ok(r.status === 503, "kv sem o binding SIGNUPS: indisponível, sem fingir sucesso");
+
+r = await worker.fetch(req("GET", "/confirm?token=nao-hex"), envKV);
+ok(r.status === 400, "kv: token fora do formato recusado");
+
 console.log(falhas ? `\n${falhas} FALHA(S)` : "\ntodos os casos passaram");
 process.exit(falhas ? 1 : 0);

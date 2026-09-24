@@ -21,6 +21,10 @@
  *
  * A inscrição é gravada no mesmo crm_leads da conta, pelas funções registrar_optin
  * e confirmar_optin: uma lista de clientes só, não duas.
+ *
+ * Enquanto o banco do projeto Supabase novo não existe, ARMAZENAMENTO = "kv" grava a
+ * inscrição no KV SIGNUPS (chaves lead:<e-mail>, token:<token> e envio:<e-mail>).
+ * Na troca para o Supabase, as chaves lead: são importadas para o crm_leads.
  */
 
 const ORIGENS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$|^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
@@ -98,6 +102,83 @@ async function rpc(env, nome, args) {
   const texto = await r.text();
   if (!r.ok) throw new Error(`rpc ${nome} ${r.status}: ${texto.slice(0, 300)}`);
   try { return JSON.parse(texto); } catch { return null; }
+}
+
+// ─────────────────────────────────────────────────────────────── KV (provisório)
+const PRAZO_DO_LINK_MS = 48 * 60 * 60 * 1000;
+// Um segundo envio para o mesmo e-mail dentro deste intervalo não sai: evita e-mail
+// duplicado em clique duplo ou reenvio do formulário. O KV não aceita TTL menor que 60 s.
+const INTERVALO_DE_REENVIO_S = 5 * 60;
+// A chave do token some sozinha depois disso; o prazo de 48 h é conferido no lead.
+const VIDA_DA_CHAVE_DO_TOKEN_S = 7 * 24 * 60 * 60;
+
+function usaKV(env) {
+  return env.ARMAZENAMENTO === "kv";
+}
+
+function novoToken() {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function lerJSON(kv, chave) {
+  const texto = await kv.get(chave);
+  if (!texto) return null;
+  try { return JSON.parse(texto); } catch { return null; }
+}
+
+/**
+ * Mesmo contrato de registrar_optin: { ok, token } quando há e-mail a enviar, só { ok }
+ * quando não há (já confirmado, ou um link acabou de sair). O lead é escrito uma vez por
+ * inscrição, porque o KV limita a uma escrita por segundo na mesma chave.
+ */
+async function registrarNoKV(env, lead, agora = Date.now()) {
+  const kv = env.SIGNUPS;
+  const chave = `lead:${lead.email}`;
+  const antigo = await lerJSON(kv, chave);
+  if (antigo?.status === "confirmado") return { ok: true, ja_confirmado: true };
+  if (antigo?.token && await kv.get(`envio:${lead.email}`)) return { ok: true, enviado_ha_pouco: true };
+
+  // Campos vazios não apagam o que uma inscrição anterior já trouxe.
+  const preenchidos = Object.fromEntries(Object.entries(lead).filter(([, v]) => v));
+  const token = novoToken();
+  const agoraISO = new Date(agora).toISOString();
+  await kv.put(chave, JSON.stringify({
+    ...antigo,
+    ...preenchidos,
+    status: "pendente",
+    criado_em: antigo?.criado_em || agoraISO,
+    atualizado_em: agoraISO,
+    token,
+    token_expira_em: new Date(agora + PRAZO_DO_LINK_MS).toISOString(),
+  }));
+  await kv.put(`token:${token}`, JSON.stringify({ email: lead.email }), { expirationTtl: VIDA_DA_CHAVE_DO_TOKEN_S });
+  // Um link novo invalida o anterior, como no banco.
+  if (antigo?.token) await kv.delete(`token:${antigo.token}`);
+  return { ok: true, token };
+}
+
+async function marcarEnvioNoKV(env, email) {
+  await env.SIGNUPS.put(`envio:${email}`, "1", { expirationTtl: INTERVALO_DE_REENVIO_S });
+}
+
+/** Mesmo contrato de confirmar_optin. */
+async function confirmarNoKV(env, token, agora = Date.now()) {
+  const kv = env.SIGNUPS;
+  if (!/^[a-f0-9]{64}$/.test(token)) return { ok: false, error: "token_invalido" };
+  const ref = await lerJSON(kv, `token:${token}`);
+  if (!ref?.email) return { ok: false, error: "token_invalido" };
+  const chave = `lead:${ref.email}`;
+  const lead = await lerJSON(kv, chave);
+  if (!lead || lead.token !== token) return { ok: false, error: "token_invalido" };
+  if (agora > Date.parse(lead.token_expira_em)) return { ok: false, error: "token_expirado" };
+  const agoraISO = new Date(agora).toISOString();
+  await kv.put(chave, JSON.stringify({
+    ...lead, status: "confirmado", confirmado_em: agoraISO, atualizado_em: agoraISO, token: null, token_expira_em: null,
+  }));
+  await kv.delete(`token:${token}`);
+  return { ok: true, email: ref.email };
 }
 
 // ─────────────────────────────────────────────────────────────── e-mail
@@ -182,6 +263,8 @@ export default {
     if (url.pathname === "/saude" && req.method === "GET") {
       return json(200, {
         ok: true,
+        armazenamento: usaKV(env) ? "kv" : "supabase",
+        kv: Boolean(env.SIGNUPS),
         supabase: Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY),
         resend: Boolean(env.RESEND_API_KEY),
         remetente: env.EMAIL_FROM || null,
@@ -209,9 +292,12 @@ export default {
       if (String(dados._honey || "").trim()) return json(200, { ok: true }, origin); // robô
       const email = String(dados.email || "").trim().toLowerCase();
       if (!email) return json(400, { ok: false, error: "email_ausente" }, origin);
+      if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return json(400, { ok: false, error: "email_invalido" }, origin);
+      }
 
-      if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
-        console.error("supabase_nao_configurado");
+      if (usaKV(env) ? !env.SIGNUPS : !env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error("armazenamento_nao_configurado");
         return json(503, { ok: false, error: "indisponivel" }, origin);
       }
 
@@ -224,18 +310,33 @@ export default {
         dados.observacao && `Observação: ${dados.observacao}`,
       ].filter(Boolean).join(" · ");
 
+      // Tamanho limitado: no modo kv não há coluna do banco segurando campo gigante.
+      const campo = (v, max = 200) => String(v ?? "").trim().slice(0, max) || null;
+      const lead = {
+        email,
+        nome: campo(dados.nome),
+        telefone: campo(dados.telefone || dados.whatsapp, 40),
+        tipo: String(dados.tipo || "").toLowerCase().includes("empresa") ? "b2b" : "b2c",
+        empresa: campo(dados.empresa),
+        segmento: campo(dados.segmento),
+        origem: campo(dados.origem) || "lista-de-espera",
+        notas: campo(notas, 1000),
+      };
+
       let registro;
       try {
-        registro = await rpc(env, "registrar_optin", {
-          p_email: email,
-          p_nome: String(dados.nome || "").trim() || null,
-          p_telefone: String(dados.telefone || dados.whatsapp || "").trim() || null,
-          p_tipo: String(dados.tipo || "").toLowerCase().includes("empresa") ? "b2b" : "b2c",
-          p_empresa: String(dados.empresa || "").trim() || null,
-          p_segmento: String(dados.segmento || "").trim() || null,
-          p_origem: String(dados.origem || "lista-de-espera").trim(),
-          p_notas: notas || null,
-        });
+        registro = usaKV(env)
+          ? await registrarNoKV(env, lead)
+          : await rpc(env, "registrar_optin", {
+            p_email: lead.email,
+            p_nome: lead.nome,
+            p_telefone: lead.telefone,
+            p_tipo: lead.tipo,
+            p_empresa: lead.empresa,
+            p_segmento: lead.segmento,
+            p_origem: lead.origem,
+            p_notas: lead.notas,
+          });
       } catch (err) {
         console.error("registrar_optin_falhou", err.message);
         return json(502, { ok: false, error: "indisponivel" }, origin);
@@ -253,6 +354,9 @@ export default {
           console.error("envio_falhou", err.message);
           return json(502, { ok: false, error: "email_nao_enviado" }, origin);
         }
+        if (usaKV(env)) {
+          try { await marcarEnvioNoKV(env, email); } catch (err) { console.error("marca_de_envio_falhou", err.message); }
+        }
       }
 
       if (veioDeFormulario) {
@@ -268,7 +372,7 @@ export default {
 
       let r;
       try {
-        r = await rpc(env, "confirmar_optin", { p_token: token });
+        r = usaKV(env) ? await confirmarNoKV(env, token) : await rpc(env, "confirmar_optin", { p_token: token });
       } catch (err) {
         console.error("confirmar_optin_falhou", err.message);
         return pagina("Tente de novo em instantes", "Não conseguimos confirmar agora. O link continua valendo — abra de novo daqui a pouco.", env, 503);
@@ -277,7 +381,7 @@ export default {
       if (r?.ok) {
         return pagina("Inscrição confirmada",
           "Pronto: sua vaga está garantida. Avisamos por e-mail no dia da abertura, <b>1º de outubro de 2026</b>. " +
-          'Quem pré-assina um plano entra em <b>23 de setembro</b> — <a href="' + escapar(env.SITE_URL || "https://trustio.com.br") + '/planos.html#pessoal" style="color:#5ea7ff">ver como</a>.', env);
+          'Quem assina um plano entra em até 1 dia útil após o pagamento — <a href="' + escapar(env.SITE_URL || "https://trustio.com.br") + '/planos.html#pessoal" style="color:#5ea7ff">ver como</a>.', env);
       }
       if (r?.error === "token_expirado") {
         return pagina("Link expirado",

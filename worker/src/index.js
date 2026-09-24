@@ -189,13 +189,19 @@ async function descartarNoD1(env, email, token) {
  * Mesmo contrato de confirmar_optin. A confirmação e a baixa de todos os links do
  * e-mail vão num batch só: ou as duas acontecem, ou nenhuma.
  */
-async function confirmarNoD1(env, token, agora = Date.now()) {
+async function confirmarNoD1(env, token, agora = Date.now(), antesDeConfirmar = null) {
   const db = env.DB;
   if (!/^[a-f0-9]{64}$/.test(token)) return { ok: false, error: "token_invalido" };
   const link = await db.prepare("SELECT email, expira_em FROM links WHERE token = ?1").bind(token).first();
-  if (!link) return confirmarLinkDoKV(env, token, agora);
+  if (!link) return confirmarLinkDoKV(env, token, agora, antesDeConfirmar);
   if (agora > Date.parse(link.expira_em)) return { ok: false, error: "token_expirado" };
   const agoraISO = new Date(agora).toISOString();
+  // Depois da troca para o Supabase: a confirmação vai para lá antes de o link ser
+  // consumido aqui. Se falhar, nada muda e o mesmo link confirma na nova tentativa.
+  if (antesDeConfirmar) {
+    const lead = await db.prepare("SELECT * FROM leads WHERE email = ?1").bind(link.email).first();
+    await antesDeConfirmar({ ...lead, email: link.email }, agoraISO);
+  }
   const [confirmacao] = await db.batch([
     db.prepare(`UPDATE leads SET status = 'confirmado', confirmado_em = COALESCE(confirmado_em, ?2), atualizado_em = ?2
       WHERE email = ?1 AND EXISTS (SELECT 1 FROM links WHERE token = ?3)`).bind(link.email, agoraISO, token),
@@ -259,7 +265,7 @@ async function trazerDoKV(env, email) {
  * o prazo na própria chave do token. A confirmação grava o lead no D1 já confirmado.
  * Repetir é inofensivo, porque confirmado_em guarda a primeira data.
  */
-async function confirmarLinkDoKV(env, token, agora) {
+async function confirmarLinkDoKV(env, token, agora, antesDeConfirmar = null) {
   const kv = env.SIGNUPS;
   if (!kv) return { ok: false, error: "token_invalido" };
   const ref = lerJSONOuNulo(await kv.get(`token:${token}`));
@@ -271,11 +277,29 @@ async function confirmarLinkDoKV(env, token, agora) {
   const prazo = ref.expira_em || (antigo.token === token ? antigo.token_expira_em : null);
   if (!(agora <= Date.parse(prazo))) return { ok: false, error: "token_expirado" };
   const agoraISO = new Date(agora).toISOString();
+  if (antesDeConfirmar) await antesDeConfirmar(antigo, agoraISO);
   await gravarLeadDoKV(env, antigo, agoraISO);
   await env.DB.prepare(`UPDATE leads SET status = 'confirmado', confirmado_em = COALESCE(confirmado_em, ?2), atualizado_em = ?2
     WHERE email = ?1`).bind(ref.email, agoraISO).run();
   try { await kv.delete(`token:${token}`); } catch (err) { console.error("limpeza_kv_falhou", err.message); }
   return { ok: true, email: ref.email };
+}
+
+/** Grava no crm_leads, já confirmado, um lead confirmado por um link de antes da troca. */
+async function levarConfirmacaoAoSupabase(env, lead, agoraISO) {
+  const r = await rpc(env, "importar_optin_confirmado", {
+    p_email: lead.email,
+    p_nome: lead.nome ?? null,
+    p_telefone: lead.telefone ?? null,
+    p_tipo: lead.tipo === "b2b" ? "b2b" : "b2c",
+    p_empresa: lead.empresa ?? null,
+    p_segmento: lead.segmento ?? null,
+    p_origem: lead.origem || "lista-de-espera",
+    p_notas: lead.notas ?? null,
+    p_criado_em: lead.criado_em || agoraISO,
+    p_confirmado_em: lead.confirmado_em || agoraISO,
+  });
+  if (!r?.ok) throw new Error(`importar_optin_confirmado: ${r?.error || "erro"}`);
 }
 
 // ─────────────────────────────────────────────────────────────── e-mail
@@ -475,7 +499,9 @@ export default {
         r = usaD1(env) ? await confirmarNoD1(env, token) : await rpc(env, "confirmar_optin", { p_token: token });
         // Depois da troca para o Supabase, links enviados antes dela (D1, e pelo D1 o KV)
         // continuam confirmando. Essas confirmações entram no crm_leads na importação.
-        if (!usaD1(env) && r?.error === "token_invalido" && env.DB) r = await confirmarNoD1(env, token);
+        if (!usaD1(env) && r?.error === "token_invalido" && env.DB) {
+          r = await confirmarNoD1(env, token, Date.now(), (lead, agoraISO) => levarConfirmacaoAoSupabase(env, lead, agoraISO));
+        }
       } catch (err) {
         console.error("confirmar_optin_falhou", err.message);
         return pagina("Tente de novo em instantes", "Não conseguimos conferir o link agora. Abra de novo daqui a pouco; se ele já tiver sido usado, avisamos na hora.", env, 503);

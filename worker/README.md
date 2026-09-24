@@ -38,7 +38,8 @@ Ao confirmar, o lead passa de `novo` para `email_confirmado` e o token sai do ba
 De 24/09 até a troca para o projeto Supabase novo, `ARMAZENAMENTO = "d1"` gravava as
 inscrições no D1 (`migrations/0001_lista_de_espera.sql`). Com `"supabase"`, o código do
 D1 continua no worker para os links enviados antes da troca: se o Supabase não conhece
-um link, a confirmação consulta o D1 (e, por ele, o KV).
+um link, a confirmação consulta o D1 (e, por ele, o KV) e grava a confirmação no
+`crm_leads` antes de consumir o link.
 
 | Tabela | Conteúdo |
 |---|---|
@@ -58,8 +59,8 @@ Os testes (`npm run test:worker`) rodam o SQL no `node:sqlite`, que pede Node 22
 
 ### Importação para o Supabase
 
-Na troca, `ARMAZENAMENTO` passa a `"supabase"`. Antes do merge que faz a troca, e de novo
-48 h depois (prazo dos links enviados antes dela), são importados para o `crm_leads`:
+Na troca, `ARMAZENAMENTO` passa a `"supabase"`. Antes do merge que faz a troca, são
+importados para o `crm_leads`:
 
 - **D1:** a tabela `leads` inteira;
 - **KV, formato de 24/09:** `lead:<e-mail>` que ainda não estejam no D1 (quem se inscreve
@@ -71,7 +72,8 @@ Na troca, `ARMAZENAMENTO` passa a `"supabase"`. Antes do merge que faz a troca, 
 - endereços de teste `delivered+teste-claude-*@resend.dev` ficam de fora.
 
 A importação não mora no repositório (ele é público e os dados são pessoais): roda uma
-vez, direto no banco, e a segunda passada só atualiza quem confirmou pelo D1 depois da troca.
+vez, direto no banco. Quem confirma depois da troca por um link de antes dela entra no
+`crm_leads` na hora, pela função `importar_optin_confirmado`, antes de o link ser consumido.
 
 ## Publicar
 

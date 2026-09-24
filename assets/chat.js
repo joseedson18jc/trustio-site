@@ -409,7 +409,7 @@
     var pending = appendMessage("assistant", "");
     pending.classList.add("msg-pending");
     var body = pending.querySelector(".msg-body");
-    var full = "";
+    var full = "", avisado = false;
     scrollBottom();
     thread.setAttribute("aria-busy", "true");
 
@@ -436,14 +436,28 @@
             if (!line) return;
             var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
             if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; }
+            // Modelo raciocinando antes de escrever: mostra que está trabalhando.
+            if (d.pensando && !full) { body.textContent = T("Pensando…", "Thinking…"); }
             if (d.delta) { full += d.delta; body.innerHTML = render(full); scrollBottom(); }
-            if (d.error) showNotice(T("A resposta foi interrompida. Tente enviar de novo.", "The answer was cut off. Try sending again."));
+            if (d.error) {
+              avisado = true;
+              if (!full) body.textContent = "";
+              showNotice(d.error === "resposta_vazia"
+                ? T("O modelo não devolveu resposta desta vez, e a mensagem não foi descontada. Tente enviar de novo.", "The model didn't return an answer this time, and the message wasn't counted. Try sending again.")
+                : T("A resposta foi interrompida. Tente enviar de novo.", "The answer was cut off. Try sending again."));
+            }
             if (d.done) afterDone(d);
           });
           return pump();
         });
       }
-      return pump();
+      return pump().then(function () {
+        // Fluxo terminou sem texto e sem aviso do servidor: não some calado.
+        if (!full && !avisado) {
+          body.textContent = "";
+          showNotice(T("A resposta não chegou. Recarregue a conversa em instantes; se ela terminar no servidor, aparece no histórico.", "The answer didn't arrive. Reload the conversation in a moment; if it finishes on the server, it shows up in the history."));
+        }
+      });
     }).catch(function (err) {
       var code = err && err.message;
       if (code === "trial_esgotado") { pending.remove(); if (state.lead) { state.lead.status = "trial_esgotado"; state.lead.mensagens_usadas = state.limit; } renderMe(); }

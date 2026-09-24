@@ -30,7 +30,7 @@ function applyTipo() {
 }
 tipoInputs.forEach((i) => i.addEventListener("change", applyTipo));
 
-// --- acesso: lista gratuita (1º/10) ou pré-assinatura (acesso antecipado em 23/09)
+// --- acesso: lista gratuita (1º/10) ou assinatura (acesso antecipado, em até 1 dia útil após o pagamento)
 const acessoInputs = [...document.querySelectorAll('input[name="acesso"]')];
 const nextInput = document.querySelector("[data-next]");
 // Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
@@ -39,14 +39,17 @@ const T = (pt, en) => (EN ? en : pt);
 const OBRIGADO = `https://trustio.com.br${EN ? "/en" : ""}/obrigado.html`;
 const submitBtn = document.querySelector("[data-submit]");
 const subjInput = form?.querySelector('input[name="_subject"]');
+const preNota = document.querySelector("[data-pre-nota]");
 function applyAcesso() {
   const pre = acessoInputs.find((i) => i.checked)?.dataset.acesso === "pre";
   const t = tipoInputs.find((i) => i.checked)?.dataset.tipo || "b2c";
   const pv = document.querySelector('input[name="plano"]:checked')?.value || "";
   const planoKey = t === "b2b" ? "empresa" : pv.startsWith("Passe") ? "semanal" : pv.startsWith("Anual") ? "anual" : "mensal";
   if (nextInput) nextInput.value = pre ? `${OBRIGADO}?lista=pre&plano=${planoKey}` : `${OBRIGADO}?lista=espera`;
-  if (subjInput) subjInput.value = (pre ? "PRÉ-ASSINATURA (acesso 23/09) — trustio.com.br" : "Lista de espera — trustio.com.br") + (EN ? " · EN" : "");
-  if (submitBtn) submitBtn.firstChild.textContent = pre ? T("Quero pré-assinar e entrar em 23/09 ", "Pre-subscribe and get in on Sep 23 ") : T("Entrar na lista de espera ", "Join the waitlist ");
+  if (subjInput) subjInput.value = (pre ? "ASSINATURA (acesso antecipado) — trustio.com.br" : "Lista de espera — trustio.com.br") + (EN ? " · EN" : "");
+  // Empresa não entra em 1 dia útil: o arquiteto faz contato nesse prazo e a implantação segue o prazo do plano.
+  if (preNota) preNota.textContent = t === "b2b" ? T("arquiteto em até 1 dia útil · proposta e link de pagamento", "architect within 1 business day · proposal and payment link") : T("acesso em até 1 dia útil · enviamos o link de pagamento", "access within 1 business day · we send the payment link");
+  if (submitBtn) submitBtn.firstChild.textContent = !pre ? T("Entrar na lista de espera ", "Join the waitlist ") : t === "b2b" ? T("Quero assinar e falar com um arquiteto ", "Subscribe and talk to an architect ") : T("Quero assinar e entrar em até 1 dia útil ", "Subscribe and get in within 1 business day ");
 }
 acessoInputs.forEach((i) => i.addEventListener("change", applyAcesso));
 document.querySelectorAll('input[name="plano"], input[name="tipo"]').forEach((i) => i.addEventListener("change", applyAcesso));

@@ -40,8 +40,8 @@ document.querySelectorAll("[data-interesse]").forEach((a) => a.addEventListener(
     const pre = acesso.find((i) => i.checked)?.dataset.acesso === "pre";
     const plano = document.querySelector('#pessoal input[name="plano"]:checked')?.value || "mensal";
     if (next) next.value = pre ? `${OBRIGADO}?lista=pre&plano=${plano}` : `${OBRIGADO}?lista=espera`;
-    if (subj) subj.value = (pre ? "PRÉ-ASSINATURA B2C (acesso 23/09) — via planos" : "Lista de espera (B2C via planos) — trustio.com.br") + (EN ? " · EN" : "");
-    if (btn) btn.firstChild.textContent = pre ? T("Quero pré-assinar e entrar em 23/09 ", "Pre-subscribe and get in on Sep 23 ") : T("Quero acesso ", "I want access ");
+    if (subj) subj.value = (pre ? "ASSINATURA B2C (acesso antecipado) — via planos" : "Lista de espera (B2C via planos) — trustio.com.br") + (EN ? " · EN" : "");
+    if (btn) btn.firstChild.textContent = pre ? T("Quero assinar e entrar em até 1 dia útil ", "Subscribe and get in within 1 business day ") : T("Quero acesso ", "I want access ");
   };
   acesso.forEach((i) => i.addEventListener("change", apply));
   document.querySelectorAll('#pessoal input[name="plano"]').forEach((i) => i.addEventListener("change", apply));

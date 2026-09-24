@@ -21,6 +21,10 @@
  *
  * A inscrição é gravada no mesmo crm_leads da conta, pelas funções registrar_optin
  * e confirmar_optin: uma lista de clientes só, não duas.
+ *
+ * Enquanto o banco do projeto Supabase novo não existe, ARMAZENAMENTO = "d1" grava a
+ * inscrição no D1 trustio-lista-de-espera (worker/migrations). Links antigos do KV
+ * SIGNUPS continuam confirmando. Na troca, ver worker/README.md.
  */
 
 const ORIGENS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$|^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
@@ -98,6 +102,177 @@ async function rpc(env, nome, args) {
   const texto = await r.text();
   if (!r.ok) throw new Error(`rpc ${nome} ${r.status}: ${texto.slice(0, 300)}`);
   try { return JSON.parse(texto); } catch { return null; }
+}
+
+// ─────────────────────────────────────────────────────────────── D1 (provisório)
+const PRAZO_DO_LINK_MS = 48 * 60 * 60 * 1000;
+// Um segundo e-mail para o mesmo endereço dentro deste intervalo não sai: evita
+// duplicata em clique duplo ou reenvio do formulário.
+const INTERVALO_DE_REENVIO_MS = 5 * 60 * 1000;
+
+function usaD1(env) {
+  return env.ARMAZENAMENTO === "d1";
+}
+
+function novoToken() {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Mesmo contrato de registrar_optin: { ok, token } quando há e-mail a enviar, só { ok }
+ * quando não há (já confirmado, ou um link saiu há menos de 5 minutos).
+ *
+ * Um batch só, que o D1 executa como transação: o lead é gravado, e o link novo só
+ * nasce se o lead não estiver confirmado nem tiver recebido link há pouco.
+ * Os links anteriores continuam valendo até o e-mail novo sair (concluirNoD1).
+ */
+async function registrarNoD1(env, lead, agora = Date.now()) {
+  const db = env.DB;
+  await trazerDoKV(env, lead.email);
+  const agoraISO = new Date(agora).toISOString();
+  const limite = new Date(agora - INTERVALO_DE_REENVIO_MS).toISOString();
+  const token = novoToken();
+  const [, , , emitido] = await db.batch([
+    // Campos vazios não apagam o que uma inscrição anterior trouxe; a origem que vale
+    // é a registrada primeiro. O status e a trava de reenvio não mudam aqui.
+    db.prepare(`INSERT INTO leads (email, nome, telefone, tipo, empresa, segmento, origem, notas, criado_em, atualizado_em)
+      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9)
+      ON CONFLICT (email) DO UPDATE SET
+        nome = COALESCE(excluded.nome, nome),
+        telefone = COALESCE(excluded.telefone, telefone),
+        tipo = COALESCE(excluded.tipo, tipo),
+        empresa = COALESCE(excluded.empresa, empresa),
+        segmento = COALESCE(excluded.segmento, segmento),
+        origem = COALESCE(origem, excluded.origem),
+        notas = COALESCE(excluded.notas, notas),
+        atualizado_em = ?9`)
+      .bind(lead.email, lead.nome, lead.telefone, lead.tipo, lead.empresa, lead.segmento,
+        lead.origem || "lista-de-espera", lead.notas, agoraISO),
+    // O link novo só nasce se o lead não estiver confirmado nem tiver recebido link há pouco.
+    db.prepare(`INSERT INTO links (token, email, expira_em, criado_em)
+      SELECT ?1, ?2, ?3, ?4 WHERE NOT EXISTS (
+        SELECT 1 FROM leads WHERE email = ?2 AND (status = 'confirmado' OR ultimo_link_em > ?5))`)
+      .bind(token, lead.email, new Date(agora + PRAZO_DO_LINK_MS).toISOString(), agoraISO, limite),
+    db.prepare("UPDATE leads SET ultimo_link_em = ?2 WHERE email = ?1 AND EXISTS (SELECT 1 FROM links WHERE token = ?3)")
+      .bind(lead.email, agoraISO, token),
+    db.prepare("SELECT 1 AS ok FROM links WHERE token = ?1").bind(token),
+  ]);
+  return emitido.results.length ? { ok: true, token } : { ok: true };
+}
+
+/**
+ * O e-mail saiu: os links anteriores do mesmo endereço deixam de valer. Se esta escrita
+ * falhar, eles continuam valendo junto com o novo, todos na mesma caixa de entrada.
+ */
+async function concluirNoD1(env, email, token) {
+  await env.DB.prepare("DELETE FROM links WHERE email = ?1 AND token <> ?2").bind(email, token).run();
+}
+
+/**
+ * O envio falhou: o link novo nunca chegou a ninguém, e a trava de 5 minutos é liberada
+ * para a pessoa poder tentar de novo. Os links anteriores continuam valendo.
+ */
+async function descartarNoD1(env, email, token) {
+  const db = env.DB;
+  await db.batch([
+    db.prepare("DELETE FROM links WHERE token = ?1").bind(token),
+    db.prepare("UPDATE leads SET ultimo_link_em = NULL WHERE email = ?1").bind(email),
+  ]);
+}
+
+/**
+ * Mesmo contrato de confirmar_optin. A confirmação e a baixa de todos os links do
+ * e-mail vão num batch só: ou as duas acontecem, ou nenhuma.
+ */
+async function confirmarNoD1(env, token, agora = Date.now()) {
+  const db = env.DB;
+  if (!/^[a-f0-9]{64}$/.test(token)) return { ok: false, error: "token_invalido" };
+  const link = await db.prepare("SELECT email, expira_em FROM links WHERE token = ?1").bind(token).first();
+  if (!link) return confirmarLinkDoKV(env, token, agora);
+  if (agora > Date.parse(link.expira_em)) return { ok: false, error: "token_expirado" };
+  const agoraISO = new Date(agora).toISOString();
+  const [confirmacao] = await db.batch([
+    db.prepare(`UPDATE leads SET status = 'confirmado', confirmado_em = COALESCE(confirmado_em, ?2), atualizado_em = ?2
+      WHERE email = ?1 AND EXISTS (SELECT 1 FROM links WHERE token = ?3)`).bind(link.email, agoraISO, token),
+    db.prepare("DELETE FROM links WHERE email = ?1 AND EXISTS (SELECT 1 FROM links WHERE token = ?2)").bind(link.email, token),
+  ]);
+  // Zero linhas: outro clique no mesmo link confirmou primeiro.
+  if (!confirmacao.meta.changes) return { ok: false, error: "token_invalido" };
+  return { ok: true, email: link.email };
+}
+
+/**
+ * Inscrições gravadas no KV SIGNUPS entre 24/09 07:36 e a troca para o D1: o lead em
+ * lead:<e-mail>, a confirmação em status ou em confirmado:<e-mail>.
+ */
+async function leadDoKV(env, email) {
+  const kv = env.SIGNUPS;
+  if (!kv) return null;
+  // Uma leitura do KV que falha propaga o erro: a requisição responde 502/503 e a pessoa
+  // tenta de novo. Tratar a falha como "não existe" gravaria no D1 um lead pendente por
+  // cima de uma confirmação que está no KV. Só um valor ilegível conta como ausente.
+  const [textoLead, textoConfirmado] = await Promise.all([kv.get(`lead:${email}`), kv.get(`confirmado:${email}`)]);
+  const lead = lerJSONOuNulo(textoLead);
+  const confirmado = textoConfirmado ? lerJSONOuNulo(textoConfirmado) || {} : null;
+  if (!lead && !confirmado) return null;
+  const confirmadoEm = confirmado?.confirmado_em || (lead?.status === "confirmado" ? lead.confirmado_em : null);
+  return { ...lead, email, confirmado: Boolean(confirmado) || lead?.status === "confirmado", confirmado_em: confirmadoEm || null };
+}
+
+function lerJSONOuNulo(texto) {
+  if (!texto) return null;
+  try { return JSON.parse(texto); } catch { return null; }
+}
+
+/** Grava no D1 o lead do KV, com os campos e o status que ele tinha, se o D1 ainda não o tiver. */
+async function gravarLeadDoKV(env, antigo, agoraISO) {
+  await env.DB.prepare(`INSERT INTO leads (email, nome, telefone, tipo, empresa, segmento, origem, notas,
+      status, criado_em, atualizado_em, confirmado_em)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+    ON CONFLICT (email) DO NOTHING`)
+    .bind(antigo.email, antigo.nome ?? null, antigo.telefone ?? null, antigo.tipo ?? null, antigo.empresa ?? null,
+      antigo.segmento ?? null, antigo.origem ?? null, antigo.notas ?? null,
+      antigo.confirmado ? "confirmado" : "pendente", antigo.criado_em || agoraISO, agoraISO,
+      antigo.confirmado ? antigo.confirmado_em || agoraISO : null)
+    .run();
+}
+
+/**
+ * Antes de uma inscrição, quem só existe no KV entra no D1 como estava: quem já confirmou
+ * continua confirmado e não recebe outro link, e os campos gravados lá não se perdem.
+ */
+async function trazerDoKV(env, email) {
+  if (!env.SIGNUPS) return;
+  if (await env.DB.prepare("SELECT 1 AS ok FROM leads WHERE email = ?1").bind(email).first()) return;
+  const antigo = await leadDoKV(env, email);
+  if (antigo) await gravarLeadDoKV(env, antigo, new Date().toISOString());
+}
+
+/**
+ * Links enviados pelo KV continuam valendo. O worker no ar até a troca (322fb09) gravava
+ * token:<token> → { email } e guardava token e token_expira_em no lead; aceitamos também
+ * o prazo na própria chave do token. A confirmação grava o lead no D1 já confirmado.
+ * Repetir é inofensivo, porque confirmado_em guarda a primeira data.
+ */
+async function confirmarLinkDoKV(env, token, agora) {
+  const kv = env.SIGNUPS;
+  if (!kv) return { ok: false, error: "token_invalido" };
+  const ref = lerJSONOuNulo(await kv.get(`token:${token}`));
+  if (!ref?.email) return { ok: false, error: "token_invalido" };
+  const antigo = await leadDoKV(env, ref.email);
+  if (!antigo) return { ok: false, error: "token_invalido" };
+  // Um link substituído por outro mais novo no mesmo lead não vale mais.
+  if (antigo.token && antigo.token !== token) return { ok: false, error: "token_invalido" };
+  const prazo = ref.expira_em || (antigo.token === token ? antigo.token_expira_em : null);
+  if (!(agora <= Date.parse(prazo))) return { ok: false, error: "token_expirado" };
+  const agoraISO = new Date(agora).toISOString();
+  await gravarLeadDoKV(env, antigo, agoraISO);
+  await env.DB.prepare(`UPDATE leads SET status = 'confirmado', confirmado_em = COALESCE(confirmado_em, ?2), atualizado_em = ?2
+    WHERE email = ?1`).bind(ref.email, agoraISO).run();
+  try { await kv.delete(`token:${token}`); } catch (err) { console.error("limpeza_kv_falhou", err.message); }
+  return { ok: true, email: ref.email };
 }
 
 // ─────────────────────────────────────────────────────────────── e-mail
@@ -182,6 +357,8 @@ export default {
     if (url.pathname === "/saude" && req.method === "GET") {
       return json(200, {
         ok: true,
+        armazenamento: usaD1(env) ? "d1" : "supabase",
+        d1: Boolean(env.DB),
         supabase: Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY),
         resend: Boolean(env.RESEND_API_KEY),
         remetente: env.EMAIL_FROM || null,
@@ -209,9 +386,12 @@ export default {
       if (String(dados._honey || "").trim()) return json(200, { ok: true }, origin); // robô
       const email = String(dados.email || "").trim().toLowerCase();
       if (!email) return json(400, { ok: false, error: "email_ausente" }, origin);
+      if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return json(400, { ok: false, error: "email_invalido" }, origin);
+      }
 
-      if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
-        console.error("supabase_nao_configurado");
+      if (usaD1(env) ? !env.DB : !env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error("armazenamento_nao_configurado");
         return json(503, { ok: false, error: "indisponivel" }, origin);
       }
 
@@ -224,18 +404,33 @@ export default {
         dados.observacao && `Observação: ${dados.observacao}`,
       ].filter(Boolean).join(" · ");
 
+      // Tamanho limitado: no modo kv não há coluna do banco segurando campo gigante.
+      const campo = (v, max = 200) => String(v ?? "").trim().slice(0, max) || null;
+      const lead = {
+        email,
+        nome: campo(dados.nome),
+        telefone: campo(dados.telefone || dados.whatsapp, 40),
+        tipo: String(dados.tipo || "").toLowerCase().includes("empresa") ? "b2b" : "b2c",
+        empresa: campo(dados.empresa),
+        segmento: campo(dados.segmento),
+        origem: campo(dados.origem),
+        notas: campo(notas, 1000),
+      };
+
       let registro;
       try {
-        registro = await rpc(env, "registrar_optin", {
-          p_email: email,
-          p_nome: String(dados.nome || "").trim() || null,
-          p_telefone: String(dados.telefone || dados.whatsapp || "").trim() || null,
-          p_tipo: String(dados.tipo || "").toLowerCase().includes("empresa") ? "b2b" : "b2c",
-          p_empresa: String(dados.empresa || "").trim() || null,
-          p_segmento: String(dados.segmento || "").trim() || null,
-          p_origem: String(dados.origem || "lista-de-espera").trim(),
-          p_notas: notas || null,
-        });
+        registro = usaD1(env)
+          ? await registrarNoD1(env, lead)
+          : await rpc(env, "registrar_optin", {
+            p_email: lead.email,
+            p_nome: lead.nome,
+            p_telefone: lead.telefone,
+            p_tipo: lead.tipo,
+            p_empresa: lead.empresa,
+            p_segmento: lead.segmento,
+            p_origem: lead.origem || "lista-de-espera",
+            p_notas: lead.notas,
+          });
       } catch (err) {
         console.error("registrar_optin_falhou", err.message);
         return json(502, { ok: false, error: "indisponivel" }, origin);
@@ -251,7 +446,13 @@ export default {
         } catch (err) {
           // O lead já está salvo; o reenvio é possível. Não mentimos dizendo que deu certo.
           console.error("envio_falhou", err.message);
+          if (usaD1(env)) {
+            try { await descartarNoD1(env, email, registro.token); } catch (e) { console.error("descarte_falhou", e.message); }
+          }
           return json(502, { ok: false, error: "email_nao_enviado" }, origin);
+        }
+        if (usaD1(env)) {
+          try { await concluirNoD1(env, email, registro.token); } catch (err) { console.error("conclusao_falhou", err.message); }
         }
       }
 
@@ -268,16 +469,16 @@ export default {
 
       let r;
       try {
-        r = await rpc(env, "confirmar_optin", { p_token: token });
+        r = usaD1(env) ? await confirmarNoD1(env, token) : await rpc(env, "confirmar_optin", { p_token: token });
       } catch (err) {
         console.error("confirmar_optin_falhou", err.message);
-        return pagina("Tente de novo em instantes", "Não conseguimos confirmar agora. O link continua valendo — abra de novo daqui a pouco.", env, 503);
+        return pagina("Tente de novo em instantes", "Não conseguimos conferir o link agora. Abra de novo daqui a pouco; se ele já tiver sido usado, avisamos na hora.", env, 503);
       }
 
       if (r?.ok) {
         return pagina("Inscrição confirmada",
           "Pronto: sua vaga está garantida. Avisamos por e-mail no dia da abertura, <b>1º de outubro de 2026</b>. " +
-          'Quem pré-assina um plano entra em <b>23 de setembro</b> — <a href="' + escapar(env.SITE_URL || "https://trustio.com.br") + '/planos.html#pessoal" style="color:#5ea7ff">ver como</a>.', env);
+          'Quem assina um plano entra em até 1 dia útil após o pagamento — <a href="' + escapar(env.SITE_URL || "https://trustio.com.br") + '/planos.html#pessoal" style="color:#5ea7ff">ver como</a>.', env);
       }
       if (r?.error === "token_expirado") {
         return pagina("Link expirado",

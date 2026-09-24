@@ -8,6 +8,21 @@ SITE_URL = "https://trustio.com.br"
 API_URL = "https://api.trustio.com.br"
 EMAIL_FROM = "Trustio <no-reply@send.trustio.com.br>"
 SUPABASE_URL = "https://yxkgdgcdvngltnykleig.supabase.co"
+# Provisório: "d1" grava as inscrições no D1 trustio-lista-de-espera até o banco do projeto
+# Supabase novo existir. Na troca, volta a "supabase" e a tabela leads é importada.
+ARMAZENAMENTO = "d1"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "trustio-lista-de-espera"
+database_id = "578d1e9c-3501-48e0-8462-b72cfa2f6e8e"
+migrations_dir = "migrations"
+
+# Para links antigos: inscrições gravadas no KV entre 24/09 07:36 e a troca
+# para o D1, e os registros index:/pending: do worker anterior, para a importação.
+[[kv_namespaces]]
+binding = "SIGNUPS"
+id = "3f6220c2393c4154b2927ac84fff4a91"
 
 # Segredos, definidos uma vez por linha de comando (ver README.md):
 #   wrangler secret put SUPABASE_SERVICE_ROLE_KEY

@@ -13,6 +13,9 @@
     "i18n:check": "node scripts/i18n.mjs --check",
     "test:worker": "node worker/test/worker.test.mjs"
   },
+  "engines": {
+    "node": ">=22.13"
+  },
   "devDependencies": {
     "vite": "7.0.6"
   }

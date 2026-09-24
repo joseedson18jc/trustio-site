@@ -107,7 +107,10 @@ jobs:
         run: |
           [ -n "$ADMIN_EMAILS" ] || { echo "ADMIN_EMAILS ausente; pulando."; exit 0; }
           list=$(echo "$ADMIN_EMAILS" | tr ',' '\n' | sed "s/^ *//;s/ *$//;/^$/d;s/.*/'\\L&'/" | paste -sd, -)
-          psql "postgresql://postgres:${SUPABASE_DB_PASSWORD}@db.${PROJECT_REF}.supabase.co:5432/postgres?sslmode=require" \
+          # db.<ref>.supabase.co só responde por IPv6, que o runner do GitHub não tem: vai pelo
+          # pooler (IPv4, modo sessão), o mesmo que o `supabase db push` usa. A senha vai por
+          # PGPASSWORD para não quebrar a URL se tiver caractere especial.
+          PGPASSWORD="$SUPABASE_DB_PASSWORD" psql "host=aws-0-sa-east-1.pooler.supabase.com port=5432 dbname=postgres user=postgres.${PROJECT_REF} sslmode=require" \
             -v ON_ERROR_STOP=1 \
             -c "insert into public.admins (user_id) select id from auth.users where lower(email) in ($list) on conflict do nothing;" \
             -c "select email from auth.users where lower(email) in ($list);"

@@ -4,6 +4,9 @@ document.documentElement.classList.add("js");
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const header = document.querySelector("[data-header]");
+// Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
+const EN = /^en\b/i.test(document.documentElement.lang);
+const T = (pt, en) => (EN ? en : pt);
 const menuButton = document.querySelector(".menu-toggle");
 const mobileMenu = document.querySelector(".mobile-nav");
 
@@ -15,7 +18,7 @@ function updateHeader() {
 function closeMenu() {
   if (!menuButton || !mobileMenu || !header) return;
   menuButton.setAttribute("aria-expanded", "false");
-  menuButton.setAttribute("aria-label", "Abrir menu");
+  menuButton.setAttribute("aria-label", T("Abrir menu", "Open menu"));
   mobileMenu.hidden = true;
   header.classList.remove("menu-active");
   document.body.classList.remove("menu-open");
@@ -30,7 +33,7 @@ function toggleMenu() {
   }
 
   menuButton.setAttribute("aria-expanded", "true");
-  menuButton.setAttribute("aria-label", "Fechar menu");
+  menuButton.setAttribute("aria-label", T("Fechar menu", "Close menu"));
   mobileMenu.hidden = false;
   header.classList.add("menu-active");
   document.body.classList.add("menu-open");
@@ -287,7 +290,7 @@ document.querySelectorAll(".copy-email[data-copy]").forEach((button) => {
   const row = button.closest(".contact-email-row");
   const status = row?.querySelector("[data-copy-status]");
   const address = row?.querySelector(".contact-email");
-  const idleLabel = "Copiar endereço de e-mail";
+  const idleLabel = T("Copiar endereço de e-mail", "Copy e-mail address");
   let resetTimer = 0;
 
   function setState(state, label, announcement) {
@@ -317,10 +320,10 @@ document.querySelectorAll(".copy-email[data-copy]").forEach((button) => {
 
     window.clearTimeout(resetTimer);
     if (copied) {
-      setState("is-copied", "E-mail copiado", "Endereço de e-mail copiado.");
+      setState("is-copied", T("E-mail copiado", "E-mail copied"), T("Endereço de e-mail copiado.", "E-mail address copied."));
     } else {
       // Nothing we can write to the clipboard: say so, and leave the address selected so a manual copy works.
-      setState("is-failed", "Não foi possível copiar. Selecione o endereço ao lado.", "Não foi possível copiar automaticamente. O endereço foi selecionado para você copiar.");
+      setState("is-failed", T("Não foi possível copiar. Selecione o endereço ao lado.", "Couldn't copy. Select the address next to it."), T("Não foi possível copiar automaticamente. O endereço foi selecionado para você copiar.", "Couldn't copy automatically. The address has been selected for you to copy."));
       if (address && window.getSelection) {
         const range = document.createRange();
         range.selectNodeContents(address);
@@ -350,7 +353,7 @@ function applyTheme(theme, persist) {
   if (themeToggle) {
     const isLight = theme === "light";
     themeToggle.setAttribute("aria-pressed", String(isLight));
-    themeToggle.setAttribute("aria-label", isLight ? "Ativar tema escuro" : "Ativar tema claro");
+    themeToggle.setAttribute("aria-label", isLight ? T("Ativar tema escuro", "Switch to dark theme") : T("Ativar tema claro", "Switch to light theme"));
   }
   if (persist) {
     try { localStorage.setItem(THEME_KEY, theme); } catch (error) { /* sem persistência */ }

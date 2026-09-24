@@ -31,6 +31,17 @@ for (const [path, expectedStatus, expectedType] of [
   ["/assets/juridico.css", 200, "text/css"],
   ["/assets/app.js", 200, "text/javascript"],
   ["/missing-page", 404, "text/html"],
+  ["/en", 200, "text/html"],
+  ["/en/", 200, "text/html"],
+  ["/en/voice", 200, "text/html"],
+  ["/en/planos.html", 200, "text/html"],
+  ["/en/juridico/", 200, "text/html"],
+  ["/en/console/", 200, "text/html"],
+  ["/en/app/", 200, "text/html"],
+  ["/en/cadastro", 200, "text/html"],
+  ["/en/seats", 200, "text/html"],
+  ["/en/crm/", 404, "text/html"],
+  ["/en/missing-page", 404, "text/html"],
 ]) {
   const response = await worker.fetch(new Request(`https://trustio.example${path}`));
   if (response.status !== expectedStatus) throw new Error(`${path} returned ${response.status}.`);

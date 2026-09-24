@@ -2,6 +2,9 @@
    Fluxo: cadastro → e-mail de confirmação → link abre /app/ já autenticado. */
 (function () {
   "use strict";
+  // Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
+  var EN = /^en\b/i.test(document.documentElement.lang);
+  var T = function (pt, en) { return EN ? en : pt; };
   var CFG = window.TRUSTIO_AUTH;
   if (!CFG || !window.supabase) return;
 
@@ -21,19 +24,19 @@
   function busy(form, on, label) {
     var btn = form.querySelector("[data-submit]");
     if (!btn) return;
-    if (on) { btn.dataset.label = btn.dataset.label || btn.innerHTML; btn.disabled = true; btn.textContent = label || "Enviando…"; }
+    if (on) { btn.dataset.label = btn.dataset.label || btn.innerHTML; btn.disabled = true; btn.textContent = label || T("Enviando…", "Sending…"); }
     else { btn.disabled = false; btn.innerHTML = btn.dataset.label || btn.innerHTML; }
   }
 
   function humanError(err) {
     var m = String((err && err.message) || "").toLowerCase();
-    if (m.indexOf("invalid login") >= 0) return "E-mail ou senha incorretos.";
-    if (m.indexOf("email not confirmed") >= 0) return "Seu e-mail ainda não foi confirmado. Abra o link que enviamos ou peça um novo abaixo.";
-    if (m.indexOf("already registered") >= 0 || m.indexOf("already been registered") >= 0) return "Esse e-mail já tem conta. Entre ou recupere a senha.";
-    if (m.indexOf("password") >= 0 && m.indexOf("least") >= 0) return "A senha precisa ter pelo menos 8 caracteres.";
-    if (m.indexOf("rate limit") >= 0 || m.indexOf("too many") >= 0) return "Muitas tentativas. Aguarde alguns minutos e tente de novo.";
-    if (m.indexOf("failed to fetch") >= 0 || m.indexOf("network") >= 0) return "Sem conexão com o servidor. Verifique a internet e tente novamente.";
-    return "Não foi possível concluir agora. Tente novamente em instantes.";
+    if (m.indexOf("invalid login") >= 0) return T("E-mail ou senha incorretos.", "Incorrect email or password.");
+    if (m.indexOf("email not confirmed") >= 0) return T("Seu e-mail ainda não foi confirmado. Abra o link que enviamos ou peça um novo abaixo.", "Your email isn't confirmed yet. Open the link we sent, or request a new one below.");
+    if (m.indexOf("already registered") >= 0 || m.indexOf("already been registered") >= 0) return T("Esse e-mail já tem conta. Entre ou recupere a senha.", "That email already has an account. Sign in or reset your password.");
+    if (m.indexOf("password") >= 0 && m.indexOf("least") >= 0) return T("A senha precisa ter pelo menos 8 caracteres.", "Your password needs at least 8 characters.");
+    if (m.indexOf("rate limit") >= 0 || m.indexOf("too many") >= 0) return T("Muitas tentativas. Aguarde alguns minutos e tente de novo.", "Too many attempts. Wait a few minutes and try again.");
+    if (m.indexOf("failed to fetch") >= 0 || m.indexOf("network") >= 0) return T("Sem conexão com o servidor. Verifique a internet e tente novamente.", "Can't reach the server. Check your connection and try again.");
+    return T("Não foi possível concluir agora. Tente novamente em instantes.", "We couldn't finish that right now. Try again in a moment.");
   }
 
   // Já logado? Vai direto para o chat.
@@ -63,9 +66,9 @@
       if (f.get("_honey")) return;
       var email = String(f.get("email") || "").trim().toLowerCase();
       var senha = String(f.get("senha") || "");
-      if (senha.length < 8) { status(signup, "A senha precisa ter pelo menos 8 caracteres.", "error"); return; }
+      if (senha.length < 8) { status(signup, T("A senha precisa ter pelo menos 8 caracteres.", "Your password needs at least 8 characters."), "error"); return; }
       var tipoEl = signup.querySelector("[data-tipo]:checked");
-      busy(signup, true, "Criando conta…");
+      busy(signup, true, T("Criando conta…", "Creating account…"));
       status(signup, "");
       sb.auth.signUp({
         email: email,
@@ -78,7 +81,7 @@
             tipo: tipoEl ? tipoEl.dataset.tipo : "b2c",
             empresa: String(f.get("empresa") || "").trim(),
             segmento: String(f.get("segmento") || "").trim(),
-            origem: "cadastro.html"
+            origem: EN ? "en/cadastro.html" : "cadastro.html"
           }
         }
       }).then(function (r) {
@@ -93,10 +96,10 @@
           done.hidden = false;
           done.querySelector("[data-done-email]").textContent = email;
         }
-        busy(signup, true, exists ? "Verifique seu e-mail" : "Conta criada ✓");
+        busy(signup, true, exists ? T("Verifique seu e-mail", "Check your email") : T("Conta criada ✓", "Account created ✓"));
         status(signup, exists
-          ? "Se esse e-mail ainda não tiver conta, você recebe o link de confirmação. Se já tiver, entre com a sua senha."
-          : "Enviamos um link de confirmação. Abra o e-mail e clique para entrar direto no chat.", "ok");
+          ? T("Se esse e-mail ainda não tiver conta, você recebe o link de confirmação. Se já tiver, entre com a sua senha.", "If that email doesn't have an account yet, you'll get the confirmation link. If it does, sign in with your password.")
+          : T("Enviamos um link de confirmação. Abra o e-mail e clique para confirmar a sua conta.", "We sent you a confirmation link. Open the email and click it to confirm your account."), "ok");
       }).catch(function (err) {
         busy(signup, false);
         status(signup, humanError(err), "error");
@@ -113,7 +116,7 @@
       if (!login.reportValidity()) return;
       var f = new FormData(login);
       var email = String(f.get("email") || "").trim().toLowerCase();
-      busy(login, true, "Entrando…");
+      busy(login, true, T("Entrando…", "Signing in…"));
       status(login, "");
       sb.auth.signInWithPassword({ email: email, password: String(f.get("senha") || "") })
         .then(function (r) {
@@ -133,7 +136,7 @@
       if (!email) return;
       resend.disabled = true;
       sb.auth.resend({ type: "signup", email: email, options: { emailRedirectTo: appUrl } })
-        .then(function (r) { if (r.error) throw r.error; status(login, "Novo link enviado para " + email + ".", "ok"); })
+        .then(function (r) { if (r.error) throw r.error; status(login, T("Novo link enviado para ", "New link sent to ") + email + ".", "ok"); })
         .catch(function (err) { status(login, humanError(err), "error"); resend.disabled = false; });
     });
   }
@@ -149,8 +152,8 @@
       sb.auth.resetPasswordForEmail(email, { redirectTo: appUrl + "?recovery=1" })
         .then(function (r) {
           if (r.error) throw r.error;
-          busy(forgot, true, "Link enviado ✓");
-          status(forgot, "Se houver conta com esse e-mail, você recebe um link para criar uma nova senha.", "ok");
+          busy(forgot, true, T("Link enviado ✓", "Link sent ✓"));
+          status(forgot, T("Se houver conta com esse e-mail, você recebe um link para criar uma nova senha.", "If there's an account with that email, you'll get a link to set a new password."), "ok");
         })
         .catch(function (err) { busy(forgot, false); status(forgot, humanError(err), "error"); });
     });

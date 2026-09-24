@@ -45,11 +45,21 @@ function json(status, body, origin) {
   });
 }
 
-/** O ponto exato onde o worker antigo falhava: montar o endereço de confirmação. */
-function linkDeConfirmacao(env, token) {
+/** O ponto exato onde o worker antigo falhava: montar o endereço de confirmação.
+ *  Quem se inscreveu pela versão em inglês do site confirma numa página em inglês:
+ *  o idioma viaja no próprio link. */
+function linkDeConfirmacao(env, token, idioma = "pt") {
   const url = new URL("/confirm", env.API_URL || "https://api.trustio.com.br");
   url.searchParams.set("token", token);
+  if (idioma === "en") url.searchParams.set("lang", "en");
   return url.toString();
+}
+
+/** "en" quando a inscrição veio de /en/ (campo lang, ou o _next do formulário sem JS). */
+function idiomaDaInscricao(dados) {
+  if (String(dados.lang || "").toLowerCase() === "en") return "en";
+  try { return /^\/en\//.test(new URL(String(dados._next || ""), "https://trustio.com.br").pathname) ? "en" : "pt"; }
+  catch { return "pt"; }
 }
 
 /**
@@ -67,9 +77,9 @@ function linkDeConfirmacao(env, token) {
  */
 const DESTINOS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$/;
 
-function destinoSeguro(bruto, env) {
+function destinoSeguro(bruto, env, idioma = "pt") {
   const base = env.SITE_URL || "https://trustio.com.br";
-  const padrao = `${base}/obrigado.html?lista=espera`;
+  const padrao = `${base}${idioma === "en" ? "/en" : ""}/obrigado.html?lista=espera`;
   if (!bruto) return padrao;
   let destino;
   let origemDoSite;
@@ -303,28 +313,50 @@ async function levarConfirmacaoAoSupabase(env, lead, agoraISO) {
 }
 
 // ─────────────────────────────────────────────────────────────── e-mail
-function corpoDoEmail(nome, link) {
-  const saudacao = nome ? `Olá, ${escapar(nome)}!` : "Olá!";
+const EMAIL = {
+  pt: {
+    lang: "pt-BR", ola: "Olá", assunto: "Confirme sua inscrição na lista de espera — Trustio",
+    previa: "Confirme seu e-mail para garantir sua vaga na lista da Trustio.",
+    corpo: "Recebemos sua inscrição na lista de espera da Trustio. Confirme seu e-mail para garantir sua vaga:",
+    botao: "Confirmar minha inscrição", copie: "Se o botão não funcionar, copie e cole este endereço:",
+    prazo: "O link vale por 48 horas. Se não foi você quem se inscreveu, ignore este e-mail: nada acontece.",
+    privacidade: "Privacidade", caminho: "",
+    texto: (link) => `Confirme sua inscrição na lista de espera da Trustio:\n${link}\n\nO link vale por 48 horas. Se não foi você, ignore este e-mail.`,
+  },
+  en: {
+    lang: "en", ola: "Hi", assunto: "Confirm your spot on the waitlist — Trustio",
+    previa: "Confirm your email to secure your spot on the Trustio list.",
+    corpo: "We've received your sign-up for the Trustio waitlist. Confirm your email to secure your spot:",
+    botao: "Confirm my sign-up", copie: "If the button doesn't work, copy and paste this address:",
+    prazo: "The link is valid for 48 hours. If you didn't sign up, ignore this email: nothing will happen.",
+    privacidade: "Privacy", caminho: "/en",
+    texto: (link) => `Confirm your sign-up for the Trustio waitlist:\n${link}\n\nThe link is valid for 48 hours. If it wasn't you, ignore this email.`,
+  },
+};
+
+function corpoDoEmail(nome, link, idioma = "pt") {
+  const t = EMAIL[idioma] || EMAIL.pt;
+  const saudacao = nome ? `${t.ola}, ${escapar(nome)}!` : `${t.ola}!`;
   return `<!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="color-scheme" content="dark"></head>
+<html lang="${t.lang}"><head><meta charset="utf-8"><meta name="color-scheme" content="dark"></head>
 <body style="margin:0;padding:0;background:#05070b;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Confirme seu e-mail para garantir sua vaga na lista da Trustio.</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${t.previa}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#05070b;padding:40px 16px;">
 <tr><td align="center">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#0b0f16;border:1px solid rgba(160,179,211,.14);border-radius:16px;">
     <tr><td style="padding:34px 34px 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
       <p style="margin:0 0 22px;font-size:19px;font-weight:700;color:#f4f6fa;letter-spacing:-.02em;">Trust<span style="color:#2563eb;">io</span></p>
       <p style="margin:0 0 14px;font-size:20px;font-weight:600;color:#f4f6fa;">${saudacao}</p>
-      <p style="margin:0 0 26px;font-size:16px;line-height:1.6;color:#bdc5d1;">Recebemos sua inscrição na lista de espera da Trustio. Confirme seu e-mail para garantir sua vaga:</p>
+      <p style="margin:0 0 26px;font-size:16px;line-height:1.6;color:#bdc5d1;">${t.corpo}</p>
       <p style="margin:0 0 26px;">
-        <a href="${escapar(link)}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:13px 24px;border-radius:10px;">Confirmar minha inscrição</a>
+        <a href="${escapar(link)}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:13px 24px;border-radius:10px;">${t.botao}</a>
       </p>
-      <p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#8b96a7;">Se o botão não funcionar, copie e cole este endereço:</p>
+      <p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#8b96a7;">${t.copie}</p>
       <p style="margin:0 0 26px;font-size:13px;line-height:1.6;word-break:break-all;"><a href="${escapar(link)}" style="color:#5ea7ff;">${escapar(link)}</a></p>
-      <p style="margin:0 0 30px;font-size:13px;line-height:1.6;color:#8b96a7;">O link vale por 48 horas. Se não foi você quem se inscreveu, ignore este e-mail: nada acontece.</p>
+      <p style="margin:0 0 30px;font-size:13px;line-height:1.6;color:#8b96a7;">${t.prazo}</p>
       <p style="margin:0;padding-top:20px;border-top:1px solid rgba(160,179,211,.12);font-size:12px;color:#6c7789;">
         Trustio · <a href="https://trustio.com.br" style="color:#6c7789;">trustio.com.br</a> ·
-        <a href="https://trustio.com.br/privacidade.html" style="color:#6c7789;">Privacidade</a>
+        <a href="https://trustio.com.br${t.caminho}/privacidade.html" style="color:#6c7789;">${t.privacidade}</a>
       </p>
     </td></tr>
   </table>
@@ -332,26 +364,27 @@ function corpoDoEmail(nome, link) {
 </body></html>`;
 }
 
-async function enviarEmail(env, para, nome, link) {
+async function enviarEmail(env, para, nome, link, idioma = "pt") {
+  const t = EMAIL[idioma] || EMAIL.pt;
   const r = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: env.EMAIL_FROM || "Trustio <no-reply@send.trustio.com.br>",
       to: [para],
-      subject: "Confirme sua inscrição na lista de espera — Trustio",
-      html: corpoDoEmail(nome, link),
-      text: `${nome ? `Olá, ${nome}!` : "Olá!"}\n\nConfirme sua inscrição na lista de espera da Trustio:\n${link}\n\nO link vale por 48 horas. Se não foi você, ignore este e-mail.\n\nTrustio · https://trustio.com.br`,
+      subject: t.assunto,
+      html: corpoDoEmail(nome, link, idioma),
+      text: `${nome ? `${t.ola}, ${nome}!` : `${t.ola}!`}\n\n${t.texto(link)}\n\nTrustio · https://trustio.com.br${t.caminho}`,
     }),
   });
   if (!r.ok) throw new Error(`resend ${r.status}: ${(await r.text()).slice(0, 300)}`);
 }
 
 // ─────────────────────────────────────────────────────────────── páginas
-function pagina(titulo, texto, env, status = 200) {
-  const site = env.SITE_URL || "https://trustio.com.br";
+function pagina(titulo, texto, env, status = 200, idioma = "pt") {
+  const site = (env.SITE_URL || "https://trustio.com.br") + (idioma === "en" ? "/en" : "");
   return new Response(`<!DOCTYPE html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="${idioma === "en" ? "en" : "pt-BR"}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex"><title>${escapar(titulo)} · Trustio</title>
 <style>
   :root{color-scheme:dark}
@@ -366,12 +399,36 @@ function pagina(titulo, texto, env, status = 200) {
 <body><div class="caixa">
   <h1>${escapar(titulo)}</h1>
   <p>${texto}</p>
-  <a class="btn" href="${escapar(site)}/">Ir para a Trustio</a>
+  <a class="btn" href="${escapar(site)}/">${idioma === "en" ? "Go to Trustio" : "Ir para a Trustio"}</a>
 </div></body></html>`, {
     status,
     headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
   });
 }
+
+// Título e texto (HTML confiável, escrito aqui) de cada resultado da confirmação.
+const CONFIRMACAO = {
+  pt: {
+    incompleto: ["Link incompleto", "Este endereço não traz o código de confirmação. Abra o link direto do e-mail que enviamos."],
+    instavel: ["Tente de novo em instantes", "Não conseguimos conferir o link agora. Abra de novo daqui a pouco; se ele já tiver sido usado, avisamos na hora."],
+    confirmado: ["Inscrição confirmada", "Pronto: sua vaga está garantida. Avisamos por e-mail no dia da abertura, <b>1º de outubro de 2026</b>. " +
+      'Quem assina um plano entra em até 1 dia útil após o pagamento — <a href="{site}/planos.html#pessoal" style="color:#5ea7ff">ver como</a>.'],
+    expirado: ["Link expirado", "Este link valia por 48 horas. Faça a inscrição de novo e enviamos outro na hora."],
+    invalido: ["Link inválido", "Este link não vale mais. Ele pode já ter sido usado, ou ter sido substituído por um mais " +
+      "recente — se você se inscreveu mais de uma vez, <b>abra o último e-mail que recebeu</b>. " +
+      "Se não encontrar, inscreva-se de novo e enviamos outro na hora."],
+  },
+  en: {
+    incompleto: ["Incomplete link", "This address is missing the confirmation code. Open the link straight from the email we sent."],
+    instavel: ["Try again in a moment", "We couldn't check the link right now. Open it again shortly; if it has already been used, we'll tell you right away."],
+    confirmado: ["Sign-up confirmed", "Done: your spot is secured. We'll email you on launch day, <b>October 1, 2026</b>. " +
+      'Subscribers get in within 1 business day of payment — <a href="{site}/planos.html#pessoal" style="color:#5ea7ff">see how</a>.'],
+    expirado: ["Link expired", "This link was valid for 48 hours. Sign up again and we'll send a new one right away."],
+    invalido: ["Invalid link", "This link is no longer valid. It may have been used already, or replaced by a newer one — " +
+      "if you signed up more than once, <b>open the latest email you received</b>. " +
+      "If you can't find it, sign up again and we'll send a new one right away."],
+  },
+};
 
 // ─────────────────────────────────────────────────────────────── rotas
 export default {
@@ -411,6 +468,7 @@ export default {
       }
 
       if (String(dados._honey || "").trim()) return json(200, { ok: true }, origin); // robô
+      const idioma = idiomaDaInscricao(dados);
       const email = String(dados.email || "").trim().toLowerCase();
       if (!email) return json(400, { ok: false, error: "email_ausente" }, origin);
       if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -469,7 +527,7 @@ export default {
       // para não revelar a terceiros quem está na lista.
       if (registro.token) {
         try {
-          await enviarEmail(env, email, String(dados.nome || "").trim(), linkDeConfirmacao(env, registro.token));
+          await enviarEmail(env, email, String(dados.nome || "").trim(), linkDeConfirmacao(env, registro.token, idioma), idioma);
         } catch (err) {
           // O lead já está salvo; o reenvio é possível. Não mentimos dizendo que deu certo.
           console.error("envio_falhou", err.message);
@@ -484,15 +542,19 @@ export default {
       }
 
       if (veioDeFormulario) {
-        return Response.redirect(destinoSeguro(dados._next, env), 303);
+        return Response.redirect(destinoSeguro(dados._next, env, idioma), 303);
       }
       return json(200, { ok: true }, origin);
     }
 
     // ---- confirmação
     if (url.pathname === "/confirm" && req.method === "GET") {
+      const idioma = url.searchParams.get("lang") === "en" ? "en" : "pt";
+      const t = CONFIRMACAO[idioma];
+      const site = escapar((env.SITE_URL || "https://trustio.com.br") + (idioma === "en" ? "/en" : ""));
+      const responder = (chave, status = 200) => pagina(t[chave][0], t[chave][1].replace("{site}", site), env, status, idioma);
       const token = url.searchParams.get("token");
-      if (!token) return pagina("Link incompleto", "Este endereço não traz o código de confirmação. Abra o link direto do e-mail que enviamos.", env, 400);
+      if (!token) return responder("incompleto", 400);
 
       let r;
       try {
@@ -504,25 +566,15 @@ export default {
         }
       } catch (err) {
         console.error("confirmar_optin_falhou", err.message);
-        return pagina("Tente de novo em instantes", "Não conseguimos conferir o link agora. Abra de novo daqui a pouco; se ele já tiver sido usado, avisamos na hora.", env, 503);
+        return responder("instavel", 503);
       }
 
-      if (r?.ok) {
-        return pagina("Inscrição confirmada",
-          "Pronto: sua vaga está garantida. Avisamos por e-mail no dia da abertura, <b>1º de outubro de 2026</b>. " +
-          'Quem assina um plano entra em até 1 dia útil após o pagamento — <a href="' + escapar(env.SITE_URL || "https://trustio.com.br") + '/planos.html#pessoal" style="color:#5ea7ff">ver como</a>.', env);
-      }
-      if (r?.error === "token_expirado") {
-        return pagina("Link expirado",
-          "Este link valia por 48 horas. Faça a inscrição de novo e enviamos outro na hora.", env, 410);
-      }
+      if (r?.ok) return responder("confirmado");
+      if (r?.error === "token_expirado") return responder("expirado", 410);
       // Pedir a inscrição de novo emite um token novo e invalida o anterior, de propósito:
       // um link antigo não deve continuar valendo. Quem se inscreveu duas vezes chega aqui
       // pelo e-mail mais velho, então a mensagem manda procurar o mais recente.
-      return pagina("Link inválido",
-        "Este link não vale mais. Ele pode já ter sido usado, ou ter sido substituído por um mais " +
-        "recente — se você se inscreveu mais de uma vez, <b>abra o último e-mail que recebeu</b>. " +
-        "Se não encontrar, inscreva-se de novo e enviamos outro na hora.", env, 400);
+      return responder("invalido", 400);
     }
 
     return json(404, { ok: false, error: "nao_encontrado" }, origin);

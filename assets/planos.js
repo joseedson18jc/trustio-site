@@ -1,5 +1,9 @@
 "use strict";
 // Planos: seletor Empresas | Você (com deep link #pessoal / #empresas) e pré-seleção do plano na lista de acesso.
+// Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
+const EN = /^en\b/i.test(document.documentElement.lang);
+const T = (pt, en) => (EN ? en : pt);
+const OBRIGADO = `https://trustio.com.br${EN ? "/en" : ""}/obrigado.html`;
 const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
 const tabs = [...document.querySelectorAll("[data-seg]")];
 const panels = { empresas: document.getElementById("empresas"), pessoal: document.getElementById("pessoal") };
@@ -35,9 +39,9 @@ document.querySelectorAll("[data-interesse]").forEach((a) => a.addEventListener(
   const apply = () => {
     const pre = acesso.find((i) => i.checked)?.dataset.acesso === "pre";
     const plano = document.querySelector('#pessoal input[name="plano"]:checked')?.value || "mensal";
-    if (next) next.value = pre ? `https://trustio.com.br/obrigado.html?lista=pre&plano=${plano}` : "https://trustio.com.br/obrigado.html?lista=espera";
-    if (subj) subj.value = pre ? "ASSINATURA B2C (acesso antecipado) — via planos" : "Lista de espera (B2C via planos) — trustio.com.br";
-    if (btn) btn.firstChild.textContent = pre ? "Quero assinar e entrar em até 1 dia útil " : "Quero acesso ";
+    if (next) next.value = pre ? `${OBRIGADO}?lista=pre&plano=${plano}` : `${OBRIGADO}?lista=espera`;
+    if (subj) subj.value = (pre ? "ASSINATURA B2C (acesso antecipado) — via planos" : "Lista de espera (B2C via planos) — trustio.com.br") + (EN ? " · EN" : "");
+    if (btn) btn.firstChild.textContent = pre ? T("Quero assinar e entrar em até 1 dia útil ", "Subscribe and get in within 1 business day ") : T("Quero acesso ", "I want access ");
   };
   acesso.forEach((i) => i.addEventListener("change", apply));
   document.querySelectorAll('#pessoal input[name="plano"]').forEach((i) => i.addEventListener("change", apply));

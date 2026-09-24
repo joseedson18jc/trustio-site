@@ -22,9 +22,9 @@
  * A inscrição é gravada no mesmo crm_leads da conta, pelas funções registrar_optin
  * e confirmar_optin: uma lista de clientes só, não duas.
  *
- * Enquanto o banco do projeto Supabase novo não existe, ARMAZENAMENTO = "kv" grava a
- * inscrição no KV SIGNUPS (lead:, token:, atual:, envio: e confirmado:). Na troca para
- * o Supabase, ver worker/README.md: confirmado:<e-mail> vale mais que o status do lead.
+ * Enquanto o banco do projeto Supabase novo não existe, ARMAZENAMENTO = "d1" grava a
+ * inscrição no D1 trustio-lista-de-espera (worker/migrations). Links antigos do KV
+ * SIGNUPS continuam confirmando. Na troca, ver worker/README.md.
  */
 
 const ORIGENS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$|^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
@@ -104,16 +104,14 @@ async function rpc(env, nome, args) {
   try { return JSON.parse(texto); } catch { return null; }
 }
 
-// ─────────────────────────────────────────────────────────────── KV (provisório)
+// ─────────────────────────────────────────────────────────────── D1 (provisório)
 const PRAZO_DO_LINK_MS = 48 * 60 * 60 * 1000;
-// Um segundo envio para o mesmo e-mail dentro deste intervalo não sai: evita e-mail
-// duplicado em clique duplo ou reenvio do formulário. O KV não aceita TTL menor que 60 s.
-const INTERVALO_DE_REENVIO_S = 5 * 60;
-// A chave do token some sozinha depois disso; o prazo de 48 h é conferido no lead.
-const VIDA_DA_CHAVE_DO_TOKEN_S = 7 * 24 * 60 * 60;
+// Um segundo e-mail para o mesmo endereço dentro deste intervalo não sai: evita
+// duplicata em clique duplo ou reenvio do formulário.
+const INTERVALO_DE_REENVIO_MS = 5 * 60 * 1000;
 
-function usaKV(env) {
-  return env.ARMAZENAMENTO === "kv";
+function usaD1(env) {
+  return env.ARMAZENAMENTO === "d1";
 }
 
 function novoToken() {
@@ -122,81 +120,113 @@ function novoToken() {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function lerJSON(kv, chave) {
-  const texto = await kv.get(chave);
-  if (!texto) return null;
-  try { return JSON.parse(texto); } catch { return null; }
+/**
+ * Mesmo contrato de registrar_optin: { ok, token } quando há e-mail a enviar, só { ok }
+ * quando não há (já confirmado, ou um link saiu há menos de 5 minutos).
+ *
+ * Um batch só, que o D1 executa como transação: o lead é gravado, e o link novo só
+ * nasce se o lead não estiver confirmado nem tiver recebido link há pouco.
+ * Os links anteriores continuam valendo até o e-mail novo sair (concluirNoD1).
+ */
+async function registrarNoD1(env, lead, agora = Date.now()) {
+  const db = env.DB;
+  const agoraISO = new Date(agora).toISOString();
+  const limite = new Date(agora - INTERVALO_DE_REENVIO_MS).toISOString();
+  const token = novoToken();
+  const [, , , emitido] = await db.batch([
+    // Campos vazios não apagam o que uma inscrição anterior trouxe; a origem que vale
+    // é a registrada primeiro. O status e a trava de reenvio não mudam aqui.
+    db.prepare(`INSERT INTO leads (email, nome, telefone, tipo, empresa, segmento, origem, notas, criado_em, atualizado_em)
+      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9)
+      ON CONFLICT (email) DO UPDATE SET
+        nome = COALESCE(excluded.nome, nome),
+        telefone = COALESCE(excluded.telefone, telefone),
+        tipo = COALESCE(excluded.tipo, tipo),
+        empresa = COALESCE(excluded.empresa, empresa),
+        segmento = COALESCE(excluded.segmento, segmento),
+        origem = COALESCE(origem, excluded.origem),
+        notas = COALESCE(excluded.notas, notas),
+        atualizado_em = ?9`)
+      .bind(lead.email, lead.nome, lead.telefone, lead.tipo, lead.empresa, lead.segmento,
+        lead.origem || "lista-de-espera", lead.notas, agoraISO),
+    // O link novo só nasce se o lead não estiver confirmado nem tiver recebido link há pouco.
+    db.prepare(`INSERT INTO links (token, email, expira_em, criado_em)
+      SELECT ?1, ?2, ?3, ?4 WHERE NOT EXISTS (
+        SELECT 1 FROM leads WHERE email = ?2 AND (status = 'confirmado' OR ultimo_link_em > ?5))`)
+      .bind(token, lead.email, new Date(agora + PRAZO_DO_LINK_MS).toISOString(), agoraISO, limite),
+    db.prepare("UPDATE leads SET ultimo_link_em = ?2 WHERE email = ?1 AND EXISTS (SELECT 1 FROM links WHERE token = ?3)")
+      .bind(lead.email, agoraISO, token),
+    db.prepare("SELECT 1 AS ok FROM links WHERE token = ?1").bind(token),
+  ]);
+  return emitido.results.length ? { ok: true, token } : { ok: true };
 }
 
 /**
- * Mesmo contrato de registrar_optin: { ok, token } quando há e-mail a enviar, só { ok }
- * quando não há (já confirmado, ou um link acabou de sair).
- *
- * O KV não tem transação, então cada escrita deixa o estado válido sozinha:
- * - o link vale pela chave token:<token> ({ email, expira_em }); a confirmação não
- *   depende de nenhuma outra escrita da inscrição ter dado certo;
- * - os dados do lead são gravados antes do envio, então uma falha da Resend não os perde;
- * - atual:<e-mail> aponta o último link entregue; só muda depois que o e-mail sai, e
- *   aí o link anterior é apagado. Se a Resend falhar, o link já entregue continua valendo;
- * - a confirmação grava o lead e depois confirmado:<e-mail>; a inscrição trata como
- *   confirmado quem tiver qualquer um dos dois.
+ * O e-mail saiu: os links anteriores do mesmo endereço deixam de valer. Se esta escrita
+ * falhar, eles continuam valendo junto com o novo, todos na mesma caixa de entrada.
  */
-async function registrarNoKV(env, lead, agora = Date.now()) {
-  const kv = env.SIGNUPS;
-  if (await kv.get(`confirmado:${lead.email}`)) return { ok: true, ja_confirmado: true };
-  const chave = `lead:${lead.email}`;
-  const antigo = await lerJSON(kv, chave);
-  if (antigo?.status === "confirmado") return { ok: true, ja_confirmado: true };
-  if (antigo && await kv.get(`envio:${lead.email}`)) return { ok: true, enviado_ha_pouco: true };
-
-  // Campos vazios não apagam o que uma inscrição anterior já trouxe, e a origem
-  // registrada primeiro é a que vale.
-  const preenchidos = Object.fromEntries(Object.entries(lead).filter(([, v]) => v));
-  const agoraISO = new Date(agora).toISOString();
-  const token = novoToken();
-  await kv.put(`token:${token}`, JSON.stringify({
-    email: lead.email, expira_em: new Date(agora + PRAZO_DO_LINK_MS).toISOString(),
-  }), { expirationTtl: VIDA_DA_CHAVE_DO_TOKEN_S });
-  await kv.put(chave, JSON.stringify({
-    ...antigo,
-    ...preenchidos,
-    origem: antigo?.origem || lead.origem || "lista-de-espera",
-    status: "pendente",
-    criado_em: antigo?.criado_em || agoraISO,
-    atualizado_em: agoraISO,
-  }));
-  return { ok: true, token };
+async function concluirNoD1(env, email, token) {
+  await env.DB.prepare("DELETE FROM links WHERE email = ?1 AND token <> ?2").bind(email, token).run();
 }
 
-/** Depois do envio: o link novo passa a ser o atual, o anterior é apagado e o envio marcado. */
-async function concluirNoKV(env, email, token) {
-  const kv = env.SIGNUPS;
-  await kv.put(`envio:${email}`, "1", { expirationTtl: INTERVALO_DE_REENVIO_S });
-  const anterior = await kv.get(`atual:${email}`);
-  await kv.put(`atual:${email}`, token, { expirationTtl: VIDA_DA_CHAVE_DO_TOKEN_S });
-  if (anterior && anterior !== token) await kv.delete(`token:${anterior}`);
+/**
+ * O envio falhou: o link novo nunca chegou a ninguém, e a trava de 5 minutos é liberada
+ * para a pessoa poder tentar de novo. Os links anteriores continuam valendo.
+ */
+async function descartarNoD1(env, email, token) {
+  const db = env.DB;
+  await db.batch([
+    db.prepare("DELETE FROM links WHERE token = ?1").bind(token),
+    db.prepare("UPDATE leads SET ultimo_link_em = NULL WHERE email = ?1").bind(email),
+  ]);
 }
 
-/** O envio falhou: o token novo nunca chegou a ninguém. */
-async function descartarNoKV(env, token) {
-  await env.SIGNUPS.delete(`token:${token}`);
-}
-
-/** Mesmo contrato de confirmar_optin. */
-async function confirmarNoKV(env, token, agora = Date.now()) {
-  const kv = env.SIGNUPS;
+/**
+ * Mesmo contrato de confirmar_optin. A confirmação e a baixa de todos os links do
+ * e-mail vão num batch só: ou as duas acontecem, ou nenhuma.
+ */
+async function confirmarNoD1(env, token, agora = Date.now()) {
+  const db = env.DB;
   if (!/^[a-f0-9]{64}$/.test(token)) return { ok: false, error: "token_invalido" };
-  const ref = await lerJSON(kv, `token:${token}`);
-  if (!ref?.email) return { ok: false, error: "token_invalido" };
-  if (agora > Date.parse(ref.expira_em)) return { ok: false, error: "token_expirado" };
-  const lead = await lerJSON(kv, `lead:${ref.email}`);
+  const link = await db.prepare("SELECT email, expira_em FROM links WHERE token = ?1").bind(token).first();
+  if (!link) return confirmarLinkDoKV(env, token, agora);
+  if (agora > Date.parse(link.expira_em)) return { ok: false, error: "token_expirado" };
   const agoraISO = new Date(agora).toISOString();
-  await kv.put(`lead:${ref.email}`, JSON.stringify({
-    email: ref.email, ...lead, status: "confirmado", confirmado_em: agoraISO, atualizado_em: agoraISO,
-  }));
-  await kv.put(`confirmado:${ref.email}`, JSON.stringify({ confirmado_em: agoraISO }));
-  await kv.delete(`token:${token}`);
-  await kv.delete(`atual:${ref.email}`);
+  const [confirmacao] = await db.batch([
+    db.prepare(`UPDATE leads SET status = 'confirmado', confirmado_em = COALESCE(confirmado_em, ?2), atualizado_em = ?2
+      WHERE email = ?1 AND EXISTS (SELECT 1 FROM links WHERE token = ?3)`).bind(link.email, agoraISO, token),
+    db.prepare("DELETE FROM links WHERE email = ?1 AND EXISTS (SELECT 1 FROM links WHERE token = ?2)").bind(link.email, token),
+  ]);
+  // Zero linhas: outro clique no mesmo link confirmou primeiro.
+  if (!confirmacao.meta.changes) return { ok: false, error: "token_invalido" };
+  return { ok: true, email: link.email };
+}
+
+/**
+ * Links enviados entre 24/09 07:36 e a troca para o D1 foram gravados no KV SIGNUPS
+ * (token:<token> → { email }, lead:<e-mail> com token e token_expira_em). Continuam
+ * valendo: a confirmação grava o lead no D1 já confirmado. Repetir é inofensivo, porque
+ * confirmado_em guarda a primeira data.
+ */
+async function confirmarLinkDoKV(env, token, agora) {
+  const kv = env.SIGNUPS;
+  if (!kv) return { ok: false, error: "token_invalido" };
+  let ref, antigo;
+  try {
+    ref = JSON.parse((await kv.get(`token:${token}`)) || "null");
+    antigo = ref?.email && JSON.parse((await kv.get(`lead:${ref.email}`)) || "null");
+  } catch { return { ok: false, error: "token_invalido" }; }
+  if (!antigo || antigo.token !== token) return { ok: false, error: "token_invalido" };
+  if (!(agora <= Date.parse(antigo.token_expira_em))) return { ok: false, error: "token_expirado" };
+  const agoraISO = new Date(agora).toISOString();
+  await env.DB.prepare(`INSERT INTO leads (email, nome, telefone, tipo, empresa, segmento, origem, notas,
+      status, criado_em, atualizado_em, confirmado_em)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 'confirmado', ?9, ?10, ?10)
+    ON CONFLICT (email) DO UPDATE SET status = 'confirmado', confirmado_em = COALESCE(confirmado_em, ?10), atualizado_em = ?10`)
+    .bind(ref.email, antigo.nome ?? null, antigo.telefone ?? null, antigo.tipo ?? null, antigo.empresa ?? null,
+      antigo.segmento ?? null, antigo.origem ?? null, antigo.notas ?? null, antigo.criado_em || agoraISO, agoraISO)
+    .run();
+  try { await kv.delete(`token:${token}`); } catch (err) { console.error("limpeza_kv_falhou", err.message); }
   return { ok: true, email: ref.email };
 }
 
@@ -282,8 +312,8 @@ export default {
     if (url.pathname === "/saude" && req.method === "GET") {
       return json(200, {
         ok: true,
-        armazenamento: usaKV(env) ? "kv" : "supabase",
-        kv: Boolean(env.SIGNUPS),
+        armazenamento: usaD1(env) ? "d1" : "supabase",
+        d1: Boolean(env.DB),
         supabase: Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY),
         resend: Boolean(env.RESEND_API_KEY),
         remetente: env.EMAIL_FROM || null,
@@ -315,7 +345,7 @@ export default {
         return json(400, { ok: false, error: "email_invalido" }, origin);
       }
 
-      if (usaKV(env) ? !env.SIGNUPS : !env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+      if (usaD1(env) ? !env.DB : !env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
         console.error("armazenamento_nao_configurado");
         return json(503, { ok: false, error: "indisponivel" }, origin);
       }
@@ -344,8 +374,8 @@ export default {
 
       let registro;
       try {
-        registro = usaKV(env)
-          ? await registrarNoKV(env, lead)
+        registro = usaD1(env)
+          ? await registrarNoD1(env, lead)
           : await rpc(env, "registrar_optin", {
             p_email: lead.email,
             p_nome: lead.nome,
@@ -371,13 +401,13 @@ export default {
         } catch (err) {
           // O lead já está salvo; o reenvio é possível. Não mentimos dizendo que deu certo.
           console.error("envio_falhou", err.message);
-          if (usaKV(env)) {
-            try { await descartarNoKV(env, registro.token); } catch (e) { console.error("descarte_falhou", e.message); }
+          if (usaD1(env)) {
+            try { await descartarNoD1(env, email, registro.token); } catch (e) { console.error("descarte_falhou", e.message); }
           }
           return json(502, { ok: false, error: "email_nao_enviado" }, origin);
         }
-        if (usaKV(env)) {
-          try { await concluirNoKV(env, email, registro.token); } catch (err) { console.error("conclusao_falhou", err.message); }
+        if (usaD1(env)) {
+          try { await concluirNoD1(env, email, registro.token); } catch (err) { console.error("conclusao_falhou", err.message); }
         }
       }
 
@@ -394,7 +424,7 @@ export default {
 
       let r;
       try {
-        r = usaKV(env) ? await confirmarNoKV(env, token) : await rpc(env, "confirmar_optin", { p_token: token });
+        r = usaD1(env) ? await confirmarNoD1(env, token) : await rpc(env, "confirmar_optin", { p_token: token });
       } catch (err) {
         console.error("confirmar_optin_falhou", err.message);
         return pagina("Tente de novo em instantes", "Não conseguimos confirmar agora. O link continua valendo — abra de novo daqui a pouco.", env, 503);

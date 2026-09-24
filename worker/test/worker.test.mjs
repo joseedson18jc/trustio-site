@@ -1,4 +1,6 @@
 // Exercita o worker com fetch simulado: nada sai para a rede.
+import { readFileSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
 import worker from "../src/index.js";
 
 const env = {
@@ -158,135 +160,181 @@ r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "sem-arrob
 ok(r.status === 400 && (await r.json()).error === "email_invalido" && !rpcs.length && !enviados.length,
    "e-mail inválido recusado sem gravar nem enviar");
 
-// 10 · modo KV (provisório): grava no SIGNUPS em vez do Supabase
+// 10 · modo D1 (provisório): o SQL real roda no SQLite do Node, com chaves estrangeiras
+//      ligadas como no D1, e db.batch() é uma transação
+function d1Falso() {
+  const sql = new DatabaseSync(":memory:");
+  sql.exec("PRAGMA foreign_keys = ON");
+  sql.exec(readFileSync(new URL("../migrations/0001_lista_de_espera.sql", import.meta.url), "utf8"));
+  const falhar = []; // expressões: um comando que casar falha, como uma escrita do D1 que cai
+  const executar = (q, args) => {
+    if (falhar.some((re) => re.test(q))) throw new Error("d1 indisponível");
+    const st = sql.prepare(q);
+    if (/^\s*SELECT/i.test(q)) return { results: st.all(...args), meta: { changes: 0 } };
+    return { results: [], meta: { changes: Number(st.run(...args).changes) } };
+  };
+  const preparar = (q) => {
+    let args = [];
+    const st = {
+      q, get args() { return args; },
+      bind(...a) { args = a.map((v) => v ?? null); return st; },
+      async first() { return executar(q, args).results[0] ?? null; },
+      async run() { return executar(q, args); },
+      async all() { return executar(q, args); },
+    };
+    return st;
+  };
+  return {
+    sql, falhar,
+    prepare: preparar,
+    async batch(sts) {
+      sql.exec("BEGIN");
+      try { const r = sts.map((st) => executar(st.q, st.args)); sql.exec("COMMIT"); return r; }
+      catch (e) { sql.exec("ROLLBACK"); throw e; }
+    },
+  };
+}
 function kvFalso() {
   const dados = new Map();
-  const falhar = new Set(); // prefixos cujo put falha, para simular erro do KV
   return {
-    dados, falhar,
-    async get(k) { return dados.has(k) ? dados.get(k).v : null; },
-    async put(k, v, o = {}) {
-      if ([...falhar].some((p) => k.startsWith(p))) throw new Error("kv indisponível");
-      dados.set(k, { v: String(v), ttl: o.expirationTtl });
-    },
+    dados,
+    async get(k) { return dados.has(k) ? dados.get(k) : null; },
+    async put(k, v) { dados.set(k, String(v)); },
     async delete(k) { dados.delete(k); },
   };
 }
+const db = d1Falso();
 const kv = kvFalso();
-const envKV = { ...env, ARMAZENAMENTO: "kv", SIGNUPS: kv };
-const chaves = (prefixo) => [...kv.dados.keys()].filter((k) => k.startsWith(prefixo));
-const leadKV = (e) => JSON.parse(kv.dados.get("lead:" + e)?.v || "null");
+const envD1 = { ...env, ARMAZENAMENTO: "d1", DB: db, SIGNUPS: kv };
+const leadD1 = (e) => db.sql.prepare("SELECT * FROM leads WHERE email = ?").get(e);
+const linksDe = (e) => db.sql.prepare("SELECT token FROM links WHERE email = ?").all(e).map((l) => l.token);
 const linkDe = (m) => (m?.html || "").match(/confirm\?token=([a-f0-9]{64})/)?.[1];
-const tokensDe = (e) => chaves("token:").filter((k) => JSON.parse(kv.dados.get(k).v).email === e);
-const confirma = async (t) => (await worker.fetch(req("GET", "/confirm?token=" + t), envKV)).status;
-const inscreve = async (corpo) => worker.fetch(req("POST", "/signup", JSON.stringify(corpo)), envKV);
+const confirma = async (t) => (await worker.fetch(req("GET", "/confirm?token=" + t), envD1)).status;
+const inscreve = async (corpo) => worker.fetch(req("POST", "/signup", JSON.stringify(corpo)), envD1);
+const envelhecer = (e) => db.sql.prepare("UPDATE leads SET ultimo_link_em = '2000-01-01T00:00:00.000Z' WHERE email = ?").run(e);
 const comResendFalhando = async (fn) => {
   globalThis.fetch = async (u, o) => u.includes("resend") ? new Response("erro", { status: 500 }) : fetchBom(u, o);
   try { return await fn(); } finally { globalThis.fetch = fetchBom; }
 };
+const comD1Falhando = async (re, fn) => {
+  db.falhar.push(re);
+  try { return await fn(); } finally { db.falhar.length = 0; }
+};
 
-d = await (await worker.fetch(req("GET", "/saude"), envKV)).json();
-ok(d.armazenamento === "kv" && d.kv === true, "/saude mostra o modo kv");
+d = await (await worker.fetch(req("GET", "/saude"), envD1)).json();
+ok(d.armazenamento === "d1" && d.d1 === true, "/saude mostra o modo d1");
 
-const P = "pessoa.kv@exemplo.com.br";
+const P = "pessoa.d1@exemplo.com.br";
 rpcs = []; enviados = [];
 const inscricao = {
-  _honey: "", origem: "espera.html", nome: "Pessoa KV", email: " Pessoa.KV@Exemplo.com.BR ", telefone: "",
+  _honey: "", origem: "espera.html", nome: "Pessoa D1", email: " Pessoa.D1@Exemplo.com.BR ", telefone: "",
   tipo: "B2C — para mim", plano: "Mensal R$ 79", acesso: "Lista gratuita — acesso em 1º/10",
 };
 r = await inscreve(inscricao);
 d = await r.json();
-let lk = leadKV(P);
-ok(r.status === 200 && d.ok, "kv: POST /signup aceita");
-ok(rpcs.length === 0, "kv: não chama o Supabase");
-ok(chaves("lead:").length === 1 && lk?.status === "pendente" && lk.nome === "Pessoa KV" && lk.tipo === "b2c",
-   "kv: um lead pendente gravado", JSON.stringify(lk));
-ok(/Mensal R\$ 79/.test(lk?.notas || ""), "kv: extras viram notas");
+let ld = leadD1(P);
+ok(r.status === 200 && d.ok && rpcs.length === 0, "d1: POST /signup aceita, sem chamar o Supabase");
+ok(ld?.status === "pendente" && ld.nome === "Pessoa D1" && ld.tipo === "b2c" && ld.origem === "espera.html" && ld.ultimo_link_em,
+   "d1: lead pendente gravado", JSON.stringify(ld));
+ok(/Mensal R\$ 79/.test(ld?.notas || ""), "d1: extras viram notas");
 const t1 = linkDe(enviados[0]);
-ok(enviados.length === 1 && kv.dados.has("token:" + t1) && kv.dados.get("token:" + t1).ttl > 0, "kv: um e-mail, token gravado com validade");
-ok(kv.dados.get("atual:" + P)?.v === t1 && kv.dados.get("envio:" + P)?.ttl >= 60, "kv: link atual e marca de envio gravados");
+ok(enviados.length === 1 && linksDe(P).join() === t1, "d1: um e-mail, com o link gravado");
 
 r = await inscreve(inscricao);
-ok(r.status === 200 && enviados.length === 1 && chaves("lead:").length === 1 && tokensDe(P).length === 1,
-   "kv: reenvio imediato não duplica lead, token nem e-mail");
+ok(r.status === 200 && enviados.length === 1 && linksDe(P).length === 1, "d1: reenvio imediato não duplica link nem e-mail");
 
-// depois do intervalo: link novo, o anterior deixa de valer
-kv.dados.delete("envio:" + P);
-r = await inscreve({ email: P, telefone: "+55 11 90000-0000" });
+envelhecer(P);
+r = await inscreve({ email: P, telefone: "+55 11 90000-0000", origem: "planos.html" });
 const t2 = linkDe(enviados[1]);
-lk = leadKV(P);
-ok(r.status === 200 && enviados.length === 2 && t2 !== t1 && tokensDe(P).length === 1, "kv: depois do intervalo, link novo e o antigo apagado");
-ok(lk.nome === "Pessoa KV" && lk.telefone === "+55 11 90000-0000" && lk.origem === "espera.html",
-   "kv: campo vazio não apaga, campo novo entra, origem mantida");
-ok(await confirma(t1) === 400, "kv: link antigo não confirma");
-ok(await confirma(t2) === 200, "kv: link novo confirma");
-lk = leadKV(P);
-ok(lk.status === "confirmado" && lk.confirmado_em && kv.dados.has("confirmado:" + P) && !tokensDe(P).length && !kv.dados.has("atual:" + P),
-   "kv: lead confirmado, chave confirmado: gravada, tokens apagados");
-ok(await confirma(t2) === 400, "kv: o mesmo link não vale duas vezes");
+ld = leadD1(P);
+ok(r.status === 200 && enviados.length === 2 && t2 !== t1 && linksDe(P).join() === t2, "d1: depois do intervalo, link novo e o anterior apagado");
+ok(ld.nome === "Pessoa D1" && ld.telefone === "+55 11 90000-0000" && ld.origem === "espera.html",
+   "d1: campo vazio não apaga, campo novo entra, a primeira origem fica");
+ok(await confirma(t1) === 400, "d1: link substituído não confirma");
+ok(await confirma(t2) === 200, "d1: link atual confirma");
+ld = leadD1(P);
+ok(ld.status === "confirmado" && ld.confirmado_em && !linksDe(P).length, "d1: lead confirmado e links apagados");
+ok(await confirma(t2) === 400, "d1: o mesmo link não vale duas vezes");
 
-kv.dados.delete("envio:" + P);
+envelhecer(P);
 r = await inscreve(inscricao);
-ok(r.status === 200 && enviados.length === 2 && leadKV(P).status === "confirmado",
-   "kv: quem já confirmou não recebe outro e-mail nem volta a pendente");
-
-// corrida: uma inscrição regravou o lead como pendente depois da confirmação
-kv.dados.set("lead:" + P, { v: JSON.stringify({ ...leadKV(P), status: "pendente" }) });
-r = await inscreve(inscricao);
-ok(r.status === 200 && enviados.length === 2, "kv: confirmado: vale mesmo com o lead regravado como pendente");
+ok(r.status === 200 && enviados.length === 2 && leadD1(P).status === "confirmado" && !linksDe(P).length,
+   "d1: quem já confirmou não recebe outro e-mail nem volta a pendente");
 
 // link vencido
 await inscreve({ email: "vence@exemplo.com.br" });
 const tv = linkDe(enviados.at(-1));
-kv.dados.set("token:" + tv, { v: JSON.stringify({ email: "vence@exemplo.com.br", expira_em: new Date(Date.now() - 1000).toISOString() }) });
-ok(await confirma(tv) === 410, "kv: link vencido diz que expirou");
+db.sql.prepare("UPDATE links SET expira_em = '2000-01-01T00:00:00.000Z' WHERE token = ?").run(tv);
+ok(await confirma(tv) === 410, "d1: link vencido diz que expirou");
 
-// falha da Resend na primeira inscrição: erro honesto, lead salvo, nova tentativa envia
-r = await comResendFalhando(() => inscreve({ email: "falha.kv@exemplo.com.br", nome: "Falha" }));
-ok(r.status === 502 && (await r.json()).error === "email_nao_enviado" && leadKV("falha.kv@exemplo.com.br")?.nome === "Falha"
-   && !tokensDe("falha.kv@exemplo.com.br").length && !kv.dados.has("envio:falha.kv@exemplo.com.br"),
-   "kv: envio falhou → erro honesto, lead salvo, sem token órfão nem marca de envio");
+// falha da Resend na primeira inscrição: erro honesto, lead salvo, trava liberada
+const F = "falha.d1@exemplo.com.br";
+r = await comResendFalhando(() => inscreve({ email: F, nome: "Falha" }));
+ok(r.status === 502 && (await r.json()).error === "email_nao_enviado" && leadD1(F)?.nome === "Falha"
+   && !linksDe(F).length && leadD1(F).ultimo_link_em === null,
+   "d1: envio falhou → erro honesto, lead salvo, sem link órfão, trava liberada");
 let antes = enviados.length;
-r = await inscreve({ email: "falha.kv@exemplo.com.br" });
-ok(r.status === 200 && enviados.length === antes + 1, "kv: nova tentativa depois da falha envia");
+r = await inscreve({ email: F });
+ok(r.status === 200 && enviados.length === antes + 1, "d1: nova tentativa depois da falha envia");
 
-// reenvio que falha: o link entregue continua valendo e os dados novos não se perdem
-const R = "reenvio@exemplo.com.br";
+// reenvio que falha: o link entregue continua valendo e os dados novos ficam
+const R = "reenvio.d1@exemplo.com.br";
 await inscreve({ email: R, origem: "planos.html" });
 const tr = linkDe(enviados.at(-1));
-kv.dados.delete("envio:" + R);
+envelhecer(R);
 r = await comResendFalhando(() => inscreve({ email: R, empresa: "Empresa Nova" }));
-ok(r.status === 502 && tokensDe(R).length === 1 && kv.dados.get("atual:" + R)?.v === tr,
-   "kv: reenvio que falha mantém o link anterior e não deixa token órfão");
-ok(leadKV(R).empresa === "Empresa Nova" && leadKV(R).origem === "planos.html", "kv: reenvio que falha ainda grava os dados novos");
-ok(await confirma(tr) === 200, "kv: o link anterior confirma depois da falha");
+ok(r.status === 502 && linksDe(R).join() === tr, "d1: reenvio que falha mantém só o link anterior");
+ok(leadD1(R).empresa === "Empresa Nova" && leadD1(R).origem === "planos.html", "d1: reenvio que falha ainda grava os dados novos");
+ok(await confirma(tr) === 200, "d1: o link anterior confirma depois da falha");
 
-// o e-mail saiu mas a escrita seguinte do KV falhou: o link entregue confirma mesmo assim
-const Q = "quebra@exemplo.com.br";
-kv.falhar.add("envio:"); kv.falhar.add("atual:");
-r = await inscreve({ email: Q });
-kv.falhar.clear();
-const tq = linkDe(enviados.at(-1));
-ok(r.status === 200 && await confirma(tq) === 200, "kv: link entregue confirma mesmo se a escrita pós-envio falhar");
+// o e-mail saiu mas a baixa dos links anteriores falhou: o link novo confirma
+const Q = "quebra.d1@exemplo.com.br";
+await inscreve({ email: Q });
+const tq1 = linkDe(enviados.at(-1));
+envelhecer(Q);
+r = await comD1Falhando(/^DELETE FROM links WHERE email = \?1 AND token <> \?2/, () => inscreve({ email: Q }));
+const tq2 = linkDe(enviados.at(-1));
+ok(r.status === 200 && linksDe(Q).length === 2, "d1: baixa pós-envio falhou → a inscrição responde ok");
+ok(await confirma(tq2) === 200 && !linksDe(Q).length && await confirma(tq1) === 400,
+   "d1: o link novo confirma e a confirmação apaga também o anterior");
 
-// confirmação: se gravar o lead falhar, nada fica marcado e o link continua valendo
-const C = "confirma.falha@exemplo.com.br";
+// a inscrição inteira falha no D1: nada é gravado nem enviado
+antes = enviados.length;
+r = await comD1Falhando(/INSERT INTO links/, () => inscreve({ email: "nada@exemplo.com.br", nome: "Nada" }));
+ok(r.status === 502 && !leadD1("nada@exemplo.com.br") && enviados.length === antes, "d1: falha no batch da inscrição não grava nada pela metade");
+
+// a confirmação falha no D1: nada muda e o mesmo link confirma depois
+const C = "confirma.d1@exemplo.com.br";
 await inscreve({ email: C });
 const tc = linkDe(enviados.at(-1));
-kv.falhar.add("lead:");
-r = await worker.fetch(req("GET", "/confirm?token=" + tc), envKV);
-kv.falhar.clear();
-ok(r.status === 503 && !kv.dados.has("confirmado:" + C) && leadKV(C).status === "pendente", "kv: confirmação que falha não deixa marca de confirmado");
-ok(await confirma(tc) === 200 && kv.dados.has("confirmado:" + C), "kv: o mesmo link confirma na nova tentativa");
+ok(await comD1Falhando(/^DELETE FROM links WHERE email = \?1 AND EXISTS/, () => confirma(tc)) === 503
+   && leadD1(C).status === "pendente" && linksDe(C).length === 1, "d1: confirmação que falha não deixa nada pela metade");
+ok(await confirma(tc) === 200 && leadD1(C).status === "confirmado", "d1: o mesmo link confirma na nova tentativa");
 
-// formulário sem JavaScript no modo kv
-r = await worker.fetch(req("POST", "/signup", "email=sem-js.kv%40exemplo.com.br&_next=%2Fobrigado.html%3Flista%3Despera",
-  "application/x-www-form-urlencoded"), envKV);
-ok(r.status === 303 && leadKV("sem-js.kv@exemplo.com.br")?.status === "pendente", "kv: sem JavaScript grava e redireciona");
+// links gravados no KV antes da troca continuam confirmando
+const K = "antigo.kv@exemplo.com.br", tk = "c".repeat(64);
+kv.dados.set("token:" + tk, JSON.stringify({ email: K }));
+kv.dados.set("lead:" + K, JSON.stringify({ email: K, nome: "Antigo", origem: "espera.html", status: "pendente", criado_em: "2026-09-24T07:40:00.000Z",
+  token: tk, token_expira_em: new Date(Date.now() + 3600e3).toISOString() }));
+ok(await confirma(tk) === 200 && leadD1(K)?.status === "confirmado" && leadD1(K).nome === "Antigo" && !kv.dados.has("token:" + tk),
+   "d1: link antigo do KV confirma e o lead entra no D1");
+ok(await confirma(tk) === 400, "d1: o link antigo do KV não vale duas vezes");
+const tk2 = "d".repeat(64);
+kv.dados.set("token:" + tk2, JSON.stringify({ email: "vencido.kv@exemplo.com.br" }));
+kv.dados.set("lead:vencido.kv@exemplo.com.br", JSON.stringify({ token: tk2, token_expira_em: "2000-01-01T00:00:00.000Z" }));
+ok(await confirma(tk2) === 410, "d1: link antigo do KV vencido diz que expirou");
+const tk3 = "e".repeat(64);
+kv.dados.set("token:" + tk3, JSON.stringify({ email: "sem-prazo.kv@exemplo.com.br" }));
+kv.dados.set("lead:sem-prazo.kv@exemplo.com.br", JSON.stringify({ token: tk3 }));
+ok(await confirma(tk3) === 410, "d1: link antigo do KV sem prazo não vale para sempre");
 
-r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "x@exemplo.com.br" })), { ...env, ARMAZENAMENTO: "kv" });
-ok(r.status === 503, "kv sem o binding SIGNUPS: indisponível, sem fingir sucesso");
-ok(await confirma("nao-hex") === 400, "kv: token fora do formato recusado");
+// formulário sem JavaScript, binding ausente, token fora do formato
+r = await worker.fetch(req("POST", "/signup", "email=sem-js.d1%40exemplo.com.br&_next=%2Fobrigado.html%3Flista%3Despera",
+  "application/x-www-form-urlencoded"), envD1);
+ok(r.status === 303 && leadD1("sem-js.d1@exemplo.com.br")?.status === "pendente", "d1: sem JavaScript grava e redireciona");
+r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "x@exemplo.com.br" })), { ...env, ARMAZENAMENTO: "d1" });
+ok(r.status === 503, "d1 sem o binding DB: indisponível, sem fingir sucesso");
+ok(await confirma("nao-hex") === 400, "d1: token fora do formato recusado");
 
 console.log(falhas ? `\n${falhas} FALHA(S)` : "\ntodos os casos passaram");
 process.exit(falhas ? 1 : 0);

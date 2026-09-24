@@ -33,32 +33,34 @@ CRM junto com o resto — uma lista de clientes só, não duas.
 
 Ao confirmar, o lead passa de `novo` para `email_confirmado` e o token sai do banco.
 
-### Provisório: KV `SIGNUPS`
+### Provisório: D1 `trustio-lista-de-espera`
 
-Enquanto o banco do projeto Supabase novo não existe, `ARMAZENAMENTO = "kv"` no
-`wrangler.toml` grava as inscrições no KV `SIGNUPS`:
+Enquanto o banco do projeto Supabase novo não existe, `ARMAZENAMENTO = "d1"` no
+`wrangler.toml` grava as inscrições no D1 (`migrations/0001_lista_de_espera.sql`):
 
-| Chave | Conteúdo |
+| Tabela | Conteúdo |
 |---|---|
-| `lead:<e-mail>` | o lead (JSON), com `status` `pendente` ou `confirmado` |
-| `confirmado:<e-mail>` | a confirmação; **vale mais que o `status` do lead**, que uma inscrição concorrente pode regravar |
-| `token:<token>` | `{ email, expira_em }` do link de confirmação; é o que a confirmação consulta. Some depois de 7 dias |
-| `atual:<e-mail>` | o último link entregue; muda só depois que o e-mail sai, e aí o anterior é apagado |
-| `envio:<e-mail>` | marca de e-mail enviado há menos de 5 minutos, para não duplicar |
+| `leads` | um por e-mail; `status` `pendente` ou `confirmado`, `ultimo_link_em` segura um segundo e-mail por 5 minutos |
+| `links` | links de confirmação; um link vale enquanto a linha existir e não tiver vencido (48 h) |
 
-Uma inscrição repetida atualiza o mesmo `lead:` em vez de criar outro, e só manda um
-link novo depois de 5 minutos. Se a Resend falhar, os dados novos ficam gravados e o
-link já entregue continua valendo.
+Inscrição e confirmação são, cada uma, um `db.batch()`, que o D1 executa como
+transação: não sobra estado pela metade. Os links anteriores só são apagados depois
+que o e-mail novo sai; se a Resend falhar, o link já entregue continua valendo e os
+dados novos ficam gravados. Ao confirmar, todos os links daquele e-mail são apagados.
+
+O KV `SIGNUPS` continua ligado só para links antigos: inscrições gravadas nele entre
+24/09 07:36 e a troca para o D1 (`lead:`/`token:`) confirmam normalmente, e o lead
+entra no D1 já confirmado.
 
 ### Importação para o Supabase
 
-Na troca, `ARMAZENAMENTO` volta a `"supabase"` e o `SIGNUPS` é importado para o
-`crm_leads` lendo **os dois formatos**:
+Na troca, `ARMAZENAMENTO` volta a `"supabase"` e são importados para o `crm_leads`:
 
-- **novo:** cada `lead:<e-mail>` é um lead; ele está confirmado se `status` for
-  `confirmado` **ou** se existir `confirmado:<e-mail>`;
-- **antigo** (worker anterior a 24/09): `pending:<token>` traz o JSON completo da
-  inscrição (`status`, `createdAt`, `data`, `meta`), com `index:<hash>` apontando o estado;
+- **D1:** a tabela `leads` inteira;
+- **KV, formato de 24/09:** `lead:<e-mail>` que ainda não estejam no D1; confirmado se
+  `status` for `confirmado` ou se existir `confirmado:<e-mail>`;
+- **KV, worker anterior a 24/09:** `pending:<token>` traz o JSON completo da inscrição
+  (`status`, `createdAt`, `data`, `meta`), com `index:<hash>` apontando o estado;
 - endereços de teste `delivered+teste-claude-*@resend.dev` ficam de fora.
 
 ## Publicar
@@ -100,8 +102,9 @@ daí, cada push na `main` substitui o worker em produção.
 
 | Nome | Onde | Valor |
 |---|---|---|
-| `ARMAZENAMENTO` | `wrangler.toml` | `kv` (provisório) ou `supabase` |
-| `SIGNUPS` | `wrangler.toml` (KV) | onde ficam as inscrições no modo `kv` |
+| `ARMAZENAMENTO` | `wrangler.toml` | `d1` (provisório) ou `supabase` |
+| `DB` | `wrangler.toml` (D1) | onde ficam as inscrições no modo `d1` |
+| `SIGNUPS` | `wrangler.toml` (KV) | links gravados antes da troca para o D1 |
 | `SUPABASE_URL` | `wrangler.toml` | endereço do projeto |
 | `SITE_URL`, `API_URL` | `wrangler.toml` | endereços públicos |
 | `EMAIL_FROM` | `wrangler.toml` | remetente; o domínio precisa estar **verificado na Resend** |

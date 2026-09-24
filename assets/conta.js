@@ -86,20 +86,27 @@
         }
       }).then(function (r) {
         if (r.error) throw r.error;
-        var user = r.data && r.data.user;
         if (r.data && r.data.session) { location.replace(appUrl); return; }
-        // identities vazio = e-mail já cadastrado (o Supabase não revela isso, por segurança).
-        var exists = user && Array.isArray(user.identities) && user.identities.length === 0;
+        // Mesma resposta para e-mail novo e para e-mail que já tem conta (o Supabase devolve
+        // identities vazio nesse caso, sem erro): dizer "já tem conta" num formulário público
+        // revelaria quem é cliente. Então nunca "conta criada" — a página diz o que vale nos
+        // dois casos e sempre oferece entrar ou recuperar a senha.
         signup.querySelectorAll("input:not([type=hidden]), select, fieldset").forEach(function (el) { el.disabled = true; });
         var done = signup.querySelector("[data-done]");
         if (done) {
           done.hidden = false;
           done.querySelector("[data-done-email]").textContent = email;
         }
-        busy(signup, true, exists ? T("Verifique seu e-mail", "Check your email") : T("Conta criada ✓", "Account created ✓"));
-        status(signup, exists
-          ? T("Se esse e-mail ainda não tiver conta, você recebe o link de confirmação. Se já tiver, entre com a sua senha.", "If that email doesn't have an account yet, you'll get the confirmation link. If it does, sign in with your password.")
-          : T("Enviamos um link de confirmação. Abra o e-mail e clique para confirmar a sua conta.", "We sent you a confirmation link. Open the email and click it to confirm your account."), "ok");
+        busy(signup, true, T("Confira seu e-mail", "Check your email"));
+        status(signup, T("Se esse e-mail ainda não tiver conta, enviamos o link de confirmação. Se já tiver, é só entrar: ", "If that email doesn't have an account yet, we sent the confirmation link. If it does, just sign in: "), "ok");
+        var note = signup.querySelector("[data-status]");
+        if (note) {
+          var entrar = document.createElement("a");
+          entrar.href = CFG.loginPath;
+          entrar.textContent = T("entrar ou recuperar a senha", "sign in or reset your password");
+          note.appendChild(entrar);
+          note.appendChild(document.createTextNode("."));
+        }
       }).catch(function (err) {
         busy(signup, false);
         status(signup, humanError(err), "error");

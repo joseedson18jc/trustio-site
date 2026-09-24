@@ -338,10 +338,14 @@
     var id = null;
     try { id = sessionStorage.getItem(CHAVE_SESSAO); } catch (e) { return; }
     if (!id) return;
-    var c = state.conversations.filter(function (x) { return x.id === id; })[0];
-    var inicio = c && Date.parse(c.created_at);
-    if (inicio && Date.now() - inicio < JANELA_SESSAO_MS) openConversation(id);
-    else lembrarConversa(null);
+    // Busca a conversa guardada direto, e não na lista lateral (que traz só as 100 mais recentes).
+    sb.from("conversations").select("id,title,created_at").eq("id", id).maybeSingle().then(function (r) {
+      var c = r.data, inicio = c && Date.parse(c.created_at);
+      if (!(inicio && Date.now() - inicio < JANELA_SESSAO_MS)) { lembrarConversa(null); return; }
+      if (state.conversationId || state.sending) return;
+      if (!state.conversations.some(function (x) { return x.id === id; })) state.conversations.unshift(c);
+      openConversation(id);
+    });
   }
 
   function loadConversations() {
@@ -428,9 +432,9 @@
 
   // A conversa encheu o contexto do modelo: não dá para continuar nela. Uma aba nova
   // começa uma conversa nova (sem conversation_id), com o contexto vazio.
-  function sessaoCheia(limite) {
+  function sessaoCheia(janela) {
     state.sessaoCheia = true;
-    var n = limite ? Number(limite).toLocaleString(LOCAL) : "";
+    var n = janela ? Number(janela).toLocaleString(LOCAL) : "";
     showNotice(n
       ? T("Esta sessão chegou ao limite de " + n + " tokens de contexto. Para continuar, feche esta aba e abra outra.", "This session reached its " + n + "-token context limit. To continue, close this tab and open a new one.")
       : T("Esta sessão chegou ao limite de contexto do modelo. Para continuar, feche esta aba e abra outra.", "This session reached the model's context limit. To continue, close this tab and open a new one."));
@@ -549,8 +553,10 @@
                 : d.fim === "length"
                   ? T("Resposta cortada no limite", "Answer cut off at the limit")
                   : T("Concluída", "Done")) + " · " + tokens + " tokens · " + (EN ? seg : seg.replace(".", ",")) + " s"
-                + (d.contexto && d.limite ? T(" · sessão ", " · session ") + Math.min(100, Math.round(d.contexto / d.limite * 100)) + "%" : "");
-              if (d.fim === "length" && d.limite && !interrompida) sessaoCheia(d.limite);
+                + (d.contexto && d.janela ? T(" · sessão ", " · session ") + Math.min(100, Math.round(d.contexto / d.janela * 100)) + "%" : "");
+              // Sessão cheia é o contexto do modelo quase todo usado (a próxima mensagem não
+              // caberia), não a resposta ter batido no teto de tokens por resposta.
+              if (d.contexto && d.janela && d.contexto >= d.janela * 0.95) sessaoCheia(d.janela);
               afterDone(d);
             }
           });
@@ -570,7 +576,7 @@
       else if (code === "email_nao_confirmado") { pending.remove(); showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); }
       else if (code === "chat_ainda_fechado") { pending.remove(); fechar(true, (err && err.data) || {}); }
       else if (code === "modelo_nao_configurado") { pending.remove(); fechar(true, { motivo: "sem_modelo" }); }
-      else if (code === "contexto_cheio") { pending.remove(); sessaoCheia((err && err.data && err.data.limite) || 0); }
+      else if (code === "contexto_cheio") { pending.remove(); sessaoCheia((err && err.data && err.data.janela) || 0); }
       else if (code === "modelo_indisponivel") { pending.remove(); showNotice(T("O modelo não respondeu agora. Tente novamente em instantes.", "The model didn't respond just now. Try again in a moment.")); }
       else if (code === "sem_sessao" || (err && err.status === 401)) { location.replace(CFG.loginPath); }
       else { pending.remove(); showNotice(T("Não foi possível enviar. Verifique a conexão e tente de novo.", "We couldn't send that. Check your connection and try again.")); console.error(err); }

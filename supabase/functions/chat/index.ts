@@ -16,14 +16,15 @@ const LLM_API_KEY = Deno.env.get("LLM_API_KEY") ?? Deno.env.get("XAI_API_KEY") ?
 const LLM_BASE_URL = (Deno.env.get("LLM_BASE_URL") ?? "https://api.x.ai/v1").replace(/\/$/, "");
 const LLM_MODEL = Deno.env.get("LLM_MODEL") ?? "grok-4";
 const HISTORY = 30;
-// Teto de tokens, opcional e explícito: só com o segredo LLM_MAX_TOKENS a função limita
-// o modelo, e só então o chat mostra a porcentagem (contra esse teto, porque o tamanho
-// final da resposta não é conhecido de antemão). Deve ser o contexto do servidor do
-// modelo (llama-server -c): quando a conversa o enche, a resposta sai cortada ou o
-// modelo recusa, e o chat pede para renovar a sessão numa aba nova. Sem o segredo, não
-// há teto.
+// Teto de tokens por resposta, opcional e explícito: só com o segredo LLM_MAX_TOKENS a
+// função limita o modelo, e só então o chat mostra a porcentagem da resposta (contra esse
+// teto, porque o tamanho final não é conhecido de antemão). Sem o segredo, não há teto.
 const tetoConfigurado = Number(Deno.env.get("LLM_MAX_TOKENS"));
 const LLM_MAX_TOKENS = tetoConfigurado > 0 ? Math.min(32768, Math.max(256, Math.floor(tetoConfigurado))) : null;
+// Contexto do modelo (llama-server -c), opcional: com o segredo LLM_CONTEXTO o chat mostra
+// quanto da sessão já foi usado e, quando ela enche, pede uma sessão nova numa aba nova.
+const contextoConfigurado = Number(Deno.env.get("LLM_CONTEXTO"));
+const LLM_CONTEXTO = contextoConfigurado > 0 ? Math.floor(contextoConfigurado) : null;
 // Contagem exata de tokens durante a geração: o llama.cpp a manda em cada trecho com
 // timings_per_token. É um parâmetro só dele, e um provedor que recusa campos
 // desconhecidos derrubaria o chat; por isso só vai com LLM_SERVIDOR = "llama.cpp".
@@ -191,7 +192,7 @@ Deno.serve(async (req) => {
     await release();
     // Conversa maior que o contexto do modelo: não é falha do modelo; o chat pede uma sessão nova.
     if (upstream.status === 400 && /exceed_context_size|context (size|length)|maximum context/i.test(detail)) {
-      return json(409, { error: "contexto_cheio", limite: LLM_MAX_TOKENS }, origin);
+      return json(409, { error: "contexto_cheio", janela: LLM_CONTEXTO }, origin);
     }
     return json(502, { error: "modelo_indisponivel", status: upstream.status }, origin);
   }
@@ -320,7 +321,7 @@ Deno.serve(async (req) => {
         n: tokens,
         nr: tokensRaciocinio,
         contexto,
-        limite: LLM_MAX_TOKENS,
+        janela: LLM_CONTEXTO,
         remaining: reservation.remaining ?? null,
         limit: reservation.subscriber ? null : reservation.limit,
       });

@@ -1,4 +1,4 @@
-// Trustio · função de chat (Supabase Edge Function, projeto yxkgdgcdvngltnykleig · sa-east-1).
+// Trustio · função de chat (Supabase Edge Function, projeto mjdaluioyutnxlyomzyd · sa-east-1).
 // Recebe a mensagem do cliente autenticado, reserva a cota do plano de forma atômica, chama o modelo
 // (qualquer API compatível com OpenAI: xAI, OpenAI, vLLM…) e devolve a resposta em streaming.
 // A chave do modelo nunca chega ao navegador.

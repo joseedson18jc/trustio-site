@@ -12,7 +12,7 @@
  *   GET  /saude            diz se as variáveis estão configuradas (sem revelá-las)
  *
  * Variáveis (wrangler secret put NOME)
- *   SUPABASE_URL                https://yxkgdgcdvngltnykleig.supabase.co
+ *   SUPABASE_URL                https://mjdaluioyutnxlyomzyd.supabase.co
  *   SUPABASE_SERVICE_ROLE_KEY   chave de serviço do projeto  ← segredo
  *   RESEND_API_KEY              chave da Resend              ← segredo
  *   EMAIL_FROM                  Trustio <no-reply@send.trustio.com.br>
@@ -85,14 +85,17 @@ function escapar(s) {
 }
 
 // ─────────────────────────────────────────────────────────────── banco
+// A chave legada service_role é um JWT e vai também no Authorization. A chave nova
+// (sb_secret_…) não é JWT: vai só no apikey, e o gateway já a trata como service_role.
+function cabecalhosServico(chave) {
+  const h = { apikey: chave, "Content-Type": "application/json" };
+  if (String(chave).startsWith("eyJ")) h.Authorization = `Bearer ${chave}`;
+  return h;
+}
 async function rpc(env, nome, args) {
   const r = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/${nome}`, {
     method: "POST",
-    headers: {
-      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-      "Content-Type": "application/json",
-    },
+    headers: cabecalhosServico(env.SUPABASE_SERVICE_ROLE_KEY),
     body: JSON.stringify(args),
   });
   const texto = await r.text();

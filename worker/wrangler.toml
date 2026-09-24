@@ -7,7 +7,7 @@ compatibility_date = "2026-09-22"
 SITE_URL = "https://trustio.com.br"
 API_URL = "https://api.trustio.com.br"
 EMAIL_FROM = "Trustio <no-reply@send.trustio.com.br>"
-SUPABASE_URL = "https://yxkgdgcdvngltnykleig.supabase.co"
+SUPABASE_URL = "https://mjdaluioyutnxlyomzyd.supabase.co"
 
 # Segredos, definidos uma vez por linha de comando (ver README.md):
 #   wrangler secret put SUPABASE_SERVICE_ROLE_KEY

@@ -88,18 +88,29 @@
         if (r.error) throw r.error;
         var user = r.data && r.data.user;
         if (r.data && r.data.session) { location.replace(appUrl); return; }
-        // identities vazio = e-mail já cadastrado (o Supabase não revela isso, por segurança).
-        var exists = user && Array.isArray(user.identities) && user.identities.length === 0;
+        // identities vazio = e-mail que já tem conta confirmada: o Supabase responde como se
+        // tivesse criado outra, sem erro. Não é cadastro novo, então nada de "conta criada":
+        // o formulário continua aberto e a pessoa é levada para entrar ou recuperar a senha.
+        if (user && Array.isArray(user.identities) && user.identities.length === 0) {
+          busy(signup, false);
+          status(signup, T("Esse e-mail já tem uma conta. ", "That email already has an account. "), "error");
+          var note = signup.querySelector("[data-status]");
+          if (note) {
+            var entrar = document.createElement("a");
+            entrar.href = CFG.loginPath;
+            entrar.textContent = T("Entrar ou recuperar a senha", "Sign in or reset your password");
+            note.appendChild(entrar);
+          }
+          return;
+        }
         signup.querySelectorAll("input:not([type=hidden]), select, fieldset").forEach(function (el) { el.disabled = true; });
         var done = signup.querySelector("[data-done]");
         if (done) {
           done.hidden = false;
           done.querySelector("[data-done-email]").textContent = email;
         }
-        busy(signup, true, exists ? T("Verifique seu e-mail", "Check your email") : T("Conta criada ✓", "Account created ✓"));
-        status(signup, exists
-          ? T("Se esse e-mail ainda não tiver conta, você recebe o link de confirmação. Se já tiver, entre com a sua senha.", "If that email doesn't have an account yet, you'll get the confirmation link. If it does, sign in with your password.")
-          : T("Enviamos um link de confirmação. Abra o e-mail e clique para confirmar a sua conta.", "We sent you a confirmation link. Open the email and click it to confirm your account."), "ok");
+        busy(signup, true, T("Conta criada ✓", "Account created ✓"));
+        status(signup, T("Enviamos um link de confirmação. Abra o e-mail e clique para confirmar a sua conta.", "We sent you a confirmation link. Open the email and click it to confirm your account."), "ok");
       }).catch(function (err) {
         busy(signup, false);
         status(signup, humanError(err), "error");

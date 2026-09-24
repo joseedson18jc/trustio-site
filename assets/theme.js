@@ -18,7 +18,8 @@
 (function () {
   function levarEstado(e) {
     var a = e.target && e.target.closest ? e.target.closest("a.lang-switch") : null;
-    if (!a || !(location.search || location.hash)) return;
+    // Sempre recalcula: sem busca nem âncora agora, o link volta ao endereço limpo.
+    if (!a) return;
     a.href = a.getAttribute("href").split(/[?#]/)[0] + location.search + location.hash;
   }
   document.addEventListener("click", levarEstado);

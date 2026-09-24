@@ -1,8 +1,11 @@
 "use strict";
+// Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
+const EN = /^en\b/i.test(document.documentElement.lang);
+const T = (pt, en) => (EN ? en : pt);
 // VoiceAI · Powered by xAI — audio-reactive WebGL orbs (assets/orb.js), real neural voice clips, use-case tabs.
 const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
 const AUDIO = window.VOICE_AUDIO || {};
-const src = (key) => AUDIO[key] || `assets/voice/${key}.mp3`;
+const src = (key) => AUDIO[key] || `/assets/voice/${key}.mp3`;
 
 // --- orbs
 const orbs = new Map();
@@ -87,7 +90,7 @@ function play(key, orb, caption) {
   orb.classList.add("speaking"); card?.classList.add("speaking");
   if (caption) flashCaption(orb, caption);
   player.src = src(key);
-  player.play().catch(() => { flashCaption(orb, "Toque novamente para ouvir."); stop(); });
+  player.play().catch(() => { flashCaption(orb, T("Toque novamente para ouvir.", "Tap again to listen.")); stop(); });
   meter();
 }
 player.addEventListener("ended", stop);
@@ -95,9 +98,9 @@ function flashCaption(orb, msg) { const cap = orb.closest(".orb-stage")?.querySe
 
 // --- hero stage: pick a voice, tap the orb, watch it talk (the console has its own button)
 const HERO = {
-  bruna:   { file: "hero-bruna",   who: "a Bruna",   line: "Oi, tudo bem? Aqui é a Trustio! Achei seu pedido: sai hoje e chega na quinta. Quer que eu já mande o rastreio no seu WhatsApp?" },
-  matheus: { file: "hero-matheus", who: "o Matheus", line: "Oi, tudo bem? Aqui é a Trustio! Achei seu pedido: sai hoje e chega na quinta. Quer que eu já mande o rastreio no seu WhatsApp?" },
-  hero:    { file: "hero",         who: "a voz original", line: "Olá! Aqui é a Trustio. Posso confirmar seu agendamento de quinta-feira às dez, ou você prefere outro horário?" }
+  bruna:   { file: "hero-bruna",   who: T("a Bruna", "Bruna"),   line: "Oi, tudo bem? Aqui é a Trustio! Achei seu pedido: sai hoje e chega na quinta. Quer que eu já mande o rastreio no seu WhatsApp?" },
+  matheus: { file: "hero-matheus", who: T("o Matheus", "Matheus"), line: "Oi, tudo bem? Aqui é a Trustio! Achei seu pedido: sai hoje e chega na quinta. Quer que eu já mande o rastreio no seu WhatsApp?" },
+  hero:    { file: "hero",         who: T("a voz original", "the original voice"), line: "Olá! Aqui é a Trustio. Posso confirmar seu agendamento de quinta-feira às dez, ou você prefere outro horário?" }
 };
 const heroOrb = document.querySelector("[data-hero-orb]");
 const stageOrb = heroOrb?.closest(".stage-orb");
@@ -134,23 +137,23 @@ function heroStop() {
   cancelAnimationFrame(tickRaf);
   stageOrb?.classList.remove("playing"); heroOrb?.setAttribute("aria-pressed", "false");
   if (ring) ring.style.strokeDashoffset = RING + "px";
-  setState(`Toque para ouvir ${HERO[heroKey].who} de novo`, "done");
+  setState(EN ? `Tap to hear ${HERO[heroKey].who} again` : `Toque para ouvir ${HERO[heroKey].who} de novo`, "done");
 }
 function heroSpeak() {
   if (!heroOrb) return;
   const v = HERO[heroKey];
-  if (current && current.key === v.file) { stop(); heroStop(); setState(`Toque para ouvir ${v.who} de novo`, "done"); return; }
+  if (current && current.key === v.file) { stop(); heroStop(); setState(EN ? `Tap to hear ${v.who} again` : `Toque para ouvir ${v.who} de novo`, "done"); return; }
   buildCaption(heroKey);
   play(v.file, heroOrb);
   stageOrb?.classList.add("playing"); heroOrb.setAttribute("aria-pressed", "true");
-  setState(`${v.who.replace(/^(a|o) /, (m) => m.toUpperCase())} falando…`, "live");
+  setState(EN ? `${v.who.charAt(0).toUpperCase()}${v.who.slice(1)} is speaking…` : `${v.who.replace(/^(a|o) /, (m) => m.toUpperCase())} falando…`, "live");
 }
 function pickVoice(key, andPlay) {
   heroKey = key;
   picks.forEach((b) => { const on = b.dataset.pick === key; b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; });
   if (current && Object.values(HERO).some((v) => v.file === current.key)) { stop(); heroStop(); }
   prepCaption(key);
-  if (andPlay) heroSpeak(); else setState(`Toque na esfera para ouvir ${HERO[key].who}`);
+  if (andPlay) heroSpeak(); else setState(EN ? `Tap the orb to hear ${HERO[key].who}` : `Toque na esfera para ouvir ${HERO[key].who}`);
 }
 heroOrb?.addEventListener("click", heroSpeak);
 heroOrb?.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); heroSpeak(); } });
@@ -159,7 +162,7 @@ picks.forEach((b, i) => {
   b.addEventListener("keydown", (e) => { const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0; if (!d) return; e.preventDefault(); const n = picks[(i + d + picks.length) % picks.length]; n.focus(); pickVoice(n.dataset.pick, false); });
 });
 player.addEventListener("playing", tick);
-player.addEventListener("ended", () => { if (words.length) words.forEach((w) => w.classList.add("on")); heroStop(); if (Object.values(HERO).some((v) => v.file === (current?.key))) return; setState(`Toque para ouvir ${HERO[heroKey].who} de novo`, "done"); });
+player.addEventListener("ended", () => { if (words.length) words.forEach((w) => w.classList.add("on")); heroStop(); if (Object.values(HERO).some((v) => v.file === (current?.key))) return; setState(EN ? `Tap to hear ${HERO[heroKey].who} again` : `Toque para ouvir ${HERO[heroKey].who} de novo`, "done"); });
 // "Ouvir o agente" in the hero copy plays the selected voice and brings the orb into view
 document.querySelectorAll("[data-demo]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); heroOrb?.scrollIntoView({ behavior: rm.matches ? "auto" : "smooth", block: "center" }); if (!(current && current.key === HERO[heroKey].file)) heroSpeak(); }));
 prepCaption(heroKey);
@@ -182,7 +185,7 @@ tabs.forEach((t, i) => { t.addEventListener("click", () => showTab(i)); t.addEve
 window.addEventListener("pagehide", stop);
 
 // --- canais: fatos no hover, painel de detalhes no clique
-const CHANNELS = {
+const CHANNELS_PT = {
   phone: { icon: "phone", kicker: "Telefonia", title: "Ligação de voz",
     lede: "O canal mais exigente — e onde o agente mais se prova. Fala-a-fala em tempo real, com número local e transferência para humano sem perder o fio.",
     how: "A chamada entra por SIP (seu número ou um número novo com o DDD da cidade) e passa pela camada Trustio antes do modelo: identificação, mascaramento de dados sensíveis e playbook. O agente escuta, raciocina, chama ferramentas no meio da conversa e responde em menos de um segundo. Se precisar de gente, transfere com um resumo do que já foi dito.",
@@ -232,6 +235,58 @@ const CHANNELS = {
     facts: [["Requisito", "Número curto (short code) ou longo habilitado e opt-in do cliente"], ["Formato", "160 caracteres por segmento (GSM-7); mensagens maiores são concatenadas"], ["Resposta", "Palavras-chave e números viram ações no fluxo (confirmar, remarcar, sair)"], ["Custo", "Por mensagem enviada, por operadora"]],
     uses: ["Confirmação de consulta", "Códigos e autenticação", "Avisos de entrega", "Cobrança com link de pagamento"] }
 };
+// A mesma estrutura em inglês; as chaves (phone, whatsapp…) batem com data-ch no HTML.
+const CHANNELS_EN = {
+  phone: { icon: "phone", kicker: "Telephony", title: "Voice call",
+    lede: "The most demanding channel — and where the agent proves itself most. Real-time speech-to-speech, with a local number and handoff to a human without losing the thread.",
+    how: "The call comes in over SIP (your number, or a new one with your city's area code) and goes through the Trustio layer before the model: identification, masking of sensitive data and the playbook. The agent listens, reasons, calls tools mid-conversation and answers in under a second. If it needs a person, it transfers the call with a summary of what's already been said.",
+    quick: ["< 1 s speech-to-speech", "Your number via SIP", "Transfers with context"],
+    facts: [["Inbound", "A new number (local area code) or porting/SIP of your current number; WebRTC on your site too"], ["Latency", "Sub-second end to end, with interruptions handled (the customer can talk over it)"], ["Logging", "Call recording, transcript and events inside the perimeter, in Brazil"], ["Good practice", "The agent identifies itself as a virtual assistant at the start of the call"]],
+    uses: ["Tier-1 support", "Appointment confirmation", "Collections and settlements", "24/7 reception", "Outbound qualification"] },
+  whatsapp: { icon: "whatsapp", kicker: "Messaging", title: "WhatsApp",
+    lede: "The channel Brazil actually uses. Through the official Business API, the same agent answers text, audio and documents — and knows when only a template is allowed.",
+    how: "The conversation runs on the WhatsApp Business Platform (Meta's official API), never on a personal number or unapproved automation. Within the 24-hour window after the customer's last message, the agent chats freely; outside it, it only sends approved templates — and picks the right one on its own. Incoming voice notes are transcribed and go into the same memory as the call.",
+    quick: ["Official Meta API", "24-hour window", "Voice notes transcribed"],
+    facts: [["Requirement", "A verified WhatsApp Business account and customer opt-in (LGPD)"], ["Window", "24 h after the customer's last message; after that, only Meta-approved templates"], ["Formats", "Text, audio, images, documents, buttons and interactive lists"], ["Cost", "Charged by Meta per message/conversation, by category (utility, marketing, authentication)"]],
+    uses: ["Confirmations and reminders", "Asynchronous support", "Abandoned-cart recovery", "Sending boletos and duplicate bills"] },
+  telegram: { icon: "telegram", kicker: "Messaging", title: "Telegram",
+    lede: "Bots and groups handled by the same agent, with the same permissions and no 24-hour window.",
+    how: "A Telegram bot is connected to the agent through the Bot API. It replies in private to whoever started the conversation and, in groups it has been added to, handles mentions and commands. Inline buttons turn replies into actions (confirm, reschedule, open a ticket) without the user typing.",
+    quick: ["No 24-hour window", "Groups and channels", "Inline buttons"],
+    facts: [["Requirement", "A bot created with @BotFather; the customer starts with /start or the bot is added to the group"], ["Window", "None: the agent can write at any time to anyone who has started a chat"], ["Formats", "Text, audio, large files, inline buttons and keyboards"], ["Cost", "The Bot API is free; the only cost is the agent's"]],
+    uses: ["Communities and technical support", "Alerts and order status", "Internal teams", "Audiences who avoid WhatsApp"] },
+  gmail: { icon: "gmail", kicker: "Email", title: "Gmail",
+    lede: "Reads, replies and forwards in the company inbox — with drafts for approval when you want them, and direct sending when the rules allow.",
+    how: "Connected to Google Workspace through the official API, with minimal scopes. The agent reads the whole thread, classifies it, replies with the same playbook as voice and WhatsApp, and labels it. You decide by rule what goes out as a draft for a human to approve and what's sent directly — by subject, amount or sender.",
+    quick: ["Draft or send directly", "Reads the whole thread", "Labels and forwards"],
+    facts: [["Requirement", "A Google Workspace account; OAuth authorization by the administrator"], ["Approval", "By rule: a draft for human review, or automatic sending"], ["Memory", "What was said by voice or WhatsApp carries over into the email reply"], ["Guardrail", "Never sends outside policy: attachments, amounts and recipients go through the filter"]],
+    uses: ["contact@ and sales@ inboxes", "Quotes and follow-up", "Triage and routing", "Replying to documents"] },
+  outlook: { icon: "outlook", kicker: "Email", title: "Outlook",
+    lede: "Microsoft 365 with the same rules, queues and logs as the rest of the operation — shared mailboxes included.",
+    how: "It integrates through Microsoft Graph, with the tenant administrator's consent. It handles individual and shared mailboxes (support@, finance@), respects existing categories and rules, and keeps the audit trail in line with the calls. Draft for approval or send directly, just like Gmail.",
+    quick: ["Microsoft Graph", "Shared mailboxes", "Same rules as voice"],
+    facts: [["Requirement", "A Microsoft 365 tenant and admin consent in Entra ID"], ["Queues", "Shared mailboxes become queues with SLA and priority"], ["Approval", "By rule: a draft for review, or automatic sending"], ["Logging", "Every email handled goes into the same audit trail as the operation"]],
+    uses: ["Companies on Microsoft", "Support with an SLA", "Finance and collections by email", "Back office"] },
+  calendar: { icon: "calendar", kicker: "Calendar", title: "Calendar",
+    lede: "Google Calendar and Outlook: books, reschedules, confirms and prevents no-shows before they happen.",
+    how: "The agent checks real availability (not a spreadsheet), creates the event with an address or link, and sends the confirmation through the channel the customer prefers — a call, WhatsApp or SMS. If the customer asks to change it, it reschedules on the spot. Time zones, holidays and buffers between appointments are all accounted for.",
+    quick: ["Google + Outlook", "Confirms and reschedules", "Cuts no-shows"],
+    facts: [["Requirement", "Google Calendar or Outlook/Exchange connected; hours and buffer rules"], ["Confirmation", "Reminder and confirmation by voice, WhatsApp or SMS, 24 h and 2 h before (configurable)"], ["Rescheduling", "Offers the next open slots and moves the event on the spot"], ["Context", "Knows who the customer is and why they're coming — doesn't ask the same questions twice"]],
+    uses: ["Clinics and practices", "Offices and law firms", "In-home services", "Sales demos"] },
+  imessage: { icon: "imessage", kicker: "Messaging", title: "iMessage",
+    lede: "Apple messages showing your brand's name and logo instead of an unknown number.",
+    how: "Through Apple Messages for Business, the conversation appears in the Messages app with your brand identity and the verified badge — no phone number shown. The customer starts the conversation (from Maps, Safari, Spotlight or a button on your site) and the same agent replies with text, images, lists and scheduling.",
+    quick: ["Verified brand", "Customer starts it", "iOS audience"],
+    facts: [["Requirement", "Brand registration and approval by Apple, through an approved provider"], ["Start", "Always by the customer: the brand can't send the first message"], ["Formats", "Text, images, option lists, time picker, Apple Pay"], ["Reach", "iPhone, iPad and Mac users with iMessage"]],
+    uses: ["Retail and premium brands", "After-sales support", "Booking from Maps", "Mostly-iOS audiences"] },
+  sms: { icon: "sms", kicker: "Messaging", title: "SMS",
+    lede: "Confirmations, codes and notices where there's no internet or app — and a short reply becomes an action.",
+    how: "It reaches any phone, no app needed. The agent uses SMS for what's short and urgent: confirming, reminding, notifying, authenticating. The customer's reply is read and acted on — \"YES\" confirms, \"2\" reschedules, \"STOP\" unsubscribes. For longer conversations, it invites them to WhatsApp or a call.",
+    quick: ["No internet, no app", "160 characters", "Replies become actions"],
+    facts: [["Requirement", "A short code or an enabled long number, and customer opt-in"], ["Format", "160 characters per segment (GSM-7); longer messages are concatenated"], ["Replies", "Keywords and numbers become actions in the flow (confirm, reschedule, opt out)"], ["Cost", "Per message sent, per carrier"]],
+    uses: ["Appointment confirmation", "Codes and authentication", "Delivery notices", "Collections with a payment link"] }
+};
+const CHANNELS = EN ? CHANNELS_EN : CHANNELS_PT;
 const chDetail = document.getElementById("ch-detail");
 const chBtns = [...document.querySelectorAll(".ch-btn[data-ch]")];
 let chOpen = null;
@@ -258,14 +313,14 @@ function openChannel(btn) {
   if (chOpen === btn) { closeChannel(true); return; }
   if (chOpen) { chOpen.setAttribute("aria-expanded", "false"); chOpen.closest(".ch")?.classList.remove("is-open"); }
   chOpen = btn; btn.setAttribute("aria-expanded", "true"); btn.closest(".ch")?.classList.add("is-open");
-  cdSet("icon", (el) => { el.src = `assets/connectors/${c.icon}.svg`; });
+  cdSet("icon", (el) => { el.src = `/assets/connectors/${c.icon}.svg`; });
   cdSet("kicker", (el) => { el.textContent = c.kicker; });
   cdSet("title", (el) => { el.textContent = c.title; });
   cdSet("lede", (el) => { el.textContent = c.lede; });
   cdSet("how", (el) => { el.textContent = c.how; });
   cdSet("uses", (el) => { el.textContent = ""; c.uses.forEach((u) => { const s = document.createElement("span"); s.textContent = u; el.appendChild(s); }); });
   cdSet("facts", (el) => { el.textContent = ""; c.facts.forEach(([k, v]) => { const d = document.createElement("div"); const dt = document.createElement("dt"); dt.textContent = k; const dd = document.createElement("dd"); dd.textContent = v; d.append(dt, dd); el.appendChild(d); }); });
-  cdSet("cta", (el) => { el.firstChild.textContent = `Ativar ${c.title} `; });
+  cdSet("cta", (el) => { el.firstChild.textContent = EN ? `Turn on ${c.title} ` : `Ativar ${c.title} `; });
   chDetail.hidden = false;
   chDetail.scrollIntoView({ behavior: rm.matches ? "auto" : "smooth", block: "nearest" });
   chDetail.querySelector(".ch-close")?.focus({ preventScroll: true });

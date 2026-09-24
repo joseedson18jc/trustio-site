@@ -12,7 +12,7 @@ if (cd) {
     const diff = Math.max(0, target - Date.now());
     const d = Math.floor(diff / 864e5), h = Math.floor(diff % 864e5 / 36e5), m = Math.floor(diff % 36e5 / 6e4);
     el.d.textContent = String(d); el.h.textContent = String(h).padStart(2, "0"); el.m.textContent = String(m).padStart(2, "0");
-    if (diff === 0) cd.querySelector("small").textContent = "lançado";
+    if (diff === 0) cd.querySelector("small").textContent = /^en\b/i.test(document.documentElement.lang) ? "launched" : "lançado";
   };
   tick(); setInterval(tick, 30_000);
 }
@@ -33,6 +33,10 @@ tipoInputs.forEach((i) => i.addEventListener("change", applyTipo));
 // --- acesso: lista gratuita (1º/10) ou assinatura (acesso antecipado, em até 1 dia útil após o pagamento)
 const acessoInputs = [...document.querySelectorAll('input[name="acesso"]')];
 const nextInput = document.querySelector("[data-next]");
+// Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
+const EN = /^en\b/i.test(document.documentElement.lang);
+const T = (pt, en) => (EN ? en : pt);
+const OBRIGADO = `https://trustio.com.br${EN ? "/en" : ""}/obrigado.html`;
 const submitBtn = document.querySelector("[data-submit]");
 const subjInput = form?.querySelector('input[name="_subject"]');
 const preNota = document.querySelector("[data-pre-nota]");
@@ -41,11 +45,11 @@ function applyAcesso() {
   const t = tipoInputs.find((i) => i.checked)?.dataset.tipo || "b2c";
   const pv = document.querySelector('input[name="plano"]:checked')?.value || "";
   const planoKey = t === "b2b" ? "empresa" : pv.startsWith("Passe") ? "semanal" : pv.startsWith("Anual") ? "anual" : "mensal";
-  if (nextInput) nextInput.value = pre ? `https://trustio.com.br/obrigado.html?lista=pre&plano=${planoKey}` : "https://trustio.com.br/obrigado.html?lista=espera";
-  if (subjInput) subjInput.value = pre ? "ASSINATURA (acesso antecipado) — trustio.com.br" : "Lista de espera — trustio.com.br";
+  if (nextInput) nextInput.value = pre ? `${OBRIGADO}?lista=pre&plano=${planoKey}` : `${OBRIGADO}?lista=espera`;
+  if (subjInput) subjInput.value = (pre ? "ASSINATURA (acesso antecipado) — trustio.com.br" : "Lista de espera — trustio.com.br") + (EN ? " · EN" : "");
   // Empresa não entra em 1 dia útil: o arquiteto faz contato nesse prazo e a implantação segue o prazo do plano.
-  if (preNota) preNota.textContent = t === "b2b" ? "arquiteto em até 1 dia útil · proposta e link de pagamento" : "acesso em até 1 dia útil · enviamos o link de pagamento";
-  if (submitBtn) submitBtn.firstChild.textContent = !pre ? "Entrar na lista de espera " : t === "b2b" ? "Quero assinar e falar com um arquiteto " : "Quero assinar e entrar em até 1 dia útil ";
+  if (preNota) preNota.textContent = t === "b2b" ? T("arquiteto em até 1 dia útil · proposta e link de pagamento", "architect within 1 business day · proposal and payment link") : T("acesso em até 1 dia útil · enviamos o link de pagamento", "access within 1 business day · we send the payment link");
+  if (submitBtn) submitBtn.firstChild.textContent = !pre ? T("Entrar na lista de espera ", "Join the waitlist ") : t === "b2b" ? T("Quero assinar e falar com um arquiteto ", "Subscribe and talk to an architect ") : T("Quero assinar e entrar em até 1 dia útil ", "Subscribe and get in within 1 business day ");
 }
 acessoInputs.forEach((i) => i.addEventListener("change", applyAcesso));
 document.querySelectorAll('input[name="plano"], input[name="tipo"]').forEach((i) => i.addEventListener("change", applyAcesso));
@@ -53,7 +57,9 @@ document.querySelectorAll('input[name="plano"], input[name="tipo"]').forEach((i)
 // --- deep links: ?tipo=b2b|b2c  &seg=voiceai|juridico|saude|financeiro  &plano=mensal|semanal|anual  &acesso=pre
 const tipo = qs.get("tipo");
 if (tipo === "b2b" || tipo === "b2c") { const r = tipoInputs.find((i) => i.dataset.tipo === tipo); if (r) r.checked = true; }
-const segMap = { voiceai: "VoiceAI", juridico: "Jurídico", saude: "Saúde", financeiro: "Financeiro", varejo: "Varejo", industria: "Indústria", publico: "Setor público" };
+const segMap = EN
+  ? { voiceai: "VoiceAI", juridico: "Legal", saude: "Healthcare", financeiro: "Finance", varejo: "Retail", industria: "Manufacturing", publico: "Public sector" }
+  : { voiceai: "VoiceAI", juridico: "Jurídico", saude: "Saúde", financeiro: "Financeiro", varejo: "Varejo", industria: "Indústria", publico: "Setor público" };
 const seg = qs.get("seg");
 if (seg && segSel && segMap[seg]) { const opt = [...segSel.options].find((o) => o.textContent.startsWith(segMap[seg])); if (opt) opt.selected = true; }
 const planoMap = { mensal: "Mensal", semanal: "Passe", anual: "Anual" };

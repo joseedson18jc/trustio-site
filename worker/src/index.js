@@ -130,6 +130,7 @@ function novoToken() {
  */
 async function registrarNoD1(env, lead, agora = Date.now()) {
   const db = env.DB;
+  await trazerDoKV(env, lead.email);
   const agoraISO = new Date(agora).toISOString();
   const limite = new Date(agora - INTERVALO_DE_REENVIO_MS).toISOString();
   const token = novoToken();
@@ -203,29 +204,67 @@ async function confirmarNoD1(env, token, agora = Date.now()) {
 }
 
 /**
- * Links enviados entre 24/09 07:36 e a troca para o D1 foram gravados no KV SIGNUPS
- * (token:<token> → { email }, lead:<e-mail> com token e token_expira_em). Continuam
- * valendo: a confirmação grava o lead no D1 já confirmado. Repetir é inofensivo, porque
- * confirmado_em guarda a primeira data.
+ * Inscrições gravadas no KV SIGNUPS entre 24/09 07:36 e a troca para o D1: o lead em
+ * lead:<e-mail>, a confirmação em status ou em confirmado:<e-mail>.
+ */
+async function leadDoKV(env, email) {
+  const kv = env.SIGNUPS;
+  if (!kv) return null;
+  try {
+    const lead = JSON.parse((await kv.get(`lead:${email}`)) || "null");
+    const confirmado = JSON.parse((await kv.get(`confirmado:${email}`)) || "null");
+    if (!lead && !confirmado) return null;
+    const confirmadoEm = confirmado?.confirmado_em || (lead?.status === "confirmado" ? lead.confirmado_em : null);
+    return { ...lead, email, confirmado: Boolean(confirmado) || lead?.status === "confirmado", confirmado_em: confirmadoEm || null };
+  } catch { return null; }
+}
+
+/** Grava no D1 o lead do KV, com os campos e o status que ele tinha, se o D1 ainda não o tiver. */
+async function gravarLeadDoKV(env, antigo, agoraISO) {
+  await env.DB.prepare(`INSERT INTO leads (email, nome, telefone, tipo, empresa, segmento, origem, notas,
+      status, criado_em, atualizado_em, confirmado_em)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+    ON CONFLICT (email) DO NOTHING`)
+    .bind(antigo.email, antigo.nome ?? null, antigo.telefone ?? null, antigo.tipo ?? null, antigo.empresa ?? null,
+      antigo.segmento ?? null, antigo.origem ?? null, antigo.notas ?? null,
+      antigo.confirmado ? "confirmado" : "pendente", antigo.criado_em || agoraISO, agoraISO,
+      antigo.confirmado ? antigo.confirmado_em || agoraISO : null)
+    .run();
+}
+
+/**
+ * Antes de uma inscrição, quem só existe no KV entra no D1 como estava: quem já confirmou
+ * continua confirmado e não recebe outro link, e os campos gravados lá não se perdem.
+ */
+async function trazerDoKV(env, email) {
+  if (!env.SIGNUPS) return;
+  if (await env.DB.prepare("SELECT 1 AS ok FROM leads WHERE email = ?1").bind(email).first()) return;
+  const antigo = await leadDoKV(env, email);
+  if (antigo) await gravarLeadDoKV(env, antigo, new Date().toISOString());
+}
+
+/**
+ * Links enviados pelo KV continuam valendo. O worker no ar até a troca (322fb09) gravava
+ * token:<token> → { email } e guardava token e token_expira_em no lead; aceitamos também
+ * o prazo na própria chave do token. A confirmação grava o lead no D1 já confirmado.
+ * Repetir é inofensivo, porque confirmado_em guarda a primeira data.
  */
 async function confirmarLinkDoKV(env, token, agora) {
   const kv = env.SIGNUPS;
   if (!kv) return { ok: false, error: "token_invalido" };
-  let ref, antigo;
-  try {
-    ref = JSON.parse((await kv.get(`token:${token}`)) || "null");
-    antigo = ref?.email && JSON.parse((await kv.get(`lead:${ref.email}`)) || "null");
-  } catch { return { ok: false, error: "token_invalido" }; }
-  if (!antigo || antigo.token !== token) return { ok: false, error: "token_invalido" };
-  if (!(agora <= Date.parse(antigo.token_expira_em))) return { ok: false, error: "token_expirado" };
+  let ref;
+  try { ref = JSON.parse((await kv.get(`token:${token}`)) || "null"); } catch { ref = null; }
+  if (!ref?.email) return { ok: false, error: "token_invalido" };
+  const antigo = await leadDoKV(env, ref.email);
+  if (!antigo) return { ok: false, error: "token_invalido" };
+  // Um link substituído por outro mais novo no mesmo lead não vale mais.
+  if (antigo.token && antigo.token !== token) return { ok: false, error: "token_invalido" };
+  const prazo = ref.expira_em || (antigo.token === token ? antigo.token_expira_em : null);
+  if (!(agora <= Date.parse(prazo))) return { ok: false, error: "token_expirado" };
   const agoraISO = new Date(agora).toISOString();
-  await env.DB.prepare(`INSERT INTO leads (email, nome, telefone, tipo, empresa, segmento, origem, notas,
-      status, criado_em, atualizado_em, confirmado_em)
-    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 'confirmado', ?9, ?10, ?10)
-    ON CONFLICT (email) DO UPDATE SET status = 'confirmado', confirmado_em = COALESCE(confirmado_em, ?10), atualizado_em = ?10`)
-    .bind(ref.email, antigo.nome ?? null, antigo.telefone ?? null, antigo.tipo ?? null, antigo.empresa ?? null,
-      antigo.segmento ?? null, antigo.origem ?? null, antigo.notas ?? null, antigo.criado_em || agoraISO, agoraISO)
-    .run();
+  await gravarLeadDoKV(env, antigo, agoraISO);
+  await env.DB.prepare(`UPDATE leads SET status = 'confirmado', confirmado_em = COALESCE(confirmado_em, ?2), atualizado_em = ?2
+    WHERE email = ?1`).bind(ref.email, agoraISO).run();
   try { await kv.delete(`token:${token}`); } catch (err) { console.error("limpeza_kv_falhou", err.message); }
   return { ok: true, email: ref.email };
 }

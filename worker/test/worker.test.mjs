@@ -328,6 +328,34 @@ kv.dados.set("token:" + tk3, JSON.stringify({ email: "sem-prazo.kv@exemplo.com.b
 kv.dados.set("lead:sem-prazo.kv@exemplo.com.br", JSON.stringify({ token: tk3 }));
 ok(await confirma(tk3) === 410, "d1: link antigo do KV sem prazo não vale para sempre");
 
+const tk4 = "f".repeat(64);
+kv.dados.set("token:" + tk4, JSON.stringify({ email: "prazo-na-chave.kv@exemplo.com.br", expira_em: new Date(Date.now() + 3600e3).toISOString() }));
+kv.dados.set("lead:prazo-na-chave.kv@exemplo.com.br", JSON.stringify({ email: "prazo-na-chave.kv@exemplo.com.br", status: "pendente" }));
+ok(await confirma(tk4) === 200 && leadD1("prazo-na-chave.kv@exemplo.com.br")?.status === "confirmado",
+   "d1: link do KV com o prazo na chave do token também confirma");
+
+// quem só existe no KV entra no D1 como estava antes de uma nova inscrição
+const KC = "confirmado.kv@exemplo.com.br";
+kv.dados.set("lead:" + KC, JSON.stringify({ email: KC, nome: "Confirmado KV", empresa: "Empresa KV", origem: "planos.html",
+  status: "confirmado", confirmado_em: "2026-09-24T07:37:00.000Z", criado_em: "2026-09-24T07:36:00.000Z" }));
+antes = enviados.length;
+r = await inscreve({ email: KC, telefone: "+55 11 91111-1111" });
+ld = leadD1(KC);
+ok(r.status === 200 && enviados.length === antes && ld?.status === "confirmado" && ld.confirmado_em === "2026-09-24T07:37:00.000Z",
+   "d1: confirmado no KV continua confirmado e não recebe outro link", JSON.stringify(ld));
+ok(ld.nome === "Confirmado KV" && ld.empresa === "Empresa KV" && ld.origem === "planos.html" && ld.telefone === "+55 11 91111-1111",
+   "d1: campos do KV preservados, campo novo entra");
+const KM = "marca.kv@exemplo.com.br";
+kv.dados.set("confirmado:" + KM, JSON.stringify({ confirmado_em: "2026-09-24T07:38:00.000Z" }));
+kv.dados.set("lead:" + KM, JSON.stringify({ email: KM, status: "pendente" }));
+r = await inscreve({ email: KM });
+ok(r.status === 200 && enviados.length === antes && leadD1(KM)?.status === "confirmado", "d1: a marca confirmado: do KV também vale");
+const KP = "pendente.kv@exemplo.com.br";
+kv.dados.set("lead:" + KP, JSON.stringify({ email: KP, nome: "Pendente KV", origem: "espera.html", status: "pendente" }));
+r = await inscreve({ email: KP, origem: "planos.html" });
+ok(r.status === 200 && enviados.length === antes + 1 && leadD1(KP)?.nome === "Pendente KV" && leadD1(KP).origem === "espera.html",
+   "d1: pendente no KV recebe link novo, com os campos e a origem do KV");
+
 // formulário sem JavaScript, binding ausente, token fora do formato
 r = await worker.fetch(req("POST", "/signup", "email=sem-js.d1%40exemplo.com.br&_next=%2Fobrigado.html%3Flista%3Despera",
   "application/x-www-form-urlencoded"), envD1);

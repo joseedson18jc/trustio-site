@@ -48,17 +48,21 @@ transação: não sobra estado pela metade. Os links anteriores só são apagado
 que o e-mail novo sai; se a Resend falhar, o link já entregue continua valendo e os
 dados novos ficam gravados. Ao confirmar, todos os links daquele e-mail são apagados.
 
-O KV `SIGNUPS` continua ligado só para links antigos: inscrições gravadas nele entre
-24/09 07:36 e a troca para o D1 (`lead:`/`token:`) confirmam normalmente, e o lead
-entra no D1 já confirmado.
+O KV `SIGNUPS` continua ligado para as inscrições gravadas nele entre 24/09 07:36 e a
+troca para o D1: os links enviados confirmam normalmente e o lead entra no D1 já
+confirmado; quem se inscreve de novo entra no D1 com os campos e o status que tinha no KV.
+
+Os testes (`npm run test:worker`) rodam o SQL no `node:sqlite`, que pede Node 22.13 ou mais novo.
 
 ### Importação para o Supabase
 
 Na troca, `ARMAZENAMENTO` volta a `"supabase"` e são importados para o `crm_leads`:
 
 - **D1:** a tabela `leads` inteira;
-- **KV, formato de 24/09:** `lead:<e-mail>` que ainda não estejam no D1; confirmado se
-  `status` for `confirmado` ou se existir `confirmado:<e-mail>`;
+- **KV, formato de 24/09:** `lead:<e-mail>` que ainda não estejam no D1 (quem se inscreve
+  de novo já é trazido para o D1 com os campos e o status do KV);
+- em qualquer fonte, o lead está **confirmado** se o D1 disser `confirmado`, se o
+  `lead:` do KV tiver `status` `confirmado` **ou** se existir `confirmado:<e-mail>`;
 - **KV, worker anterior a 24/09:** `pending:<token>` traz o JSON completo da inscrição
   (`status`, `createdAt`, `data`, `meta`), com `index:<hash>` apontando o estado;
 - endereços de teste `delivered+teste-claude-*@resend.dev` ficam de fora.

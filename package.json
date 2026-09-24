@@ -11,6 +11,9 @@
     "stamp:check": "node scripts/stamp-asset-versions.mjs --check",
     "test:worker": "node worker/test/worker.test.mjs"
   },
+  "engines": {
+    "node": ">=22.13"
+  },
   "devDependencies": {
     "vite": "7.0.6"
   }

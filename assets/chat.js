@@ -29,7 +29,7 @@
   var deleteBtn = $("[data-delete]");
   var gate = $("[data-gate]");
 
-  var state = { user: null, lead: null, limit: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false, fechado: false, placeholderPadrao: "" };
+  var state = { user: null, lead: null, limit: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false, fechado: false, sessaoCheia: false, placeholderPadrao: "" };
 
   // ---------------------------------------------------------------- utilidades
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -130,6 +130,7 @@
         shell.dataset.state = "ready";
         renderMe();
         renderOnboard(!(state.lead && state.lead.onboarding_seen_at));
+        restaurarSessao();
         if (!state.user.email_confirmed_at) {
           showNotice(T("Seu e-mail ainda não foi confirmado. Abra o link que enviamos para começar a conversar. ", "Your email isn't confirmed yet. Open the link we sent to start chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>");
         } else {
@@ -328,8 +329,23 @@
   });
 
   // ---------------------------------------------------------------- conversas
+  // Sessão da aba: ao recarregar, a conversa continua se começou há menos de 2 horas;
+  // depois disso, a aba começa uma sessão nova. Uma aba nova sempre começa do zero
+  // (sessionStorage não passa de uma aba para outra).
+  var CHAVE_SESSAO = "trustio-conversa-da-aba", JANELA_SESSAO_MS = 2 * 60 * 60 * 1000;
+  function lembrarConversa(id) { try { if (id) sessionStorage.setItem(CHAVE_SESSAO, id); else sessionStorage.removeItem(CHAVE_SESSAO); } catch (e) { /* sem storage */ } }
+  function restaurarSessao() {
+    var id = null;
+    try { id = sessionStorage.getItem(CHAVE_SESSAO); } catch (e) { return; }
+    if (!id) return;
+    var c = state.conversations.filter(function (x) { return x.id === id; })[0];
+    var inicio = c && Date.parse(c.created_at);
+    if (inicio && Date.now() - inicio < JANELA_SESSAO_MS) openConversation(id);
+    else lembrarConversa(null);
+  }
+
   function loadConversations() {
-    return sb.from("conversations").select("id,title,updated_at").order("updated_at", { ascending: false }).limit(100)
+    return sb.from("conversations").select("id,title,created_at,updated_at").order("updated_at", { ascending: false }).limit(100)
       .then(function (r) { state.conversations = r.data || []; renderConversations(); });
   }
 
@@ -356,10 +372,20 @@
     return state.threadInner;
   }
 
+  // Trocar de conversa (ou começar outra) sai da sessão que encheu o contexto.
+  function sairDaSessaoCheia() {
+    if (!state.sessaoCheia) return;
+    state.sessaoCheia = false;
+    showNotice("");
+    if (!state.fechado && !(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; }
+  }
+
   function resetThread() {
+    sairDaSessaoCheia();
     if (state.threadInner) { state.threadInner.remove(); state.threadInner = null; }
     welcome.hidden = false;
     state.conversationId = null;
+    lembrarConversa(null);
     convTitle.textContent = T("Nova conversa", "New conversation");
     deleteBtn.hidden = true;
     renderConversations();
@@ -367,7 +393,9 @@
 
   function openConversation(id) {
     if (state.sending) return;
+    sairDaSessaoCheia();
     state.conversationId = id;
+    lembrarConversa(id);
     var c = state.conversations.filter(function (x) { return x.id === id; })[0];
     convTitle.textContent = c ? c.title : "Conversa";
     deleteBtn.hidden = false;
@@ -398,10 +426,21 @@
 
   function scrollBottom() { thread.scrollTop = thread.scrollHeight; }
 
+  // A conversa encheu o contexto do modelo: não dá para continuar nela. Uma aba nova
+  // começa uma conversa nova (sem conversation_id), com o contexto vazio.
+  function sessaoCheia(limite) {
+    state.sessaoCheia = true;
+    var n = limite ? Number(limite).toLocaleString(LOCAL) : "";
+    showNotice(n
+      ? T("Esta sessão chegou ao limite de " + n + " tokens de contexto. Para continuar, feche esta aba e abra outra.", "This session reached its " + n + "-token context limit. To continue, close this tab and open a new one.")
+      : T("Esta sessão chegou ao limite de contexto do modelo. Para continuar, feche esta aba e abra outra.", "This session reached the model's context limit. To continue, close this tab and open a new one."));
+    input.disabled = true; sendBtn.disabled = true;
+  }
+
   // ---------------------------------------------------------------- envio
   function send(text) {
     text = String(text || "").trim();
-    if (!text || state.sending) return;
+    if (!text || state.sending || state.sessaoCheia) return;
     if (state.fechado) { input.value = ""; autosize(); return; }
     if (!state.user.email_confirmed_at) { showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); return; }
     state.sending = true;
@@ -473,7 +512,7 @@
             var line = ev.split("\n").filter(function (l) { return l.indexOf("data:") === 0; })[0];
             if (!line) return;
             var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
-            if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; }
+            if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; lembrarConversa(d.conversation_id); }
             if (d.limite) { limite = Number(d.limite) || 0; prog.classList.remove("is-open"); mostrarProgresso(); }
             if (d.raciocinio) {
               contar(d); tokensPensando = tokens;
@@ -506,7 +545,9 @@
                 ? T("Interrompida", "Interrupted")
                 : d.fim === "length"
                   ? T("Resposta cortada no limite", "Answer cut off at the limit")
-                  : T("Concluída", "Done")) + " · " + tokens + " tokens · " + (EN ? seg : seg.replace(".", ",")) + " s";
+                  : T("Concluída", "Done")) + " · " + tokens + " tokens · " + (EN ? seg : seg.replace(".", ",")) + " s"
+                + (d.contexto && d.limite ? T(" · sessão ", " · session ") + Math.min(100, Math.round(d.contexto / d.limite * 100)) + "%" : "");
+              if (d.fim === "length" && d.limite && !interrompida) sessaoCheia(d.limite);
               afterDone(d);
             }
           });
@@ -526,6 +567,7 @@
       else if (code === "email_nao_confirmado") { pending.remove(); showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); }
       else if (code === "chat_ainda_fechado") { pending.remove(); fechar(true, (err && err.data) || {}); }
       else if (code === "modelo_nao_configurado") { pending.remove(); fechar(true, { motivo: "sem_modelo" }); }
+      else if (code === "contexto_cheio") { pending.remove(); sessaoCheia((err && err.data && err.data.limite) || 0); }
       else if (code === "modelo_indisponivel") { pending.remove(); showNotice(T("O modelo não respondeu agora. Tente novamente em instantes.", "The model didn't respond just now. Try again in a moment.")); }
       else if (code === "sem_sessao" || (err && err.status === 401)) { location.replace(CFG.loginPath); }
       else { pending.remove(); showNotice(T("Não foi possível enviar. Verifique a conexão e tente de novo.", "We couldn't send that. Check your connection and try again.")); console.error(err); }
@@ -535,7 +577,7 @@
       if (!body.innerHTML && pending.parentNode) pending.remove();
       state.sending = false;
       thread.setAttribute("aria-busy", "false");
-      if (!state.fechado && !(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; input.focus(); }
+      if (!state.fechado && !state.sessaoCheia && !(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; input.focus(); }
     });
   }
 

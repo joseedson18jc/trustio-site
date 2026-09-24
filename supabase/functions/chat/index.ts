@@ -16,10 +16,12 @@ const LLM_API_KEY = Deno.env.get("LLM_API_KEY") ?? Deno.env.get("XAI_API_KEY") ?
 const LLM_BASE_URL = (Deno.env.get("LLM_BASE_URL") ?? "https://api.x.ai/v1").replace(/\/$/, "");
 const LLM_MODEL = Deno.env.get("LLM_MODEL") ?? "grok-4";
 const HISTORY = 30;
-// Teto de tokens por resposta (raciocínio + texto), opcional e explícito: só com o
-// segredo LLM_MAX_TOKENS a função limita o modelo, e só então o chat mostra a porcentagem
-// (contra esse teto, porque o tamanho final da resposta não é conhecido de antemão).
-// Uma resposta que bate no teto sai cortada e o chat avisa. Sem o segredo, não há teto.
+// Teto de tokens, opcional e explícito: só com o segredo LLM_MAX_TOKENS a função limita
+// o modelo, e só então o chat mostra a porcentagem (contra esse teto, porque o tamanho
+// final da resposta não é conhecido de antemão). Deve ser o contexto do servidor do
+// modelo (llama-server -c): quando a conversa o enche, a resposta sai cortada ou o
+// modelo recusa, e o chat pede para renovar a sessão numa aba nova. Sem o segredo, não
+// há teto.
 const tetoConfigurado = Number(Deno.env.get("LLM_MAX_TOKENS"));
 const LLM_MAX_TOKENS = tetoConfigurado > 0 ? Math.min(32768, Math.max(256, Math.floor(tetoConfigurado))) : null;
 // Contagem exata de tokens durante a geração: o llama.cpp a manda em cada trecho com
@@ -188,6 +190,10 @@ Deno.serve(async (req) => {
     const detail = await upstream.text().catch(() => "");
     console.error("llm_error", upstream.status, detail.slice(0, 500));
     await release();
+    // Conversa maior que o contexto do modelo: não é falha do modelo; o chat pede uma sessão nova.
+    if (upstream.status === 400 && /exceed_context_size|context (size|length)|maximum context/i.test(detail)) {
+      return json(409, { error: "contexto_cheio", limite: LLM_MAX_TOKENS }, origin);
+    }
     return json(502, { error: "modelo_indisponivel", status: upstream.status }, origin);
   }
 
@@ -232,6 +238,8 @@ Deno.serve(async (req) => {
     // senão, um por trecho recebido.
     let tokens = 0;
     let trechos = 0;
+    // Tokens da sessão (prompt + histórico + resposta), quando o modelo informa no fim.
+    let contexto: number | null = null;
 
     // O raciocínio vai ao navegador, mas o prompt de sistema não deve sair por ele: frases
     // do prompt citadas literalmente viram "[instrução interna]". Para pegar uma frase
@@ -269,6 +277,7 @@ Deno.serve(async (req) => {
             const raciocinio = d.reasoning_content || d.reasoning;
             if (d.content || raciocinio) trechos++;
             tokens = Math.max(tokens, trechos, Number(pedaco.timings?.predicted_n) || 0, Number(pedaco.usage?.completion_tokens) || 0);
+            if (Number(pedaco.usage?.total_tokens) > 0) contexto = Number(pedaco.usage.total_tokens);
             // Modelos com raciocínio mandam esse trecho em outro campo, antes do texto. Vai ao
             // navegador, que o mostra à parte; não entra no histórico nem no contexto.
             if (raciocinio) {
@@ -302,6 +311,8 @@ Deno.serve(async (req) => {
         // "length": a resposta bateu no teto de tokens e pode ter sido cortada.
         fim,
         n: tokens,
+        contexto,
+        limite: LLM_MAX_TOKENS,
         remaining: reservation.remaining ?? null,
         limit: reservation.subscriber ? null : reservation.limit,
       });

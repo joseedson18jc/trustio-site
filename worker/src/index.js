@@ -472,7 +472,7 @@ export default {
         r = usaD1(env) ? await confirmarNoD1(env, token) : await rpc(env, "confirmar_optin", { p_token: token });
       } catch (err) {
         console.error("confirmar_optin_falhou", err.message);
-        return pagina("Tente de novo em instantes", "Não conseguimos confirmar agora. O link continua valendo — abra de novo daqui a pouco.", env, 503);
+        return pagina("Tente de novo em instantes", "Não conseguimos conferir o link agora. Abra de novo daqui a pouco; se ele já tiver sido usado, avisamos na hora.", env, 503);
       }
 
       if (r?.ok) {

@@ -368,6 +368,13 @@ ok(r.status === 502 && !leadD1(KF) && enviados.length === antes, "d1: leitura do
 r = await inscreve({ email: KF });
 ok(r.status === 200 && leadD1(KF)?.status === "confirmado" && enviados.length === antes, "d1: na nova tentativa, a confirmação do KV é recuperada");
 
+// link do D1 já usado, com o KV fora do ar: 503 sem prometer que o link vale
+kv.get = async () => { throw new Error("kv indisponível"); };
+r = await worker.fetch(req("GET", "/confirm?token=" + t2), envD1);
+kv.get = getBom;
+html = await r.text();
+ok(r.status === 503 && !/continua valendo/.test(html), "d1: falha ao conferir não promete que o link ainda vale");
+
 // formulário sem JavaScript, binding ausente, token fora do formato
 r = await worker.fetch(req("POST", "/signup", "email=sem-js.d1%40exemplo.com.br&_next=%2Fobrigado.html%3Flista%3Despera",
   "application/x-www-form-urlencoded"), envD1);

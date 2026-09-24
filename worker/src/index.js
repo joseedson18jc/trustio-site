@@ -130,37 +130,56 @@ async function lerJSON(kv, chave) {
 
 /**
  * Mesmo contrato de registrar_optin: { ok, token } quando há e-mail a enviar, só { ok }
- * quando não há (já confirmado, ou um link acabou de sair). O lead é escrito uma vez por
- * inscrição, porque o KV limita a uma escrita por segundo na mesma chave.
+ * quando não há (já confirmado, ou um link acabou de sair).
+ *
+ * O KV não tem transação, então duas regras evitam perder estado:
+ * - a confirmação mora na chave confirmado:<e-mail>, que a inscrição nunca escreve;
+ *   uma inscrição concorrente pode regravar o lead, mas não desfaz a confirmação;
+ * - para quem já tinha um link, o token novo só substitui o antigo depois que o e-mail
+ *   sai (concluirNoKV). Se a Resend falhar, o link já entregue continua valendo.
  */
 async function registrarNoKV(env, lead, agora = Date.now()) {
   const kv = env.SIGNUPS;
+  if (await kv.get(`confirmado:${lead.email}`)) return { ok: true, ja_confirmado: true };
   const chave = `lead:${lead.email}`;
   const antigo = await lerJSON(kv, chave);
-  if (antigo?.status === "confirmado") return { ok: true, ja_confirmado: true };
   if (antigo?.token && await kv.get(`envio:${lead.email}`)) return { ok: true, enviado_ha_pouco: true };
 
-  // Campos vazios não apagam o que uma inscrição anterior já trouxe.
+  // Campos vazios não apagam o que uma inscrição anterior já trouxe, e a origem
+  // registrada primeiro é a que vale.
   const preenchidos = Object.fromEntries(Object.entries(lead).filter(([, v]) => v));
-  const token = novoToken();
   const agoraISO = new Date(agora).toISOString();
-  await kv.put(chave, JSON.stringify({
+  const token = novoToken();
+  const registro = {
     ...antigo,
     ...preenchidos,
+    origem: antigo?.origem || lead.origem || "lista-de-espera",
     status: "pendente",
     criado_em: antigo?.criado_em || agoraISO,
     atualizado_em: agoraISO,
     token,
     token_expira_em: new Date(agora + PRAZO_DO_LINK_MS).toISOString(),
-  }));
+  };
   await kv.put(`token:${token}`, JSON.stringify({ email: lead.email }), { expirationTtl: VIDA_DA_CHAVE_DO_TOKEN_S });
-  // Um link novo invalida o anterior, como no banco.
-  if (antigo?.token) await kv.delete(`token:${antigo.token}`);
-  return { ok: true, token };
+  // Lead novo é gravado já, para não se perder se o e-mail falhar. Lead com link
+  // anterior só é regravado depois do envio.
+  if (!antigo?.token) await kv.put(chave, JSON.stringify(registro));
+  return { ok: true, token, registro, tokenAnterior: antigo?.token || null };
 }
 
-async function marcarEnvioNoKV(env, email) {
-  await env.SIGNUPS.put(`envio:${email}`, "1", { expirationTtl: INTERVALO_DE_REENVIO_S });
+/** Depois do envio: grava o lead com o token novo, invalida o anterior e marca o envio. */
+async function concluirNoKV(env, registro, tokenAnterior) {
+  const kv = env.SIGNUPS;
+  if (tokenAnterior) {
+    await kv.put(`lead:${registro.email}`, JSON.stringify(registro));
+    await kv.delete(`token:${tokenAnterior}`);
+  }
+  await kv.put(`envio:${registro.email}`, "1", { expirationTtl: INTERVALO_DE_REENVIO_S });
+}
+
+/** O envio falhou: o token novo nunca chegou a ninguém. */
+async function descartarNoKV(env, token) {
+  await env.SIGNUPS.delete(`token:${token}`);
 }
 
 /** Mesmo contrato de confirmar_optin. */
@@ -169,12 +188,12 @@ async function confirmarNoKV(env, token, agora = Date.now()) {
   if (!/^[a-f0-9]{64}$/.test(token)) return { ok: false, error: "token_invalido" };
   const ref = await lerJSON(kv, `token:${token}`);
   if (!ref?.email) return { ok: false, error: "token_invalido" };
-  const chave = `lead:${ref.email}`;
-  const lead = await lerJSON(kv, chave);
+  const lead = await lerJSON(kv, `lead:${ref.email}`);
   if (!lead || lead.token !== token) return { ok: false, error: "token_invalido" };
   if (agora > Date.parse(lead.token_expira_em)) return { ok: false, error: "token_expirado" };
   const agoraISO = new Date(agora).toISOString();
-  await kv.put(chave, JSON.stringify({
+  await kv.put(`confirmado:${ref.email}`, JSON.stringify({ confirmado_em: agoraISO }));
+  await kv.put(`lead:${ref.email}`, JSON.stringify({
     ...lead, status: "confirmado", confirmado_em: agoraISO, atualizado_em: agoraISO, token: null, token_expira_em: null,
   }));
   await kv.delete(`token:${token}`);
@@ -319,7 +338,7 @@ export default {
         tipo: String(dados.tipo || "").toLowerCase().includes("empresa") ? "b2b" : "b2c",
         empresa: campo(dados.empresa),
         segmento: campo(dados.segmento),
-        origem: campo(dados.origem) || "lista-de-espera",
+        origem: campo(dados.origem),
         notas: campo(notas, 1000),
       };
 
@@ -334,7 +353,7 @@ export default {
             p_tipo: lead.tipo,
             p_empresa: lead.empresa,
             p_segmento: lead.segmento,
-            p_origem: lead.origem,
+            p_origem: lead.origem || "lista-de-espera",
             p_notas: lead.notas,
           });
       } catch (err) {
@@ -352,10 +371,13 @@ export default {
         } catch (err) {
           // O lead já está salvo; o reenvio é possível. Não mentimos dizendo que deu certo.
           console.error("envio_falhou", err.message);
+          if (usaKV(env)) {
+            try { await descartarNoKV(env, registro.token); } catch (e) { console.error("descarte_falhou", e.message); }
+          }
           return json(502, { ok: false, error: "email_nao_enviado" }, origin);
         }
         if (usaKV(env)) {
-          try { await marcarEnvioNoKV(env, email); } catch (err) { console.error("marca_de_envio_falhou", err.message); }
+          try { await concluirNoKV(env, registro.registro, registro.tokenAnterior); } catch (err) { console.error("conclusao_falhou", err.message); }
         }
       }
 

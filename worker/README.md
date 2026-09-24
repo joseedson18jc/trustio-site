@@ -43,9 +43,10 @@ Enquanto o banco do projeto Supabase novo não existe, `ARMAZENAMENTO = "kv"` no
 | `lead:<e-mail>` | o lead (JSON), com `status` `pendente` ou `confirmado` |
 | `token:<token>` | o e-mail dono do link de confirmação; some depois de 7 dias |
 | `envio:<e-mail>` | marca de e-mail enviado há menos de 5 minutos, para não duplicar |
+| `confirmado:<e-mail>` | a confirmação; vale mais que o `status` do lead, que uma inscrição concorrente pode regravar |
 
 Uma inscrição repetida atualiza o mesmo `lead:` em vez de criar outro, e só manda um
-link novo depois de 5 minutos. Na troca para o Supabase, `ARMAZENAMENTO` volta a
+link novo depois de 5 minutos; o link anterior só deixa de valer quando o novo e-mail sai. Na troca para o Supabase, `ARMAZENAMENTO` volta a
 `"supabase"` e as chaves `lead:` são importadas para o `crm_leads`.
 
 ## Publicar

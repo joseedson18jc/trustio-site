@@ -214,7 +214,7 @@ ok(r.status === 400, "kv: link antigo não confirma");
 r = await worker.fetch(req("GET", "/confirm?token=" + lk.token), envKV);
 ok(r.status === 200 && /Inscrição confirmada/.test(await r.text()), "kv: link novo confirma");
 lk = leadKV("pessoa.kv@exemplo.com.br");
-ok(lk.status === "confirmado" && lk.confirmado_em && !lk.token && !chaves("token:").length, "kv: lead confirmado, token apagado");
+ok(lk.status === "confirmado" && lk.confirmado_em && !lk.token && !chaves("token:").length && kv.dados.has("confirmado:pessoa.kv@exemplo.com.br"), "kv: lead confirmado, token apagado, chave confirmado: gravada");
 r = await worker.fetch(req("GET", "/confirm?token=" + linkDe(enviados[1])), envKV);
 ok(r.status === 400, "kv: o mesmo link não vale duas vezes");
 
@@ -239,6 +239,27 @@ globalThis.fetch = fetchBom;
 const antes = enviados.length;
 r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "falha.kv@exemplo.com.br" })), envKV);
 ok(r.status === 200 && enviados.length === antes + 1, "kv: nova tentativa depois da falha envia");
+
+// reenvio que falha não derruba o link que já tinha chegado
+await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "reenvio@exemplo.com.br", origem: "planos.html" })), envKV);
+const primeiro = leadKV("reenvio@exemplo.com.br").token;
+kv.dados.delete("envio:reenvio@exemplo.com.br");
+globalThis.fetch = async (u, o) => u.includes("resend") ? new Response("erro", { status: 500 }) : fetchBom(u, o);
+r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "reenvio@exemplo.com.br" })), envKV);
+globalThis.fetch = fetchBom;
+ok(r.status === 502 && leadKV("reenvio@exemplo.com.br").token === primeiro && chaves("token:").filter((k) => kv.dados.get(k).v.includes("reenvio@")).length === 1,
+   "kv: reenvio que falha mantém o link anterior e não deixa token órfão");
+ok(leadKV("reenvio@exemplo.com.br").origem === "planos.html", "kv: inscrição sem origem não apaga a origem registrada");
+r = await worker.fetch(req("GET", "/confirm?token=" + primeiro), envKV);
+ok(r.status === 200, "kv: o link anterior ainda confirma depois da falha");
+
+// corrida: uma inscrição regrava o lead como pendente depois da confirmação
+kv.dados.set("lead:reenvio@exemplo.com.br", { v: JSON.stringify({ ...leadKV("reenvio@exemplo.com.br"), status: "pendente", token: primeiro }) });
+kv.dados.delete("envio:reenvio@exemplo.com.br");
+const antesCorrida = enviados.length;
+r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "reenvio@exemplo.com.br" })), envKV);
+ok(r.status === 200 && enviados.length === antesCorrida && kv.dados.has("confirmado:reenvio@exemplo.com.br"),
+   "kv: a confirmação sobrevive a um lead regravado e não gera e-mail novo");
 
 // formulário sem JavaScript no modo kv
 r = await worker.fetch(req("POST", "/signup", "email=sem-js.kv%40exemplo.com.br&_next=%2Fobrigado.html%3Flista%3Despera",

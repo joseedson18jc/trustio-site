@@ -41,13 +41,25 @@ Enquanto o banco do projeto Supabase novo não existe, `ARMAZENAMENTO = "kv"` no
 | Chave | Conteúdo |
 |---|---|
 | `lead:<e-mail>` | o lead (JSON), com `status` `pendente` ou `confirmado` |
-| `token:<token>` | o e-mail dono do link de confirmação; some depois de 7 dias |
+| `confirmado:<e-mail>` | a confirmação; **vale mais que o `status` do lead**, que uma inscrição concorrente pode regravar |
+| `token:<token>` | `{ email, expira_em }` do link de confirmação; é o que a confirmação consulta. Some depois de 7 dias |
+| `atual:<e-mail>` | o último link entregue; muda só depois que o e-mail sai, e aí o anterior é apagado |
 | `envio:<e-mail>` | marca de e-mail enviado há menos de 5 minutos, para não duplicar |
-| `confirmado:<e-mail>` | a confirmação; vale mais que o `status` do lead, que uma inscrição concorrente pode regravar |
 
 Uma inscrição repetida atualiza o mesmo `lead:` em vez de criar outro, e só manda um
-link novo depois de 5 minutos; o link anterior só deixa de valer quando o novo e-mail sai. Na troca para o Supabase, `ARMAZENAMENTO` volta a
-`"supabase"` e as chaves `lead:` são importadas para o `crm_leads`.
+link novo depois de 5 minutos. Se a Resend falhar, os dados novos ficam gravados e o
+link já entregue continua valendo.
+
+### Importação para o Supabase
+
+Na troca, `ARMAZENAMENTO` volta a `"supabase"` e o `SIGNUPS` é importado para o
+`crm_leads` lendo **os dois formatos**:
+
+- **novo:** cada `lead:<e-mail>` é um lead; ele está confirmado se `status` for
+  `confirmado` **ou** se existir `confirmado:<e-mail>`;
+- **antigo** (worker anterior a 24/09): `pending:<token>` traz o JSON completo da
+  inscrição (`status`, `createdAt`, `data`, `meta`), com `index:<hash>` apontando o estado;
+- endereços de teste `delivered+teste-claude-*@resend.dev` ficam de fora.
 
 ## Publicar
 

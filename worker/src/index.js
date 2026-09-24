@@ -210,13 +210,20 @@ async function confirmarNoD1(env, token, agora = Date.now()) {
 async function leadDoKV(env, email) {
   const kv = env.SIGNUPS;
   if (!kv) return null;
-  try {
-    const lead = JSON.parse((await kv.get(`lead:${email}`)) || "null");
-    const confirmado = JSON.parse((await kv.get(`confirmado:${email}`)) || "null");
-    if (!lead && !confirmado) return null;
-    const confirmadoEm = confirmado?.confirmado_em || (lead?.status === "confirmado" ? lead.confirmado_em : null);
-    return { ...lead, email, confirmado: Boolean(confirmado) || lead?.status === "confirmado", confirmado_em: confirmadoEm || null };
-  } catch { return null; }
+  // Uma leitura do KV que falha propaga o erro: a requisição responde 502/503 e a pessoa
+  // tenta de novo. Tratar a falha como "não existe" gravaria no D1 um lead pendente por
+  // cima de uma confirmação que está no KV. Só um valor ilegível conta como ausente.
+  const [textoLead, textoConfirmado] = await Promise.all([kv.get(`lead:${email}`), kv.get(`confirmado:${email}`)]);
+  const lead = lerJSONOuNulo(textoLead);
+  const confirmado = textoConfirmado ? lerJSONOuNulo(textoConfirmado) || {} : null;
+  if (!lead && !confirmado) return null;
+  const confirmadoEm = confirmado?.confirmado_em || (lead?.status === "confirmado" ? lead.confirmado_em : null);
+  return { ...lead, email, confirmado: Boolean(confirmado) || lead?.status === "confirmado", confirmado_em: confirmadoEm || null };
+}
+
+function lerJSONOuNulo(texto) {
+  if (!texto) return null;
+  try { return JSON.parse(texto); } catch { return null; }
 }
 
 /** Grava no D1 o lead do KV, com os campos e o status que ele tinha, se o D1 ainda não o tiver. */
@@ -252,8 +259,7 @@ async function trazerDoKV(env, email) {
 async function confirmarLinkDoKV(env, token, agora) {
   const kv = env.SIGNUPS;
   if (!kv) return { ok: false, error: "token_invalido" };
-  let ref;
-  try { ref = JSON.parse((await kv.get(`token:${token}`)) || "null"); } catch { ref = null; }
+  const ref = lerJSONOuNulo(await kv.get(`token:${token}`));
   if (!ref?.email) return { ok: false, error: "token_invalido" };
   const antigo = await leadDoKV(env, ref.email);
   if (!antigo) return { ok: false, error: "token_invalido" };

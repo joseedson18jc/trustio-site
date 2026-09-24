@@ -356,6 +356,18 @@ r = await inscreve({ email: KP, origem: "planos.html" });
 ok(r.status === 200 && enviados.length === antes + 1 && leadD1(KP)?.nome === "Pendente KV" && leadD1(KP).origem === "espera.html",
    "d1: pendente no KV recebe link novo, com os campos e a origem do KV");
 
+// leitura do KV que falha: a inscrição responde erro e não grava pendente por cima
+const KF = "falha-leitura.kv@exemplo.com.br";
+kv.dados.set("lead:" + KF, JSON.stringify({ email: KF, status: "confirmado", confirmado_em: "2026-09-24T07:39:00.000Z" }));
+const getBom = kv.get;
+kv.get = async () => { throw new Error("kv indisponível"); };
+antes = enviados.length;
+r = await inscreve({ email: KF });
+kv.get = getBom;
+ok(r.status === 502 && !leadD1(KF) && enviados.length === antes, "d1: leitura do KV falhou → erro, nada gravado nem enviado");
+r = await inscreve({ email: KF });
+ok(r.status === 200 && leadD1(KF)?.status === "confirmado" && enviados.length === antes, "d1: na nova tentativa, a confirmação do KV é recuperada");
+
 // formulário sem JavaScript, binding ausente, token fora do formato
 r = await worker.fetch(req("POST", "/signup", "email=sem-js.d1%40exemplo.com.br&_next=%2Fobrigado.html%3Flista%3Despera",
   "application/x-www-form-urlencoded"), envD1);

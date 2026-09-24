@@ -383,5 +383,46 @@ r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "x@exemplo
 ok(r.status === 503, "d1 sem o binding DB: indisponível, sem fingir sucesso");
 ok(await confirma("nao-hex") === 400, "d1: token fora do formato recusado");
 
+// versão em inglês do site: e-mail, link e página de confirmação em inglês
+enviados = []; rpcs = []; respostaRpc = { ok: true, token: "b".repeat(64) };
+r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "en@exemplo.com", nome: "Ann", lang: "en" })), env);
+ok(r.status === 200, "en: POST /signup aceita");
+ok(enviados[0]?.subject === "Confirm your spot on the waitlist — Trustio", "en: assunto em inglês", enviados[0]?.subject);
+ok(/lang="en"/.test(enviados[0]?.html || "") && /Hi, Ann!/.test(enviados[0]?.html || "") && /Hi, Ann!/.test(enviados[0]?.text || ""),
+   "en: corpo e texto em inglês");
+ok((enviados[0]?.html || "").includes("https://api.trustio.com.br/confirm?token=" + "b".repeat(64) + "&amp;lang=en"),
+   "en: link de confirmação leva o idioma");
+ok((enviados[0]?.html || "").includes("https://trustio.com.br/en/privacidade.html"), "en: privacidade em inglês");
+
+enviados = [];
+r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "pt@exemplo.com.br" })), env);
+ok(enviados[0]?.subject.startsWith("Confirme") && !/lang=en/.test(enviados[0]?.html || ""), "sem idioma: continua em português");
+
+enviados = [];
+r = await worker.fetch(req("POST", "/signup",
+  "email=sem-js.en%40exemplo.com&_next=" + encodeURIComponent("https://trustio.com.br/en/obrigado.html?lista=espera"),
+  "application/x-www-form-urlencoded"), env);
+ok(r.status === 303 && r.headers.get("location") === "https://trustio.com.br/en/obrigado.html?lista=espera",
+   "en sem JavaScript: volta para o obrigado em inglês", r.headers.get("location"));
+ok(enviados[0]?.subject.startsWith("Confirm your spot"), "en sem JavaScript: idioma vem do _next");
+
+r = await worker.fetch(req("POST", "/signup",
+  "email=sem-js.en2%40exemplo.com&lang=en&_next=" + encodeURIComponent("https://evil.example/x"),
+  "application/x-www-form-urlencoded"), env);
+ok(r.headers.get("location") === "https://trustio.com.br/en/obrigado.html?lista=espera",
+   "en: destino recusado cai no obrigado em inglês", r.headers.get("location"));
+
+respostaRpc = { ok: true, email: "en@exemplo.com" };
+r = await worker.fetch(req("GET", "/confirm?token=" + "b".repeat(64) + "&lang=en"), env);
+html = await r.text();
+ok(r.status === 200 && /Sign-up confirmed/.test(html) && /lang="en"/.test(html)
+   && html.includes('href="https://trustio.com.br/en/planos.html#pessoal"') && html.includes('href="https://trustio.com.br/en/"'),
+   "en: página de confirmação em inglês, com links para /en/");
+respostaRpc = { ok: false, error: "token_expirado" };
+r = await worker.fetch(req("GET", "/confirm?token=velho&lang=en"), env);
+ok(r.status === 410 && /Link expired/.test(await r.text()), "en: link expirado em inglês");
+r = await worker.fetch(req("GET", "/confirm?lang=en"), env);
+ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompleto em inglês");
+
 console.log(falhas ? `\n${falhas} FALHA(S)` : "\ntodos os casos passaram");
 process.exit(falhas ? 1 : 0);

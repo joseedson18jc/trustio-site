@@ -33,6 +33,8 @@
     // normalizacao: formularios sem todos os campos (ex.: planos.html usa whatsapp e nao tem nome)
     if (!payload.nome) payload.nome = String(payload.email || "").split("@")[0] || "Assinante";
     if (!payload.telefone && payload.whatsapp) payload.telefone = payload.whatsapp;
+    // O worker escreve o e-mail e a página de confirmação no idioma de quem se inscreveu.
+    payload.lang = EN ? "en" : "pt";
 
     fetch(ENDPOINT, {
       method: "POST",

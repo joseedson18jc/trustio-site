@@ -215,7 +215,7 @@ function traduzirPagina(fonte, pagina, dic) {
       // outro endereço; só o corpo do script fica intocado.
       const abertura = p.match(/^<script\b[^>]*>/i)[0];
       const bloco = traduzirTag(abertura, pagina, traduz) + p.slice(abertura.length);
-      partes[i] = /type=["']application\/ld\+json["']/i.test(p) ? traduzirJsonLd(bloco, dic) : bloco;
+      partes[i] = /type=["']application\/ld\+json["']/i.test(p) ? traduzirJsonLd(bloco, traduz) : bloco;
       continue;
     }
     if (/^<style\b/i.test(p)) continue;
@@ -269,24 +269,28 @@ function traduzirTag(tag, pagina, traduz) {
   });
 }
 
-// Dados estruturados: mesmo dicionário, só em valores que casam por inteiro.
-function traduzirJsonLd(bloco, dic) {
+// Dados estruturados: mesmo dicionário, só em valores que casam por inteiro. Texto sem
+// tradução conta como faltando, como no resto da página; identificadores e endereços
+// (as chaves abaixo) passam direto.
+const JSONLD_LITERAL = new Set(["@context", "@type", "@id", "url", "logo", "image", "sameAs", "email", "telephone",
+  "addressCountry", "addressRegion", "addressLocality", "postalCode", "priceCurrency", "price", "inLanguage", "contentUrl", "unitCode", "areaServed"]);
+
+function traduzirJsonLd(bloco, traduz) {
   const m = bloco.match(/^(<script\b[^>]*>)([\s\S]*)(<\/script>)$/i);
   if (!m) return bloco;
   let dados;
   try { dados = JSON.parse(m[2]); } catch { return bloco; }
-  const anda = (v) => {
+  const anda = (v, chave) => {
     if (typeof v === "string") {
-      const k = normalizar(v);
-      if (k in dic.text) return dic.text[k];
       if (/^https:\/\/trustio\.com\.br\//.test(v)) return reescreverUrl(v, "index.html");
-      return v;
+      if (JSONLD_LITERAL.has(chave)) return v;
+      return traduz(v) ?? v;
     }
-    if (Array.isArray(v)) return v.map(anda);
-    if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, k === "inLanguage" ? "en" : anda(x)]));
+    if (Array.isArray(v)) return v.map((x) => anda(x, chave));
+    if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, k === "inLanguage" ? "en" : anda(x, k)]));
     return v;
   };
-  return `${m[1]}\n${JSON.stringify(anda(dados), null, 2)}\n${m[3]}`;
+  return `${m[1]}\n${JSON.stringify(anda(dados, ""), null, 2)}\n${m[3]}`;
 }
 
 // ─────────────────────────────────────────────────────────────── execução

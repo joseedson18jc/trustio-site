@@ -11,3 +11,16 @@
     /* localStorage indisponível (modo privado, bloqueio de dados): fica no escuro. */
   }
 })();
+
+/* Bandeira de idioma: leva junto a busca e a âncora da página (?lista=pre&plano=anual,
+   ?tipo=b2b, #empresas), para a troca de idioma não perder o estado. O href fixo
+   continua valendo sem JavaScript. */
+(function () {
+  function levarEstado(e) {
+    var a = e.target && e.target.closest ? e.target.closest("a.lang-switch") : null;
+    if (!a || !(location.search || location.hash)) return;
+    a.href = a.getAttribute("href").split(/[?#]/)[0] + location.search + location.hash;
+  }
+  document.addEventListener("click", levarEstado);
+  document.addEventListener("auxclick", levarEstado); // botão do meio: nova aba
+})();

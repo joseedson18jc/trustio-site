@@ -19,13 +19,13 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preload" href="assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <script src="assets/theme.js?v=393a296c"></script>
+  <script src="assets/theme.js?v=0bb0de41"></script>
   <link rel="stylesheet" href="assets/styles.css?v=3cf59e12">
   <link rel="stylesheet" href="assets/planos.css?v=4193d49b">
   <link rel="stylesheet" href="assets/voice.css?v=0270d464">
   <script type="module" src="assets/app.js?v=3c8c4b14"></script>
   <script defer src="assets/espera.js?v=f5581327"></script>
-  <script defer src="assets/optin.js?v=3117fa57"></script>
+  <script defer src="assets/optin.js?v=615091c5"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/espera.html">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/espera.html">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/espera.html"><!--/i18n:alt-->
@@ -114,6 +114,7 @@
         <form class="lead-form" action="https://api.trustio.com.br/signup" method="POST" id="espera-form">
           <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
           <input type="hidden" name="origem" value="espera.html" data-origem>
+          <input type="hidden" name="_next" value="https://trustio.com.br/obrigado.html?lista=espera" data-next>
 
           <label for="w-nome">Nome <span>obrigat&oacute;rio</span></label>
           <input id="w-nome" name="nome" type="text" autocomplete="name" placeholder="Seu nome" required>

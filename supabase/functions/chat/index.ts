@@ -238,11 +238,13 @@ Deno.serve(async (req) => {
     // senão, um por trecho recebido.
     let tokens = 0;
     let trechos = 0;
+    let trechosRaciocinio = 0;
     // Tokens do raciocínio, à parte: num trecho com raciocínio e texto juntos, os tokens
-    // novos são divididos pelo tamanho de cada parte.
+    // novos são divididos pelo tamanho de cada parte; tokens que chegam só no total final
+    // (usage), pela proporção de trechos de raciocínio. O número do provedor, se vier, vale.
     let tokensRaciocinio = 0;
-    // Tokens da sessão (prompt + histórico + resposta), quando o modelo informa no fim.
-    let contexto: number | null = null;
+    // Tokens do prompt (sistema + histórico + pergunta), quando o modelo informa no fim.
+    let tokensPrompt: number | null = null;
 
     // O raciocínio vai ao navegador, mas o prompt de sistema não deve sair por ele: frases
     // do prompt citadas literalmente viram "[instrução interna]". Para pegar uma frase
@@ -279,13 +281,19 @@ Deno.serve(async (req) => {
             if (escolha.finish_reason) fim = escolha.finish_reason;
             const raciocinio = d.reasoning_content || d.reasoning;
             if (d.content || raciocinio) trechos++;
+            if (raciocinio) trechosRaciocinio++;
             const antes = tokens;
             tokens = Math.max(tokens, trechos, Number(pedaco.timings?.predicted_n) || 0, Number(pedaco.usage?.completion_tokens) || 0);
+            const novos = tokens - antes;
             if (raciocinio) {
-              const novos = tokens - antes;
               tokensRaciocinio += d.content ? Math.round(novos * raciocinio.length / (raciocinio.length + d.content.length)) : novos;
+            } else if (!d.content && novos > 0 && trechos > 0) {
+              tokensRaciocinio += Math.round(novos * trechosRaciocinio / trechos);
             }
-            if (Number(pedaco.usage?.total_tokens) > 0) contexto = Number(pedaco.usage.total_tokens);
+            const raciocinioInformado = Number(pedaco.usage?.completion_tokens_details?.reasoning_tokens);
+            if (raciocinioInformado > 0) tokensRaciocinio = raciocinioInformado;
+            tokensRaciocinio = Math.min(tokensRaciocinio, tokens);
+            if (Number(pedaco.usage?.prompt_tokens) > 0) tokensPrompt = Number(pedaco.usage.prompt_tokens);
             // Modelos com raciocínio mandam esse trecho em outro campo, antes do texto. Vai ao
             // navegador, que o mostra à parte; não entra no histórico nem no contexto.
             if (raciocinio) {
@@ -320,7 +328,9 @@ Deno.serve(async (req) => {
         fim,
         n: tokens,
         nr: tokensRaciocinio,
-        contexto,
+        // Contexto que a próxima pergunta vai ocupar: prompt + resposta salva. O raciocínio
+        // não é salvo nem reenviado, então não conta.
+        contexto: tokensPrompt === null ? null : tokensPrompt + Math.max(0, tokens - tokensRaciocinio),
         janela: LLM_CONTEXTO,
         remaining: reservation.remaining ?? null,
         limit: reservation.subscriber ? null : reservation.limit,

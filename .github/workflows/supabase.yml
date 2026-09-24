@@ -8,6 +8,9 @@
 #   SMTP_SENDER            remetente, se diferente do padrão do config.toml         opcional
 #   LLM_API_KEY            chave do provedor do modelo (xAI ou compatível)          para o chat responder
 #   LLM_BASE_URL, LLM_MODEL                                                         opcionais
+#   LLM_SERVIDOR           "llama.cpp" para a contagem exata de tokens               opcional
+#   LLM_CONTEXTO           contexto do modelo (llama-server -c), ex.: 8192           opcional (% da sessão)
+#   LLM_MAX_TOKENS         teto de tokens por resposta, ex.: 8192                    opcional (% da resposta)
 #   ADMIN_EMAILS           e-mails dos administradores do CRM, separados por vírgula
 name: Supabase
 
@@ -32,6 +35,9 @@ jobs:
       LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
       LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
       LLM_MODEL: ${{ secrets.LLM_MODEL }}
+      LLM_SERVIDOR: ${{ secrets.LLM_SERVIDOR }}
+      LLM_CONTEXTO: ${{ secrets.LLM_CONTEXTO }}
+      LLM_MAX_TOKENS: ${{ secrets.LLM_MAX_TOKENS }}
       ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
       PROJECT_REF: mjdaluioyutnxlyomzyd
     steps:
@@ -101,6 +107,9 @@ jobs:
           args="LLM_API_KEY=$LLM_API_KEY"
           [ -n "$LLM_BASE_URL" ] && args="$args LLM_BASE_URL=$LLM_BASE_URL"
           [ -n "$LLM_MODEL" ] && args="$args LLM_MODEL=$LLM_MODEL"
+          [ -n "$LLM_SERVIDOR" ] && args="$args LLM_SERVIDOR=$LLM_SERVIDOR"
+          [ -n "$LLM_CONTEXTO" ] && args="$args LLM_CONTEXTO=$LLM_CONTEXTO"
+          [ -n "$LLM_MAX_TOKENS" ] && args="$args LLM_MAX_TOKENS=$LLM_MAX_TOKENS"
           supabase secrets set $args --project-ref "$PROJECT_REF"
 
       - name: Administradores do CRM

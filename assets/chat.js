@@ -29,7 +29,7 @@
   var deleteBtn = $("[data-delete]");
   var gate = $("[data-gate]");
 
-  var state = { user: null, lead: null, limit: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false, fechado: false, sessaoCheia: false, placeholderPadrao: "" };
+  var state = { user: null, lead: null, limit: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false, fechado: false, sessaoCheia: false, placeholderPadrao: "", escolhas: 0 };
 
   // ---------------------------------------------------------------- utilidades
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -338,11 +338,13 @@
     var id = null;
     try { id = sessionStorage.getItem(CHAVE_SESSAO); } catch (e) { return; }
     if (!id) return;
+    // Se a pessoa abrir ou começar outra conversa enquanto a busca corre, a escolha dela vale.
+    var escolha = state.escolhas;
     // Busca a conversa guardada direto, e não na lista lateral (que traz só as 100 mais recentes).
     sb.from("conversations").select("id,title,created_at").eq("id", id).maybeSingle().then(function (r) {
+      if (state.escolhas !== escolha || state.conversationId || state.sending) return;
       var c = r.data, inicio = c && Date.parse(c.created_at);
       if (!(inicio && Date.now() - inicio < JANELA_SESSAO_MS)) { lembrarConversa(null); return; }
-      if (state.conversationId || state.sending) return;
       if (!state.conversations.some(function (x) { return x.id === id; })) state.conversations.unshift(c);
       openConversation(id);
     });
@@ -385,6 +387,7 @@
   }
 
   function resetThread() {
+    state.escolhas++;
     sairDaSessaoCheia();
     if (state.threadInner) { state.threadInner.remove(); state.threadInner = null; }
     welcome.hidden = false;
@@ -397,6 +400,7 @@
 
   function openConversation(id) {
     if (state.sending) return;
+    state.escolhas++;
     sairDaSessaoCheia();
     state.conversationId = id;
     lembrarConversa(id);

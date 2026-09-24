@@ -16,6 +16,9 @@ const LLM_API_KEY = Deno.env.get("LLM_API_KEY") ?? Deno.env.get("XAI_API_KEY") ?
 const LLM_BASE_URL = (Deno.env.get("LLM_BASE_URL") ?? "https://api.x.ai/v1").replace(/\/$/, "");
 const LLM_MODEL = Deno.env.get("LLM_MODEL") ?? "grok-4";
 const HISTORY = 30;
+// Teto de tokens por resposta (raciocínio + texto). O chat mostra o progresso contra
+// esse teto, porque o tamanho final da resposta não é conhecido de antemão.
+const LLM_MAX_TOKENS = Math.min(32768, Math.max(256, Number(Deno.env.get("LLM_MAX_TOKENS")) || 4096));
 
 const ALLOWED_ORIGINS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$|^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
 
@@ -161,7 +164,7 @@ Deno.serve(async (req) => {
     upstream = await fetch(`${LLM_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: LLM_MODEL, messages, stream: true, temperature: 0.7 }),
+      body: JSON.stringify({ model: LLM_MODEL, messages, stream: true, temperature: 0.7, max_tokens: LLM_MAX_TOKENS }),
     });
   } catch (err) {
     console.error("llm_fetch_error", err);
@@ -201,7 +204,7 @@ Deno.serve(async (req) => {
   };
 
   const stream = new ReadableStream<Uint8Array>({
-    start(controller) { saida = controller; send({ conversation_id: convId }); },
+    start(controller) { saida = controller; send({ conversation_id: convId, limite: LLM_MAX_TOKENS }); },
     // Navegador foi embora: só para de enviar; a leitura do modelo segue.
     cancel() { aberto = false; },
   });
@@ -211,6 +214,7 @@ Deno.serve(async (req) => {
     let buffer = "";
     let pensando = false;
     let interrompido = false;
+    let fim: string | null = null;
     try {
       while (true) {
         const { done, value } = await reader.read();
@@ -224,11 +228,19 @@ Deno.serve(async (req) => {
           const payload = line.slice(5).trim();
           if (payload === "[DONE]") continue;
           try {
-            const d = JSON.parse(payload)?.choices?.[0]?.delta ?? {};
+            const escolha = JSON.parse(payload)?.choices?.[0] ?? {};
+            const d = escolha.delta ?? {};
+            if (escolha.finish_reason) fim = escolha.finish_reason;
             if (d.content) { full += d.content; send({ delta: d.content }); }
-            // Modelos com raciocínio mandam esse trecho em outro campo antes do texto.
-            // Não é mostrado, mas avisa o navegador que o modelo está trabalhando.
-            else if (!pensando && (d.reasoning_content || d.reasoning)) { pensando = true; send({ pensando: true }); }
+            // Modelos com raciocínio mandam esse trecho em outro campo antes do texto. Vai
+            // ao navegador, que o mostra à parte; não entra no histórico nem no contexto.
+            else {
+              const raciocinio = d.reasoning_content || d.reasoning;
+              if (raciocinio) {
+                if (!pensando) { pensando = true; send({ pensando: true }); }
+                send({ raciocinio });
+              }
+            }
           } catch { /* fragmento incompleto */ }
         }
       }
@@ -244,6 +256,8 @@ Deno.serve(async (req) => {
       send({
         done: true,
         conversation_id: convId,
+        // "length": a resposta bateu no teto de tokens e pode ter sido cortada.
+        fim,
         remaining: reservation.remaining ?? null,
         limit: reservation.subscriber ? null : reservation.limit,
       });

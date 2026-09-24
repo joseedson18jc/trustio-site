@@ -413,6 +413,33 @@
     pending.classList.add("msg-pending");
     var body = pending.querySelector(".msg-body");
     var full = "", avisado = false;
+
+    // Raciocínio do modelo (à parte, recolhível) e progresso da resposta. O tamanho
+    // final não é conhecido de antemão: a porcentagem é contra o teto de tokens que a
+    // função informa ("limite") e vai a 100% quando a resposta termina.
+    var col = document.createElement("div");
+    col.className = "msg-col";
+    pending.replaceChild(col, body);
+    var think = document.createElement("details");
+    think.className = "msg-think"; think.hidden = true; think.open = true;
+    think.innerHTML = "<summary></summary><div class=\"msg-think-text\"></div>";
+    var thinkSum = think.querySelector("summary"), thinkText = think.querySelector(".msg-think-text");
+    var prog = document.createElement("div");
+    prog.className = "msg-progress";
+    prog.setAttribute("role", "progressbar"); prog.setAttribute("aria-valuemin", "0"); prog.setAttribute("aria-valuemax", "100"); prog.setAttribute("aria-valuenow", "0");
+    prog.innerHTML = "<span class=\"msg-progress-bar\"><span></span></span><small></small>";
+    var progFill = prog.querySelector(".msg-progress-bar span"), progTxt = prog.querySelector("small");
+    col.appendChild(think); col.appendChild(body); col.appendChild(prog);
+    var limite = 4096, tokens = 0, tokensPensando = 0, inicio = Date.now();
+    function pct() { return Math.min(99, Math.floor(tokens / limite * 100)); }
+    function mostrarProgresso() {
+      var p = pct(), fase = full ? T("Escrevendo…", "Writing…") : T("Pensando…", "Thinking…");
+      progFill.style.width = p + "%";
+      prog.setAttribute("aria-valuenow", String(p));
+      progTxt.textContent = fase + " " + p + "% · " + tokens + T(" de até ", " of up to ") + limite + " tokens";
+      thinkSum.textContent = T("Raciocínio", "Reasoning") + " · " + tokensPensando + " tokens";
+    }
+    mostrarProgresso();
     scrollBottom();
     thread.setAttribute("aria-busy", "true");
 
@@ -439,9 +466,20 @@
             if (!line) return;
             var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
             if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; }
-            // Modelo raciocinando antes de escrever: mostra que está trabalhando.
-            if (d.pensando && !full) { body.textContent = T("Pensando…", "Thinking…"); }
-            if (d.delta) { full += d.delta; body.innerHTML = render(full); scrollBottom(); }
+            if (d.limite) { limite = Number(d.limite) || limite; mostrarProgresso(); }
+            if (d.raciocinio) {
+              tokens++; tokensPensando++;
+              if (think.hidden) think.hidden = false;
+              var noFim = thinkText.scrollTop + thinkText.clientHeight >= thinkText.scrollHeight - 8;
+              thinkText.textContent += d.raciocinio;
+              if (noFim) thinkText.scrollTop = thinkText.scrollHeight;
+              mostrarProgresso(); scrollBottom();
+            }
+            if (d.delta) {
+              // Primeiro trecho da resposta: o raciocínio recolhe e a resposta fica em foco.
+              if (!full && !think.hidden) think.open = false;
+              tokens++; full += d.delta; body.innerHTML = render(full); mostrarProgresso(); scrollBottom();
+            }
             if (d.error) {
               avisado = true;
               if (!full) body.textContent = "";
@@ -449,7 +487,15 @@
                 ? T("O modelo não devolveu resposta desta vez, e a mensagem não foi descontada. Tente enviar de novo.", "The model didn't return an answer this time, and the message wasn't counted. Try sending again.")
                 : T("A resposta foi interrompida. Tente enviar de novo.", "The answer was cut off. Try sending again."));
             }
-            if (d.done) afterDone(d);
+            if (d.done) {
+              var seg = ((Date.now() - inicio) / 1000).toFixed(1);
+              progFill.style.width = "100%"; prog.setAttribute("aria-valuenow", "100");
+              prog.classList.add("is-done");
+              progTxt.textContent = (d.fim === "length"
+                ? T("Resposta cortada no limite", "Answer cut off at the limit")
+                : T("Concluída", "Done")) + " · " + tokens + " tokens · " + (EN ? seg : seg.replace(".", ",")) + " s";
+              afterDone(d);
+            }
           });
           return pump();
         });
@@ -472,6 +518,7 @@
       else { pending.remove(); showNotice(T("Não foi possível enviar. Verifique a conexão e tente de novo.", "We couldn't send that. Check your connection and try again.")); console.error(err); }
     }).then(function () {
       pending.classList.remove("msg-pending");
+      if (!prog.classList.contains("is-done")) prog.remove();
       if (!body.innerHTML && pending.parentNode) pending.remove();
       state.sending = false;
       thread.setAttribute("aria-busy", "false");

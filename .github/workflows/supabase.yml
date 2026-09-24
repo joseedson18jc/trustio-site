@@ -47,6 +47,28 @@ jobs:
           [ -n "$SUPABASE_ACCESS_TOKEN" ] || missing="$missing SUPABASE_ACCESS_TOKEN"
           [ -n "$SUPABASE_DB_PASSWORD" ] || missing="$missing SUPABASE_DB_PASSWORD"
           if [ -n "$missing" ]; then echo "::error::Faltam secrets:$missing (veja o cabeçalho deste workflow)"; exit 1; fi
+
+          # O token pessoal do Supabase começa com sbp_. Colado pela interface, às vezes vem
+          # com espaço, quebra de linha ou aspas; tiramos. Se ainda não for sbp_, dizemos
+          # que tipo de chave chegou (sem mostrar nada dela), porque o erro da CLI não diz.
+          token="$(printf '%s' "$SUPABASE_ACCESS_TOKEN" | tr -d "[:space:]\"'")"
+          case "$token" in
+            sbp_*) ;;
+            sb_secret_*) tipo="a chave secreta do projeto (sb_secret_…)" ;;
+            sb_publishable_*) tipo="a chave publishable do projeto (sb_publishable_…)" ;;
+            eyJ*) tipo="uma chave JWT do projeto (anon ou service_role, eyJ…)" ;;
+            *) tipo="um valor que não é token do Supabase" ;;
+          esac
+          if [ -n "${tipo:-}" ]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN recebeu $tipo. O workflow precisa do token pessoal da conta, que começa com sbp_: supabase.com/dashboard/account/tokens → Generate new token."
+            exit 1
+          fi
+          if [ "$token" != "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "::warning::SUPABASE_ACCESS_TOKEN tinha espaço, quebra de linha ou aspas; foram removidos nesta execução. Corrija também o secret, colando só o sbp_…"
+            echo "::add-mask::$token"
+            echo "SUPABASE_ACCESS_TOKEN=$token" >> "$GITHUB_ENV"
+          fi
+
           [ -n "$SMTP_PASS" ] || echo "::warning::SMTP_PASS ausente: e-mails seguem pelo remetente padrão do Supabase (limite de poucos por hora)."
           [ -n "$LLM_API_KEY" ] || echo "::warning::LLM_API_KEY ausente: o chat responde 'modelo não ativado' até a chave existir."
 

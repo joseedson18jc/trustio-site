@@ -12,7 +12,7 @@
  *   GET  /saude            diz se as variáveis estão configuradas (sem revelá-las)
  *
  * Variáveis (wrangler secret put NOME)
- *   SUPABASE_URL                https://yxkgdgcdvngltnykleig.supabase.co
+ *   SUPABASE_URL                https://mjdaluioyutnxlyomzyd.supabase.co
  *   SUPABASE_SERVICE_ROLE_KEY   chave de serviço do projeto  ← segredo
  *   RESEND_API_KEY              chave da Resend              ← segredo
  *   EMAIL_FROM                  Trustio <no-reply@send.trustio.com.br>
@@ -89,14 +89,17 @@ function escapar(s) {
 }
 
 // ─────────────────────────────────────────────────────────────── banco
+// A chave legada service_role é um JWT e vai também no Authorization. A chave nova
+// (sb_secret_…) não é JWT: vai só no apikey, e o gateway já a trata como service_role.
+function cabecalhosServico(chave) {
+  const h = { apikey: chave, "Content-Type": "application/json" };
+  if (String(chave).startsWith("eyJ")) h.Authorization = `Bearer ${chave}`;
+  return h;
+}
 async function rpc(env, nome, args) {
   const r = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/${nome}`, {
     method: "POST",
-    headers: {
-      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-      "Content-Type": "application/json",
-    },
+    headers: cabecalhosServico(env.SUPABASE_SERVICE_ROLE_KEY),
     body: JSON.stringify(args),
   });
   const texto = await r.text();
@@ -470,6 +473,9 @@ export default {
       let r;
       try {
         r = usaD1(env) ? await confirmarNoD1(env, token) : await rpc(env, "confirmar_optin", { p_token: token });
+        // Depois da troca para o Supabase, links enviados antes dela (D1, e pelo D1 o KV)
+        // continuam confirmando. Essas confirmações entram no crm_leads na importação.
+        if (!usaD1(env) && r?.error === "token_invalido" && env.DB) r = await confirmarNoD1(env, token);
       } catch (err) {
         console.error("confirmar_optin_falhou", err.message);
         return pagina("Tente de novo em instantes", "Não conseguimos conferir o link agora. Abra de novo daqui a pouco; se ele já tiver sido usado, avisamos na hora.", env, 503);

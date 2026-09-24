@@ -33,10 +33,12 @@ CRM junto com o resto — uma lista de clientes só, não duas.
 
 Ao confirmar, o lead passa de `novo` para `email_confirmado` e o token sai do banco.
 
-### Provisório: D1 `trustio-lista-de-espera`
+### Antes da troca: D1 `trustio-lista-de-espera`
 
-Enquanto o banco do projeto Supabase novo não existe, `ARMAZENAMENTO = "d1"` no
-`wrangler.toml` grava as inscrições no D1 (`migrations/0001_lista_de_espera.sql`):
+De 24/09 até a troca para o projeto Supabase novo, `ARMAZENAMENTO = "d1"` gravava as
+inscrições no D1 (`migrations/0001_lista_de_espera.sql`). Com `"supabase"`, o código do
+D1 continua no worker para os links enviados antes da troca: se o Supabase não conhece
+um link, a confirmação consulta o D1 (e, por ele, o KV).
 
 | Tabela | Conteúdo |
 |---|---|
@@ -56,7 +58,8 @@ Os testes (`npm run test:worker`) rodam o SQL no `node:sqlite`, que pede Node 22
 
 ### Importação para o Supabase
 
-Na troca, `ARMAZENAMENTO` volta a `"supabase"` e são importados para o `crm_leads`:
+Na troca, `ARMAZENAMENTO` passa a `"supabase"`. Antes do merge que faz a troca, e de novo
+48 h depois (prazo dos links enviados antes dela), são importados para o `crm_leads`:
 
 - **D1:** a tabela `leads` inteira;
 - **KV, formato de 24/09:** `lead:<e-mail>` que ainda não estejam no D1 (quem se inscreve
@@ -66,6 +69,9 @@ Na troca, `ARMAZENAMENTO` volta a `"supabase"` e são importados para o `crm_lea
 - **KV, worker anterior a 24/09:** `pending:<token>` traz o JSON completo da inscrição
   (`status`, `createdAt`, `data`, `meta`), com `index:<hash>` apontando o estado;
 - endereços de teste `delivered+teste-claude-*@resend.dev` ficam de fora.
+
+A importação não mora no repositório (ele é público e os dados são pessoais): roda uma
+vez, direto no banco, e a segunda passada só atualiza quem confirmou pelo D1 depois da troca.
 
 ## Publicar
 
@@ -106,8 +112,8 @@ daí, cada push na `main` substitui o worker em produção.
 
 | Nome | Onde | Valor |
 |---|---|---|
-| `ARMAZENAMENTO` | `wrangler.toml` | `d1` (provisório) ou `supabase` |
-| `DB` | `wrangler.toml` (D1) | onde ficam as inscrições no modo `d1` |
+| `ARMAZENAMENTO` | `wrangler.toml` | `supabase` (ou `d1`, como antes da troca) |
+| `DB` | `wrangler.toml` (D1) | inscrições de antes da troca; no modo `d1`, todas |
 | `SIGNUPS` | `wrangler.toml` (KV) | links gravados antes da troca para o D1 |
 | `SUPABASE_URL` | `wrangler.toml` | endereço do projeto |
 | `SITE_URL`, `API_URL` | `wrangler.toml` | endereços públicos |

@@ -383,5 +383,30 @@ r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "x@exemplo
 ok(r.status === 503, "d1 sem o binding DB: indisponível, sem fingir sucesso");
 ok(await confirma("nao-hex") === 400, "d1: token fora do formato recusado");
 
+// 11 · depois da troca para o Supabase
+//      chave nova (sb_secret_…) vai só no apikey; a legada (JWT) vai também no Authorization
+let cabecalhos = [];
+const fetchCabecalhos = globalThis.fetch;
+globalThis.fetch = async (u, o) => { if (String(u).includes("/rest/v1/rpc/")) cabecalhos.push(o.headers); return fetchCabecalhos(u, o); };
+respostaRpc = { ok: true, token: "1".repeat(64) };
+await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "chave@exemplo.com.br" })), { ...env, SUPABASE_SERVICE_ROLE_KEY: "sb_secret_abc" });
+await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "chave@exemplo.com.br" })), { ...env, SUPABASE_SERVICE_ROLE_KEY: "eyJhbGciOi.x.y" });
+globalThis.fetch = fetchCabecalhos;
+ok(cabecalhos[0]?.apikey === "sb_secret_abc" && !cabecalhos[0]?.Authorization, "supabase: chave sb_secret_ vai só no apikey");
+ok(cabecalhos[1]?.Authorization === "Bearer eyJhbGciOi.x.y", "supabase: chave JWT legada vai também no Authorization");
+
+//      link enviado antes da troca (D1) continua confirmando quando o Supabase não o conhece
+const envSupabase = { ...env, ARMAZENAMENTO: "supabase", DB: db, SIGNUPS: kv };
+await inscreve({ email: "antes-da-troca@exemplo.com.br" });
+const ta = linkDe(enviados.at(-1));
+respostaRpc = { ok: false, error: "token_invalido" };
+r = await worker.fetch(req("GET", "/confirm?token=" + ta), envSupabase);
+ok(r.status === 200 && leadD1("antes-da-troca@exemplo.com.br")?.status === "confirmado", "supabase: link do D1 enviado antes da troca confirma");
+r = await worker.fetch(req("GET", "/confirm?token=" + ta), envSupabase);
+ok(r.status === 400, "supabase: e não vale duas vezes");
+respostaRpc = { ok: true, email: "novo@exemplo.com.br" };
+r = await worker.fetch(req("GET", "/confirm?token=" + "2".repeat(64)), envSupabase);
+ok(r.status === 200, "supabase: link do próprio Supabase confirma sem passar pelo D1");
+
 console.log(falhas ? `\n${falhas} FALHA(S)` : "\ntodos os casos passaram");
 process.exit(falhas ? 1 : 0);

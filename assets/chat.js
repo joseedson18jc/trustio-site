@@ -452,6 +452,8 @@
     if (state.fechado) { input.value = ""; autosize(); return; }
     if (!state.user.email_confirmed_at) { showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); return; }
     state.sending = true;
+    // Mandar mensagem também é escolher: a retomada pendente não troca mais de conversa.
+    state.escolhas++;
     showNotice("");
     input.value = ""; autosize();
     sendBtn.disabled = true; input.disabled = true;

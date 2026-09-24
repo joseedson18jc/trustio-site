@@ -91,12 +91,9 @@
         // identities vazio nesse caso, sem erro): dizer "já tem conta" num formulário público
         // revelaria quem é cliente. Então nunca "conta criada" — a página diz o que vale nos
         // dois casos e sempre oferece entrar ou recuperar a senha.
+        // A caixa "Falta só confirmar" fica escondida: ela afirma que um e-mail foi enviado, o
+        // que não vale para quem já tem conta. A mensagem abaixo diz o que vale nos dois casos.
         signup.querySelectorAll("input:not([type=hidden]), select, fieldset").forEach(function (el) { el.disabled = true; });
-        var done = signup.querySelector("[data-done]");
-        if (done) {
-          done.hidden = false;
-          done.querySelector("[data-done-email]").textContent = email;
-        }
         busy(signup, true, T("Confira seu e-mail", "Check your email"));
         status(signup, T("Se esse e-mail ainda não tiver conta, enviamos o link de confirmação. Se já tiver, é só entrar: ", "If that email doesn't have an account yet, we sent the confirmation link. If it does, just sign in: "), "ok");
         var note = signup.querySelector("[data-status]");

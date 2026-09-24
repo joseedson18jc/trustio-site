@@ -15,7 +15,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.trustio.com.br https://yxkgdgcdvngltnykleig.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self' https://api.trustio.com.br; frame-ancestors 'none'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.trustio.com.br https://mjdaluioyutnxlyomzyd.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self' https://api.trustio.com.br; frame-ancestors 'none'; upgrade-insecure-requests"
         },
         {
           "key": "Referrer-Policy",

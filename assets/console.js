@@ -3,6 +3,9 @@
    List view + agent builder, with the WebGL galaxy orb (assets/orb.js) as the live-test surface:
    clicking it plays the agent's neural clip and drives uAudio from the real waveform. */
 
+const EN = /^en\b/i.test(document.documentElement.lang);
+const T = (pt, en) => (EN ? en : pt);
+
 const AGENTS = [
   { id: "ara", name: "Ara", role: "Atendimento ao cliente", sector: "Atendimento", model: "trustio-voice-xAI-fast-2.0",
     voice: "ara", tools: 4, calls: 612, p95: 388, status: "live", updated: "há 2 h",
@@ -115,7 +118,102 @@ LIMITES
 - Deixe explícito que a validação final é do advogado responsável.` }
 ];
 
-const STATUS = { live: ["live", "Em produção"], draft: ["draft", "Rascunho"], paused: ["paused", "Pausado"] };
+/* English copy for the demo agents. Tool identifiers stay as they are: they are code. */
+const AGENTS_EN = {
+  ara: { role: "Customer service", sector: "Customer service", updated: "2 h ago",
+    turns: [["me", "My order arrived with the wrong product."],
+            ["ai", "I'm sorry about that. I found order 8841 — a keyboard instead of the mouse. Shall I ship the right one today and create the return label?"],
+            ["tool", "consultar_pedido(8841) · politica_troca() · criar_etiqueta()"],
+            ["me", "Yes, please."],
+            ["ai", "Done. Ticket 2026-0913. The label will reach your inbox in a moment."]],
+    prompt: `You are Ara, Trustio's voice agent for customer service.
+
+TONE: warm, direct, short sentences. Sound like a person on the phone, never like an IVR.
+
+FLOW
+1. Greet by name when the number is recognized and confirm the reason for the call in one sentence.
+2. Look up the order with consultar_pedido(numero). If the customer doesn't know the number, search by tax ID or e-mail.
+3. Apply politica_troca() before promising any return or refund.
+4. Close with the ticket number and send the confirmation on WhatsApp.
+
+LIMITS
+- Never read card numbers, full tax IDs or passwords aloud; confirm only the last four digits.
+- Refunds above R$ 500 need human approval: call transferir_para_humano(financeiro).
+- If the customer asks for a person, transfer right away, without insisting.` },
+  eve: { role: "Sales and win-back", sector: "Sales", updated: "yesterday",
+    turns: [["ai", "Hi, Marina! I saw you asked for a quote on the Pro plan. Can I answer your questions now?"],
+            ["me", "I want to know if it covers 5 use cases."],
+            ["ai", "It does — Pro includes up to five. If you like, I'll send a payment link with ten percent off the annual plan."],
+            ["tool", "criar_link_pagamento(pro, cupom=ANUAL10)"]],
+    prompt: `You are Eve, Trustio's voice agent for consultative sales.
+
+TONE: quick, friendly, no pressure. One question at a time.
+
+FLOW
+1. Confirm the interest logged in the CRM before quoting a price.
+2. Qualify volume, timeline and decision-maker with short questions.
+3. Only offer discounts within the current price table; never invent terms.
+4. Close with a payment link or a meeting with the human team.
+
+LIMITS
+- Never promise a rollout faster than two weeks.
+- Discounts above 10% need approval: transferir_para_humano(comercial).` },
+  leo: { role: "Collections and confirmations", sector: "Collections", updated: "3 days ago",
+    turns: [["ai", "Good afternoon, am I speaking with Mr. Ricardo? This is Leo, from Trustio."],
+            ["me", "Yes, speaking."],
+            ["ai", "There is an invoice of two hundred and thirty reais, five days overdue. Shall I generate a Pix now or reschedule for the tenth?"],
+            ["tool", "gerar_pix(230.00) · registrar_promessa(2026-09-10)"]],
+    prompt: `You are Leo, Trustio's voice agent for friendly collections.
+
+TONE: firm, calm, respectful. Never embarrass the customer.
+
+FLOW
+1. Confirm identity before mentioning any amount.
+2. State the debt only once, with the exact date and amount.
+3. Offer an immediate Pix or rescheduling within policy.
+4. Log the payment promise and confirm on WhatsApp.
+
+LIMITS (Consumer Protection Code and good practice)
+- Do not call outside permitted hours or call again on the same day.
+- Do not discuss the debt with third parties.
+- End the call if the customer asks.` },
+  rex: { role: "Tier 1 technical support", sector: "Technical support", updated: "6 days ago",
+    turns: [["me", "My internet is down again."],
+            ["ai", "I'll check your equipment's signal now. One moment."],
+            ["tool", "diagnostico_link(cliente=44120) · abrir_chamado(prioridade=alta)"],
+            ["ai", "I found a signal loss in your area. Ticket 5521 opened with high priority; a technician will contact you within two hours."]],
+    prompt: `You are Rex, Trustio's voice agent for tier 1 technical support.
+
+TONE: deep, objective, no jargon. Explain each step before asking for an action.
+
+FLOW
+1. Run diagnostico_link() before asking the customer anything.
+2. Guide at most three verification steps; if that doesn't fix it, open a ticket.
+3. State the ticket number, priority and real timeline.
+
+LIMITS
+- Never ask for the router password or card details.
+- Do not promise timelines outside the contracted plan's SLA.` },
+  sal: { role: "Legal and research", sector: "Legal", updated: "20 min ago",
+    turns: [["me", "I need the recent rulings on bank contract review."],
+            ["ai", "I found three STJ rulings from the last ninety days. Do you want the summary now or by e-mail?"],
+            ["tool", "buscar_jurisprudencia(tema, 90d) · resumir(3)"]],
+    prompt: `You are Sal, Trustio's voice agent for law firms and legal departments.
+
+TONE: precise, discreet, technical when needed.
+
+FLOW
+1. Confirm topic, court and time range before searching.
+2. Always cite the source: court, number and date of the ruling.
+3. Offer the summary by voice and the full text by e-mail.
+
+LIMITS
+- Never give a conclusive legal opinion or estimate the odds of success.
+- Make it explicit that final validation belongs to the responsible lawyer.` }
+};
+if (EN) AGENTS.forEach(a => Object.assign(a, AGENTS_EN[a.id]));
+
+const STATUS = { live: ["live", T("Em produção", "In production")], draft: ["draft", T("Rascunho", "Draft")], paused: ["paused", T("Pausado", "Paused")] };
 const rm = matchMedia("(prefers-reduced-motion: reduce)");
 
 /* ── orbs ── */
@@ -173,13 +271,13 @@ function renderList() {
       tr.tabIndex = 0; tr.setAttribute("role", "link");
       tr.innerHTML = `
         <td><div class="who"><div class="orb"></div><div><b>${a.name}</b><small>${a.role}</small></div></div></td>
-        <td data-l="Modelo"><code>${a.model}</code></td>
-        <td data-l="Voz"><code>${a.voice}</code></td>
-        <td class="tools-n" data-l="Ferramentas">${a.tools} ativas</td>
-        <td class="num" data-l="Chamadas 24 h">${a.calls ? a.calls.toLocaleString("pt-BR") : "—"}</td>
+        <td data-l="${T("Modelo", "Model")}"><code>${a.model}</code></td>
+        <td data-l="${T("Voz", "Voice")}"><code>${a.voice}</code></td>
+        <td class="tools-n" data-l="${T("Ferramentas", "Tools")}">${a.tools} ${T("ativas", "active")}</td>
+        <td class="num" data-l="${T("Chamadas 24 h", "Calls 24 h")}">${a.calls ? a.calls.toLocaleString(T("pt-BR", "en-US")) : "—"}</td>
         <td class="num" data-l="p95">${a.p95 ? a.p95 + " ms" : "—"}</td>
         <td data-l="Status"><span class="chip ${STATUS[a.status][0]}">${STATUS[a.status][1]}</span></td>
-        <td class="tools-n" data-l="Atualizado">${a.updated}</td>
+        <td class="tools-n" data-l="${T("Atualizado", "Updated")}">${a.updated}</td>
         <td class="go">›</td>`;
       mountOrb(tr.querySelector(".orb"), a, false);
       const open = () => openAgent(a);
@@ -210,8 +308,8 @@ function openAgent(a) {
   document.getElementById("fModel").value = a.model;
   document.getElementById("fVoice").value = a.voice;
   const pr = document.getElementById("fPrompt"); pr.value = a.prompt; countPrompt();
-  document.getElementById("tHint").textContent = "Toque na esfera para ouvir " + a.name + " responder.";
-  document.getElementById("tLog").innerHTML = '<p class="muted">A transcrição aparece aqui durante o teste.</p>';
+  document.getElementById("tHint").textContent = T("Toque na esfera para ouvir " + a.name + " responder.", "Tap the orb to hear " + a.name + " reply.");
+  document.getElementById("tLog").innerHTML = `<p class="muted">${T("A transcrição aparece aqui durante o teste.", "The transcript appears here during the test.")}</p>`;
   document.getElementById("tEvents").textContent = `session.update      · voice=${a.voice}, vad=server_vad\nsession.created     · br-sao-1\n`;
   document.getElementById("tLat").textContent = a.p95 ? "p95 " + a.p95 + " ms" : "—";
   // (re)build the hero test orb with this agent's palette
@@ -227,13 +325,13 @@ document.getElementById("backBtn").addEventListener("click", () => {
   buildView.hidden = true; listView.hidden = false; history.replaceState(null, "", "#");
 });
 document.getElementById("newAgent").addEventListener("click", () => {
-  openAgent({ ...AGENTS[0], name: "Novo agente", role: "Sem função definida", status: "draft", calls: 0, p95: 0, updated: "agora",
-    prompt: "Você é um agente de voz da Trustio.\n\nTOM:\n\nFLUXO\n1.\n\nLIMITES\n- " });
+  openAgent({ ...AGENTS[0], name: T("Novo agente", "New agent"), role: T("Sem função definida", "No role defined"), status: "draft", calls: 0, p95: 0, updated: T("agora", "just now"),
+    prompt: T("Você é um agente de voz da Trustio.\n\nTOM:\n\nFLUXO\n1.\n\nLIMITES\n- ", "You are a Trustio voice agent.\n\nTONE:\n\nFLOW\n1.\n\nLIMITS\n- ") });
 });
 
 /* prompt counter + autosave pill */
 const promptEl = document.getElementById("fPrompt"), savedEl = document.getElementById("saved");
-function countPrompt() { document.getElementById("promptCount").textContent = promptEl.value.length + " caracteres"; }
+function countPrompt() { document.getElementById("promptCount").textContent = promptEl.value.length + T(" caracteres", " characters"); }
 let saveT = 0;
 function touched() {
   countPrompt(); clearTimeout(saveT);
@@ -241,14 +339,14 @@ function touched() {
 }
 promptEl.addEventListener("input", touched);
 document.querySelectorAll("#fName,#fSector,#fModel,#fVoice,#fLang,#fVad,#toolList input").forEach(el => el.addEventListener("change", touched));
-document.getElementById("fName").addEventListener("input", e => { document.getElementById("bName").textContent = e.target.value || "Sem nome"; });
+document.getElementById("fName").addEventListener("input", e => { document.getElementById("bName").textContent = e.target.value || T("Sem nome", "Untitled"); });
 const temp = document.getElementById("fTemp"), rate = document.getElementById("fRate");
 temp.addEventListener("input", () => document.getElementById("oTemp").value = Number(temp.value).toFixed(2));
 rate.addEventListener("input", () => document.getElementById("oRate").value = Number(rate.value).toFixed(2) + "×");
 document.getElementById("deployBtn").addEventListener("click", e => {
   const b = e.currentTarget; const old = b.textContent;
-  b.textContent = "Publicando…"; b.disabled = true;
-  setTimeout(() => { b.textContent = "Publicado ✓"; setTimeout(() => { b.textContent = old; b.disabled = false; }, 1600); }, 900);
+  b.textContent = T("Publicando…", "Publishing…"); b.disabled = true;
+  setTimeout(() => { b.textContent = T("Publicado ✓", "Published ✓"); setTimeout(() => { b.textContent = old; b.disabled = false; }, 1600); }, 900);
 });
 document.getElementById("revertBtn").addEventListener("click", () => { promptEl.value = agent.prompt; countPrompt(); });
 
@@ -260,23 +358,23 @@ const tState = document.getElementById("tState"), tDot = document.getElementById
 function ev(line) { tEvents.textContent += line + "\n"; tEvents.scrollTop = tEvents.scrollHeight; }
 function setState(s, busy) { tState.textContent = s; tDot.className = "dot " + (busy ? "busy" : "live"); }
 function resetTest() {
-  setState("Pronto", false); callBtn.textContent = "Iniciar teste"; clearInterval(clockTimer);
+  setState(T("Pronto", "Ready"), false); callBtn.textContent = T("Iniciar teste", "Start test"); clearInterval(clockTimer);
   clock = 0; tClock.textContent = "00:00"; testOrbEl.classList.remove("speaking");
 }
 function runTest() {
   if (current) { stopAudio(); resetTest(); return; }
   ensureAudio(); ctx?.resume?.();
-  tLog.innerHTML = ""; callBtn.textContent = "Encerrar";
+  tLog.innerHTML = ""; callBtn.textContent = T("Encerrar", "End");
   clock = 0; clearInterval(clockTimer);
   clockTimer = setInterval(() => { clock++; tClock.textContent = String(Math.floor(clock / 60)).padStart(2, "0") + ":" + String(clock % 60).padStart(2, "0"); }, 1000);
-  setState("Ouvindo", false); ev("input_audio_buffer.speech_started");
+  setState(T("Ouvindo", "Listening"), false); ev("input_audio_buffer.speech_started");
   const turns = agent.turns || [];
   let i = 0;
   const step = () => {
     if (i >= turns.length) { playLine(); return; }
     const [kind, text] = turns[i++];
-    if (kind === "tool") { ev("response.function_call · " + text); addLog("tool", text); setState("Executando ferramenta", true); }
-    else { addLog(kind, text); setState(kind === "me" ? "Ouvindo" : "Falando", kind !== "me"); if (kind === "ai") ev("response.audio.delta ·  " + text.slice(0, 34) + "…"); }
+    if (kind === "tool") { ev("response.function_call · " + text); addLog("tool", text); setState(T("Executando ferramenta", "Running tool"), true); }
+    else { addLog(kind, text); setState(kind === "me" ? T("Ouvindo", "Listening") : T("Falando", "Speaking"), kind !== "me"); if (kind === "ai") ev("response.audio.delta ·  " + text.slice(0, 34) + "…"); }
     setTimeout(step, kind === "tool" ? 700 : 1500);
   };
   setTimeout(step, 500);
@@ -289,14 +387,14 @@ function addLog(kind, text) {
   tLog.appendChild(p); tLog.scrollTop = tLog.scrollHeight;
 }
 function playLine() {
-  setState("Falando", true); ev("response.audio.done");
+  setState(T("Falando", "Speaking"), true); ev("response.audio.done");
   current = { el: testOrbEl };
   testOrbEl.classList.add("speaking");
-  player.src = (window.VOICE_AUDIO && window.VOICE_AUDIO[agent.id]) || ("../assets/voice/" + agent.id + ".mp3");
-  player.play().catch(() => { document.getElementById("tHint").textContent = "Toque na esfera para liberar o áudio."; });
+  player.src = (window.VOICE_AUDIO && window.VOICE_AUDIO[agent.id]) || ("/assets/voice/" + agent.id + ".mp3");
+  player.play().catch(() => { document.getElementById("tHint").textContent = T("Toque na esfera para liberar o áudio.", "Tap the orb to enable audio."); });
   meter();
 }
-player.addEventListener("ended", () => { stopAudio(); testOrbEl.classList.remove("speaking"); setState("Pronto", false); ev("session.idle"); callBtn.textContent = "Iniciar teste"; clearInterval(clockTimer); });
+player.addEventListener("ended", () => { stopAudio(); testOrbEl.classList.remove("speaking"); setState(T("Pronto", "Ready"), false); ev("session.idle"); callBtn.textContent = T("Iniciar teste", "Start test"); clearInterval(clockTimer); });
 callBtn.addEventListener("click", runTest);
 testOrbEl.addEventListener("click", () => { if (current) { stopAudio(); resetTest(); } else { ensureAudio(); ctx?.resume?.(); playLine(); } });
 

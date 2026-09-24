@@ -7,11 +7,22 @@ compatibility_date = "2026-09-22"
 SITE_URL = "https://trustio.com.br"
 API_URL = "https://api.trustio.com.br"
 EMAIL_FROM = "Trustio <no-reply@send.trustio.com.br>"
-SUPABASE_URL = "https://yxkgdgcdvngltnykleig.supabase.co"
-# Provisório: "kv" grava as inscrições no KV SIGNUPS até o banco do projeto Supabase novo
-# existir. Na troca, volta a "supabase" e as chaves lead: são importadas para o crm_leads.
-ARMAZENAMENTO = "kv"
+SUPABASE_URL = "https://mjdaluioyutnxlyomzyd.supabase.co"
+# "supabase" grava as inscrições no crm_leads do projeto Supabase. O D1 e o KV abaixo
+# ficam ligados só para links enviados antes da troca e para a importação.
+# Provisório: "d1" enquanto o segredo SUPABASE_SERVICE_ROLE_KEY do worker não bater
+# com a chave do projeto (em modo "supabase" a inscrição responde "indisponivel").
+# Para voltar, troque por "supabase" e teste uma inscrição; o D1 entra na importação.
+ARMAZENAMENTO = "d1"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "trustio-lista-de-espera"
+database_id = "578d1e9c-3501-48e0-8462-b72cfa2f6e8e"
+migrations_dir = "migrations"
+
+# Inscrições gravadas no KV entre 24/09 07:36 e a troca para o D1, e os registros
+# index:/pending: do worker anterior, para a importação.
 [[kv_namespaces]]
 binding = "SIGNUPS"
 id = "3f6220c2393c4154b2927ac84fff4a91"

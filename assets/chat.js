@@ -3,6 +3,10 @@
    Nenhuma chave secreta aqui: a chave do modelo fica no servidor. */
 (function () {
   "use strict";
+  // Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
+  var EN = /^en\b/i.test(document.documentElement.lang);
+  var T = function (pt, en) { return EN ? en : pt; };
+  var LOCAL = EN ? "en-US" : "pt-BR";
   var CFG = window.TRUSTIO_AUTH;
   if (!CFG || !window.supabase) return;
 
@@ -86,7 +90,7 @@
   });
 
   function showRecovery() {
-    gateShow("Defina uma nova senha", "Depois disso você entra direto no chat.", { recovery: true });
+    gateShow(T("Defina uma nova senha", "Set a new password"), T("Depois disso você entra direto no seu portal.", "After that, you go straight into your portal."), { recovery: true });
     var form = $("[data-recovery-form]");
     form.onsubmit = function (e) {
       e.preventDefault();
@@ -98,20 +102,20 @@
         recoveryMode = false;
         history.replaceState(null, "", location.pathname);
         boot();
-      }).catch(function () { form.querySelector("button").disabled = false; $("[data-gate-text]").textContent = "Não foi possível salvar. Tente novamente."; });
+      }).catch(function () { form.querySelector("button").disabled = false; $("[data-gate-text]").textContent = T("Não foi possível salvar. Tente novamente.", "We couldn't save that. Try again."); });
     };
   }
 
   function boot() {
     state.placeholderPadrao = input.getAttribute("placeholder") || "";
-    gateShow("Entrando…", "Um instante.");
+    gateShow(T("Entrando…", "Signing in…"), T("Um instante.", "One moment."));
     sb.auth.getSession().then(function (r) {
       var session = r.data && r.data.session;
       if (!session) {
         // Pode ser o retorno do link de e-mail: o supabase-js processa o hash de forma assíncrona.
         return new Promise(function (resolve) { setTimeout(resolve, 600); }).then(function () { return sb.auth.getSession(); }).then(function (r2) {
           var s2 = r2.data && r2.data.session;
-          if (!s2) { gateShow("Você não está conectado", "Entre ou crie sua conta para usar o chat.", { actions: true }); return null; }
+          if (!s2) { gateShow(T("Você não está conectado", "You're not signed in"), T("Entre ou crie sua conta para usar o chat.", "Sign in or create an account to use the chat."), { actions: true }); return null; }
           return s2;
         });
       }
@@ -127,7 +131,7 @@
         renderMe();
         renderOnboard(!(state.lead && state.lead.onboarding_seen_at));
         if (!state.user.email_confirmed_at) {
-          showNotice("Seu e-mail ainda não foi confirmado. Abra o link que enviamos para começar a conversar. <button type=\"button\" data-resend-confirm>Reenviar link</button>");
+          showNotice(T("Seu e-mail ainda não foi confirmado. Abra o link que enviamos para começar a conversar. ", "Your email isn't confirmed yet. Open the link we sent to start chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>");
         } else {
           // Sem chave do provedor o chat não responde a ninguém. Melhor dizer agora
           // do que deixar a pessoa escrever uma pergunta para receber um erro depois.
@@ -137,7 +141,7 @@
       });
     }).catch(function (err) {
       console.error(err);
-      gateShow("Algo deu errado", "Recarregue a página ou entre novamente.", { actions: true });
+      gateShow(T("Algo deu errado", "Something went wrong"), T("Recarregue a página ou entre novamente.", "Reload the page or sign in again."), { actions: true });
     });
   }
 
@@ -159,6 +163,7 @@
     var d = new Date(iso);
     if (isNaN(d)) return null;
     var dia = d.getDate();
+    if (EN) return d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
     return (dia === 1 ? "1º" : String(dia)) + " de " + d.toLocaleDateString("pt-BR", { month: "long" });
   }
 
@@ -172,20 +177,20 @@
       return;
     }
     d = d || {};
-    var abre = dataCurta(d.abre_em) || "1º de outubro";
+    var abre = dataCurta(d.abre_em) || T("1º de outubro", "October 1");
     // Só pré-assinante vê a data antecipada, e o servidor só o mantém fechado antes dela.
     var antes = dataCurta(d.antecipado_em);
     input.disabled = true; sendBtn.disabled = true;
-    input.placeholder = "O chat abre em " + abre;
+    input.placeholder = T("O chat abre em ", "The chat opens on ") + abre;
     showNotice(
       d.motivo === "sem_modelo"
-        ? "<b>O chat está em manutenção.</b> Sua conta está pronta e suas perguntas grátis continuam intactas; assim que o modelo voltar, esta tela libera sozinha."
-        : "<b>Sua conta está pronta — o chat ainda não abriu.</b> O acesso começa em <b>" + esc(abre) + "</b>" +
+        ? T("<b>O chat está em manutenção.</b> Sua conta está pronta e suas perguntas grátis continuam intactas; assim que o modelo voltar, esta tela libera sozinha.", "<b>The chat is under maintenance.</b> Your account is ready and your free questions are untouched; as soon as the model is back, this screen unlocks on its own.")
+        : T("<b>Sua conta está pronta — o chat ainda não abriu.</b> O acesso começa em <b>", "<b>Your account is ready — the chat hasn't opened yet.</b> Access starts on <b>") + esc(abre) + "</b>" +
           (d.pre_assinante
-            ? (antes ? ", e a sua pré-assinatura entra em <b>" + esc(antes) + "</b>." : ".")
-            : "; quem assina um plano tem a conta liberada em até 1 dia útil após a confirmação do pagamento.") +
-          " Você não precisa fazer mais nada: na data, esta tela abre sozinha e suas 5 perguntas grátis continuam intactas. " +
-          (d.pre_assinante ? "" : "<a href=\"../planos.html#pessoal\">Ver como entrar antes</a>"));
+            ? (antes ? T(", e a sua pré-assinatura entra em <b>", ", and your pre-subscription gets you in on <b>") + esc(antes) + "</b>." : ".")
+            : T("; quem assina um plano tem a conta liberada em até 1 dia útil após a confirmação do pagamento.", "; if you subscribe to a plan, your account is released within 1 business day after payment is confirmed.")) +
+          T(" Você não precisa fazer mais nada: na data, esta tela abre sozinha e suas 5 perguntas grátis continuam intactas. ", " You don't need to do anything else: on that date, this screen opens on its own and your 5 free questions stay intact. ") +
+          (d.pre_assinante ? "" : "<a href=\"../planos.html#pessoal\">" + T("Ver como entrar antes", "See how to get in sooner") + "</a>"));
   }
 
   function loadLead() {
@@ -207,7 +212,7 @@
     $("[data-me-av]").textContent = initials(name, state.user.email);
     var status = state.lead ? state.lead.status : "novo";
     var plan = state.lead && state.lead.plano;
-    var label = status === "assinante" ? ("Assinante" + (plan ? " · " + plan : "")) : status === "trial_esgotado" ? "Teste encerrado" : "Teste grátis";
+    var label = status === "assinante" ? (T("Assinante", "Subscriber") + (plan ? " · " + plan : "")) : status === "trial_esgotado" ? T("Teste encerrado", "Trial ended") : T("Teste grátis", "Free trial");
     $("[data-me-plan]").textContent = label;
     renderQuota(status, state.lead ? state.lead.mensagens_usadas : 0);
     renderOnboardQuota();
@@ -219,14 +224,14 @@
     q.hidden = false;
     var left = Math.max(0, state.limit - used);
     $("[data-quota-bar]").style.width = Math.min(100, (used / state.limit) * 100) + "%";
-    $("[data-quota-text]").textContent = left + " de " + state.limit + " perguntas grátis restantes";
+    $("[data-quota-text]").textContent = EN ? left + " of " + state.limit + " free questions left" : left + " de " + state.limit + " perguntas grátis restantes";
     var locked = left <= 0;
     paywall.hidden = !locked;
     input.disabled = locked; sendBtn.disabled = locked;
   }
 
   // ---------------------------------------------------------------- widgets de boas-vindas
-  function fmtDate(d) { var x = new Date(d); return x.toLocaleDateString("pt-BR") + " às " + x.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }); }
+  function fmtDate(d) { var x = new Date(d); return x.toLocaleDateString(LOCAL) + T(" às ", " at ") + x.toLocaleTimeString(LOCAL, { hour: "2-digit", minute: "2-digit" }); }
   function fmtPhone(n) {
     var d = String(n || "").replace(/\D/g, "");
     if (d.length === 13 && d.indexOf("55") === 0) d = d.slice(2);
@@ -251,13 +256,13 @@
     if (!limitEl) return;
     if (status === "assinante" || !state.limit) {
       limitEl.textContent = "∞"; bar.style.width = "100%";
-      txt.textContent = status === "assinante" ? "Plano ativo: sem limite de prompts." : "Sem limite de prompts neste ambiente.";
+      txt.textContent = status === "assinante" ? T("Plano ativo: sem limite de prompts.", "Plan active: no prompt limit.") : T("Sem limite de prompts neste ambiente.", "No prompt limit in this environment.");
       return;
     }
     limitEl.textContent = state.limit;
     var left = Math.max(0, state.limit - used);
     bar.style.width = Math.min(100, (used / state.limit) * 100) + "%";
-    txt.textContent = used === 0 ? "Você ainda não usou nenhum." : left === 0 ? "Você usou todos. Escolha um plano para continuar." : "Você usou " + used + ". Restam " + left + ".";
+    txt.textContent = used === 0 ? T("Você ainda não usou nenhum.", "You haven't used any yet.") : left === 0 ? T("Você usou todos. Escolha um plano para continuar.", "You've used them all. Choose a plan to continue.") : EN ? "You've used " + used + ". " + left + " left." : "Você usou " + used + ". Restam " + left + ".";
   }
 
   function renderWhatsapp() {
@@ -273,14 +278,14 @@
     form.hidden = true; st.hidden = false; st.className = "";
     if (status === "solicitado") {
       st.classList.add("is-ok");
-      st.textContent = "Pedido recebido" + (l.whatsapp_trial_requested_at ? " em " + fmtDate(l.whatsapp_trial_requested_at) : "") + ". Vamos ativar e chamar você no " + fmtPhone(l.whatsapp_numero) + ".";
+      st.textContent = T("Pedido recebido", "Request received") + (l.whatsapp_trial_requested_at ? T(" em ", " on ") + fmtDate(l.whatsapp_trial_requested_at) : "") + T(". Vamos ativar e chamar você no ", ". We'll turn it on and message you at ") + fmtPhone(l.whatsapp_numero) + ".";
     } else if (status === "ativo") {
       var ends = l.whatsapp_trial_ends_at ? new Date(l.whatsapp_trial_ends_at) : null;
       var hours = ends ? Math.max(0, Math.round((ends - Date.now()) / 36e5)) : null;
       st.classList.add("is-ok");
-      st.textContent = "Agente ativo no " + fmtPhone(l.whatsapp_numero) + (ends ? " até " + fmtDate(ends) + (hours !== null ? " (faltam " + (hours >= 48 ? Math.round(hours / 24) + " dias" : hours + " h") + ")" : "") : "") + ".";
+      st.textContent = T("Agente ativo no ", "Agent active on ") + fmtPhone(l.whatsapp_numero) + (ends ? T(" até ", " until ") + fmtDate(ends) + (hours !== null ? T(" (faltam ", " (") + (hours >= 48 ? Math.round(hours / 24) + T(" dias", " days") : hours + " h") + T(")", " left)") : "") : "") + ".";
     } else {
-      st.textContent = "Seus 3 dias no WhatsApp terminaram. Para continuar com o agente, escolha um plano.";
+      st.textContent = T("Seus 3 dias no WhatsApp terminaram. Para continuar com o agente, escolha um plano.", "Your 3 days on WhatsApp are over. To keep the agent, choose a plan.");
     }
   }
 
@@ -288,8 +293,8 @@
   if (waForm) waForm.addEventListener("submit", function (e) {
     e.preventDefault();
     var btn = $("[data-wa-submit]"), st = $("[data-wa-status]"), num = $("#wa-num").value;
-    if (num.replace(/\D/g, "").length < 10) { st.hidden = false; st.className = "is-error"; st.textContent = "Digite o número com DDD."; return; }
-    btn.disabled = true; btn.textContent = "Enviando…";
+    if (num.replace(/\D/g, "").length < 10) { st.hidden = false; st.className = "is-error"; st.textContent = T("Digite o número com DDD.", "Enter the number with the area code."); return; }
+    btn.disabled = true; btn.textContent = T("Enviando…", "Sending…");
     sb.rpc("request_whatsapp_trial", { p_numero: num }).then(function (r) {
       if (r.error) throw r.error;
       var d = r.data || {};
@@ -297,9 +302,9 @@
       if (state.lead) { state.lead.whatsapp_trial_status = d.status; state.lead.whatsapp_numero = d.numero; state.lead.whatsapp_trial_requested_at = d.requested_at; state.lead.whatsapp_trial_started_at = d.started_at; state.lead.whatsapp_trial_ends_at = d.ends_at; }
       renderWhatsapp();
     }).catch(function (err) {
-      btn.disabled = false; btn.textContent = "Quero os 3 dias";
+      btn.disabled = false; btn.textContent = T("Quero os 3 dias", "I want the 3 days");
       st.hidden = false; st.className = "is-error";
-      st.textContent = String(err.message || "").indexOf("numero_invalido") >= 0 ? "Número inválido. Use DDD + número." : "Não foi possível registrar agora. Tente de novo.";
+      st.textContent = String(err.message || "").indexOf("numero_invalido") >= 0 ? T("Número inválido. Use DDD + número.", "Invalid number. Use area code + number.") : T("Não foi possível registrar agora. Tente de novo.", "We couldn't register that right now. Try again.");
     });
   });
 
@@ -355,7 +360,7 @@
     if (state.threadInner) { state.threadInner.remove(); state.threadInner = null; }
     welcome.hidden = false;
     state.conversationId = null;
-    convTitle.textContent = "Nova conversa";
+    convTitle.textContent = T("Nova conversa", "New conversation");
     deleteBtn.hidden = true;
     renderConversations();
   }
@@ -368,7 +373,7 @@
     deleteBtn.hidden = false;
     if (state.threadInner) { state.threadInner.remove(); state.threadInner = null; }
     var inner = ensureThreadInner();
-    inner.innerHTML = "<p class=\"msg-meta\">Carregando…</p>";
+    inner.innerHTML = "<p class=\"msg-meta\">" + T("Carregando…", "Loading…") + "</p>";
     renderConversations();
     sb.from("messages").select("role,content,created_at").eq("conversation_id", id).order("created_at", { ascending: true })
       .then(function (r) {
@@ -398,7 +403,7 @@
     text = String(text || "").trim();
     if (!text || state.sending) return;
     if (state.fechado) { input.value = ""; autosize(); return; }
-    if (!state.user.email_confirmed_at) { showNotice("Confirme seu e-mail antes de conversar. <button type=\"button\" data-resend-confirm>Reenviar link</button>"); return; }
+    if (!state.user.email_confirmed_at) { showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); return; }
     state.sending = true;
     showNotice("");
     input.value = ""; autosize();
@@ -435,7 +440,7 @@
             var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
             if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; }
             if (d.delta) { full += d.delta; body.innerHTML = render(full); scrollBottom(); }
-            if (d.error) showNotice("A resposta foi interrompida. Tente enviar de novo.");
+            if (d.error) showNotice(T("A resposta foi interrompida. Tente enviar de novo.", "The answer was cut off. Try sending again."));
             if (d.done) afterDone(d);
           });
           return pump();
@@ -445,12 +450,12 @@
     }).catch(function (err) {
       var code = err && err.message;
       if (code === "trial_esgotado") { pending.remove(); if (state.lead) { state.lead.status = "trial_esgotado"; state.lead.mensagens_usadas = state.limit; } renderMe(); }
-      else if (code === "email_nao_confirmado") { pending.remove(); showNotice("Confirme seu e-mail antes de conversar. <button type=\"button\" data-resend-confirm>Reenviar link</button>"); }
+      else if (code === "email_nao_confirmado") { pending.remove(); showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); }
       else if (code === "chat_ainda_fechado") { pending.remove(); fechar(true, (err && err.data) || {}); }
       else if (code === "modelo_nao_configurado") { pending.remove(); fechar(true, { motivo: "sem_modelo" }); }
-      else if (code === "modelo_indisponivel") { pending.remove(); showNotice("O modelo não respondeu agora. Tente novamente em instantes."); }
+      else if (code === "modelo_indisponivel") { pending.remove(); showNotice(T("O modelo não respondeu agora. Tente novamente em instantes.", "The model didn't respond just now. Try again in a moment.")); }
       else if (code === "sem_sessao" || (err && err.status === 401)) { location.replace(CFG.loginPath); }
-      else { pending.remove(); showNotice("Não foi possível enviar. Verifique a conexão e tente de novo."); console.error(err); }
+      else { pending.remove(); showNotice(T("Não foi possível enviar. Verifique a conexão e tente de novo.", "We couldn't send that. Check your connection and try again.")); console.error(err); }
     }).then(function () {
       pending.classList.remove("msg-pending");
       if (!body.innerHTML && pending.parentNode) pending.remove();
@@ -494,7 +499,7 @@
 
   deleteBtn.addEventListener("click", function () {
     if (!state.conversationId || state.sending) return;
-    if (!confirm("Apagar esta conversa? Isso não pode ser desfeito.")) return;
+    if (!confirm(T("Apagar esta conversa? Isso não pode ser desfeito.", "Delete this conversation? This can't be undone."))) return;
     var id = state.conversationId;
     sb.from("conversations").delete().eq("id", id).then(function () {
       state.conversations = state.conversations.filter(function (c) { return c.id !== id; });
@@ -509,7 +514,7 @@
     if (!t) return;
     t.disabled = true;
     sb.auth.resend({ type: "signup", email: state.user.email, options: { emailRedirectTo: location.origin + CFG.appPath } })
-      .then(function () { showNotice("Novo link enviado para " + esc(state.user.email) + "."); });
+      .then(function () { showNotice(T("Novo link enviado para ", "New link sent to ") + esc(state.user.email) + "."); });
   });
 
   function openSide() { shell.dataset.side = "open"; }

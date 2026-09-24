@@ -2712,3 +2712,44 @@ h3 { letter-spacing: -0.018em; }
 @media (max-width: 700px){
   .seats-page .seats-banner{ min-height: 0; padding-top: clamp(120px, 16vh, 160px); display: block; }
 }
+
+/* ── Troca de idioma ───────────────────────────────────────────────────────
+   Bandeira pequena ao lado do botão de tema, com a mesma altura e o mesmo
+   contorno. Mostra o idioma para onde leva (na página em português, EN). */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 44px;
+  flex: 0 0 auto;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(var(--on-surface-rgb), 0.03);
+  color: var(--muted-strong);
+  font-family: var(--mono, ui-monospace);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-decoration: none;
+  transition: border-color .2s ease, color .2s ease, background-color .2s ease;
+}
+.lang-switch:hover { border-color: rgba(94, 167, 255, 0.45); color: var(--ice, #f4f6fa); }
+.lang-switch:focus-visible { outline: 2px solid var(--blue-signal, #5ea7ff); outline-offset: 2px; }
+.lang-switch svg {
+  width: 20px;
+  height: 14px;
+  flex: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+/* celular: só a bandeira, para caber ao lado do tema e do menu */
+@media (max-width: 560px) {
+  .lang-switch { width: 44px; padding: 0; justify-content: center; }
+  .lang-switch span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+/* página de erro: não tem cabeçalho, a bandeira fica no canto */
+.error-shell > .lang-switch { position: absolute; top: clamp(var(--space-28), 5vw, 64px); right: clamp(var(--space-28), 5vw, 64px); z-index: 3; }
+/* console: altura dos botões da barra superior */
+.topbar-right .lang-switch { height: 34px; }

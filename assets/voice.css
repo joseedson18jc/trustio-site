@@ -30,7 +30,7 @@
   align-items:center;
   justify-content:space-between;
   width:clamp(214px,21vw,272px);
-  height:26px;
+  height:34px;
   overflow:hidden;
 }
 .xs-eq::before{
@@ -38,53 +38,59 @@
   position:absolute;
   left:0;right:0;top:50%;
   height:1px;
-  background:linear-gradient(90deg,rgba(94,167,255,.55),rgba(94,167,255,.14) 62%,transparent);
+  background:linear-gradient(90deg,rgba(125,190,255,.7),rgba(94,167,255,.2) 62%,transparent);
 }
 .xs-eq i{
   position:relative;
   width:3px;
   height:100%;
   border-radius:3px;
-  background:linear-gradient(180deg,#bfe0ff,#5ea7ff 45%,#2f7fe0);
-  box-shadow:0 0 6px rgba(94,167,255,.45);
+  background:linear-gradient(180deg,#eef7ff,#9fd0ff 35%,#5ea7ff 70%,#3b8cff);
+  box-shadow:0 0 8px rgba(125,190,255,.7),0 0 2px rgba(220,238,255,.8);
   opacity:var(--o,1);
   transform:scaleY(var(--h,.5));
   transform-origin:50% 50%;
   will-change:transform;
 }
 .xs-eq.is-live i{transition:transform 70ms linear}
+/* no tema claro, pontas brancas somem no fundo: azul mais fundo e halo discreto */
+:root[data-theme="light"] .xs-eq i{
+  background:linear-gradient(180deg,#8cc4ff,#3b8cff 50%,#1d5fd6);
+  box-shadow:0 0 6px rgba(59,140,255,.35);
+}
+:root[data-theme="light"] .xs-eq::before{background:linear-gradient(90deg,rgba(29,95,214,.45),rgba(29,95,214,.12) 62%,transparent)}
 .xs-eq i:nth-child(1){--k:0;--h:0.37;--t:1.02s;--d:-1.04s;--o:1.00}
 .xs-eq i:nth-child(2){--k:1;--h:0.59;--t:1.33s;--d:-0.59s;--o:0.99}
-.xs-eq i:nth-child(3){--k:2;--h:0.42;--t:1.31s;--d:-0.06s;--o:0.97}
-.xs-eq i:nth-child(4){--k:3;--h:0.55;--t:0.96s;--d:-0.15s;--o:0.96}
-.xs-eq i:nth-child(5){--k:4;--h:0.63;--t:1.56s;--d:-0.20s;--o:0.94}
-.xs-eq i:nth-child(6){--k:5;--h:0.78;--t:1.40s;--d:-1.52s;--o:0.93}
-.xs-eq i:nth-child(7){--k:6;--h:0.80;--t:1.22s;--d:-1.56s;--o:0.91}
-.xs-eq i:nth-child(8){--k:7;--h:0.61;--t:1.59s;--d:-0.46s;--o:0.90}
-.xs-eq i:nth-child(9){--k:8;--h:0.59;--t:0.99s;--d:-0.49s;--o:0.88}
-.xs-eq i:nth-child(10){--k:9;--h:0.76;--t:1.04s;--d:-0.93s;--o:0.87}
-.xs-eq i:nth-child(11){--k:10;--h:1.00;--t:1.20s;--d:-0.88s;--o:0.85}
-.xs-eq i:nth-child(12){--k:11;--h:0.57;--t:0.95s;--d:-0.33s;--o:0.84}
-.xs-eq i:nth-child(13){--k:12;--h:0.80;--t:1.24s;--d:-0.50s;--o:0.83}
-.xs-eq i:nth-child(14){--k:13;--h:0.57;--t:1.26s;--d:-0.48s;--o:0.81}
-.xs-eq i:nth-child(15){--k:14;--h:0.78;--t:1.46s;--d:-0.39s;--o:0.80}
-.xs-eq i:nth-child(16){--k:15;--h:0.62;--t:1.32s;--d:-1.40s;--o:0.78}
-.xs-eq i:nth-child(17){--k:16;--h:0.75;--t:1.13s;--d:-1.57s;--o:0.77}
-.xs-eq i:nth-child(18){--k:17;--h:0.49;--t:1.23s;--d:-1.21s;--o:0.75}
-.xs-eq i:nth-child(19){--k:18;--h:0.37;--t:1.29s;--d:-0.06s;--o:0.74}
-.xs-eq i:nth-child(20){--k:19;--h:0.50;--t:1.51s;--d:-0.92s;--o:0.72}
-.xs-eq i:nth-child(21){--k:20;--h:0.50;--t:1.15s;--d:-1.11s;--o:0.71}
-.xs-eq i:nth-child(22){--k:21;--h:0.53;--t:1.36s;--d:-0.73s;--o:0.70}
-.xs-eq i:nth-child(23){--k:22;--h:0.37;--t:1.66s;--d:-0.76s;--o:0.68}
-.xs-eq i:nth-child(24){--k:23;--h:0.32;--t:0.95s;--d:-1.12s;--o:0.67}
-.xs-eq i:nth-child(25){--k:24;--h:0.29;--t:1.69s;--d:-1.32s;--o:0.65}
-.xs-eq i:nth-child(26){--k:25;--h:0.41;--t:1.21s;--d:-1.07s;--o:0.64}
-.xs-eq i:nth-child(27){--k:26;--h:0.26;--t:1.27s;--d:-0.27s;--o:0.62}
-.xs-eq i:nth-child(28){--k:27;--h:0.34;--t:0.95s;--d:-1.23s;--o:0.61}
-.xs-eq i:nth-child(29){--k:28;--h:0.26;--t:1.10s;--d:-0.63s;--o:0.59}
-.xs-eq i:nth-child(30){--k:29;--h:0.32;--t:0.96s;--d:-0.72s;--o:0.58}
-.xs-eq i:nth-child(31){--k:30;--h:0.34;--t:1.61s;--d:-1.31s;--o:0.56}
-.xs-eq i:nth-child(32){--k:31;--h:0.37;--t:1.12s;--d:-0.66s;--o:0.55}
+.xs-eq i:nth-child(3){--k:2;--h:0.42;--t:1.31s;--d:-0.06s;--o:0.98}
+.xs-eq i:nth-child(4){--k:3;--h:0.55;--t:0.96s;--d:-0.15s;--o:0.97}
+.xs-eq i:nth-child(5){--k:4;--h:0.63;--t:1.56s;--d:-0.20s;--o:0.96}
+.xs-eq i:nth-child(6){--k:5;--h:0.78;--t:1.40s;--d:-1.52s;--o:0.95}
+.xs-eq i:nth-child(7){--k:6;--h:0.80;--t:1.22s;--d:-1.56s;--o:0.94}
+.xs-eq i:nth-child(8){--k:7;--h:0.61;--t:1.59s;--d:-0.46s;--o:0.93}
+.xs-eq i:nth-child(9){--k:8;--h:0.59;--t:0.99s;--d:-0.49s;--o:0.92}
+.xs-eq i:nth-child(10){--k:9;--h:0.76;--t:1.04s;--d:-0.93s;--o:0.91}
+.xs-eq i:nth-child(11){--k:10;--h:1.00;--t:1.20s;--d:-0.88s;--o:0.90}
+.xs-eq i:nth-child(12){--k:11;--h:0.57;--t:0.95s;--d:-0.33s;--o:0.89}
+.xs-eq i:nth-child(13){--k:12;--h:0.80;--t:1.24s;--d:-0.50s;--o:0.89}
+.xs-eq i:nth-child(14){--k:13;--h:0.57;--t:1.26s;--d:-0.48s;--o:0.87}
+.xs-eq i:nth-child(15){--k:14;--h:0.78;--t:1.46s;--d:-0.39s;--o:0.87}
+.xs-eq i:nth-child(16){--k:15;--h:0.62;--t:1.32s;--d:-1.40s;--o:0.85}
+.xs-eq i:nth-child(17){--k:16;--h:0.75;--t:1.13s;--d:-1.57s;--o:0.85}
+.xs-eq i:nth-child(18){--k:17;--h:0.49;--t:1.23s;--d:-1.21s;--o:0.83}
+.xs-eq i:nth-child(19){--k:18;--h:0.37;--t:1.29s;--d:-0.06s;--o:0.83}
+.xs-eq i:nth-child(20){--k:19;--h:0.50;--t:1.51s;--d:-0.92s;--o:0.81}
+.xs-eq i:nth-child(21){--k:20;--h:0.50;--t:1.15s;--d:-1.11s;--o:0.81}
+.xs-eq i:nth-child(22){--k:21;--h:0.53;--t:1.36s;--d:-0.73s;--o:0.80}
+.xs-eq i:nth-child(23){--k:22;--h:0.37;--t:1.66s;--d:-0.76s;--o:0.79}
+.xs-eq i:nth-child(24){--k:23;--h:0.32;--t:0.95s;--d:-1.12s;--o:0.78}
+.xs-eq i:nth-child(25){--k:24;--h:0.29;--t:1.69s;--d:-1.32s;--o:0.77}
+.xs-eq i:nth-child(26){--k:25;--h:0.41;--t:1.21s;--d:-1.07s;--o:0.76}
+.xs-eq i:nth-child(27){--k:26;--h:0.26;--t:1.27s;--d:-0.27s;--o:0.75}
+.xs-eq i:nth-child(28){--k:27;--h:0.34;--t:0.95s;--d:-1.23s;--o:0.74}
+.xs-eq i:nth-child(29){--k:28;--h:0.26;--t:1.10s;--d:-0.63s;--o:0.73}
+.xs-eq i:nth-child(30){--k:29;--h:0.32;--t:0.96s;--d:-0.72s;--o:0.72}
+.xs-eq i:nth-child(31){--k:30;--h:0.34;--t:1.61s;--d:-1.31s;--o:0.71}
+.xs-eq i:nth-child(32){--k:31;--h:0.37;--t:1.12s;--d:-0.66s;--o:0.70}
 @media (prefers-reduced-motion:no-preference){
   /* respiração de cada barra + um brilho que corre a fila da esquerda para a direita */
   .xs-eq:not(.is-live) i{
@@ -94,7 +100,7 @@
   }
 }
 @keyframes xs-talk{
-  0%,100%{transform:scaleY(calc(var(--h,.5) * .42))}
+  0%,100%{transform:scaleY(calc(var(--h,.5) * .5))}
   38%{transform:scaleY(var(--h,.5))}
   62%{transform:scaleY(calc(var(--h,.5) * .66))}
   80%{transform:scaleY(calc(var(--h,.5) * .9))}

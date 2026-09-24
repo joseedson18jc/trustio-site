@@ -51,6 +51,18 @@ ok(d.exemplo_de_link === "https://api.trustio.com.br/confirm?token=TOKEN_DE_EXEM
    "link de exemplo bem formado", d.exemplo_de_link);
 ok(!/[}{]/.test(d.exemplo_de_link), "link sem chave sobrando (o bug antigo)");
 
+// 1b · o diagnóstico da chave saiu: /saude não chama o Supabase nem diz nada da chave
+{
+  const fetchOriginal = globalThis.fetch;
+  let chamou = false;
+  globalThis.fetch = async () => { chamou = true; return new Response("{}", { status: 200 }); };
+  const r = await worker.fetch(req("GET", "/saude?verificar=supabase&sha256=" + "0".repeat(64)), env);
+  globalThis.fetch = fetchOriginal;
+  const corpo = await r.text();
+  ok(!chamou && !corpo.includes("chave_supabase") && !corpo.includes(env.SUPABASE_SERVICE_ROLE_KEY),
+     "/saude?verificar não chama o Supabase nem descreve a chave");
+}
+
 // 2 · inscrição por JSON
 enviados = []; rpcs = [];
 r = await worker.fetch(req("POST", "/signup", JSON.stringify({

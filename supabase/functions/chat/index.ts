@@ -183,49 +183,81 @@ Deno.serve(async (req) => {
   let full = "";
   const convId = conversationId;
 
-  const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      const send = (obj: unknown) => controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
-      send({ conversation_id: convId });
-      const reader = upstream.body!.getReader();
-      let buffer = "";
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-          for (const raw of lines) {
-            const line = raw.trim();
-            if (!line.startsWith("data:")) continue;
-            const payload = line.slice(5).trim();
-            if (payload === "[DONE]") continue;
-            try {
-              const chunk = JSON.parse(payload);
-              const delta = chunk?.choices?.[0]?.delta?.content;
-              if (delta) { full += delta; send({ delta }); }
-            } catch { /* fragmento incompleto */ }
-          }
-        }
-      } catch (err) {
-        console.error("stream_error", err);
-        send({ error: "stream_interrompido" });
-      }
+  // A leitura do modelo não depende de o navegador continuar conectado: se a pessoa
+  // recarrega ou fecha a aba no meio, a resposta termina de chegar e fica salva no
+  // histórico (antes, a conexão fechada descartava tudo). Enviar para o navegador é
+  // melhor esforço; ler, salvar e fechar a conta da cota é obrigação.
+  let saida: ReadableStreamDefaultController<Uint8Array> | null = null;
+  let aberto = true;
+  const send = (obj: unknown) => {
+    if (!aberto || !saida) return;
+    try { saida.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`)); }
+    catch { aberto = false; }
+  };
+  const fechar = () => {
+    if (!aberto || !saida) return;
+    aberto = false;
+    try { saida.close(); } catch { /* já fechado */ }
+  };
 
-      if (full) {
-        await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full, model: LLM_MODEL });
-        await admin.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) { saida = controller; send({ conversation_id: convId }); },
+    // Navegador foi embora: só para de enviar; a leitura do modelo segue.
+    cancel() { aberto = false; },
+  });
+
+  const trabalho = (async () => {
+    const reader = upstream.body!.getReader();
+    let buffer = "";
+    let pensando = false;
+    let interrompido = false;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const raw of lines) {
+          const line = raw.trim();
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (payload === "[DONE]") continue;
+          try {
+            const d = JSON.parse(payload)?.choices?.[0]?.delta ?? {};
+            if (d.content) { full += d.content; send({ delta: d.content }); }
+            // Modelos com raciocínio mandam esse trecho em outro campo antes do texto.
+            // Não é mostrado, mas avisa o navegador que o modelo está trabalhando.
+            else if (!pensando && (d.reasoning_content || d.reasoning)) { pensando = true; send({ pensando: true }); }
+          } catch { /* fragmento incompleto */ }
+        }
       }
+    } catch (err) {
+      interrompido = true;
+      console.error("stream_error", err);
+    }
+
+    if (full) {
+      await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full, model: LLM_MODEL });
+      await admin.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
+      if (interrompido) send({ error: "stream_interrompido" });
       send({
         done: true,
         conversation_id: convId,
         remaining: reservation.remaining ?? null,
         limit: reservation.subscriber ? null : reservation.limit,
       });
-      controller.close();
-    },
-  });
+    } else {
+      // Nada de texto: a mensagem não conta na cota e o navegador recebe o motivo.
+      console.error(interrompido ? "stream_interrompido_sem_texto" : "llm_resposta_vazia");
+      await release();
+      send({ error: interrompido ? "stream_interrompido" : "resposta_vazia" });
+    }
+    fechar();
+  })();
+  // Mantém a função viva até o fim da leitura, mesmo com o navegador desconectado.
+  // deno-lint-ignore no-explicit-any
+  (globalThis as any).EdgeRuntime?.waitUntil?.(trabalho);
 
   return new Response(stream, {
     headers: { ...cors(origin), "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-store", "X-Accel-Buffering": "no" },

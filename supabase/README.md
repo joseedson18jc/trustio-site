@@ -1,6 +1,6 @@
 # Contas, chat e CRM — backend (Supabase)
 
-Projeto: `mjdaluioyutnxlyomzyd` · região `sa-east-1` (São Paulo) · painel: https://supabase.com/dashboard/project/mjdaluioyutnxlyomzyd
+Projeto: `yxkgdgcdvngltnykleig` · região `sa-east-1` (São Paulo) · painel: https://supabase.com/dashboard/project/yxkgdgcdvngltnykleig
 
 O site continua estático. Tudo que precisa de servidor vive aqui e é aplicado **automaticamente** pelo
 GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toque nesta pasta.
@@ -50,7 +50,7 @@ Provedor de SMTP diferente de Resend: ajuste `host`, `port` e `user` em `[auth.e
 ## Re-aplicar à mão (opcional)
 
 ```sh
-supabase link --project-ref mjdaluioyutnxlyomzyd
+supabase link --project-ref yxkgdgcdvngltnykleig
 supabase db push                      # migrations/
 SMTP_PASS=... supabase config push    # config.toml + templates/
 supabase functions deploy chat        # functions/chat

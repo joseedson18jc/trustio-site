@@ -3,9 +3,9 @@
    é definido pelas políticas de acesso (RLS) no banco — nada além do que cada usuário
    autenticado pode ver. As chaves secretas ficam só no servidor. */
 window.TRUSTIO_AUTH = Object.freeze({
-  url: "https://mjdaluioyutnxlyomzyd.supabase.co",
-  key: "sb_publishable_mmbbWAm8vvNMsvSle89ITg_DkVcmDHW",
-  chatEndpoint: "https://mjdaluioyutnxlyomzyd.supabase.co/functions/v1/chat",
+  url: "https://yxkgdgcdvngltnykleig.supabase.co",
+  key: "sb_publishable_yv7Gi8GviTWdqSFbuw2Qmw_IPcEkfCs",
+  chatEndpoint: "https://yxkgdgcdvngltnykleig.supabase.co/functions/v1/chat",
   appPath: "/app/",
   loginPath: "/entrar.html",
   signupPath: "/cadastro.html",

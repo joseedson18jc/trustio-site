@@ -33,7 +33,7 @@ jobs:
       LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
       LLM_MODEL: ${{ secrets.LLM_MODEL }}
       ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
-      PROJECT_REF: mjdaluioyutnxlyomzyd
+      PROJECT_REF: yxkgdgcdvngltnykleig
     steps:
       - uses: actions/checkout@v4
 

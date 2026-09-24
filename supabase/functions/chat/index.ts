@@ -16,6 +16,19 @@ const LLM_API_KEY = Deno.env.get("LLM_API_KEY") ?? Deno.env.get("XAI_API_KEY") ?
 const LLM_BASE_URL = (Deno.env.get("LLM_BASE_URL") ?? "https://api.x.ai/v1").replace(/\/$/, "");
 const LLM_MODEL = Deno.env.get("LLM_MODEL") ?? "grok-4";
 const HISTORY = 30;
+// Teto de tokens por resposta, opcional e explícito: só com o segredo LLM_MAX_TOKENS a
+// função limita o modelo, e só então o chat mostra a porcentagem da resposta (contra esse
+// teto, porque o tamanho final não é conhecido de antemão). Sem o segredo, não há teto.
+const tetoConfigurado = Number(Deno.env.get("LLM_MAX_TOKENS"));
+const LLM_MAX_TOKENS = tetoConfigurado > 0 ? Math.min(32768, Math.max(256, Math.floor(tetoConfigurado))) : null;
+// Contexto do modelo (llama-server -c), opcional: com o segredo LLM_CONTEXTO o chat mostra
+// quanto da sessão já foi usado e, quando ela enche, pede uma sessão nova numa aba nova.
+const contextoConfigurado = Number(Deno.env.get("LLM_CONTEXTO"));
+const LLM_CONTEXTO = contextoConfigurado > 0 ? Math.floor(contextoConfigurado) : null;
+// Contagem exata de tokens durante a geração: o llama.cpp a manda em cada trecho com
+// timings_per_token. É um parâmetro só dele, e um provedor que recusa campos
+// desconhecidos derrubaria o chat; por isso só vai com LLM_SERVIDOR = "llama.cpp".
+const LLAMA_TIMINGS = (Deno.env.get("LLM_SERVIDOR") ?? "").trim().toLowerCase() === "llama.cpp";
 
 const ALLOWED_ORIGINS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$|^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
 
@@ -161,7 +174,12 @@ Deno.serve(async (req) => {
     upstream = await fetch(`${LLM_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: LLM_MODEL, messages, stream: true, temperature: 0.7 }),
+      body: JSON.stringify({
+        model: LLM_MODEL, messages, stream: true, temperature: 0.7,
+        stream_options: { include_usage: true },
+        ...(LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
+        ...(LLAMA_TIMINGS ? { timings_per_token: true } : {}),
+      }),
     });
   } catch (err) {
     console.error("llm_fetch_error", err);
@@ -172,6 +190,10 @@ Deno.serve(async (req) => {
     const detail = await upstream.text().catch(() => "");
     console.error("llm_error", upstream.status, detail.slice(0, 500));
     await release();
+    // Conversa maior que o contexto do modelo: não é falha do modelo; o chat pede uma sessão nova.
+    if (upstream.status === 400 && /exceed_context_size|context (size|length)|maximum context/i.test(detail)) {
+      return json(409, { error: "contexto_cheio", janela: LLM_CONTEXTO }, origin);
+    }
     return json(502, { error: "modelo_indisponivel", status: upstream.status }, origin);
   }
 
@@ -201,7 +223,7 @@ Deno.serve(async (req) => {
   };
 
   const stream = new ReadableStream<Uint8Array>({
-    start(controller) { saida = controller; send({ conversation_id: convId }); },
+    start(controller) { saida = controller; send({ conversation_id: convId, limite: LLM_MAX_TOKENS }); },
     // Navegador foi embora: só para de enviar; a leitura do modelo segue.
     cancel() { aberto = false; },
   });
@@ -211,6 +233,35 @@ Deno.serve(async (req) => {
     let buffer = "";
     let pensando = false;
     let interrompido = false;
+    let fim: string | null = null;
+    // Tokens gerados: o número exato do modelo quando ele informa (timings/usage);
+    // senão, um por trecho recebido.
+    let tokens = 0;
+    let trechos = 0;
+    let trechosRaciocinio = 0;
+    // Tokens do raciocínio, à parte: num trecho com raciocínio e texto juntos, os tokens
+    // novos são divididos pelo tamanho de cada parte; tokens que chegam só no total final
+    // (usage), pela proporção de trechos de raciocínio. O número do provedor, se vier, vale.
+    let tokensRaciocinio = 0;
+    // Tokens do prompt (sistema + histórico + pergunta), quando o modelo informa no fim.
+    let tokensPrompt: number | null = null;
+
+    // O raciocínio vai ao navegador, mas o prompt de sistema não deve sair por ele: frases
+    // do prompt citadas literalmente viram "[instrução interna]". Para pegar uma frase
+    // que chega em pedaços, os últimos caracteres (o tamanho da maior frase) ficam
+    // retidos até a frase poder ser conferida inteira. Paráfrases não são pegas, então o
+    // prompt de sistema não deve conter segredo.
+    const frasesDoPrompt = systemPrompt.split(/(?<=[.!?;:])\s+|\n+/).map((f) => f.trim()).filter((f) => f.length >= 24);
+    const retencao = frasesDoPrompt.reduce((m, f) => Math.max(m, f.length), 0);
+    let raciocinioRetido = "";
+    const soltarRaciocinio = (tudo: boolean) => {
+      for (const f of frasesDoPrompt) raciocinioRetido = raciocinioRetido.split(f).join("[instrução interna]");
+      const corte = tudo ? raciocinioRetido.length : Math.max(0, raciocinioRetido.length - retencao);
+      if (corte > 0) {
+        send({ raciocinio: raciocinioRetido.slice(0, corte), n: tokens, nr: tokensRaciocinio });
+        raciocinioRetido = raciocinioRetido.slice(corte);
+      }
+    };
     try {
       while (true) {
         const { done, value } = await reader.read();
@@ -224,11 +275,39 @@ Deno.serve(async (req) => {
           const payload = line.slice(5).trim();
           if (payload === "[DONE]") continue;
           try {
-            const d = JSON.parse(payload)?.choices?.[0]?.delta ?? {};
-            if (d.content) { full += d.content; send({ delta: d.content }); }
-            // Modelos com raciocínio mandam esse trecho em outro campo antes do texto.
-            // Não é mostrado, mas avisa o navegador que o modelo está trabalhando.
-            else if (!pensando && (d.reasoning_content || d.reasoning)) { pensando = true; send({ pensando: true }); }
+            const pedaco = JSON.parse(payload) ?? {};
+            const escolha = pedaco.choices?.[0] ?? {};
+            const d = escolha.delta ?? {};
+            if (escolha.finish_reason) fim = escolha.finish_reason;
+            const raciocinio = d.reasoning_content || d.reasoning;
+            if (d.content || raciocinio) trechos++;
+            if (raciocinio) trechosRaciocinio++;
+            const antes = tokens;
+            tokens = Math.max(tokens, trechos, Number(pedaco.timings?.predicted_n) || 0, Number(pedaco.usage?.completion_tokens) || 0);
+            const novos = tokens - antes;
+            if (raciocinio) {
+              tokensRaciocinio += d.content ? Math.round(novos * raciocinio.length / (raciocinio.length + d.content.length)) : novos;
+            } else if (!d.content && novos > 0 && trechos > 0) {
+              tokensRaciocinio += Math.round(novos * trechosRaciocinio / trechos);
+            }
+            const raciocinioInformado = Number(pedaco.usage?.completion_tokens_details?.reasoning_tokens);
+            if (raciocinioInformado > 0) tokensRaciocinio = raciocinioInformado;
+            tokensRaciocinio = Math.min(tokensRaciocinio, tokens);
+            if (Number(pedaco.usage?.prompt_tokens) > 0) tokensPrompt = Number(pedaco.usage.prompt_tokens);
+            // Modelos com raciocínio mandam esse trecho em outro campo, antes do texto. Vai ao
+            // navegador, que o mostra à parte; não entra no histórico nem no contexto.
+            if (raciocinio) {
+              if (!pensando) { pensando = true; send({ pensando: true }); }
+              raciocinioRetido += raciocinio;
+              soltarRaciocinio(false);
+            }
+            if (d.content) {
+              if (raciocinioRetido) soltarRaciocinio(true);
+              full += d.content;
+              send({ delta: d.content, n: tokens });
+            } else if (!raciocinio && pedaco.usage) {
+              send({ n: tokens });
+            }
           } catch { /* fragmento incompleto */ }
         }
       }
@@ -236,6 +315,7 @@ Deno.serve(async (req) => {
       interrompido = true;
       console.error("stream_error", err);
     }
+    if (raciocinioRetido) soltarRaciocinio(true);
 
     if (full) {
       await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full, model: LLM_MODEL });
@@ -244,6 +324,14 @@ Deno.serve(async (req) => {
       send({
         done: true,
         conversation_id: convId,
+        // "length": a resposta bateu no teto de tokens e pode ter sido cortada.
+        fim,
+        n: tokens,
+        nr: tokensRaciocinio,
+        // Contexto que a próxima pergunta vai ocupar: prompt + resposta salva. O raciocínio
+        // não é salvo nem reenviado, então não conta.
+        contexto: tokensPrompt === null ? null : tokensPrompt + Math.max(0, tokens - tokensRaciocinio),
+        janela: LLM_CONTEXTO,
         remaining: reservation.remaining ?? null,
         limit: reservation.subscriber ? null : reservation.limit,
       });

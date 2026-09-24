@@ -12,7 +12,7 @@ if (cd) {
     const diff = Math.max(0, target - Date.now());
     const d = Math.floor(diff / 864e5), h = Math.floor(diff % 864e5 / 36e5), m = Math.floor(diff % 36e5 / 6e4);
     el.d.textContent = String(d); el.h.textContent = String(h).padStart(2, "0"); el.m.textContent = String(m).padStart(2, "0");
-    if (diff === 0) cd.querySelector("small").textContent = "lançado";
+    if (diff === 0) cd.querySelector("small").textContent = /^en\b/i.test(document.documentElement.lang) ? "launched" : "lançado";
   };
   tick(); setInterval(tick, 30_000);
 }
@@ -33,6 +33,10 @@ tipoInputs.forEach((i) => i.addEventListener("change", applyTipo));
 // --- acesso: lista gratuita (1º/10) ou pré-assinatura (acesso antecipado em 23/09)
 const acessoInputs = [...document.querySelectorAll('input[name="acesso"]')];
 const nextInput = document.querySelector("[data-next]");
+// Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
+const EN = /^en\b/i.test(document.documentElement.lang);
+const T = (pt, en) => (EN ? en : pt);
+const OBRIGADO = `https://trustio.com.br${EN ? "/en" : ""}/obrigado.html`;
 const submitBtn = document.querySelector("[data-submit]");
 const subjInput = form?.querySelector('input[name="_subject"]');
 function applyAcesso() {
@@ -40,9 +44,9 @@ function applyAcesso() {
   const t = tipoInputs.find((i) => i.checked)?.dataset.tipo || "b2c";
   const pv = document.querySelector('input[name="plano"]:checked')?.value || "";
   const planoKey = t === "b2b" ? "empresa" : pv.startsWith("Passe") ? "semanal" : pv.startsWith("Anual") ? "anual" : "mensal";
-  if (nextInput) nextInput.value = pre ? `https://trustio.com.br/obrigado.html?lista=pre&plano=${planoKey}` : "https://trustio.com.br/obrigado.html?lista=espera";
-  if (subjInput) subjInput.value = pre ? "PRÉ-ASSINATURA (acesso 23/09) — trustio.com.br" : "Lista de espera — trustio.com.br";
-  if (submitBtn) submitBtn.firstChild.textContent = pre ? "Quero pré-assinar e entrar em 23/09 " : "Entrar na lista de espera ";
+  if (nextInput) nextInput.value = pre ? `${OBRIGADO}?lista=pre&plano=${planoKey}` : `${OBRIGADO}?lista=espera`;
+  if (subjInput) subjInput.value = (pre ? "PRÉ-ASSINATURA (acesso 23/09) — trustio.com.br" : "Lista de espera — trustio.com.br") + (EN ? " · EN" : "");
+  if (submitBtn) submitBtn.firstChild.textContent = pre ? T("Quero pré-assinar e entrar em 23/09 ", "Pre-subscribe and get in on Sep 23 ") : T("Entrar na lista de espera ", "Join the waitlist ");
 }
 acessoInputs.forEach((i) => i.addEventListener("change", applyAcesso));
 document.querySelectorAll('input[name="plano"], input[name="tipo"]').forEach((i) => i.addEventListener("change", applyAcesso));
@@ -50,7 +54,9 @@ document.querySelectorAll('input[name="plano"], input[name="tipo"]').forEach((i)
 // --- deep links: ?tipo=b2b|b2c  &seg=voiceai|juridico|saude|financeiro  &plano=mensal|semanal|anual  &acesso=pre
 const tipo = qs.get("tipo");
 if (tipo === "b2b" || tipo === "b2c") { const r = tipoInputs.find((i) => i.dataset.tipo === tipo); if (r) r.checked = true; }
-const segMap = { voiceai: "VoiceAI", juridico: "Jurídico", saude: "Saúde", financeiro: "Financeiro", varejo: "Varejo", industria: "Indústria", publico: "Setor público" };
+const segMap = EN
+  ? { voiceai: "VoiceAI", juridico: "Legal", saude: "Healthcare", financeiro: "Finance", varejo: "Retail", industria: "Manufacturing", publico: "Public sector" }
+  : { voiceai: "VoiceAI", juridico: "Jurídico", saude: "Saúde", financeiro: "Financeiro", varejo: "Varejo", industria: "Indústria", publico: "Setor público" };
 const seg = qs.get("seg");
 if (seg && segSel && segMap[seg]) { const opt = [...segSel.options].find((o) => o.textContent.startsWith(segMap[seg])); if (opt) opt.selected = true; }
 const planoMap = { mensal: "Mensal", semanal: "Passe", anual: "Anual" };

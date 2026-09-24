@@ -8,7 +8,7 @@ document.querySelectorAll("[data-count]").forEach((el) => {
   const every = (Number(el.dataset.countEvery) || 2) * 36e5;
   const render = () => {
     const n = base + Math.max(0, Math.floor((Date.now() - start) / every)) * step;
-    el.textContent = n.toLocaleString("pt-BR");
+    el.textContent = n.toLocaleString(/^en\b/i.test(document.documentElement.lang) ? "en-US" : "pt-BR");
   };
   render(); setInterval(render, 60_000);
 });

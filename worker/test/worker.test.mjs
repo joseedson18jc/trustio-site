@@ -50,6 +50,47 @@ ok(d.supabase && d.resend, "/saude confirma configuração");
 ok(d.exemplo_de_link === "https://api.trustio.com.br/confirm?token=TOKEN_DE_EXEMPLO",
    "link de exemplo bem formado", d.exemplo_de_link);
 ok(!/[}{]/.test(d.exemplo_de_link), "link sem chave sobrando (o bug antigo)");
+ok(!("chave_supabase" in d), "/saude sem ?verificar não chama o Supabase");
+
+// 1b · /saude?verificar=supabase: diz se a chave é aceita sem devolver nada dela
+{
+  const fetchOriginal = globalThis.fetch;
+  const chaveBoa = "sb_secret_" + "A".repeat(31);
+  const chamadas = [];
+  const verifica = async (chave, resposta) => {
+    globalThis.fetch = async (u, o) => {
+      chamadas.push({ url: String(u), headers: o?.headers });
+      return resposta();
+    };
+    const r = await worker.fetch(req("GET", "/saude?verificar=supabase"), { ...env, SUPABASE_SERVICE_ROLE_KEY: chave });
+    globalThis.fetch = fetchOriginal;
+    return { corpo: await r.text() };
+  };
+  let { corpo } = await verifica(chaveBoa, () => new Response("{}", { status: 200 }));
+  let c = JSON.parse(corpo).chave_supabase;
+  ok(c?.tipo === "sb_secret" && c.tamanho === 41 && c.espaco_ou_aspas === false && c.resposta_do_supabase === 200
+     && c.projeto === "exemplo.supabase.co", "verificar: chave sb_secret aceita", JSON.stringify(c));
+  ok(chamadas.at(-1)?.url === "https://exemplo.supabase.co/rest/v1/" && chamadas.at(-1).headers.apikey === chaveBoa
+     && !chamadas.at(-1).headers.Authorization, "verificar: usa os mesmos cabeçalhos da inscrição");
+  ok(!corpo.includes("AAAAAAAA"), "verificar: a resposta não traz a chave");
+
+  ({ corpo } = await verifica(chaveBoa + "\n", () =>
+    new Response(JSON.stringify({ message: "Invalid API key " + chaveBoa + "\n" }), { status: 401 })));
+  c = JSON.parse(corpo).chave_supabase;
+  ok(c.resposta_do_supabase === 401 && c.espaco_ou_aspas === true && c.tamanho === 42 && /Invalid API key/.test(c.mensagem),
+     "verificar: chave com quebra de linha recusada, e isso aparece", JSON.stringify(c));
+  ok(!corpo.includes("AAAAAAAA"), "verificar: nem se o Supabase ecoar a chave");
+
+  ({ corpo } = await verifica("sbp_" + "b".repeat(40), () => new Response("{}", { status: 401 })));
+  ok(/^sbp/.test(JSON.parse(corpo).chave_supabase.tipo), "verificar: reconhece o token pessoal sbp_");
+
+  ({ corpo } = await verifica(chaveBoa, () => { throw new TypeError("rede"); }));
+  c = JSON.parse(corpo).chave_supabase;
+  ok(c.resposta_do_supabase === null && c.mensagem === "falha de rede", "verificar: falha de rede não derruba /saude");
+
+  const r = await worker.fetch(req("GET", "/saude?verificar=supabase"), { ...env, SUPABASE_SERVICE_ROLE_KEY: "" });
+  ok((await r.json()).chave_supabase?.tipo === "ausente", "verificar: chave ausente");
+}
 
 // 2 · inscrição por JSON
 enviados = []; rpcs = [];

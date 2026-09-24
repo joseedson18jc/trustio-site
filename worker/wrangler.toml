@@ -31,6 +31,11 @@ id = "3f6220c2393c4154b2927ac84fff4a91"
 #   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 #   wrangler secret put RESEND_API_KEY
 
+# Logs do worker no painel (Observability → Logs): sem eles não dá para ver por que uma
+# chamada ao Supabase falhou. Declarado aqui para um deploy pelo Git não desligá-los.
+[observability]
+enabled = true
+
 [[routes]]
 pattern = "api.trustio.com.br/*"
 zone_name = "trustio.com.br"

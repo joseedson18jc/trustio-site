@@ -10,6 +10,7 @@
  *   POST /signup           inscreve e dispara o e-mail de confirmação
  *   GET  /confirm?token=   confirma a inscrição
  *   GET  /saude            diz se as variáveis estão configuradas (sem revelá-las)
+ *   GET  /saude?verificar=supabase   também diz se o Supabase aceita a chave configurada
  *
  * Variáveis (wrangler secret put NOME)
  *   SUPABASE_URL                https://mjdaluioyutnxlyomzyd.supabase.co
@@ -106,6 +107,45 @@ function cabecalhosServico(chave) {
   if (String(chave).startsWith("eyJ")) h.Authorization = `Bearer ${chave}`;
   return h;
 }
+// Para GET /saude?verificar=supabase: diz se a chave configurada é aceita pelo projeto,
+// sem devolver nenhum trecho dela. Tipo, tamanho e espaço/aspas bastam para achar a
+// chave errada, cortada ou colada com quebra de linha; o status diz o que o Supabase acha.
+function tipoDaChave(chave) {
+  if (!chave) return "ausente";
+  const limpa = String(chave).trim().replace(/^["']|["']$/g, "");
+  if (limpa.startsWith("sb_secret_")) return "sb_secret";
+  if (limpa.startsWith("sb_publishable_")) return "sb_publishable";
+  if (limpa.startsWith("sbp_")) return "sbp (token pessoal da conta, não serve aqui)";
+  if (limpa.startsWith("eyJ")) return "jwt";
+  return "outro";
+}
+async function verificarChaveSupabase(env) {
+  const chave = env.SUPABASE_SERVICE_ROLE_KEY;
+  const info = {
+    tipo: tipoDaChave(chave),
+    tamanho: chave ? String(chave).length : 0,
+    espaco_ou_aspas: /\s|["']/.test(String(chave ?? "")),
+    projeto: null,
+    resposta_do_supabase: null,
+    mensagem: null,
+  };
+  if (!chave || !env.SUPABASE_URL) return info;
+  try { info.projeto = new URL(env.SUPABASE_URL).host; } catch { info.mensagem = "SUPABASE_URL inválida"; return info; }
+  try {
+    const { "Content-Type": _, ...cabecalhos } = cabecalhosServico(chave);
+    const r = await fetch(`${env.SUPABASE_URL}/rest/v1/`, { headers: cabecalhos, signal: AbortSignal.timeout(5000) });
+    info.resposta_do_supabase = r.status;
+    if (!r.ok) {
+      let msg = (await r.text()).slice(0, 300);
+      try { msg = JSON.parse(msg).message || msg; } catch { /* texto puro */ }
+      info.mensagem = String(msg).split(String(chave)).join("…").slice(0, 160);
+    }
+  } catch (err) {
+    info.mensagem = err?.name === "TimeoutError" ? "sem resposta em 5 s" : "falha de rede";
+  }
+  return info;
+}
+
 async function rpc(env, nome, args) {
   const r = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/${nome}`, {
     method: "POST",
@@ -437,7 +477,9 @@ export default {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin) });
 
-    // ---- saúde: diz o que falta configurar, sem revelar valor nenhum
+    // ---- saúde: diz o que falta configurar, sem revelar valor nenhum.
+    // Com ?verificar=supabase, também testa a chave no projeto (só sob pedido, para
+    // que cada visita a /saude não vire uma chamada ao Supabase).
     if (url.pathname === "/saude" && req.method === "GET") {
       return json(200, {
         ok: true,
@@ -447,6 +489,9 @@ export default {
         resend: Boolean(env.RESEND_API_KEY),
         remetente: env.EMAIL_FROM || null,
         exemplo_de_link: linkDeConfirmacao(env, "TOKEN_DE_EXEMPLO"),
+        ...(url.searchParams.get("verificar") === "supabase"
+          ? { chave_supabase: await verificarChaveSupabase(env) }
+          : {}),
       }, origin);
     }
 

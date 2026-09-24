@@ -515,7 +515,9 @@
             if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; lembrarConversa(d.conversation_id); }
             if (d.limite) { limite = Number(d.limite) || 0; prog.classList.remove("is-open"); mostrarProgresso(); }
             if (d.raciocinio) {
-              contar(d); tokensPensando = tokens;
+              contar(d);
+              // Tokens só do raciocínio ("nr", da função); sem ele, o total até a resposta começar.
+              tokensPensando = typeof d.nr === "number" ? d.nr : (full ? tokensPensando : tokens);
               if (think.hidden) think.hidden = false;
               var noFim = thinkText.scrollTop + thinkText.clientHeight >= thinkText.scrollHeight - 8;
               thinkText.textContent += d.raciocinio;
@@ -538,6 +540,7 @@
             }
             if (d.done) {
               if (typeof d.n === "number") contar(d);
+              if (typeof d.nr === "number" && !think.hidden) { tokensPensando = d.nr; thinkSum.textContent = T("Raciocínio", "Reasoning") + " · " + tokensPensando + " tokens"; }
               var seg = ((Date.now() - inicio) / 1000).toFixed(1);
               progFill.style.width = "100%"; prog.setAttribute("aria-valuenow", "100");
               prog.classList.add("is-done");

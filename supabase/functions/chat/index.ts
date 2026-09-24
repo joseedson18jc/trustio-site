@@ -25,10 +25,9 @@ const HISTORY = 30;
 const tetoConfigurado = Number(Deno.env.get("LLM_MAX_TOKENS"));
 const LLM_MAX_TOKENS = tetoConfigurado > 0 ? Math.min(32768, Math.max(256, Math.floor(tetoConfigurado))) : null;
 // Contagem exata de tokens durante a geração: o llama.cpp a manda em cada trecho com
-// timings_per_token. É um parâmetro dele; não vai para a API da xAI (o padrão acima).
-const LLAMA_TIMINGS = (() => {
-  try { return !/(^|\.)x\.ai$/.test(new URL(LLM_BASE_URL).hostname); } catch { return false; }
-})();
+// timings_per_token. É um parâmetro só dele, e um provedor que recusa campos
+// desconhecidos derrubaria o chat; por isso só vai com LLM_SERVIDOR = "llama.cpp".
+const LLAMA_TIMINGS = (Deno.env.get("LLM_SERVIDOR") ?? "").trim().toLowerCase() === "llama.cpp";
 
 const ALLOWED_ORIGINS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$|^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
 
@@ -238,6 +237,9 @@ Deno.serve(async (req) => {
     // senão, um por trecho recebido.
     let tokens = 0;
     let trechos = 0;
+    // Tokens do raciocínio, à parte: num trecho com raciocínio e texto juntos, os tokens
+    // novos são divididos pelo tamanho de cada parte.
+    let tokensRaciocinio = 0;
     // Tokens da sessão (prompt + histórico + resposta), quando o modelo informa no fim.
     let contexto: number | null = null;
 
@@ -253,7 +255,7 @@ Deno.serve(async (req) => {
       for (const f of frasesDoPrompt) raciocinioRetido = raciocinioRetido.split(f).join("[instrução interna]");
       const corte = tudo ? raciocinioRetido.length : Math.max(0, raciocinioRetido.length - retencao);
       if (corte > 0) {
-        send({ raciocinio: raciocinioRetido.slice(0, corte), n: tokens });
+        send({ raciocinio: raciocinioRetido.slice(0, corte), n: tokens, nr: tokensRaciocinio });
         raciocinioRetido = raciocinioRetido.slice(corte);
       }
     };
@@ -276,7 +278,12 @@ Deno.serve(async (req) => {
             if (escolha.finish_reason) fim = escolha.finish_reason;
             const raciocinio = d.reasoning_content || d.reasoning;
             if (d.content || raciocinio) trechos++;
+            const antes = tokens;
             tokens = Math.max(tokens, trechos, Number(pedaco.timings?.predicted_n) || 0, Number(pedaco.usage?.completion_tokens) || 0);
+            if (raciocinio) {
+              const novos = tokens - antes;
+              tokensRaciocinio += d.content ? Math.round(novos * raciocinio.length / (raciocinio.length + d.content.length)) : novos;
+            }
             if (Number(pedaco.usage?.total_tokens) > 0) contexto = Number(pedaco.usage.total_tokens);
             // Modelos com raciocínio mandam esse trecho em outro campo, antes do texto. Vai ao
             // navegador, que o mostra à parte; não entra no histórico nem no contexto.
@@ -311,6 +318,7 @@ Deno.serve(async (req) => {
         // "length": a resposta bateu no teto de tokens e pode ter sido cortada.
         fim,
         n: tokens,
+        nr: tokensRaciocinio,
         contexto,
         limite: LLM_MAX_TOKENS,
         remaining: reservation.remaining ?? null,

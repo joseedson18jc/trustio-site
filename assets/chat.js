@@ -427,9 +427,23 @@
     el.className = "msg msg-" + role;
     el.innerHTML = "<span class=\"msg-av\" aria-hidden=\"true\">" + (role === "user" ? "VC" : "T") + "</span><div class=\"msg-body\"></div>";
     var body = el.querySelector(".msg-body");
-    if (role === "user") body.innerHTML = "<p>" + esc(content).replace(/\n/g, "<br>") + "</p>"; else body.innerHTML = render(content);
+    if (role === "user") body.innerHTML = renderUsuario(content); else body.innerHTML = render(content);
     inner.appendChild(el);
     return el;
+  }
+
+  // Mensagem do usuário: texto como veio, e cada anexo (texto extraído por OCR) recolhido.
+  var RE_ANEXO = /\n*\[\[anexo: ([^\]\n]*)\]\]\n([\s\S]*?)\n\[\[\/anexo\]\]/g;
+  function renderUsuario(content) {
+    var html = "", ultimo = 0, m, texto = String(content || "");
+    RE_ANEXO.lastIndex = 0;
+    function trecho(t) { t = t.trim(); return t ? "<p>" + esc(t).replace(/\n/g, "<br>") + "</p>" : ""; }
+    while ((m = RE_ANEXO.exec(texto))) {
+      html += trecho(texto.slice(ultimo, m.index));
+      html += "<details class=\"msg-anexo\"><summary><span aria-hidden=\"true\">📎</span> " + esc(m[1]) + "</summary><pre>" + esc(m[2]) + "</pre></details>";
+      ultimo = RE_ANEXO.lastIndex;
+    }
+    return html + trecho(texto.slice(ultimo));
   }
 
   function scrollBottom() { thread.scrollTop = thread.scrollHeight; }
@@ -448,7 +462,14 @@
   // ---------------------------------------------------------------- envio
   function send(text) {
     text = String(text || "").trim();
-    if (!text || state.sending || state.sessaoCheia) return;
+    if (state.sending || state.sessaoCheia) return;
+    if (anexos.some(function (a) { return a.estado === "lendo"; })) {
+      showNotice(T("Aguarde terminar a leitura dos anexos.", "Wait for the attachments to finish reading."));
+      return;
+    }
+    var prontos = anexos.filter(function (a) { return a.estado === "pronto"; });
+    if (!text && !prontos.length) return;
+    if (!text) text = T("Analise o conteúdo dos anexos.", "Analyze the content of the attachments.");
     if (state.fechado) { input.value = ""; autosize(); return; }
     if (!state.user.email_confirmed_at) { showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); return; }
     state.sending = true;
@@ -457,6 +478,8 @@
     showNotice("");
     input.value = ""; autosize();
     sendBtn.disabled = true; input.disabled = true;
+    text += blocosDeAnexo(prontos);
+    anexos = []; renderAnexos();
     appendMessage("user", text);
     var pending = appendMessage("assistant", "");
     pending.classList.add("msg-pending");
@@ -613,6 +636,108 @@
       renderConversations();
     }
   }
+
+  // ---------------------------------------------------------------- anexos (fotos e PDFs, OCR no navegador)
+  // Até 3 arquivos por envio. O arquivo não sai do aparelho: assets/ocr.js extrai o texto
+  // aqui, e só o texto vai junto da mensagem, em blocos [[anexo: …]] … [[/anexo]].
+  var MAX_ANEXOS = 3, MAX_BYTES = 10 * 1024 * 1024, MAX_TEXTO_ANEXO = 12000, MAX_TEXTO_TOTAL = 30000;
+  var anexos = [], seqAnexo = 0;
+  var anexosEl = $("[data-anexos]"), fileInput = $("[data-file]"), attachBtn = $("[data-attach]");
+
+  function ehPdf(f) { return f.type === "application/pdf" || /\.pdf$/i.test(f.name || ""); }
+  function tipoAceito(f) { return ehPdf(f) || /^image\/(png|jpe?g|webp|gif|bmp)$/i.test(f.type || ""); }
+
+  function adicionarArquivos(lista) {
+    var avisos = [];
+    Array.prototype.slice.call(lista || []).forEach(function (f) {
+      var nome = f.name || T("imagem", "image");
+      if (anexos.length >= MAX_ANEXOS) { avisos.push(T("Máximo de 3 arquivos por envio.", "Up to 3 files per message.")); return; }
+      if (!tipoAceito(f)) { avisos.push(nome + ": " + T("envie foto (JPG, PNG, WebP) ou PDF.", "send a photo (JPG, PNG, WebP) or a PDF.")); return; }
+      if (f.size > MAX_BYTES) { avisos.push(nome + ": " + T("passa de 10 MB.", "is over 10 MB.")); return; }
+      var a = { id: ++seqAnexo, file: f, nome: nome, pdf: ehPdf(f), estado: "lendo", progresso: 0 };
+      anexos.push(a);
+      lerAnexo(a);
+    });
+    avisos = avisos.filter(function (x, i) { return avisos.indexOf(x) === i; });
+    if (avisos.length) showNotice(avisos.map(esc).join("<br>"));
+    renderAnexos();
+  }
+
+  function lerAnexo(a) {
+    if (!window.TrustioOCR) { a.estado = "erro"; renderAnexos(); return; }
+    window.TrustioOCR.extrair(a.file, function (p) {
+      a.progresso = p;
+      var el = anexosEl.querySelector("[data-anexo-id=\"" + a.id + "\"] .anexo-estado");
+      if (el) el.textContent = T("lendo ", "reading ") + Math.round(p * 100) + "%";
+    }).then(function (r) {
+      if (anexos.indexOf(a) < 0) return; // removido enquanto lia
+      a.texto = r.texto; a.info = r;
+      a.estado = r.texto ? "pronto" : "vazio";
+      renderAnexos();
+    }).catch(function (err) {
+      console.error("ocr", err);
+      if (anexos.indexOf(a) < 0) return;
+      a.estado = "erro"; renderAnexos();
+    });
+  }
+
+  function descricaoAnexo(a) {
+    if (a.estado === "lendo") return T("lendo ", "reading ") + Math.round((a.progresso || 0) * 100) + "%";
+    if (a.estado === "erro") return T("não foi possível ler", "couldn't read it");
+    if (a.estado === "vazio") return T("sem texto legível", "no readable text");
+    var n = (a.texto || "").length, pags = a.pdf && a.info ? a.info.paginas : 0;
+    return (pags ? pags + (pags === 1 ? T(" página · ", " page · ") : T(" páginas · ", " pages · ")) : "") + n.toLocaleString(LOCAL) + T(" caracteres", " characters");
+  }
+
+  function renderAnexos() {
+    anexosEl.hidden = !anexos.length;
+    anexosEl.innerHTML = anexos.map(function (a) {
+      return "<div class=\"anexo-chip is-" + a.estado + "\" data-anexo-id=\"" + a.id + "\">" +
+        "<span class=\"anexo-ico\" aria-hidden=\"true\">" + (a.pdf ? "PDF" : "IMG") + "</span>" +
+        "<span class=\"anexo-txt\"><b>" + esc(a.nome) + "</b><small class=\"anexo-estado\">" + esc(descricaoAnexo(a)) + "</small></span>" +
+        "<button type=\"button\" class=\"anexo-x\" data-anexo-remove aria-label=\"" + esc(T("Remover ", "Remove ") + a.nome) + "\">×</button></div>";
+    }).join("");
+    // Os botões ficam sobre a caixa de texto; a fileira de anexos acima dela os empurra junto.
+    composer.style.setProperty("--anexos-h", (anexos.length ? anexosEl.offsetHeight + 8 : 0) + "px");
+    attachBtn.disabled = anexos.length >= MAX_ANEXOS;
+    attachBtn.title = anexos.length >= MAX_ANEXOS ? T("Máximo de 3 arquivos por envio", "Up to 3 files per message") : T("Anexar foto ou PDF (até 3)", "Attach a photo or PDF (up to 3)");
+  }
+
+  // Blocos que vão para o modelo, com teto por anexo e no total (o contexto do modelo é finito).
+  function blocosDeAnexo(lista) {
+    var out = "", usado = 0;
+    lista.forEach(function (a) {
+      var livre = MAX_TEXTO_TOTAL - usado; if (livre <= 200) return;
+      var teto = Math.min(MAX_TEXTO_ANEXO, livre), txt = a.texto, cortado = txt.length > teto;
+      if (cortado) txt = txt.slice(0, teto);
+      usado += txt.length;
+      var pags = a.pdf && a.info ? a.info.paginas : 0;
+      var titulo = a.nome.replace(/[\[\]\n]/g, " ") + (pags ? " · " + pags + (pags === 1 ? T(" página", " page") : T(" páginas", " pages")) : "") + (cortado ? T(" · texto cortado", " · text truncated") : "");
+      out += "\n\n[[anexo: " + titulo + "]]\n" + txt + "\n[[/anexo]]";
+    });
+    return out;
+  }
+
+  attachBtn.addEventListener("click", function () { if (!attachBtn.disabled) fileInput.click(); });
+  fileInput.addEventListener("change", function () { adicionarArquivos(fileInput.files); fileInput.value = ""; });
+  anexosEl.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-anexo-remove]"); if (!b) return;
+    var id = Number(b.closest("[data-anexo-id]").dataset.anexoId);
+    anexos = anexos.filter(function (a) { return a.id !== id; });
+    renderAnexos(); input.focus();
+  });
+  // Colar uma imagem (print) e arrastar arquivos para a conversa também anexam.
+  input.addEventListener("paste", function (e) {
+    var fs = e.clipboardData && e.clipboardData.files;
+    if (fs && fs.length) { e.preventDefault(); adicionarArquivos(fs); }
+  });
+  ["dragover", "drop"].forEach(function (ev) {
+    composer.addEventListener(ev, function (e) {
+      if (!e.dataTransfer || Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") < 0) return;
+      e.preventDefault();
+      if (ev === "drop") adicionarArquivos(e.dataTransfer.files);
+    });
+  });
 
   // ---------------------------------------------------------------- UI
   composer.addEventListener("submit", function (e) { e.preventDefault(); send(input.value); });

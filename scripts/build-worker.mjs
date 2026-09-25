@@ -58,7 +58,10 @@ const sourceFiles = [
   "robots.txt",
   "sitemap.xml",
   "site.webmanifest",
-  ...((await walk(join(root, "assets"))).map((file) => relative(root, file))),
+  // OCR do chat (tesseract.js e pdf.js, ~11 MB) fica de fora do worker embutido: o site em
+  // produção é servido estático, e aqui o anexo só mostra "não foi possível ler".
+  ...((await walk(join(root, "assets"))).map((file) => relative(root, file))
+    .filter((file) => !/^assets[\\/]vendor[\\/](ocr|pdfjs)[\\/]/.test(file))),
 ];
 
 const files = {};

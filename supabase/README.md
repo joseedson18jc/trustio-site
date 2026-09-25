@@ -24,8 +24,19 @@ GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toqu
 6. Cada mensagem passa pela função `chat`: só e-mail confirmado; cota `free_message_limit` (padrão 5;
    `0` = sem limite) reservada de forma atômica; status vira `ativo` e, ao esgotar, `trial_esgotado`.
    Status `assinante` ignora a cota.
-7. No `/crm/`, "Ativar 3 dias" chama `activate_whatsapp_trial(lead_id, 3)`. A ativação do agente no
-   WhatsApp em si é feita pela equipe (não há integração automática com WhatsApp neste repositório).
+7. No `/crm/`, "Ativar 3 dias" chama `activate_whatsapp_trial(lead_id, 3)` (vale para quem pediu e para
+   quem só deixou telefone no cadastro). Trocar o seletor para "Ativo" tem o mesmo efeito: o período
+   começa na hora e dura `hermes_trial_dias`.
+8. Ao virar "Ativo", o gatilho `crm_leads_whatsapp_aviso` chama a função `aviso-agente` (via `pg_net`),
+   que manda à pessoa um e-mail com as instruções (Resend) e uma mensagem no WhatsApp (Evolution API).
+   O número do Agentio nas instruções vem de `hermes_numero` no painel (ou de `EVOLUTION_NUMERO`); sem
+   um número completo, nada sai. O CRM mostra quando cada aviso saiu, ou o motivo da falha, e o botão
+   "Reenviar avisos" tenta de novo o que faltou. Um aviso por ativação, mesmo com chamadas simultâneas. O banco precisa saber onde chamar (uma vez,
+   no SQL Editor; sem isso a ativação funciona e nada é enviado):
+   ```sql
+   select vault.create_secret('https://mjdaluioyutnxlyomzyd.supabase.co/functions/v1/aviso-agente', 'aviso_agente_url');
+   select vault.create_secret('<o mesmo valor de AVISOS_SEGREDO>', 'aviso_agente_segredo');
+   ```
 
 ## Ligar tudo (uma vez): secrets do repositório
 
@@ -41,6 +52,10 @@ Em GitHub → Settings → Secrets and variables → Actions → New repository 
 | `LLM_SERVIDOR` | opcional: `llama.cpp` quando o modelo roda num llama-server | contagem exata de tokens durante a resposta |
 | `LLM_CONTEXTO` | opcional: o contexto do modelo (o `-c` do llama-server), ex.: `8192` | "sessão N%" e o aviso de sessão cheia |
 | `LLM_MAX_TOKENS` | opcional: teto de tokens por resposta, ex.: `8192` | a % da resposta durante a geração |
+| `AVISOS_SEGREDO` | um valor aleatório longo (`openssl rand -hex 32`); o mesmo vai no Vault como `aviso_agente_segredo` | o banco chamar a função `aviso-agente` |
+| `RESEND_API_KEY` | resend.com → API Keys (domínio `send.trustio.com.br` verificado) | e-mail de aviso do teste do Agentio |
+| `EVOLUTION_URL`, `EVOLUTION_INSTANCE`, `EVOLUTION_API_KEY` | o servidor da Evolution API, a instância conectada ao WhatsApp e a chave global | mensagem de aviso no WhatsApp |
+| `EVOLUTION_NUMERO` | opcional: o número conectado à instância, se for o próprio Agentio | a mensagem pedir para responder ali mesmo |
 | `ADMIN_EMAILS` | seus e-mails, separados por vírgula (as contas precisam existir no Auth) | abrir o `/crm/` |
 
 Depois disso, rode o workflow uma vez em Actions → Supabase → Run workflow (ou faça qualquer push em

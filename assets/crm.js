@@ -253,20 +253,78 @@
     var sel = "<select data-field=\"whatsapp_trial_status\" aria-label=\"Teste WhatsApp\">" + WA.map(function (k) { return "<option value=\"" + k + "\"" + (k === s ? " selected" : "") + ">" + WA_LABEL[k] + "</option>"; }).join("") + "</select>";
     var num = l.whatsapp_numero ? telHtml(l.whatsapp_numero) : "";
     var extra = "";
-    if (s === "solicitado") extra = "<button type=\"button\" class=\"wa-go\" data-wa-activate>Ativar 3 dias</button>";
-    if (s === "ativo" && l.whatsapp_trial_ends_at) extra = "<small>até " + fmt(l.whatsapp_trial_ends_at) + "</small>";
+    // Quem pediu, ou quem só deixou telefone no cadastro, pode ser ativado direto daqui.
+    if (s === "solicitado" || (s === "nao_solicitado" && (l.whatsapp_numero || l.telefone))) extra = "<button type=\"button\" class=\"wa-go\" data-wa-activate>Ativar 3 dias</button>";
+    if (s === "ativo") extra = (l.whatsapp_trial_ends_at ? "<small>até " + fmt(l.whatsapp_trial_ends_at) + "</small>" : "") + avisoHtml(l);
     return sel + num + extra;
+  }
+
+  // Avisos da ativação (e-mail com instruções e mensagem no WhatsApp), enviados pelo banco.
+  // Por canal: saiu (✓), está saindo (reserva com menos de 2 min), falhou (erro) ou pendente.
+  var DOIS_MIN = 2 * 60 * 1000;
+  function avisoFoi(em, l) { return !!em && (!l.whatsapp_trial_started_at || new Date(em) >= new Date(l.whatsapp_trial_started_at)); }
+  function avisoCanal(l, p) {
+    if (avisoFoi(l[p + "_em"], l)) return "ok";
+    if (l[p + "_reserva"] && Date.now() - new Date(l[p + "_reserva"]) < DOIS_MIN) return "saindo";
+    if (l[p + "_erro"]) return "erro";
+    return "pendente";
+  }
+  function avisoErros(l) {
+    return [l.whatsapp_aviso_email_erro && "e-mail: " + l.whatsapp_aviso_email_erro, l.whatsapp_aviso_wa_erro && "WhatsApp: " + l.whatsapp_aviso_wa_erro].filter(Boolean).join(" · ");
+  }
+  // Logo depois de ativar, ou com reserva viva, os avisos ainda estão saindo.
+  function avisoEmAndamento(l) {
+    if (l.whatsapp_trial_status !== "ativo") return false;
+    var email = avisoCanal(l, "whatsapp_aviso_email"), zap = avisoCanal(l, "whatsapp_aviso_wa");
+    var recente = l.whatsapp_trial_started_at && Date.now() - new Date(l.whatsapp_trial_started_at) < DOIS_MIN;
+    return email === "saindo" || zap === "saindo" || (recente && email === "pendente" && zap === "pendente");
+  }
+  function avisoHtml(l) {
+    var email = avisoCanal(l, "whatsapp_aviso_email"), zap = avisoCanal(l, "whatsapp_aviso_wa");
+    var sinal = { ok: "✓", saindo: "…", erro: "✕", pendente: "—" };
+    var texto = "Aviso: e-mail " + sinal[email] + " · WhatsApp " + sinal[zap];
+    var reenviar = "<button type=\"button\" class=\"wa-go\" data-wa-reenviar>Reenviar avisos</button>";
+    if (email === "ok" && zap === "ok") return "<small class=\"wa-aviso\">" + texto + "</small>";
+    // Falha em um canal aparece na hora, mesmo com o outro ainda saindo; reenviar não atrapalha o
+    // envio em andamento (a reserva impede aviso em dobro).
+    if (email === "erro" || zap === "erro") return "<small class=\"wa-aviso wa-aviso-erro\" title=\"" + esc(avisoErros(l)) + "\">" + texto + " · falhou</small>" + reenviar;
+    if (avisoEmAndamento(l)) return "<small class=\"wa-aviso\">" + (email === "pendente" && zap === "pendente" ? "Enviando avisos…" : texto) + "</small>";
+    return "<small class=\"wa-aviso\">" + (email === "pendente" && zap === "pendente" ? "Sem aviso enviado" : texto) + "</small>" + reenviar;
+  }
+  // O aviso sai logo depois da ativação, fora do navegador: recarrega a cada 8 s enquanto algum
+  // aviso ainda estiver saindo (no máximo 2 minutos, o prazo da reserva).
+  var avisosTimer = null;
+  function recarregarAvisos(voltas) {
+    voltas = voltas == null ? 15 : voltas;
+    clearTimeout(avisosTimer);
+    avisosTimer = setTimeout(function () {
+      loadLeads().then(function () {
+        if (voltas > 1 && state.leads.some(avisoEmAndamento)) recarregarAvisos(voltas - 1);
+      });
+    }, 8000);
   }
 
   function lead(id) { return state.leads.filter(function (l) { return l.id === id; })[0]; }
 
   rows.addEventListener("click", function (e) {
     var o = e.target.closest("[data-open]"); if (o) { abrirDetalhe(o.closest("tr").dataset.id); return; }
+    var rb = e.target.closest("[data-wa-reenviar]");
+    if (rb) {
+      rb.disabled = true; rb.textContent = "Reenviando…";
+      sb.rpc("reenviar_aviso_whatsapp", { p_lead_id: rb.closest("tr").dataset.id }).then(function (r) {
+        if (r.error) { toast("Não foi possível reenviar: " + r.error.message, "erro"); rb.disabled = false; rb.textContent = "Reenviar avisos"; return; }
+        if (r.data === false) { toast("Avisos não configurados no banco (Vault). Veja o README do Supabase.", "erro"); rb.disabled = false; rb.textContent = "Reenviar avisos"; return; }
+        toast("Reenviando o que faltou. O resultado aparece em alguns segundos.");
+        recarregarAvisos();
+      });
+      return;
+    }
     var b = e.target.closest("[data-wa-activate]"); if (!b) return;
     var id = b.closest("tr").dataset.id; b.disabled = true; b.textContent = "Ativando…";
     sb.rpc("activate_whatsapp_trial", { p_lead_id: id, p_days: 3 }).then(function (r) {
       if (r.error) { toast("Não foi possível ativar: " + r.error.message, "erro"); b.disabled = false; b.textContent = "Ativar 3 dias"; return; }
-      toast("Teste de 3 dias no WhatsApp ativado.");
+      toast("Teste de 3 dias ativado. O e-mail e o WhatsApp de boas-vindas saem em seguida.");
+      recarregarAvisos();
       return loadLeads();
     });
   });
@@ -303,7 +361,10 @@
       atual[field] = r.data[field];
       // Admin que mudou o próprio tipo: as permissões desta página mudam junto.
       if (field === "papel" && atual.user_id === eu.id) { toast("Seu tipo de usuário mudou. Recarregando…"); setTimeout(function () { location.reload(); }, 1200); return; }
-      if (field === "whatsapp_trial_status") atual.whatsapp_trial_ends_at = r.data.whatsapp_trial_ends_at;
+      if (field === "whatsapp_trial_status") {
+        atual.whatsapp_trial_ends_at = r.data.whatsapp_trial_ends_at;
+        if (r.data.whatsapp_trial_status === "ativo" && p.antes !== "ativo") recarregarAvisos();
+      }
       var campo = rows.querySelector("tr[data-id=\"" + id + "\"] [data-field=\"" + field + "\"]");
       if (field === "whatsapp_trial_status" || field === "papel") render();
       else if (campo && campo !== document.activeElement && campo.value !== String(atual[field] == null ? "" : atual[field])) campo.value = atual[field] == null ? "" : atual[field];
@@ -370,6 +431,9 @@
       ["WhatsApp", WA_LABEL[l.whatsapp_trial_status || "nao_solicitado"] + (l.whatsapp_numero ? " · " + telHtml(l.whatsapp_numero) : "")],
       ["Pedido do teste", fmt(l.whatsapp_trial_requested_at)],
       ["Teste até", fmt(l.whatsapp_trial_ends_at)],
+      ["Aviso por e-mail", fmt(l.whatsapp_aviso_email_em)],
+      ["Aviso no WhatsApp", fmt(l.whatsapp_aviso_wa_em)],
+      ["Falha no aviso", esc(avisoErros(l) || "—")],
       ["Conta no chat", l.user_id ? "sim" : "não (só lista de espera)"],
       ["Notas", esc(l.notas || "—")]
     ];
@@ -390,7 +454,7 @@
   });
 
   $("[data-export]").addEventListener("click", function () {
-    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "papel", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "created_at", "confirmed_at", "ultimo_acesso", "notas"];
+    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "papel", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "whatsapp_aviso_email_em", "whatsapp_aviso_email_erro", "whatsapp_aviso_wa_em", "whatsapp_aviso_wa_erro", "created_at", "confirmed_at", "ultimo_acesso", "notas"];
     // Valores vindos do cadastro público: neutraliza prefixos que planilhas interpretam como fórmula.
     var cell = function (v) {
       v = v == null ? "" : String(v);

@@ -15,6 +15,7 @@
 #   RESEND_API_KEY         chave do Resend (e-mail do aviso do teste do Agentio)     para o aviso por e-mail
 #   EVOLUTION_URL, EVOLUTION_INSTANCE, EVOLUTION_API_KEY  Evolution API                para o aviso por WhatsApp
 #   EVOLUTION_NUMERO       número conectado à instância, se for o próprio Agentio    opcional
+#   HERMES_SEGREDO         segredo do sincronizador do Mac (~/.trustio-hermes-sync-key) para liberar números no Hermes
 #   ADMIN_EMAILS           e-mails dos administradores do CRM, separados por vírgula
 name: Supabase
 
@@ -49,6 +50,7 @@ jobs:
       EVOLUTION_INSTANCE: ${{ secrets.EVOLUTION_INSTANCE }}
       EVOLUTION_API_KEY: ${{ secrets.EVOLUTION_API_KEY }}
       EVOLUTION_NUMERO: ${{ secrets.EVOLUTION_NUMERO }}
+      HERMES_SEGREDO: ${{ secrets.HERMES_SEGREDO }}
       PROJECT_REF: mjdaluioyutnxlyomzyd
     steps:
       - uses: actions/checkout@v4
@@ -114,10 +116,13 @@ jobs:
       - name: Publicar função de aviso do teste do Agentio
         run: supabase functions deploy aviso-agente --no-verify-jwt --project-ref "$PROJECT_REF"
 
+      - name: Publicar função de números autorizados do Hermes
+        run: supabase functions deploy hermes-autorizados --no-verify-jwt --project-ref "$PROJECT_REF"
+
       - name: Definir segredos da função de aviso
         run: |
           args=""
-          for v in AVISOS_SEGREDO RESEND_API_KEY EVOLUTION_URL EVOLUTION_INSTANCE EVOLUTION_API_KEY EVOLUTION_NUMERO; do
+          for v in AVISOS_SEGREDO RESEND_API_KEY EVOLUTION_URL EVOLUTION_INSTANCE EVOLUTION_API_KEY EVOLUTION_NUMERO HERMES_SEGREDO; do
             [ -n "${!v}" ] && args="$args $v=${!v}"
           done
           [ -n "$args" ] || { echo "Nenhum segredo de aviso definido; pulando."; exit 0; }

@@ -16,7 +16,7 @@
   <link rel="preload" href="../assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="../assets/theme.js?v=673d4355"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=3cf59e12">
-  <link rel="stylesheet" href="../assets/chat.css?v=15b3833b">
+  <link rel="stylesheet" href="../assets/chat.css?v=435811cb">
   <link rel="stylesheet" href="../assets/crm.css?v=1235dc37">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=7ebbf495"></script>
@@ -33,9 +33,8 @@
       <em>CRM</em>
     </a>
     <div class="chat-top-right">
-      <span class="eu" title="Seu tipo de usuário">Você: <b data-eu></b></span>
       <a class="btn btn-ghost" href="../app/">Chat</a>
-      <a class="btn btn-ghost so-admin" href="../admin/">Painel</a>
+      <a class="btn btn-ghost" href="../admin/">Painel</a>
       <button class="btn btn-ghost" type="button" data-refresh title="Recarregar os leads">Atualizar</button>
       <button class="btn btn-ghost" type="button" data-export>Exportar CSV</button>
       <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Ativar tema claro" title="Alternar tema">
@@ -73,16 +72,13 @@
         <button type="button" data-filter="cancelado">Cancelados</button>
         <button type="button" data-filter="wa:solicitado">WhatsApp pedido</button>
         <button type="button" data-filter="wa:ativo">WhatsApp ativo</button>
-        <button type="button" data-filter="pa:admin">Admins</button>
-        <button type="button" data-filter="pa:colaborador">Colaboradores</button>
-        <button type="button" data-filter="pa:cliente">Clientes</button>
       </div>
     </div>
     <div class="toolbar toolbar-2">
       <label class="search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg><input type="search" placeholder="Buscar nome, e-mail, telefone, plano, notas" data-search aria-label="Buscar"></label>
       <label class="check"><input type="checkbox" data-hide-tests> Ocultar testes <span data-tests-count></span></label>
       <span class="meta"><span data-shown></span> · <span data-updated></span></span>
-      <label class="setting so-admin">Perguntas grátis <input type="number" min="0" step="1" data-limit aria-label="Perguntas grátis por conta"> <small>0 = sem limite</small></label>
+      <label class="setting">Perguntas grátis <input type="number" min="0" step="1" data-limit aria-label="Perguntas grátis por conta"> <small>0 = sem limite</small></label>
     </div>
 
     <div class="load-error" data-load-error hidden role="alert">
@@ -97,7 +93,6 @@
             <th data-sort="nome"><button type="button">Lead</button></th>
             <th data-sort="status"><button type="button">Status</button></th>
             <th>Plano</th>
-            <th>Tipo de usuário</th>
             <th data-sort="uso"><button type="button">Uso</button></th>
             <th>WhatsApp · 3 dias</th>
             <th data-sort="created_at"><button type="button">Cadastro</button></th>
@@ -109,7 +104,7 @@
       </table>
       <p class="empty" data-empty hidden>Nenhum lead com esse filtro.</p>
     </div>
-    <p class="foot-note">Status <code>assinante</code> libera o chat sem cota. Alterações são salvas ao sair do campo. O CSV exporta o que está na tela (filtro e busca). <b>Tipo de usuário:</b> admin tem acesso total e muda os tipos (só joseedson18@hotmail.com e matheuscastrocorrea@gmail.com); colaborador usa o CRM e o chat sem cota; teste grátis tem a cota de perguntas grátis; cliente usa o chat sem cota. Testes são os endereços <code>@resend.dev</code> e os que começam com <code>test-</code> ou <code>teste-</code>.</p>
+    <p class="foot-note">Status <code>assinante</code> libera o chat sem cota. Alterações são salvas ao sair do campo. O CSV exporta o que está na tela (filtro e busca). Testes são os endereços <code>@resend.dev</code> e os que começam com <code>test-</code> ou <code>teste-</code>.</p>
   </main>
 
   <dialog class="detail" data-detail aria-labelledby="detail-title">

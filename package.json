@@ -11,7 +11,8 @@
     "stamp:check": "node scripts/stamp-asset-versions.mjs --check",
     "i18n": "node scripts/i18n.mjs",
     "i18n:check": "node scripts/i18n.mjs --check",
-    "test:worker": "node worker/test/worker.test.mjs"
+    "test:worker": "node worker/test/worker.test.mjs",
+    "test:mac": "node mac/test/hermes-autorizados.test.mjs"
   },
   "engines": {
     "node": ">=22.13"

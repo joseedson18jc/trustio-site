@@ -12,7 +12,23 @@ const plans = {
   passe7: [T("Passe de 7 dias confirmado.", "7-day pass confirmed."), T("Recebemos seu pagamento. O acesso é liberado em até 1 dia útil pelo e-mail do checkout, e os 7 dias só começam a contar a partir daí.", "We've received your payment. Access is granted within 1 business day, at the email you used at checkout, and the 7 days only start counting from then.")],
   anual: [T("Plano Anual ativo.", "Annual plan active."), T("Recebemos sua assinatura com preço travado por 12 meses. Seu acesso é liberado em até 1 dia útil pelo e-mail do checkout, sem esperar o lançamento de 1º de outubro de 2026.", "We've received your subscription, with the price locked for 12 months. Your access is granted within 1 business day, at the email you used at checkout, without waiting for the October 1, 2026 launch.")]
 };
-const payLinks = { mensal: ["https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08", T("Pagar R$ 79/mês e entrar em até 1 dia útil", "Pay R$ 79/month and get in within 1 business day")], semanal: ["https://buy.stripe.com/8x228rgiKetN2LRfRl5wI09", T("Pagar R$ 24,90 e entrar em até 1 dia útil", "Pay R$ 24.90 and get in within 1 business day")], anual: ["https://buy.stripe.com/cNifZhd6yfxR9afgVp5wI0a", T("Pagar R$ 790/ano e entrar em até 1 dia útil", "Pay R$ 790/year and get in within 1 business day")] };
+// Agentio e Combo: mesma mensagem, muda o nome e o período.
+const ativa = (nome, en, periodo, periodoEn, combo) => [
+  T(nome + " confirmado.", en + " confirmed."),
+  T("Recebemos seu pagamento (" + periodo + "). Em até 1 dia útil enviamos, no e-mail e no telefone do checkout, o passo para ativar o Agentio no seu WhatsApp ou Telegram" + (combo ? ", e o seu chat sem censura é liberado no mesmo prazo." : "."),
+    "We've received your payment (" + periodoEn + "). Within 1 business day we'll send, to the email and phone from checkout, the step to activate Agentio on your WhatsApp or Telegram" + (combo ? ", and your uncensored chat is unlocked within the same window." : "."))
+];
+Object.assign(plans, {
+  "agentio-semanal": ativa("Agentio · 7 dias", "Agentio · 7 days", "7 dias, contados a partir da ativação", "7 days, counted from activation"),
+  "agentio-mensal": ativa("Agentio mensal", "Monthly Agentio", "renova todo mês", "renews monthly"),
+  "agentio-semestral": ativa("Agentio semestral", "6-month Agentio", "renova a cada 6 meses", "renews every 6 months"),
+  "agentio-anual": ativa("Agentio anual", "Annual Agentio", "preço travado por 12 meses", "price locked for 12 months"),
+  "combo-semanal": ativa("Combo Chat + Agentio · 7 dias", "Chat + Agentio Combo · 7 days", "7 dias, contados a partir da ativação", "7 days, counted from activation", true),
+  "combo-mensal": ativa("Combo Chat + Agentio mensal", "Monthly Chat + Agentio Combo", "renova todo mês", "renews monthly", true),
+  "combo-semestral": ativa("Combo Chat + Agentio semestral", "6-month Chat + Agentio Combo", "renova a cada 6 meses", "renews every 6 months", true),
+  "combo-anual": ativa("Combo Chat + Agentio anual", "Annual Chat + Agentio Combo", "preço travado por 12 meses", "price locked for 12 months", true)
+});
+const payLinks = { agentio: ["https://buy.stripe.com/bJe5kD2rU5Xhbin48D5wI0c", T("Assinar Agentio por R$ 129/mês", "Subscribe to Agentio for R$ 129/month")], combo: ["https://buy.stripe.com/7sY14ngiK2L5fyD9sX5wI0g", T("Assinar o Combo por R$ 179/mês", "Subscribe to the Combo for R$ 179/month")], mensal: ["https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08", T("Pagar R$ 79/mês e entrar em até 1 dia útil", "Pay R$ 79/month and get in within 1 business day")], semanal: ["https://buy.stripe.com/8x228rgiKetN2LRfRl5wI09", T("Pagar R$ 24,90 e entrar em até 1 dia útil", "Pay R$ 24.90 and get in within 1 business day")], anual: ["https://buy.stripe.com/cNifZhd6yfxR9afgVp5wI0a", T("Pagar R$ 790/ano e entrar em até 1 dia útil", "Pay R$ 790/year and get in within 1 business day")] };
 const qs = new URLSearchParams(location.search);
 function listaMode(eyebrow) {
   const e = document.querySelector(".eyebrow"); if (e) { e.innerHTML = '<span class="status-dot"></span> ' + eyebrow; }

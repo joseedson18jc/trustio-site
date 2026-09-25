@@ -255,6 +255,8 @@
         // os rascunhos nos outros campos são preservados pelo redesenho.
         var falhou = rows.querySelector("tr[data-id=\"" + id + "\"] [data-field=\"" + field + "\"]");
         if (falhou && falhou !== document.activeElement) falhou.value = p.antes == null ? "" : p.antes;
+        // Status e WhatsApp mexem em contagens, filtro e no botão "Ativar 3 dias": redesenha tudo.
+        if (field === "status" || field === "whatsapp_trial_status") render(); else renderStats();
         toast("Não foi possível salvar: " + r.error.message, "erro");
         return;
       }

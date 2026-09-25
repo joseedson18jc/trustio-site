@@ -17,10 +17,10 @@
   <script src="../assets/theme.js?v=673d4355"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=3cf59e12">
   <link rel="stylesheet" href="../assets/chat.css?v=15b3833b">
-  <link rel="stylesheet" href="../assets/crm.css?v=aa5381e9">
+  <link rel="stylesheet" href="../assets/crm.css?v=6e83f15f">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=7ebbf495"></script>
-  <script defer src="../assets/crm.js?v=0689124d"></script>
+  <script defer src="../assets/crm.js?v=137e5551"></script>
 </head>
 <body class="chat-page crm-page">
 <a class="skip-link" href="#leads">Ir para a lista de leads</a>
@@ -35,6 +35,7 @@
     <div class="chat-top-right">
       <a class="btn btn-ghost" href="../app/">Chat</a>
       <a class="btn btn-ghost" href="../admin/">Painel</a>
+      <button class="btn btn-ghost" type="button" data-refresh title="Recarregar os leads">Atualizar</button>
       <button class="btn btn-ghost" type="button" data-export>Exportar CSV</button>
       <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Ativar tema claro" title="Alternar tema">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -46,23 +47,23 @@
 
   <main class="crm-main">
     <div class="page-head">
-      <div>
-        <h1>Leads e clientes</h1>
-        <p>Toda conta criada no site entra aqui. O status avança sozinho: cadastro, e-mail confirmado, ativo no chat, teste esgotado. Plano e notas você ajusta na linha.</p>
-      </div>
-      <div class="stat-row" data-stats>
-        <div class="stat"><b data-stat="total">0</b><small>leads</small></div>
-        <div class="stat"><b data-stat="confirmados">0</b><small>e-mail confirmado</small></div>
-        <div class="stat"><b data-stat="ativos">0</b><small>ativos no chat</small></div>
-        <div class="stat"><b data-stat="esgotados">0</b><small>teste esgotado</small></div>
-        <div class="stat"><b data-stat="assinantes">0</b><small>assinantes</small></div>
-        <div class="stat"><b data-stat="b2b">0</b><small>empresas</small></div>
-      </div>
+      <h1>Leads e clientes</h1>
+      <p>Toda conta criada no site entra aqui. O status avança sozinho: cadastro, e-mail confirmado, ativo no chat, teste esgotado. Plano e notas você ajusta na linha; clique no nome para ver tudo sobre o lead.</p>
+    </div>
+
+    <div class="stat-row" data-stats>
+      <button type="button" class="stat" data-stat-filter=""><b data-stat="total">0</b><small>leads</small></button>
+      <button type="button" class="stat" data-stat-filter="email_confirmado"><b data-stat="confirmados">0</b><small>e-mail confirmado</small><i data-stat="taxa"></i></button>
+      <button type="button" class="stat" data-stat-filter="ativo"><b data-stat="ativos">0</b><small>ativos no chat</small></button>
+      <button type="button" class="stat" data-stat-filter="trial_esgotado"><b data-stat="esgotados">0</b><small>teste esgotado</small></button>
+      <button type="button" class="stat" data-stat-filter="assinante"><b data-stat="assinantes">0</b><small>assinantes</small></button>
+      <button type="button" class="stat stat-alert" data-stat-filter="wa:solicitado"><b data-stat="wa">0</b><small>WhatsApp para ativar</small></button>
+      <div class="stat"><b data-stat="b2b">0</b><small>empresas</small></div>
     </div>
 
     <div class="toolbar">
-      <div class="filters" role="tablist" aria-label="Filtrar por status" data-filters>
-        <button type="button" data-filter="" aria-selected="true">Todos</button>
+      <div class="filters" role="group" aria-label="Filtrar por status" data-filters>
+        <button type="button" data-filter="" aria-pressed="true">Todos</button>
         <button type="button" data-filter="novo">Novos</button>
         <button type="button" data-filter="email_confirmado">Confirmados</button>
         <button type="button" data-filter="ativo">Ativos</button>
@@ -72,23 +73,53 @@
         <button type="button" data-filter="wa:solicitado">WhatsApp pedido</button>
         <button type="button" data-filter="wa:ativo">WhatsApp ativo</button>
       </div>
-      <label class="search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg><input type="search" placeholder="Buscar nome, e-mail, empresa" data-search aria-label="Buscar"></label>
+    </div>
+    <div class="toolbar toolbar-2">
+      <label class="search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg><input type="search" placeholder="Buscar nome, e-mail, telefone, plano, notas" data-search aria-label="Buscar"></label>
+      <label class="check"><input type="checkbox" data-hide-tests> Ocultar testes <span data-tests-count></span></label>
+      <span class="meta"><span data-shown></span> · <span data-updated></span></span>
       <label class="setting">Perguntas grátis <input type="number" min="0" step="1" data-limit aria-label="Perguntas grátis por conta"> <small>0 = sem limite</small></label>
+    </div>
+
+    <div class="load-error" data-load-error hidden role="alert">
+      <b>Não foi possível carregar os leads.</b> <span data-load-error-msg></span>
+      <button type="button" class="btn btn-ghost" data-retry>Tentar de novo</button>
     </div>
 
     <div class="tablewrap" id="leads">
       <table class="leads">
         <thead>
           <tr>
-            <th>Lead</th><th>Contato</th><th>Tipo</th><th>Status</th><th>Plano</th><th>Uso</th><th>WhatsApp · 3 dias</th><th>Cadastro</th><th>Último acesso</th><th>Notas</th>
+            <th data-sort="nome"><button type="button">Lead</button></th>
+            <th data-sort="status"><button type="button">Status</button></th>
+            <th>Plano</th>
+            <th data-sort="uso"><button type="button">Uso</button></th>
+            <th>WhatsApp · 3 dias</th>
+            <th data-sort="created_at"><button type="button">Cadastro</button></th>
+            <th data-sort="ultimo"><button type="button">Último acesso</button></th>
+            <th>Notas</th>
           </tr>
         </thead>
         <tbody data-rows></tbody>
       </table>
       <p class="empty" data-empty hidden>Nenhum lead com esse filtro.</p>
     </div>
-    <p class="foot-note">Status <code>assinante</code> libera o chat sem cota. Alterações são salvas ao sair do campo. Exporte o CSV para o e-mail marketing ou para outra ferramenta.</p>
+    <p class="foot-note">Status <code>assinante</code> libera o chat sem cota. Alterações são salvas ao sair do campo. O CSV exporta o que está na tela (filtro e busca). Testes são os endereços <code>@resend.dev</code> e os que começam com <code>test-</code> ou <code>teste-</code>.</p>
   </main>
+
+  <dialog class="detail" data-detail aria-labelledby="detail-title">
+    <div class="detail-head">
+      <h2 id="detail-title" data-detail-title></h2>
+      <button type="button" class="detail-x" data-detail-close aria-label="Fechar">×</button>
+    </div>
+    <dl data-detail-body></dl>
+    <div class="detail-actions">
+      <a class="btn btn-primary" data-detail-mail href="#">Enviar e-mail</a>
+      <a class="btn btn-ghost" data-detail-wa href="#" target="_blank" rel="noopener">Abrir no WhatsApp</a>
+      <button type="button" class="btn btn-ghost" data-detail-copy>Copiar e-mail</button>
+    </div>
+  </dialog>
+  <div class="toast" data-toast role="status" aria-live="polite"></div>
 </div>
 
 <div class="gate" data-gate hidden>

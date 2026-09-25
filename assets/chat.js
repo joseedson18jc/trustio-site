@@ -32,6 +32,12 @@
   var state = { user: null, lead: null, limit: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false, fechado: false, sessaoCheia: false, placeholderPadrao: "", escolhas: 0 };
 
   // ---------------------------------------------------------------- utilidades
+  // Sem cota de perguntas: assinante, ou tipo de usuário admin, colaborador ou cliente
+  // (a mesma regra do reserve_chat_message no banco).
+  function semCota() {
+    var l = state.lead;
+    return !!l && (l.status === "assinante" || l.papel === "admin" || l.papel === "colaborador" || l.papel === "cliente");
+  }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
   // Renderização mínima e segura de Markdown (blocos de código, inline, negrito, listas, títulos).
@@ -195,7 +201,7 @@
   }
 
   function loadLead() {
-    return sb.from("crm_leads").select("nome,email,telefone,tipo,status,plano,mensagens_usadas,onboarding_seen_at,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_requested_at,whatsapp_trial_started_at,whatsapp_trial_ends_at").eq("user_id", state.user.id).maybeSingle()
+    return sb.from("crm_leads").select("nome,email,telefone,tipo,status,papel,plano,mensagens_usadas,onboarding_seen_at,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_requested_at,whatsapp_trial_started_at,whatsapp_trial_ends_at").eq("user_id", state.user.id).maybeSingle()
       .then(function (r) { state.lead = r.data || null; });
   }
   function loadLimit() {
@@ -213,7 +219,7 @@
     $("[data-me-av]").textContent = initials(name, state.user.email);
     var status = state.lead ? state.lead.status : "novo";
     var plan = state.lead && state.lead.plano;
-    var label = status === "assinante" ? (T("Assinante", "Subscriber") + (plan ? " · " + plan : "")) : status === "trial_esgotado" ? T("Teste encerrado", "Trial ended") : T("Teste grátis", "Free trial");
+    var label = semCota() && status !== "assinante" ? ({ admin: "Admin", colaborador: T("Colaborador", "Team member"), cliente: T("Cliente", "Customer") })[state.lead.papel] + (plan ? " · " + plan : "") : status === "assinante" ? (T("Assinante", "Subscriber") + (plan ? " · " + plan : "")) : status === "trial_esgotado" ? T("Teste encerrado", "Trial ended") : T("Teste grátis", "Free trial");
     $("[data-me-plan]").textContent = label;
     renderQuota(status, state.lead ? state.lead.mensagens_usadas : 0);
     renderOnboardQuota();
@@ -221,7 +227,7 @@
 
   function renderQuota(status, used) {
     var q = $("[data-quota]");
-    if (status === "assinante" || !state.limit) { q.hidden = true; paywall.hidden = true; return; }
+    if (semCota() || !state.limit) { q.hidden = true; paywall.hidden = true; return; }
     q.hidden = false;
     var left = Math.max(0, state.limit - used);
     $("[data-quota-bar]").style.width = Math.min(100, (used / state.limit) * 100) + "%";
@@ -255,9 +261,9 @@
     var used = state.lead ? Number(state.lead.mensagens_usadas || 0) : 0;
     var limitEl = $("[data-ob-limit]"), bar = $("[data-ob-bar]"), txt = $("[data-ob-quota]");
     if (!limitEl) return;
-    if (status === "assinante" || !state.limit) {
+    if (semCota() || !state.limit) {
       limitEl.textContent = "∞"; bar.style.width = "100%";
-      txt.textContent = status === "assinante" ? T("Plano ativo: sem limite de prompts.", "Plan active: no prompt limit.") : T("Sem limite de prompts neste ambiente.", "No prompt limit in this environment.");
+      txt.textContent = semCota() ? T("Plano ativo: sem limite de prompts.", "Plan active: no prompt limit.") : T("Sem limite de prompts neste ambiente.", "No prompt limit in this environment.");
       return;
     }
     limitEl.textContent = state.limit;
@@ -622,7 +628,7 @@
   function afterDone(d) {
     if (state.lead) {
       state.lead.mensagens_usadas = (state.lead.mensagens_usadas || 0) + 1;
-      if (state.lead.status !== "assinante") state.lead.status = (d.remaining === 0) ? "trial_esgotado" : "ativo";
+      if (!semCota()) state.lead.status = (d.remaining === 0) ? "trial_esgotado" : "ativo";
     }
     if (typeof d.limit === "number" && d.limit > 0) state.limit = d.limit;
     renderMe();

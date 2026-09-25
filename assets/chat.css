@@ -197,3 +197,25 @@
 [data-theme="light"] .chat-main::before { background-image: linear-gradient(rgba(37, 99, 235, 0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(37, 99, 235, 0.09) 1px, transparent 1px); }
 [data-theme="light"] .chat-main::after { opacity: 0.55; }
 @media (prefers-reduced-motion: reduce) { .chat-main::after { animation: none; } }
+
+/* Anexos: fotos e PDFs lidos no navegador (assets/ocr.js) */
+.composer textarea { padding-left: 50px; }
+.attach { position: absolute; left: 8px; top: 8px; width: 36px; height: 38px; border: 0; border-radius: 11px; background: transparent; color: var(--muted-strong); cursor: pointer; display: grid; place-items: center; z-index: 2; }
+.anexos:not([hidden]) ~ .attach, .anexos:not([hidden]) ~ .send { top: calc(8px + var(--anexos-h, 0px)); }
+.attach svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.attach:hover:not(:disabled) { color: var(--ice); background: rgba(94, 167, 255, 0.1); }
+.attach:disabled { opacity: 0.35; cursor: not-allowed; }
+.anexos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.anexo-chip { display: inline-flex; align-items: center; gap: 9px; max-width: 260px; padding: 7px 8px 7px 9px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-raised); }
+.anexo-chip.is-erro, .anexo-chip.is-vazio { border-color: rgba(255, 180, 84, 0.45); }
+.anexo-chip.is-pronto { border-color: rgba(61, 220, 151, 0.35); }
+.anexo-ico { flex: none; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.08em; padding: 5px 6px; border-radius: 6px; background: rgba(94, 167, 255, 0.12); color: var(--blue-signal); }
+.anexo-txt { display: grid; min-width: 0; }
+.anexo-txt b { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.anexo-txt small { font-family: var(--mono); font-size: 10.5px; color: var(--label-color); }
+.anexo-chip.is-lendo small { color: var(--blue-signal); }
+.anexo-x { flex: none; width: 24px; height: 24px; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 16px; line-height: 1; cursor: pointer; }
+.anexo-x:hover { color: var(--ice); background: rgba(255, 255, 255, 0.06); }
+.msg-anexo { margin: 8px 0 0; border: 1px solid var(--line); border-radius: 10px; background: rgba(94, 167, 255, 0.05); }
+.msg-anexo summary { cursor: pointer; padding: 7px 10px; font-size: 12.5px; color: var(--muted-strong); }
+.msg-anexo pre { margin: 0; padding: 10px 12px; max-height: 260px; overflow: auto; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 11.5px; white-space: pre-wrap; word-break: break-word; color: var(--muted-strong); }

@@ -45,7 +45,7 @@ button.stat.is-on { border-color: rgba(94, 167, 255, 0.5); background: rgba(94, 
 /* Tabela: cabeçalho fixo e largura que cabe numa tela de notebook. */
 .tablewrap { overflow: auto; max-height: calc(100dvh - 140px); -webkit-overflow-scrolling: touch; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
 table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-spacing: 0; font-size: 13.5px; }
-.leads th, .leads td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+.leads th, .leads td { padding: 11px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
 .leads th { position: sticky; top: 0; z-index: 2; font-family: var(--mono); font-size: var(--label); letter-spacing: 0.13em; text-transform: uppercase; color: var(--label-color); font-weight: 500; background: var(--surface-raised); white-space: nowrap; }
 .leads th button { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
 .leads th button::after { content: "↕"; opacity: 0.35; font-size: 11px; }
@@ -54,7 +54,7 @@ table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-
 .leads th button:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 3px; border-radius: 3px; }
 .leads tbody tr:last-child td { border-bottom: 0; }
 .leads tbody tr:hover td { background: rgba(94, 167, 255, 0.035); }
-.leads .who { min-width: 250px; }
+.leads .who { min-width: 196px; }
 .lead-open { all: unset; cursor: pointer; font-weight: 650; font-size: 14px; margin-right: 6px; }
 .lead-open:hover { color: var(--blue-signal); text-decoration: underline; text-underline-offset: 3px; }
 .lead-open:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 2px; border-radius: 3px; }
@@ -63,13 +63,14 @@ table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-
 .leads .who a:hover { color: var(--ice); text-decoration: underline; }
 .leads .who small, .leads td small { display: block; color: var(--label-color); font-size: 11.5px; margin-top: 4px; }
 .tel.bad { color: #ffb454 !important; }
+.leads .who .tel, .leads .wa .tel { word-break: normal; overflow-wrap: normal; }
 .leads .num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .leads .num b { font-weight: 600; color: var(--ice); }
 .leads .date { font-family: var(--mono); font-size: 12px; color: var(--muted-strong); white-space: nowrap; }
 .leads .hint { font-family: var(--mono); font-size: 10.5px !important; }
 .leads select, .leads input[type=text], .leads textarea { min-height: 34px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-raised); color: var(--ice); font: inherit; font-size: 13px; }
-.leads textarea { width: 100%; min-width: 180px; min-height: 34px; resize: vertical; }
-.leads input[type=text] { width: 100px; }
+.leads textarea { width: 100%; min-width: 150px; min-height: 34px; resize: vertical; }
+.leads input[type=text] { width: 86px; }
 .leads select:focus, .leads input:focus, .leads textarea:focus { outline: none; border-color: var(--line-bright); }
 .leads .saving { opacity: 0.6; }
 .leads .saved { border-color: rgba(61, 220, 151, 0.6) !important; }
@@ -95,7 +96,7 @@ table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-
 
 /* A célula continua sendo célula de tabela; a grade fica dentro dela (antes, display:grid
    no <td> tirava a célula do layout da tabela e quebrava as linhas divisórias). */
-.leads .wa { display: grid; gap: 4px; min-width: 140px; }
+.leads .wa { display: grid; gap: 4px; min-width: 128px; }
 .leads .wa .tel { font-family: var(--mono); font-size: 11.5px; color: var(--muted-strong); text-decoration: none; }
 .wa-go { min-height: 30px; padding: 0 10px; border: 1px solid rgba(255, 180, 84, 0.45); border-radius: 8px; background: rgba(255, 180, 84, 0.12); color: var(--ice); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
 .wa-go:hover { background: rgba(255, 180, 84, 0.2); }
@@ -129,3 +130,15 @@ table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-
   .detail dl { grid-template-columns: 1fr; gap: 2px; }
   .detail dd { margin-bottom: 8px; }
 }
+
+/* Tipo de usuário */
+.papel-sel { font-weight: 600; min-width: 118px; }
+.papel-sel.pa-admin { color: #ff7a9c; border-color: rgba(255, 122, 156, 0.45); }
+.papel-sel.pa-colaborador { color: #c7a6ff; border-color: rgba(199, 166, 255, 0.4); }
+.papel-sel.pa-cliente { color: #3ddc97; border-color: rgba(61, 220, 151, 0.35); }
+.papel-sel.pa-teste { color: var(--muted-strong); }
+.papel-sel:disabled { opacity: 0.85; cursor: not-allowed; }
+.papel-fixo { font-family: var(--mono); font-size: 11.5px; color: var(--label-color); }
+.eu { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted-strong); padding: 0 6px; }
+.eu b { color: var(--ice); }
+.crm-shell:not([data-papel="admin"]) .so-admin { display: none; }

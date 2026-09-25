@@ -111,7 +111,9 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { return json(400, { error: "bad_json" }, origin); }
   const message = String(body.message ?? "").trim();
   if (!message) return json(400, { error: "mensagem_vazia" }, origin);
-  if (message.length > 12000) return json(413, { error: "mensagem_longa" }, origin);
+  // 40 mil caracteres: mensagem com até 3 anexos lidos por OCR no navegador (o texto de
+  // cada anexo é cortado em 12 mil, e o total dos anexos em 30 mil, antes de sair da página).
+  if (message.length > 40000) return json(413, { error: "mensagem_longa" }, origin);
 
   // Sem chave do modelo nada é consumido nem gravado.
   if (!LLM_API_KEY) return json(503, { error: "modelo_nao_configurado" }, origin);
@@ -152,7 +154,9 @@ Deno.serve(async (req) => {
     if (!conv) conversationId = null;
   }
   if (!conversationId) {
-    const title = message.length > 60 ? message.slice(0, 57).trimEnd() + "…" : message;
+    // Título pelo que a pessoa escreveu, sem o texto dos anexos.
+    const base = message.split("\n\n[[anexo: ")[0].trim() || message;
+    const title = base.length > 60 ? base.slice(0, 57).trimEnd() + "…" : base;
     const { data: conv, error } = await admin.from("conversations").insert({ user_id: user.id, title }).select("id").single();
     if (error || !conv) { await release(); return json(500, { error: "conversa_nao_criada" }, origin); }
     conversationId = conv.id;

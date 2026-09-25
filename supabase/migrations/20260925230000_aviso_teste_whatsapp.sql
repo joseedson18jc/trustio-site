@@ -20,35 +20,48 @@ alter table public.crm_leads
   add column if not exists whatsapp_aviso_wa_reserva timestamptz,
   add column if not exists whatsapp_aviso_wa_erro text;
 
--- O cliente não altera os campos do aviso.
+-- Os campos do aviso só mudam pelas funções abaixo (nem cliente nem equipe os editam pelo
+-- CRM). Mesma regra da migração de tipos de usuário, mais as colunas novas.
 create or replace function public.guard_lead_update()
 returns trigger language plpgsql set search_path = public as $$
 begin
   if current_setting('trustio.lead_rpc', true) = 'on' then return new; end if;
-  if not public.is_admin() and auth.uid() is not null then
+  if auth.uid() is null then return new; end if;
+  -- Identidade do lead (a conta e o e-mail que carregam o tipo) não muda por aqui, nem para
+  -- a equipe: trocar user_id de um lead colaborador daria acesso de equipe a outra conta.
+  new.user_id := old.user_id; new.email := old.email;
+  new.whatsapp_aviso_email_em := old.whatsapp_aviso_email_em;
+  new.whatsapp_aviso_email_reserva := old.whatsapp_aviso_email_reserva;
+  new.whatsapp_aviso_email_erro := old.whatsapp_aviso_email_erro;
+  new.whatsapp_aviso_wa_em := old.whatsapp_aviso_wa_em;
+  new.whatsapp_aviso_wa_reserva := old.whatsapp_aviso_wa_reserva;
+  new.whatsapp_aviso_wa_erro := old.whatsapp_aviso_wa_erro;
+  if not public.is_staff() then
+    -- Cliente editando o próprio cadastro: só os dados de contato mudam.
     new.status := old.status; new.plano := old.plano; new.mensagens_usadas := old.mensagens_usadas;
     new.notas := old.notas; new.email := old.email; new.user_id := old.user_id; new.origem := old.origem;
-    new.confirmed_at := old.confirmed_at; new.created_at := old.created_at;
+    new.confirmed_at := old.confirmed_at; new.created_at := old.created_at; new.papel := old.papel;
     new.whatsapp_trial_status := old.whatsapp_trial_status;
     new.whatsapp_trial_requested_at := old.whatsapp_trial_requested_at;
     new.whatsapp_trial_started_at := old.whatsapp_trial_started_at;
     new.whatsapp_trial_ends_at := old.whatsapp_trial_ends_at;
-    new.whatsapp_aviso_email_em := old.whatsapp_aviso_email_em;
-    new.whatsapp_aviso_email_reserva := old.whatsapp_aviso_email_reserva;
-    new.whatsapp_aviso_email_erro := old.whatsapp_aviso_email_erro;
-    new.whatsapp_aviso_wa_em := old.whatsapp_aviso_wa_em;
-    new.whatsapp_aviso_wa_reserva := old.whatsapp_aviso_wa_reserva;
-    new.whatsapp_aviso_wa_erro := old.whatsapp_aviso_wa_erro;
+  elsif not public.is_admin() then
+    if new.papel is distinct from old.papel then
+      raise exception 'papel_so_admin' using hint = 'Só um admin muda o tipo de usuário.';
+    end if;
+    -- Colaborador trabalha o lead (status, plano, notas, WhatsApp); o histórico fica.
+    new.mensagens_usadas := old.mensagens_usadas; new.origem := old.origem;
+    new.confirmed_at := old.confirmed_at; new.created_at := old.created_at;
   end if;
   return new;
 end $$;
 
--- Ativar também serve para quem ainda não pediu, desde que tenha telefone: o número do
--- cadastro vira o número do teste.
+-- Ativar (admin ou colaborador) também serve para quem ainda não pediu, desde que tenha
+-- telefone: o número do cadastro vira o número do teste.
 create or replace function public.activate_whatsapp_trial(p_lead_id uuid, p_days integer default 3)
 returns void language plpgsql security definer set search_path = public as $$
 begin
-  if not public.is_admin() then raise exception 'somente administradores'; end if;
+  if not public.is_staff() then raise exception 'somente a equipe'; end if;
   perform set_config('trustio.lead_rpc', 'on', true);
   update public.crm_leads
      set whatsapp_trial_status = 'ativo',
@@ -118,7 +131,7 @@ end $$;
 create or replace function public.reenviar_aviso_whatsapp(p_lead_id uuid)
 returns boolean language plpgsql security definer set search_path = public as $$
 begin
-  if not public.is_admin() then raise exception 'somente administradores'; end if;
+  if not public.is_staff() then raise exception 'somente a equipe'; end if;
   if not exists (select 1 from public.crm_leads where id = p_lead_id and whatsapp_trial_status = 'ativo') then
     raise exception 'o teste deste lead não está ativo';
   end if;
@@ -202,16 +215,16 @@ drop trigger if exists crm_leads_whatsapp_aviso on public.crm_leads;
 create trigger crm_leads_whatsapp_aviso after update of whatsapp_trial_status on public.crm_leads
   for each row execute function public.whatsapp_trial_avisar();
 
--- A view lista as colunas uma a uma (o token de opt-in fica de fora); entram as do aviso.
-drop view if exists public.crm_overview;
-create view public.crm_overview with (security_invoker = true) as
-select
-  l.id, l.user_id, l.nome, l.email, l.telefone, l.tipo, l.empresa, l.segmento, l.origem, l.status, l.plano,
-  l.mensagens_usadas, l.notas, l.confirmed_at, l.last_seen_at, l.created_at, l.updated_at, l.onboarding_seen_at,
-  l.whatsapp_numero, l.whatsapp_trial_status, l.whatsapp_trial_requested_at, l.whatsapp_trial_started_at,
-  l.whatsapp_trial_ends_at, l.whatsapp_aviso_email_em, l.whatsapp_aviso_email_reserva, l.whatsapp_aviso_email_erro,
-  l.whatsapp_aviso_wa_em, l.whatsapp_aviso_wa_reserva, l.whatsapp_aviso_wa_erro,
-  (select count(*) from public.conversations c where c.user_id = l.user_id) as conversas,
-  (select max(m.created_at) from public.messages m where m.user_id = l.user_id) as ultima_mensagem
-from public.crm_leads l;
-grant select on public.crm_overview to authenticated;
+-- A view da migração de tipos de usuário, com as colunas do aviso no fim.
+create or replace view public.crm_overview with (security_invoker = true) as
+  select l.id, l.user_id, l.nome, l.email, l.telefone, l.tipo, l.empresa, l.segmento, l.origem,
+         l.status, l.plano, l.mensagens_usadas, l.notas, l.confirmed_at, l.last_seen_at,
+         l.created_at, l.updated_at, l.onboarding_seen_at, l.whatsapp_numero,
+         l.whatsapp_trial_status, l.whatsapp_trial_requested_at, l.whatsapp_trial_started_at,
+         l.whatsapp_trial_ends_at,
+         public.conversas_de(l.user_id) as conversas,
+         public.ultima_mensagem_de(l.user_id) as ultima_mensagem,
+         l.papel,
+         l.whatsapp_aviso_email_em, l.whatsapp_aviso_email_reserva, l.whatsapp_aviso_email_erro,
+         l.whatsapp_aviso_wa_em, l.whatsapp_aviso_wa_reserva, l.whatsapp_aviso_wa_erro
+    from public.crm_leads l;

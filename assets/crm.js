@@ -17,6 +17,9 @@
 
   var PREF = "trustio-crm-ocultar-testes";
   var state = { leads: [], filter: "", q: "", sort: { key: "created_at", dir: -1 }, ocultarTestes: lerPref(), carregadoEm: null };
+  // Gravações a caminho, por "id|campo": { valor, seq }. Só a mais recente de cada campo vale,
+  // e um recarregamento da lista reaplica esses valores por cima do que veio do banco.
+  var pendentes = {}, seqGravacao = 0;
 
   function lerPref() { try { return localStorage.getItem(PREF) !== "0"; } catch (e) { return true; } }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -90,6 +93,9 @@
       if (r.error) { $("[data-load-error]").hidden = false; $("[data-load-error-msg]").textContent = r.error.message || "erro desconhecido"; return; }
       $("[data-load-error]").hidden = true;
       state.leads = r.data || []; state.carregadoEm = new Date();
+      Object.keys(pendentes).forEach(function (k) {
+        var i = k.indexOf("|"), l = lead(k.slice(0, i)); if (l) l[k.slice(i + 1)] = pendentes[k].valor;
+      });
       $("[data-updated]").textContent = "Atualizado às " + state.carregadoEm.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       render();
     });
@@ -160,6 +166,15 @@
   }
 
   function renderRows() {
+    // Texto digitado e ainda não gravado (plano, notas) sobrevive a qualquer redesenho,
+    // com foco e posição do cursor: a gravação só acontece ao sair do campo.
+    var rascunhos = [], ativo = document.activeElement, foco = null;
+    rows.querySelectorAll("input[data-field], textarea[data-field]").forEach(function (el) {
+      var id = el.closest("tr").dataset.id, l = lead(id), f = el.dataset.field;
+      var salvo = l && l[f] != null ? String(l[f]) : "";
+      var focado = el === ativo;
+      if (el.value !== salvo || focado) rascunhos.push({ id: id, f: f, v: el.value, focado: focado, a: el.selectionStart, b: el.selectionEnd });
+    });
     var list = visible();
     empty.hidden = list.length > 0;
     $("[data-shown]").textContent = list.length === 1 ? "1 lead" : list.length + " leads";
@@ -182,6 +197,12 @@
         "<td><textarea data-field=\"notas\" rows=\"1\" aria-label=\"Notas\" placeholder=\"Anotações internas\">" + esc(l.notas || "") + "</textarea></td>" +
       "</tr>";
     }).join("");
+    rascunhos.forEach(function (d) {
+      var el = rows.querySelector("tr[data-id=\"" + d.id + "\"] [data-field=\"" + d.f + "\"]"); if (!el) return;
+      el.value = d.v;
+      if (d.focado) { foco = el; try { el.setSelectionRange(d.a, d.b); } catch (e) { /* campo sem seleção */ } }
+    });
+    if (foco) foco.focus();
     document.querySelectorAll("th[data-sort]").forEach(function (th) {
       th.setAttribute("aria-sort", th.dataset.sort === state.sort.key ? (state.sort.dir > 0 ? "ascending" : "descending") : "none");
     });
@@ -212,25 +233,38 @@
 
   rows.addEventListener("change", function (e) {
     var el = e.target.closest("[data-field]"); if (!el) return;
-    var tr = el.closest("tr"), id = tr.dataset.id, field = el.dataset.field, patch = {};
-    patch[field] = el.value.trim() || null;
+    var id = el.closest("tr").dataset.id, field = el.dataset.field, chave = id + "|" + field;
+    var valor = el.value.trim() || null, patch = {}; patch[field] = valor;
     var l = lead(id); if (!l) return;
-    // O estado local muda na hora: se outra gravação redesenhar a tabela enquanto esta
-    // ainda está a caminho, o campo já aparece com o valor novo, não com o antigo.
-    var antes = l[field];
-    l[field] = patch[field];
-    var redesenha = field === "status" || field === "whatsapp_trial_status";
-    if (redesenha) render(); else renderStats();
+    // O estado local muda na hora e a gravação fica registrada como pendente: redesenhos e
+    // recarregamentos no meio do caminho mostram o valor novo, não o antigo.
+    var seq = ++seqGravacao;
+    var antes = pendentes[chave] ? pendentes[chave].antes : l[field];
+    pendentes[chave] = { valor: valor, seq: seq, antes: antes };
+    l[field] = valor;
+    if (field === "status" || field === "whatsapp_trial_status") render(); else renderStats();
     sb.from("crm_leads").update(patch).eq("id", id).select("id," + field + ",whatsapp_trial_ends_at").single().then(function (r) {
-      var atual = rows.querySelector("tr[data-id=\"" + id + "\"] [data-field=\"" + field + "\"]");
+      var p = pendentes[chave];
+      // Uma gravação mais nova do mesmo campo já está a caminho: ela decide o que fica.
+      if (!p || p.seq !== seq) return;
+      delete pendentes[chave];
+      var atual = lead(id); if (!atual) return;
       if (r.error) {
-        // Só desfaz se ninguém mudou o campo de novo enquanto esta gravação estava a caminho.
-        if (l[field] === patch[field]) { l[field] = antes; if (atual && atual !== document.activeElement) atual.value = antes == null ? "" : antes; render(); }
+        atual[field] = p.antes;
+        // O campo que falhou volta ao valor gravado (a não ser que ainda esteja sendo editado);
+        // os rascunhos nos outros campos são preservados pelo redesenho.
+        var falhou = rows.querySelector("tr[data-id=\"" + id + "\"] [data-field=\"" + field + "\"]");
+        if (falhou && falhou !== document.activeElement) falhou.value = p.antes == null ? "" : p.antes;
         toast("Não foi possível salvar: " + r.error.message, "erro");
         return;
       }
-      if (field === "whatsapp_trial_status") { l.whatsapp_trial_ends_at = r.data.whatsapp_trial_ends_at; render(); atual = rows.querySelector("tr[data-id=\"" + id + "\"] [data-field=\"" + field + "\"]"); }
-      if (atual) { atual.classList.add("saved"); setTimeout(function () { atual.classList.remove("saved"); }, 1200); }
+      atual[field] = r.data[field];
+      if (field === "whatsapp_trial_status") atual.whatsapp_trial_ends_at = r.data.whatsapp_trial_ends_at;
+      var campo = rows.querySelector("tr[data-id=\"" + id + "\"] [data-field=\"" + field + "\"]");
+      if (field === "whatsapp_trial_status") render();
+      else if (campo && campo !== document.activeElement && campo.value !== String(atual[field] == null ? "" : atual[field])) campo.value = atual[field] == null ? "" : atual[field];
+      campo = rows.querySelector("tr[data-id=\"" + id + "\"] [data-field=\"" + field + "\"]");
+      if (campo) { campo.classList.add("saved"); setTimeout(function () { campo.classList.remove("saved"); }, 1200); }
       toast("Salvo.");
     });
   });

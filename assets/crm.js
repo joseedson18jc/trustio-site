@@ -232,23 +232,37 @@
   function avisoErros(l) {
     return [l.whatsapp_aviso_email_erro && "e-mail: " + l.whatsapp_aviso_email_erro, l.whatsapp_aviso_wa_erro && "WhatsApp: " + l.whatsapp_aviso_wa_erro].filter(Boolean).join(" · ");
   }
+  // Logo depois de ativar, ou com reserva viva, os avisos ainda estão saindo.
+  function avisoEmAndamento(l) {
+    if (l.whatsapp_trial_status !== "ativo") return false;
+    var email = avisoCanal(l, "whatsapp_aviso_email"), zap = avisoCanal(l, "whatsapp_aviso_wa");
+    var recente = l.whatsapp_trial_started_at && Date.now() - new Date(l.whatsapp_trial_started_at) < DOIS_MIN;
+    return email === "saindo" || zap === "saindo" || (recente && email === "pendente" && zap === "pendente");
+  }
   function avisoHtml(l) {
     var email = avisoCanal(l, "whatsapp_aviso_email"), zap = avisoCanal(l, "whatsapp_aviso_wa");
     var sinal = { ok: "✓", saindo: "…", erro: "✕", pendente: "—" };
     var texto = "Aviso: e-mail " + sinal[email] + " · WhatsApp " + sinal[zap];
     var reenviar = "<button type=\"button\" class=\"wa-go\" data-wa-reenviar>Reenviar avisos</button>";
     if (email === "ok" && zap === "ok") return "<small class=\"wa-aviso\">" + texto + "</small>";
-    // Logo depois de ativar, ou com envio em andamento, ainda não há o que reenviar.
-    var recente = l.whatsapp_trial_started_at && Date.now() - new Date(l.whatsapp_trial_started_at) < DOIS_MIN;
-    if (email === "saindo" || zap === "saindo" || (recente && email === "pendente" && zap === "pendente")) {
-      return "<small class=\"wa-aviso\">" + (email === "pendente" && zap === "pendente" ? "Enviando avisos…" : texto) + "</small>";
-    }
-    var erros = avisoErros(l);
-    if (erros) return "<small class=\"wa-aviso wa-aviso-erro\" title=\"" + esc(erros) + "\">" + texto + " · falhou</small>" + reenviar;
+    // Falha em um canal aparece na hora, mesmo com o outro ainda saindo; reenviar não atrapalha o
+    // envio em andamento (a reserva impede aviso em dobro).
+    if (email === "erro" || zap === "erro") return "<small class=\"wa-aviso wa-aviso-erro\" title=\"" + esc(avisoErros(l)) + "\">" + texto + " · falhou</small>" + reenviar;
+    if (avisoEmAndamento(l)) return "<small class=\"wa-aviso\">" + (email === "pendente" && zap === "pendente" ? "Enviando avisos…" : texto) + "</small>";
     return "<small class=\"wa-aviso\">" + (email === "pendente" && zap === "pendente" ? "Sem aviso enviado" : texto) + "</small>" + reenviar;
   }
-  // O aviso sai logo depois da ativação, fora do navegador: recarrega uma vez para mostrar o resultado.
-  function recarregarAvisos() { setTimeout(function () { loadLeads(); }, 8000); }
+  // O aviso sai logo depois da ativação, fora do navegador: recarrega a cada 8 s enquanto algum
+  // aviso ainda estiver saindo (no máximo 2 minutos, o prazo da reserva).
+  var avisosTimer = null;
+  function recarregarAvisos(voltas) {
+    voltas = voltas == null ? 15 : voltas;
+    clearTimeout(avisosTimer);
+    avisosTimer = setTimeout(function () {
+      loadLeads().then(function () {
+        if (voltas > 1 && state.leads.some(avisoEmAndamento)) recarregarAvisos(voltas - 1);
+      });
+    }, 8000);
+  }
 
   function lead(id) { return state.leads.filter(function (l) { return l.id === id; })[0]; }
 

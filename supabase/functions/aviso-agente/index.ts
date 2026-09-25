@@ -10,8 +10,9 @@
 //   EVOLUTION_URL       para o WhatsApp (ex.: https://evolution.trustio.com.br)
 //   EVOLUTION_INSTANCE  nome da instância conectada ao número que envia
 //   EVOLUTION_API_KEY   chave da Evolution API
-//   EVOLUTION_NUMERO    opcional     número conectado à instância, se for o próprio Agentio
-// O número do Agentio que aparece nas instruções vem do painel (app_settings.hermes_numero).
+//   EVOLUTION_NUMERO    opcional     número conectado à instância (o próprio Agentio, se for ele)
+// O número do Agentio nas instruções vem do painel (app_settings.hermes_numero) ou, na falta dele,
+// de EVOLUTION_NUMERO. Sem nenhum dos dois completo, nada é enviado e o CRM mostra o motivo.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -30,8 +31,7 @@ const SITE = "https://trustio.com.br";
 
 type Lead = {
   id: string; nome: string | null; email: string | null; whatsapp_numero: string | null;
-  whatsapp_trial_status: string; whatsapp_trial_started_at: string | null; whatsapp_trial_ends_at: string | null;
-  whatsapp_aviso_email_em: string | null; whatsapp_aviso_wa_em: string | null;
+  whatsapp_trial_status: string; whatsapp_trial_ends_at: string | null;
 };
 
 function responder(status: number, corpo: unknown) {
@@ -75,16 +75,12 @@ function dataLegivel(iso: string | null) {
 // Telefone sem quebra de linha no meio.
 const tel = (d: string) => `<span style="white-space:nowrap;">${escapar(telefoneLegivel(d))}</span>`;
 
-function corpoDoEmail(nome: string, fim: string, agente: string | null, numeroCliente: string) {
+function corpoDoEmail(nome: string, fim: string, agente: string, numeroCliente: string) {
   const ola = nome ? `Olá, ${escapar(nome)}!` : "Olá!";
-  const passo1 = agente
-    ? `Salve o número do Agentio, <strong style="color:#f4f6fa;">${tel(agente)}</strong>, e mande um “Oi” pelo WhatsApp que você cadastrou (${tel(numeroCliente)}).`
-    : `Responda à mensagem que a Trustio enviou para o seu WhatsApp (${tel(numeroCliente)}).`;
-  const botao = agente
-    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 26px;"><tr><td style="border-radius:14px;background:#2563eb;">
+  const passo1 = `Salve o número do Agentio, <strong style="color:#f4f6fa;">${tel(agente)}</strong>, e mande um “Oi” pelo WhatsApp que você cadastrou (${tel(numeroCliente)}).`;
+  const botao = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 26px;"><tr><td style="border-radius:14px;background:#2563eb;">
           <a href="https://wa.me/${agente}?text=${encodeURIComponent("Oi, Agentio!")}" style="display:inline-block;padding:16px 26px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:14px;">Abrir conversa no WhatsApp</a>
-        </td></tr></table>`
-    : "";
+        </td></tr></table>`;
   const passo = (n: number, texto: string) =>
     `<tr><td valign="top" style="padding:0 12px 14px 0;font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:13px;color:#5ea7ff;">${n}</td>
      <td style="padding:0 0 14px;font-size:15px;line-height:1.6;color:#bdc5d1;">${texto}</td></tr>`;
@@ -121,16 +117,14 @@ function corpoDoEmail(nome: string, fim: string, agente: string | null, numeroCl
 </body></html>`;
 }
 
-function textoDoEmail(nome: string, fim: string, agente: string | null, numeroCliente: string) {
+function textoDoEmail(nome: string, fim: string, agente: string, numeroCliente: string) {
   return [
     nome ? `Olá, ${nome}!` : "Olá!",
     "",
     `Você recebeu acesso ao Agentio, o agente de IA da Trustio, direto no seu WhatsApp${fim ? `, até ${fim} (horário de Brasília)` : ""}.`,
     "",
     "Como começar:",
-    agente
-      ? `1. Salve o número do Agentio, ${telefoneLegivel(agente)}, e mande um "Oi" pelo WhatsApp que você cadastrou (${telefoneLegivel(numeroCliente)}): https://wa.me/${agente}`
-      : `1. Responda à mensagem que a Trustio enviou para o seu WhatsApp (${telefoneLegivel(numeroCliente)}).`,
+    `1. Salve o número do Agentio, ${telefoneLegivel(agente)}, e mande um "Oi" pelo WhatsApp que você cadastrou (${telefoneLegivel(numeroCliente)}): https://wa.me/${agente}`,
     "2. Peça do jeito que você falaria com um assistente: lembretes, resumos, pesquisas, textos.",
     "3. Mande textos, áudios, fotos e documentos. Antes de qualquer ação que não dá para desfazer, ele pede a sua confirmação.",
     "",
@@ -140,13 +134,13 @@ function textoDoEmail(nome: string, fim: string, agente: string | null, numeroCl
   ].join("\n");
 }
 
-function textoDoWhatsapp(nome: string, fim: string, agente: string | null) {
+function textoDoWhatsapp(nome: string, fim: string, agente: string) {
   return [
     `${nome ? `Olá, ${nome}!` : "Olá!"} Aqui é a Trustio. 👋`,
     "",
     `Seu teste grátis do *Agentio*, o agente de IA da Trustio, está ativo${fim ? ` até *${fim}*` : " por 3 dias"}.`,
     "",
-    agente && agente !== digitos(EVOLUTION_NUMERO_PROPRIO)
+    agente !== digitos(EVOLUTION_NUMERO_PROPRIO)
       ? `Para começar, salve o número do Agentio (${telefoneLegivel(agente)}) e mande um "Oi": https://wa.me/${agente}`
       : "Para começar, é só responder esta mensagem com o que você precisa.",
     "",
@@ -156,7 +150,21 @@ function textoDoWhatsapp(nome: string, fim: string, agente: string | null) {
   ].join("\n");
 }
 
-async function enviarEmail(para: string, nome: string, fim: string, agente: string | null, numeroCliente: string) {
+// Falha passageira (rede, 429 ou 5xx do provedor): uma nova tentativa depois de 2 s.
+class Definitivo extends Error {}
+async function comNovaTentativa(fn: () => Promise<void>) {
+  try { await fn(); } catch (e) {
+    if (e instanceof Definitivo) throw e;
+    await new Promise((r) => setTimeout(r, 2000));
+    await fn();
+  }
+}
+function falha(servico: string, r: Response, corpo: string) {
+  const msg = `${servico} ${r.status}: ${corpo.slice(0, 200)}`;
+  return r.status === 429 || r.status >= 500 ? new Error(msg) : new Definitivo(msg);
+}
+
+async function enviarEmail(para: string, nome: string, fim: string, agente: string, numeroCliente: string) {
   const r = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
@@ -170,7 +178,7 @@ async function enviarEmail(para: string, nome: string, fim: string, agente: stri
       text: textoDoEmail(nome, fim, agente, numeroCliente),
     }),
   });
-  if (!r.ok) throw new Error(`resend ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  if (!r.ok) throw falha("resend", r, await r.text());
 }
 
 async function enviarWhatsapp(numero: string, texto: string) {
@@ -180,7 +188,7 @@ async function enviarWhatsapp(numero: string, texto: string) {
     // "text" é o formato da Evolution v2; "textMessage", o da v1. Cada versão ignora o outro.
     body: JSON.stringify({ number: numero, text: texto, textMessage: { text: texto } }),
   });
-  if (!r.ok) throw new Error(`evolution ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  if (!r.ok) throw falha("evolution", r, await r.text());
 }
 
 Deno.serve(async (req) => {
@@ -193,48 +201,50 @@ Deno.serve(async (req) => {
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const { data: lead, error } = await admin.from("crm_leads")
-    .select("id,nome,email,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_started_at,whatsapp_trial_ends_at,whatsapp_aviso_email_em,whatsapp_aviso_wa_em")
+    .select("id,nome,email,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_ends_at")
     .eq("id", leadId).maybeSingle<Lead>();
   if (error) return responder(500, { error: "lead" });
   if (!lead || lead.whatsapp_trial_status !== "ativo") return responder(200, { ok: true, ignorado: "nao_ativo" });
 
   const { data: cfg } = await admin.from("app_settings").select("value").eq("key", "hermes_numero").maybeSingle();
-  const agenteBruto = digitos(typeof cfg?.value === "string" ? cfg.value : "");
-  // O número do painel só entra nas instruções se estiver completo (DDI + DDD + número).
-  const agente = agenteBruto.length >= 12 && agenteBruto.length <= 15 ? agenteBruto : null;
+  // Só entra nas instruções um número completo (DDI + DDD + número): o do painel ou o da instância.
+  const completo = (d: string) => d.length >= 12 && d.length <= 15 ? d : null;
+  const agente = completo(digitos(typeof cfg?.value === "string" ? cfg.value : "")) ?? completo(digitos(EVOLUTION_NUMERO_PROPRIO));
 
   const nome = primeiroNome(lead.nome);
   const fim = dataLegivel(lead.whatsapp_trial_ends_at);
   const numeroCliente = digitos(lead.whatsapp_numero);
-  const inicio = lead.whatsapp_trial_started_at ? Date.parse(lead.whatsapp_trial_started_at) : 0;
-  // Um aviso por ativação: já saiu depois do início deste período, não sai de novo.
-  const jaFoi = (em: string | null) => !!em && Date.parse(em) >= inicio;
-
   const erros: string[] = [];
-  const marcar: Record<string, string> = {};
+  const enviados: string[] = [];
 
-  if (!jaFoi(lead.whatsapp_aviso_email_em)) {
-    if (!RESEND_API_KEY) erros.push("e-mail: RESEND_API_KEY ausente");
-    else if (!lead.email) erros.push("e-mail: lead sem e-mail");
-    else {
-      try { await enviarEmail(lead.email, nome, fim, agente, numeroCliente); marcar.whatsapp_aviso_email_em = new Date().toISOString(); }
-      catch (e) { erros.push("e-mail: " + (e as Error).message); }
+  // Cada canal é reservado no banco antes do envio (um aviso por ativação, mesmo com chamadas
+  // simultâneas) e a reserva é desfeita se o envio falhar, para o "Reenviar avisos" tentar de novo.
+  async function canal(nomeCanal: "email" | "whatsapp", rotulo: string, pronto: string | null, enviar: () => Promise<void>) {
+    if (pronto) { erros.push(`${rotulo}: ${pronto}`); return; }
+    const { data: marca, error: reserva } = await admin.rpc("aviso_reservar", { p_lead_id: lead!.id, p_canal: nomeCanal });
+    if (reserva) { erros.push(`${rotulo}: ${reserva.message}`); return; }
+    if (!marca) return; // já saiu (ou está saindo) nesta ativação
+    try { await comNovaTentativa(enviar); enviados.push(nomeCanal); }
+    catch (e) {
+      erros.push(`${rotulo}: ${(e as Error).message}`);
+      await admin.rpc("aviso_liberar", { p_lead_id: lead!.id, p_canal: nomeCanal, p_marca: marca });
     }
   }
 
-  if (!jaFoi(lead.whatsapp_aviso_wa_em)) {
-    if (!EVOLUTION_URL || !EVOLUTION_INSTANCE || !EVOLUTION_API_KEY) erros.push("WhatsApp: Evolution API não configurada");
-    else if (numeroCliente.length < 12) erros.push("WhatsApp: lead sem número válido");
-    else {
-      try { await enviarWhatsapp(numeroCliente, textoDoWhatsapp(nome, fim, agente)); marcar.whatsapp_aviso_wa_em = new Date().toISOString(); }
-      catch (e) { erros.push("WhatsApp: " + (e as Error).message); }
-    }
-  }
+  // Sem o número do Agentio as instruções levariam a lugar nenhum: nada sai até ele ser configurado.
+  const semAgente = agente ? null : "número do Agentio não configurado (painel → hermes_numero)";
+  await canal("email", "e-mail",
+    semAgente ?? (!RESEND_API_KEY ? "RESEND_API_KEY ausente" : !lead.email ? "lead sem e-mail" : null),
+    () => enviarEmail(lead.email!, nome, fim, agente!, numeroCliente));
+  await canal("whatsapp", "WhatsApp",
+    semAgente ?? (!EVOLUTION_URL || !EVOLUTION_INSTANCE || !EVOLUTION_API_KEY ? "Evolution API não configurada"
+      : numeroCliente.length < 12 ? "lead sem número válido" : null),
+    () => enviarWhatsapp(numeroCliente, textoDoWhatsapp(nome, fim, agente!)));
 
   const { error: gravar } = await admin.from("crm_leads")
-    .update({ ...marcar, whatsapp_aviso_erro: erros.length ? erros.join(" · ").slice(0, 500) : null })
+    .update({ whatsapp_aviso_erro: erros.length ? erros.join(" · ").slice(0, 500) : null })
     .eq("id", lead.id);
   if (gravar) console.error("aviso_gravar", gravar.message);
   if (erros.length) console.error("aviso_erros", lead.id, erros.join(" · "));
-  return responder(200, { ok: erros.length === 0, enviados: Object.keys(marcar), erros });
+  return responder(200, { ok: erros.length === 0, enviados, erros });
 });

@@ -71,30 +71,90 @@ drop trigger if exists crm_leads_whatsapp_inicio on public.crm_leads;
 create trigger crm_leads_whatsapp_inicio before update of whatsapp_trial_status on public.crm_leads
   for each row execute function public.whatsapp_trial_inicio();
 
--- Depois de gravar a ativação, chama a função de aviso (assíncrono: o CRM não espera o envio).
-create or replace function public.whatsapp_trial_avisar()
-returns trigger language plpgsql security definer set search_path = public, extensions as $$
+-- Chama a função de aviso para um lead (assíncrono: quem ativou não espera o envio).
+create or replace function public.aviso_agente_chamar(p_lead_id uuid)
+returns boolean language plpgsql security definer set search_path = public, extensions as $$
 declare v_url text; v_segredo text;
 begin
+  select decrypted_secret into v_url from vault.decrypted_secrets where name = 'aviso_agente_url';
+  select decrypted_secret into v_segredo from vault.decrypted_secrets where name = 'aviso_agente_segredo';
+  if v_url is null or v_segredo is null then
+    raise log 'aviso-agente: url ou segredo ausente no Vault; lead % sem aviso', p_lead_id;
+    return false;
+  end if;
+  perform net.http_post(
+    url := v_url,
+    body := jsonb_build_object('lead_id', p_lead_id),
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-trustio-segredo', v_segredo),
+    timeout_milliseconds := 20000
+  );
+  return true;
+end $$;
+
+-- Na transição para "ativo", depois de gravar.
+create or replace function public.whatsapp_trial_avisar()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
   if new.whatsapp_trial_status = 'ativo' and old.whatsapp_trial_status is distinct from 'ativo' then
-    select decrypted_secret into v_url from vault.decrypted_secrets where name = 'aviso_agente_url';
-    select decrypted_secret into v_segredo from vault.decrypted_secrets where name = 'aviso_agente_segredo';
-    if v_url is null or v_segredo is null then
-      raise log 'aviso-agente: url ou segredo ausente no Vault; lead % ativado sem aviso', new.id;
-      return new;
-    end if;
-    perform net.http_post(
-      url := v_url,
-      body := jsonb_build_object('lead_id', new.id),
-      headers := jsonb_build_object('Content-Type', 'application/json', 'x-trustio-segredo', v_segredo),
-      timeout_milliseconds := 20000
-    );
+    perform public.aviso_agente_chamar(new.id);
   end if;
   return new;
 end $$;
 
+-- Botão "Reenviar avisos" do CRM: nova tentativa para quem está ativo (a chamada não chegou, ou o
+-- Resend ou a Evolution falharam). A função só manda o que ainda não saiu nesta ativação.
+create or replace function public.reenviar_aviso_whatsapp(p_lead_id uuid)
+returns boolean language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception 'somente administradores'; end if;
+  if not exists (select 1 from public.crm_leads where id = p_lead_id and whatsapp_trial_status = 'ativo') then
+    raise exception 'o teste deste lead não está ativo';
+  end if;
+  return public.aviso_agente_chamar(p_lead_id);
+end $$;
+
+-- Reserva o envio de um canal para a ativação atual, de forma atômica: duas chamadas
+-- simultâneas não mandam o mesmo aviso. Devolve a marca gravada, ou null se já foi reservado.
+create or replace function public.aviso_reservar(p_lead_id uuid, p_canal text)
+returns timestamptz language plpgsql security definer set search_path = public as $$
+declare v_marca timestamptz := clock_timestamp(); v_ok uuid;
+begin
+  if p_canal = 'email' then
+    update public.crm_leads set whatsapp_aviso_email_em = v_marca
+     where id = p_lead_id and whatsapp_trial_status = 'ativo'
+       and (whatsapp_aviso_email_em is null or whatsapp_aviso_email_em < coalesce(whatsapp_trial_started_at, '-infinity'))
+    returning id into v_ok;
+  elsif p_canal = 'whatsapp' then
+    update public.crm_leads set whatsapp_aviso_wa_em = v_marca
+     where id = p_lead_id and whatsapp_trial_status = 'ativo'
+       and (whatsapp_aviso_wa_em is null or whatsapp_aviso_wa_em < coalesce(whatsapp_trial_started_at, '-infinity'))
+    returning id into v_ok;
+  else
+    raise exception 'canal desconhecido: %', p_canal;
+  end if;
+  return case when v_ok is null then null else v_marca end;
+end $$;
+
+-- O envio falhou: desfaz a reserva (só a própria), para o "Reenviar avisos" tentar de novo.
+create or replace function public.aviso_liberar(p_lead_id uuid, p_canal text, p_marca timestamptz)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if p_canal = 'email' then
+    update public.crm_leads set whatsapp_aviso_email_em = null where id = p_lead_id and whatsapp_aviso_email_em = p_marca;
+  elsif p_canal = 'whatsapp' then
+    update public.crm_leads set whatsapp_aviso_wa_em = null where id = p_lead_id and whatsapp_aviso_wa_em = p_marca;
+  end if;
+end $$;
+
+revoke execute on function public.aviso_agente_chamar(uuid) from public, anon, authenticated;
 revoke execute on function public.whatsapp_trial_avisar() from public, anon, authenticated;
 revoke execute on function public.whatsapp_trial_inicio() from public, anon, authenticated;
+revoke execute on function public.aviso_reservar(uuid, text) from public, anon, authenticated;
+revoke execute on function public.aviso_liberar(uuid, text, timestamptz) from public, anon, authenticated;
+grant execute on function public.aviso_reservar(uuid, text) to service_role;
+grant execute on function public.aviso_liberar(uuid, text, timestamptz) to service_role;
+revoke execute on function public.reenviar_aviso_whatsapp(uuid) from public, anon;
+grant execute on function public.reenviar_aviso_whatsapp(uuid) to authenticated;
 
 drop trigger if exists crm_leads_whatsapp_aviso on public.crm_leads;
 create trigger crm_leads_whatsapp_aviso after update of whatsapp_trial_status on public.crm_leads

@@ -224,13 +224,13 @@
   function avisoHtml(l) {
     var email = avisoFoi(l.whatsapp_aviso_email_em, l), zap = avisoFoi(l.whatsapp_aviso_wa_em, l);
     var partes = ["e-mail " + (email ? "✓" : "—"), "WhatsApp " + (zap ? "✓" : "—")];
-    if (l.whatsapp_aviso_erro) return "<small class=\"wa-aviso wa-aviso-erro\" title=\"" + esc(l.whatsapp_aviso_erro) + "\">Aviso: " + partes.join(" · ") + " · falhou</small>";
-    if (!email && !zap) {
-      // Ativações antigas (de antes dos avisos automáticos) nunca vão ter aviso.
-      var recente = l.whatsapp_trial_started_at && Date.now() - new Date(l.whatsapp_trial_started_at) < 10 * 60 * 1000;
-      return "<small class=\"wa-aviso\">" + (recente ? "Enviando avisos…" : "Sem aviso enviado") + "</small>";
-    }
-    return "<small class=\"wa-aviso\">Aviso: " + partes.join(" · ") + "</small>";
+    var reenviar = "<button type=\"button\" class=\"wa-go\" data-wa-reenviar>Reenviar avisos</button>";
+    if (l.whatsapp_aviso_erro) return "<small class=\"wa-aviso wa-aviso-erro\" title=\"" + esc(l.whatsapp_aviso_erro) + "\">Aviso: " + partes.join(" · ") + " · falhou</small>" + reenviar;
+    if (email && zap) return "<small class=\"wa-aviso\">Aviso: " + partes.join(" · ") + "</small>";
+    // Logo depois de ativar, os avisos ainda estão saindo; passado isso, o que falta pode ser reenviado.
+    var recente = l.whatsapp_trial_started_at && Date.now() - new Date(l.whatsapp_trial_started_at) < 2 * 60 * 1000;
+    if (recente) return "<small class=\"wa-aviso\">" + (email || zap ? "Aviso: " + partes.join(" · ") : "Enviando avisos…") + "</small>";
+    return "<small class=\"wa-aviso\">" + (email || zap ? "Aviso: " + partes.join(" · ") : "Sem aviso enviado") + "</small>" + reenviar;
   }
   // O aviso sai logo depois da ativação, fora do navegador: recarrega uma vez para mostrar o resultado.
   function recarregarAvisos() { setTimeout(function () { loadLeads(); }, 8000); }
@@ -239,6 +239,17 @@
 
   rows.addEventListener("click", function (e) {
     var o = e.target.closest("[data-open]"); if (o) { abrirDetalhe(o.closest("tr").dataset.id); return; }
+    var rb = e.target.closest("[data-wa-reenviar]");
+    if (rb) {
+      rb.disabled = true; rb.textContent = "Reenviando…";
+      sb.rpc("reenviar_aviso_whatsapp", { p_lead_id: rb.closest("tr").dataset.id }).then(function (r) {
+        if (r.error) { toast("Não foi possível reenviar: " + r.error.message, "erro"); rb.disabled = false; rb.textContent = "Reenviar avisos"; return; }
+        if (r.data === false) { toast("Avisos não configurados no banco (Vault). Veja o README do Supabase.", "erro"); rb.disabled = false; rb.textContent = "Reenviar avisos"; return; }
+        toast("Reenviando o que faltou. O resultado aparece em alguns segundos.");
+        recarregarAvisos();
+      });
+      return;
+    }
     var b = e.target.closest("[data-wa-activate]"); if (!b) return;
     var id = b.closest("tr").dataset.id; b.disabled = true; b.textContent = "Ativando…";
     sb.rpc("activate_whatsapp_trial", { p_lead_id: id, p_days: 3 }).then(function (r) {

@@ -29,8 +29,9 @@ GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toqu
    começa na hora e dura `hermes_trial_dias`.
 8. Ao virar "Ativo", o gatilho `crm_leads_whatsapp_aviso` chama a função `aviso-agente` (via `pg_net`),
    que manda à pessoa um e-mail com as instruções (Resend) e uma mensagem no WhatsApp (Evolution API).
-   O número do Agentio nas instruções vem de `hermes_numero` no painel. O CRM mostra quando cada aviso
-   saiu, ou o motivo da falha. Um aviso por ativação. O banco precisa saber onde chamar (uma vez,
+   O número do Agentio nas instruções vem de `hermes_numero` no painel (ou de `EVOLUTION_NUMERO`); sem
+   um número completo, nada sai. O CRM mostra quando cada aviso saiu, ou o motivo da falha, e o botão
+   "Reenviar avisos" tenta de novo o que faltou. Um aviso por ativação, mesmo com chamadas simultâneas. O banco precisa saber onde chamar (uma vez,
    no SQL Editor; sem isso a ativação funciona e nada é enviado):
    ```sql
    select vault.create_secret('https://mjdaluioyutnxlyomzyd.supabase.co/functions/v1/aviso-agente', 'aviso_agente_url');

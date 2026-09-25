@@ -42,8 +42,10 @@ GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toqu
 9. Quem recebe o aviso também precisa ser liberado no Hermes, que roda no Mac: o gateway só atende os
    números de `WHATSAPP_ALLOWED_USERS` em `~/.hermes/.env`. O `mac/hermes-autorizados.sh`, rodando a
    cada 30 s pelo launchd, consulta a função `hermes-autorizados` (teste de 3 dias ativo e dentro do
-   prazo, e assinantes), junta com os números fixos de `~/.hermes/allowed-fixos.txt` e reinicia o gateway
-   só quando a lista muda. Se a consulta falha, a lista fica como está. Quando o teste vence, o número sai.
+   prazo, e assinantes), junta com os números permanentes de `~/.hermes/allowed-fixos.txt` (criado na
+   instalação; sem ele, nada muda) e reinicia o gateway só quando a lista muda. A lista só conta como
+   aplicada quando o reinício dá certo, e o `.env` é regravado de forma atômica. Se a consulta falha, a
+   lista fica como está. Quando o teste vence, o número sai.
 
 ## Ligar tudo (uma vez): secrets do repositório
 

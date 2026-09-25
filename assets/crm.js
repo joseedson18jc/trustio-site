@@ -34,18 +34,28 @@
     var m = Math.max(a || 0, b || 0);
     return m ? new Date(m).toISOString() : null;
   }
-  // Telefone brasileiro: só dígitos, com ou sem 55. Válido = DDD + 8 ou 9 dígitos.
+  // DDDs em uso no Brasil (Anatel).
+  var DDD = "11 12 13 14 15 16 17 18 19 21 22 24 27 28 31 32 33 34 35 37 38 41 42 43 44 45 46 47 48 49 51 53 54 55 61 62 63 64 65 66 67 68 69 71 73 74 75 77 79 81 82 83 84 85 86 87 88 89 91 92 93 94 95 96 97 98 99".split(" ");
+  // Telefone: número com "+" de outro país vale como está; sem "+" (ou com +55) precisa ser
+  // brasileiro de verdade — DDD existente, celular com 9 na frente (11 dígitos) ou fixo
+  // começando de 2 a 5 (10 dígitos). Fora disso fica marcado como inválido e sem link, para
+  // não mandar o admin para o WhatsApp de outra pessoa.
   function telefone(raw) {
-    var d = String(raw || "").replace(/\D/g, "");
+    var bruto = String(raw || "").trim(), d = bruto.replace(/\D/g, "");
     if (!d) return null;
+    if (bruto.charAt(0) === "+" && d.indexOf("55") !== 0) {
+      var intl = d.length >= 8 && d.length <= 15;
+      return { ok: intl, txt: "+" + d, wa: intl ? "https://wa.me/" + d : null };
+    }
     if (d.length > 11 && d.indexOf("55") === 0) d = d.slice(2);
-    var ok = d.length === 10 || d.length === 11;
-    var txt = ok ? "(" + d.slice(0, 2) + ") " + (d.length === 11 ? d.slice(2, 7) + "-" + d.slice(7) : d.slice(2, 6) + "-" + d.slice(6)) : String(raw).trim();
+    var ddd = d.slice(0, 2), resto = d.slice(2);
+    var ok = DDD.indexOf(ddd) >= 0 && ((resto.length === 9 && resto.charAt(0) === "9") || (resto.length === 8 && /[2-5]/.test(resto.charAt(0))));
+    var txt = ok ? "(" + ddd + ") " + (resto.length === 9 ? resto.slice(0, 5) + "-" + resto.slice(5) : resto.slice(0, 4) + "-" + resto.slice(4)) : bruto;
     return { ok: ok, txt: txt, wa: ok ? "https://wa.me/55" + d : null };
   }
   function telHtml(raw) {
     var t = telefone(raw); if (!t) return "";
-    if (!t.ok) return "<span class=\"tel bad\" title=\"Número fora do formato DDD + 8 ou 9 dígitos\">" + esc(t.txt) + " · inválido</span>";
+    if (!t.ok) return "<span class=\"tel bad\" title=\"Não é um número válido: DDD inexistente, dígitos a mais ou a menos, ou celular sem o 9\">" + esc(t.txt) + " · inválido</span>";
     return "<a class=\"tel\" href=\"" + t.wa + "\" target=\"_blank\" rel=\"noopener\" title=\"Abrir no WhatsApp\">" + esc(t.txt) + "</a>";
   }
 
@@ -93,6 +103,8 @@
   function base() { return state.ocultarTestes ? state.leads.filter(function (l) { return !ehTeste(l); }) : state.leads; }
   function passaFiltro(l, f) {
     if (!f) return true;
+    // Mesmo critério do card: quem confirmou o e-mail, em qualquer etapa depois disso.
+    if (f === "conf") return !!l.confirmed_at;
     if (f.indexOf("wa:") === 0) return (l.whatsapp_trial_status || "nao_solicitado") === f.slice(3);
     return l.status === f;
   }
@@ -201,15 +213,24 @@
   rows.addEventListener("change", function (e) {
     var el = e.target.closest("[data-field]"); if (!el) return;
     var tr = el.closest("tr"), id = tr.dataset.id, field = el.dataset.field, patch = {};
-    patch[field] = el.value.trim ? (el.value.trim() || null) : el.value;
-    el.classList.add("saving");
-    sb.from("crm_leads").update(patch).eq("id", id).select("id,status,plano,notas,whatsapp_trial_status,whatsapp_trial_ends_at").single().then(function (r) {
-      el.classList.remove("saving");
-      if (r.error) { toast("Não foi possível salvar: " + r.error.message, "erro"); return; }
-      var l = lead(id); if (l) Object.assign(l, r.data);
-      el.classList.add("saved"); setTimeout(function () { el.classList.remove("saved"); }, 1200);
-      // Status e WhatsApp mudam contagens, filtro e cor da linha; texto livre não precisa redesenhar.
-      if (field === "status" || field === "whatsapp_trial_status") render(); else renderStats();
+    patch[field] = el.value.trim() || null;
+    var l = lead(id); if (!l) return;
+    // O estado local muda na hora: se outra gravação redesenhar a tabela enquanto esta
+    // ainda está a caminho, o campo já aparece com o valor novo, não com o antigo.
+    var antes = l[field];
+    l[field] = patch[field];
+    var redesenha = field === "status" || field === "whatsapp_trial_status";
+    if (redesenha) render(); else renderStats();
+    sb.from("crm_leads").update(patch).eq("id", id).select("id," + field + ",whatsapp_trial_ends_at").single().then(function (r) {
+      var atual = rows.querySelector("tr[data-id=\"" + id + "\"] [data-field=\"" + field + "\"]");
+      if (r.error) {
+        // Só desfaz se ninguém mudou o campo de novo enquanto esta gravação estava a caminho.
+        if (l[field] === patch[field]) { l[field] = antes; if (atual && atual !== document.activeElement) atual.value = antes == null ? "" : antes; render(); }
+        toast("Não foi possível salvar: " + r.error.message, "erro");
+        return;
+      }
+      if (field === "whatsapp_trial_status") { l.whatsapp_trial_ends_at = r.data.whatsapp_trial_ends_at; render(); atual = rows.querySelector("tr[data-id=\"" + id + "\"] [data-field=\"" + field + "\"]"); }
+      if (atual) { atual.classList.add("saved"); setTimeout(function () { atual.classList.remove("saved"); }, 1200); }
       toast("Salvo.");
     });
   });
@@ -290,7 +311,7 @@
   });
 
   $("[data-export]").addEventListener("click", function () {
-    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "created_at", "confirmed_at", "last_seen_at", "notas"];
+    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "created_at", "confirmed_at", "ultimo_acesso", "notas"];
     // Valores vindos do cadastro público: neutraliza prefixos que planilhas interpretam como fórmula.
     var cell = function (v) {
       v = v == null ? "" : String(v);
@@ -299,7 +320,7 @@
     };
     var lista = visible();
     var csv = [cols.join(";")].concat(lista.map(function (l) {
-      return cols.map(function (c) { return cell(l[c]); }).join(";");
+      return cols.map(function (c) { return cell(c === "ultimo_acesso" ? ultimoAcesso(l) : l[c]); }).join(";");
     })).join("\r\n");
     var blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
     var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "trustio-leads-" + new Date().toISOString().slice(0, 10) + ".csv"; a.click();

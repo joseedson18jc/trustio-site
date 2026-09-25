@@ -74,3 +74,8 @@ content_path = "./supabase/templates/convite.html"
 
 [functions.chat]
 verify_jwt = true
+
+# Chamada pelo próprio banco (gatilho crm_leads_whatsapp_aviso), sem usuário logado: a função
+# confere o segredo compartilhado x-trustio-segredo no lugar do JWT.
+[functions.aviso-agente]
+verify_jwt = false

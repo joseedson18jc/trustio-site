@@ -15,7 +15,25 @@
   // Ordem do funil, para ordenar por status do mais novo ao mais avançado.
   var STATUS_ORDEM = { novo: 0, email_confirmado: 1, ativo: 2, trial_esgotado: 3, assinante: 4, cancelado: 5 };
 
+  // Tipo de usuário. Só os dois e-mails abaixo podem ser admin; o banco confere de novo
+  // (função emails_admin() na migração 20260925200000) e recusa qualquer outro.
+  var PAPEIS = ["admin", "colaborador", "teste", "cliente"];
+  var PAPEL_LABEL = { admin: "Admin", colaborador: "Colaborador", teste: "Teste grátis", cliente: "Cliente" };
+  var EMAILS_ADMIN = ["joseedson18@hotmail.com", "matheuscastrocorrea@gmail.com"];
+  var ERROS = {
+    admin_restrito: "Só joseedson18@hotmail.com e matheuscastrocorrea@gmail.com podem ser admin.",
+    papel_exige_conta: "Admin e colaborador precisam ter conta criada no site.",
+    ultimo_admin: "Precisa haver pelo menos um admin.",
+    papel_so_admin: "Só um admin muda o tipo de usuário."
+  };
+  function erroLegivel(err) {
+    var m = String((err && err.message) || "");
+    for (var k in ERROS) if (m.indexOf(k) >= 0) return ERROS[k];
+    return "Não foi possível salvar: " + m;
+  }
+
   var PREF = "trustio-crm-ocultar-testes";
+  var eu = { id: null, papel: null };
   var state = { leads: [], filter: "", q: "", sort: { key: "created_at", dir: -1 }, ocultarTestes: lerPref(), carregadoEm: null };
   // Gravações a caminho, por "id|campo": { valor, seq }. Só a mais recente de cada campo vale,
   // e um recarregamento da lista reaplica esses valores por cima do que veio do banco.
@@ -77,11 +95,17 @@
   sb.auth.getSession().then(function (r) {
     var s = r.data && r.data.session;
     if (!s) { gateShow("Você não está conectado", "Entre com uma conta de administrador.", true); return; }
-    return sb.from("admins").select("user_id").eq("user_id", s.user.id).maybeSingle().then(function (a) {
-      if (!a.data) { gateShow("Sem acesso ao CRM", "Esta conta não é administradora. Peça para incluir seu usuário na tabela admins.", true); return; }
+    // O CRM é da equipe: admin e colaborador. O banco aplica a mesma regra (is_staff()).
+    return sb.rpc("meu_papel").then(function (a) {
+      var papel = a.data;
+      if (papel !== "admin" && papel !== "colaborador") { gateShow("Sem acesso ao CRM", "O CRM é só para a equipe (admin ou colaborador). Peça a um admin para mudar o seu tipo de usuário.", true); return; }
+      eu = { id: s.user.id, papel: papel };
+      shell.dataset.papel = papel;
+      $("[data-eu]").textContent = PAPEL_LABEL[papel];
       gate.hidden = true;
       $("[data-hide-tests]").checked = state.ocultarTestes;
-      return Promise.all([loadLeads(), loadLimit()]).then(function () { shell.dataset.state = "ready"; });
+      // Configurações e painel mestre são só de admin.
+      return Promise.all([loadLeads(), papel === "admin" ? loadLimit() : null]).then(function () { shell.dataset.state = "ready"; });
     });
   });
 
@@ -111,6 +135,7 @@
     if (!f) return true;
     // Mesmo critério do card: quem confirmou o e-mail, em qualquer etapa depois disso.
     if (f === "conf") return !!l.confirmed_at;
+    if (f.indexOf("pa:") === 0) return !!l.user_id && (l.papel || "teste") === f.slice(3);
     if (f.indexOf("wa:") === 0) return (l.whatsapp_trial_status || "nao_solicitado") === f.slice(3);
     return l.status === f;
   }
@@ -158,7 +183,7 @@
     return base().filter(function (l) {
       if (!passaFiltro(l, state.filter)) return false;
       if (!q) return true;
-      return [l.nome, l.email, l.empresa, l.telefone, l.whatsapp_numero, l.segmento, l.origem, l.plano, l.notas].join(" ").toLowerCase().indexOf(q) >= 0;
+      return [l.nome, l.email, l.empresa, l.telefone, l.whatsapp_numero, l.segmento, l.origem, l.plano, l.notas, PAPEL_LABEL[l.papel]].join(" ").toLowerCase().indexOf(q) >= 0;
     }).sort(function (a, b) {
       var x = valorOrdem(a, k), y = valorOrdem(b, k);
       return x < y ? -dir : x > y ? dir : 0;
@@ -190,6 +215,7 @@
         "<td><select class=\"status-sel st-" + esc(l.status) + "\" data-field=\"status\" aria-label=\"Status de " + esc(l.nome || l.email) + "\">" + STATUS.map(function (s) { return "<option value=\"" + s + "\"" + (s === l.status ? " selected" : "") + ">" + LABEL[s] + "</option>"; }).join("") + "</select>" +
           (l.confirmed_at ? "" : "<small class=\"hint\">e-mail não confirmado</small>") + "</td>" +
         "<td><input type=\"text\" data-field=\"plano\" value=\"" + esc(l.plano || "") + "\" placeholder=\"—\" aria-label=\"Plano\"></td>" +
+        "<td>" + papelCell(l) + "</td>" +
         "<td class=\"num\"><b>" + Number(l.mensagens_usadas || 0) + "</b> msg<small>" + Number(l.conversas || 0) + " conversa" + (Number(l.conversas) === 1 ? "" : "s") + "</small></td>" +
         "<td><div class=\"wa\">" + waCell(l) + "</div></td>" +
         "<td class=\"date\">" + fmt(l.created_at) + "<small>" + esc(l.origem || "") + "</small></td>" +
@@ -206,6 +232,20 @@
     document.querySelectorAll("th[data-sort]").forEach(function (th) {
       th.setAttribute("aria-sort", th.dataset.sort === state.sort.key ? (state.sort.dir > 0 ? "ascending" : "descending") : "none");
     });
+  }
+
+  function papelCell(l) {
+    var p = l.papel || "teste";
+    // Sem conta no site (só lista de espera) não há usuário para receber um tipo.
+    if (!l.user_id) return "<span class=\"papel-fixo\" title=\"Só lista de espera: ainda não criou conta no site\">sem conta</span>";
+    var podeAdmin = EMAILS_ADMIN.indexOf(String(l.email || "").toLowerCase()) >= 0;
+    var editavel = eu.papel === "admin";
+    return "<select class=\"papel-sel pa-" + esc(p) + "\" data-field=\"papel\" aria-label=\"Tipo de usuário de " + esc(l.nome || l.email) + "\"" +
+      (editavel ? "" : " disabled title=\"Só um admin muda o tipo de usuário\"") + ">" +
+      PAPEIS.map(function (k) {
+        var bloq = k === "admin" && !podeAdmin && p !== "admin";
+        return "<option value=\"" + k + "\"" + (k === p ? " selected" : "") + (bloq ? " disabled" : "") + ">" + PAPEL_LABEL[k] + (bloq ? " (não autorizado)" : "") + "</option>";
+      }).join("") + "</select>";
   }
 
   function waCell(l) {
@@ -242,7 +282,7 @@
     var antes = pendentes[chave] ? pendentes[chave].antes : l[field];
     pendentes[chave] = { valor: valor, seq: seq, antes: antes };
     l[field] = valor;
-    if (field === "status" || field === "whatsapp_trial_status") render(); else renderStats();
+    if (field === "status" || field === "whatsapp_trial_status" || field === "papel") render(); else renderStats();
     sb.from("crm_leads").update(patch).eq("id", id).select("id," + field + ",whatsapp_trial_ends_at").single().then(function (r) {
       var p = pendentes[chave];
       // Uma gravação mais nova do mesmo campo já está a caminho: ela decide o que fica.
@@ -256,14 +296,16 @@
         var falhou = rows.querySelector("tr[data-id=\"" + id + "\"] [data-field=\"" + field + "\"]");
         if (falhou && falhou !== document.activeElement) falhou.value = p.antes == null ? "" : p.antes;
         // Status e WhatsApp mexem em contagens, filtro e no botão "Ativar 3 dias": redesenha tudo.
-        if (field === "status" || field === "whatsapp_trial_status") render(); else renderStats();
-        toast("Não foi possível salvar: " + r.error.message, "erro");
+        if (field === "status" || field === "whatsapp_trial_status" || field === "papel") render(); else renderStats();
+        toast(erroLegivel(r.error), "erro");
         return;
       }
       atual[field] = r.data[field];
+      // Admin que mudou o próprio tipo: as permissões desta página mudam junto.
+      if (field === "papel" && atual.user_id === eu.id) { toast("Seu tipo de usuário mudou. Recarregando…"); setTimeout(function () { location.reload(); }, 1200); return; }
       if (field === "whatsapp_trial_status") atual.whatsapp_trial_ends_at = r.data.whatsapp_trial_ends_at;
       var campo = rows.querySelector("tr[data-id=\"" + id + "\"] [data-field=\"" + field + "\"]");
-      if (field === "whatsapp_trial_status") render();
+      if (field === "whatsapp_trial_status" || field === "papel") render();
       else if (campo && campo !== document.activeElement && campo.value !== String(atual[field] == null ? "" : atual[field])) campo.value = atual[field] == null ? "" : atual[field];
       campo = rows.querySelector("tr[data-id=\"" + id + "\"] [data-field=\"" + field + "\"]");
       if (campo) { campo.classList.add("saved"); setTimeout(function () { campo.classList.remove("saved"); }, 1200); }
@@ -320,6 +362,7 @@
       ["Origem", esc(l.origem || "—")],
       ["Status", LABEL[l.status] || esc(l.status)],
       ["Plano", esc(l.plano || "—")],
+      ["Tipo de usuário", l.user_id ? PAPEL_LABEL[l.papel || "teste"] : "sem conta (só lista de espera)"],
       ["Uso", Number(l.mensagens_usadas || 0) + " mensagens · " + Number(l.conversas || 0) + " conversas"],
       ["Cadastro", fmt(l.created_at)],
       ["E-mail confirmado", fmt(l.confirmed_at)],

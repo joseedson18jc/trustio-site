@@ -30,10 +30,13 @@ dinamicos = json.load(sys.stdin)["numeros"]
 fixos = open(sys.argv[1]).read().split()
 print(",".join(sorted({n for n in map(norm, fixos + dinamicos) if n})))
 ' "$FIXOS") || { log "resposta inválida; lista mantida"; exit 0; }
-[ -n "$lista" ] || { log "lista vazia; nada feito"; exit 0; }
+# Lista vazia não pode virar "sem lista": no Hermes isso pode liberar qualquer número. Um número
+# que não existe mantém o gateway fechado para todos até alguém ser liberado.
+[ -n "$lista" ] || lista="000000000000"
 
-# Já aplicada com sucesso: nada a fazer.
-[ -s "$APLICADO" ] && [ "$(cat "$APLICADO")" = "$lista" ] && exit 0
+# Nada a fazer só se a lista já foi aplicada (gateway reiniciado com ela) E o .env está com ela.
+atual=$(grep -m1 '^WHATSAPP_ALLOWED_USERS=' "$ENV_FILE" | cut -d= -f2- | tr -d '"'"'"' ')
+[ -s "$APLICADO" ] && [ "$(cat "$APLICADO")" = "$lista" ] && [ "$atual" = "$lista" ] && exit 0
 
 # Reescreve só a linha WHATSAPP_ALLOWED_USERS, num arquivo temporário trocado de uma vez (atômico):
 # uma interrupção no meio nunca deixa o .env pela metade.

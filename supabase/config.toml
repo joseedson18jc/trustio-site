@@ -79,3 +79,8 @@ verify_jwt = true
 # confere o segredo compartilhado x-trustio-segredo no lugar do JWT.
 [functions.aviso-agente]
 verify_jwt = false
+
+# Consultada pelo sincronizador do Mac (mac/hermes-autorizados.sh), sem usuário logado: a função
+# confere o segredo x-trustio-segredo (HERMES_SEGREDO) no lugar do JWT.
+[functions.hermes-autorizados]
+verify_jwt = false

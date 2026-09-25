@@ -39,6 +39,12 @@ GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toqu
    select vault.create_secret('<o mesmo valor de AVISOS_SEGREDO>', 'aviso_agente_segredo');
    ```
 
+9. Quem recebe o aviso também precisa ser liberado no Hermes, que roda no Mac: o gateway só atende os
+   números de `WHATSAPP_ALLOWED_USERS` em `~/.hermes/.env`. O `mac/hermes-autorizados.sh`, rodando a
+   cada 30 s pelo launchd, consulta a função `hermes-autorizados` (teste de 3 dias ativo e dentro do
+   prazo, e assinantes), junta com os números fixos de `~/.hermes/allowed-fixos.txt` e reinicia o gateway
+   só quando a lista muda. Se a consulta falha, a lista fica como está. Quando o teste vence, o número sai.
+
 ## Ligar tudo (uma vez): secrets do repositório
 
 Em GitHub → Settings → Secrets and variables → Actions → New repository secret:
@@ -57,6 +63,7 @@ Em GitHub → Settings → Secrets and variables → Actions → New repository 
 | `RESEND_API_KEY` | resend.com → API Keys (domínio `send.trustio.com.br` verificado) | e-mail de aviso do teste do Agentio |
 | `EVOLUTION_URL`, `EVOLUTION_INSTANCE`, `EVOLUTION_API_KEY` | o servidor da Evolution API, a instância conectada ao WhatsApp e a chave global | mensagem de aviso no WhatsApp |
 | `EVOLUTION_NUMERO` | opcional: o número conectado à instância, se for o próprio Agentio | a mensagem pedir para responder ali mesmo |
+| `HERMES_SEGREDO` | um valor aleatório longo; o mesmo vai no Mac em `~/.trustio-hermes-sync-key` | o sincronizador do Mac ler a lista de números autorizados |
 | `ADMIN_EMAILS` | seus e-mails, separados por vírgula (as contas precisam existir no Auth) | abrir o `/crm/` |
 
 Depois disso, rode o workflow uma vez em Actions → Supabase → Run workflow (ou faça qualquer push em

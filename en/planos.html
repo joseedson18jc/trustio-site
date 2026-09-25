@@ -21,10 +21,10 @@
   <link rel="preload" href="/assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/assets/theme.js?v=673d4355"></script>
   <link rel="stylesheet" href="/assets/styles.css?v=3cf59e12">
-  <link rel="stylesheet" href="/assets/planos.css?v=4193d49b">
+  <link rel="stylesheet" href="/assets/planos.css?v=8fff7828">
   <link rel="stylesheet" href="/assets/voice.css?v=0270d464">
   <script type="module" src="/assets/app.js?v=3c8c4b14"></script>
-  <script defer src="/assets/planos.js?v=8e3cf801"></script>
+  <script defer src="/assets/planos.js?v=b3a777d8"></script>
   <script defer src="/assets/optin.js?v=615091c5"></script>
   <script type="application/ld+json">
 {
@@ -176,7 +176,7 @@
     <div class="container">
       <p class="eyebrow"><span class="status-dot"></span> Plans and payments</p>
       <h1 id="plans-title">Private AI infrastructure.<span>Set up in minutes.</span></h1>
-      <p class="lead">For businesses, private environments in Brazil. For you, private and uncensored AI by subscription. Pay in Brazilian reais, by Pix, card, Apple Pay or Google Pay.</p>
+      <p class="lead">For companies, private environments in Brazil. For you, private uncensored AI and the Agentio agent, by subscription. Pay in reais with Pix, card, Apple Pay or Google Pay.</p>
       <div class="seg" role="tablist" aria-label="Plan type">
         <button type="button" role="tab" id="tab-empresas" aria-selected="true" aria-controls="empresas" data-seg="empresas">For businesses</button>
         <button type="button" role="tab" id="tab-pessoal" aria-selected="false" aria-controls="pessoal" data-seg="pessoal" tabindex="-1">For you <small>uncensored</small></button>
@@ -276,6 +276,14 @@
           <p>The same open models we run for businesses, with individual access. No content filter imposed by the vendor, your conversations train no one, and everything runs in Brazil. Billed in Brazilian reais — no foreign-transaction tax (IOF), no dollar surprises, no per-token charges.</p>
           <p class="acesso-estado"><b>Status today:</b> early access is already open. Subscribe to any plan below and your account is activated <b>within 1 business day</b> after payment is confirmed, without waiting for the launch. For everyone else, <b>the chat opens on October 1, 2026</b>, with 5 free questions.</p>
         </div>
+
+        <div class="seg seg-sub" role="tablist" aria-label="Product for you">
+          <button type="button" role="tab" id="sub-chat" aria-selected="true" aria-controls="pessoal-chat" data-sub="chat">Uncensored chat</button>
+          <button type="button" role="tab" id="sub-agentio" aria-selected="false" aria-controls="agentio" data-sub="agentio" tabindex="-1">Agentio <small>Trustio &amp; Hermes</small></button>
+          <button type="button" role="tab" id="sub-combo" aria-selected="false" aria-controls="combo" data-sub="combo" tabindex="-1">Combo <small>Chat + Agentio</small></button>
+        </div>
+
+        <div class="sub-panel" id="pessoal-chat" role="tabpanel" aria-labelledby="sub-chat">
         <div class="plan-grid b2c-grid">
           <article class="plan featured">
             <span class="tag">Recommended</span>
@@ -312,6 +320,121 @@
             <p class="methods">Pix · Card</p>
           </article>
         </div>
+        </div>
+
+        <div class="sub-panel" id="agentio" role="tabpanel" aria-labelledby="sub-agentio" hidden>
+          <div class="sub-head">
+            <p class="section-kicker">Agentio · by Trustio &amp; Hermes (Nous)</p>
+            <h3>An agent that gets things done for you. On your WhatsApp or Telegram.</h3>
+            <p>Agentio is Trustio's AI agent, built on Nous Research's Hermes Agent. You ask in plain language and it does the work: researches, writes, summarizes, organizes routines and reminders. It only answers on the number you register and confirms before any irreversible action.</p>
+          </div>
+          <div class="plan-grid g4">
+            <article class="plan">
+              <p class="k">Agentio · 7 days</p>
+              <h2>Weekly</h2>
+              <p class="desc">A full week of the agent, paid once. Does not auto-renew.</p>
+              <div class="price"><small>R$</small><b>39<i>.90</i></b><small>for 7 days</small></div>
+              <p class="note">One-time payment · activated within <b>within 1 business day</b></p>
+              <ul><li>Agent on WhatsApp or Telegram</li><li>Tasks, research, writing and summaries</li><li>Routines and reminders</li></ul>
+              <a class="button button-outline" href="/STRIPE_AGENTIO_SEMANAL" rel="noopener">Buy 7 days <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix · Card</p>
+            </article>
+            <article class="plan featured">
+              <span class="tag">Most popular</span>
+              <p class="k">Agentio · monthly</p>
+              <h2>Monthly</h2>
+              <p class="desc">The agent working for you all month, at a flat price.</p>
+              <div class="price"><small>R$</small><b>129</b><small>/month</small></div>
+              <p class="note">Renews monthly · cancel anytime</p>
+              <ul><li>Everything in weekly</li><li>Remembers your preferences and routines</li><li>Fair use, no token counting</li></ul>
+              <a class="button button-primary" href="/STRIPE_AGENTIO_MENSAL" rel="noopener">Subscribe monthly <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix · Card · Apple Pay · Google Pay</p>
+            </article>
+            <article class="plan">
+              <p class="k">Agentio · 6 months</p>
+              <h2>6 months</h2>
+              <p class="desc">Six discounted months, billed at once.</p>
+              <div class="price"><small>R$</small><b>649</b><small>/6 months</small></div>
+              <p class="note">Works out to R$ 108.17 per month · <span class="save">save 16%</span></p>
+              <ul><li>Everything in monthly</li><li>Price locked for 6 months</li></ul>
+              <a class="button button-outline" href="/STRIPE_AGENTIO_SEMESTRAL" rel="noopener">Subscribe for 6 months <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix · Card</p>
+            </article>
+            <article class="plan b2c-annual">
+              <p class="k">Agentio · annual</p>
+              <h2>Annual</h2>
+              <p class="desc">The lowest monthly price. For those who have already handed off their routine.</p>
+              <div class="price"><small>R$</small><b>1.190</b><small>/year</small></div>
+              <p class="note">Works out to R$ 99.17 per month · <span class="save">save 23%</span></p>
+              <ul><li>Everything in monthly</li><li>Price locked for 12 months</li></ul>
+              <a class="button button-outline" href="/STRIPE_AGENTIO_ANUAL" rel="noopener">Subscribe yearly <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix · Card</p>
+            </article>
+          </div>
+          <p class="sub-nota">Hermes Agent is Nous Research's open-source agent framework; Agentio is operated by Trustio, with the model running on Trustio's infrastructure. Want the uncensored chat on the site too? The <a href="#combo" data-sub-link="combo">Combo</a> costs less than both separately.</p>
+        </div>
+
+        <div class="sub-panel" id="combo" role="tabpanel" aria-labelledby="sub-combo" hidden>
+          <div class="sub-head">
+            <p class="section-kicker">Combo · Uncensored chat + Agentio</p>
+            <h3>The chat on the site and the agent on your phone. One price.</h3>
+            <p>Chat uncensored on Trustio and hand tasks to Agentio on WhatsApp or Telegram — same account, same private model, one bill that costs less than subscribing to both separately.</p>
+          </div>
+          <div class="plan-grid g4">
+            <article class="plan">
+              <p class="k">Combo · 7 days</p>
+              <h2>Weekly</h2>
+              <p class="desc">Chat + Agentio for one week. One-time payment.</p>
+              <div class="price"><small>R$</small><b>54<i>.90</i></b><small>for 7 days</small></div>
+              <p class="note">Separately: R$ 64.80 · <span class="save">save 15%</span></p>
+              <ul><li>Uncensored chat on the site</li><li>Agentio on WhatsApp or Telegram</li><li>Does not auto-renew</li></ul>
+              <a class="button button-outline" href="/STRIPE_COMBO_SEMANAL" rel="noopener">Buy 7 days <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix · Card</p>
+            </article>
+            <article class="plan featured">
+              <span class="tag">Best value</span>
+              <p class="k">Combo · monthly</p>
+              <h2>Monthly</h2>
+              <p class="desc">All of Trustio for you, every month.</p>
+              <div class="price"><small>R$</small><b>179</b><small>/month</small></div>
+              <p class="note">Separately: R$ 208 · <span class="save">save 14%</span></p>
+              <ul><li>Uncensored chat, fair use</li><li>Agentio with memory and routines</li><li>History stored in Brazil</li><li>Cancel anytime</li></ul>
+              <a class="button button-primary" href="/STRIPE_COMBO_MENSAL" rel="noopener">Subscribe to monthly Combo <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix · Card · Apple Pay · Google Pay</p>
+            </article>
+            <article class="plan">
+              <p class="k">Combo · 6 months</p>
+              <h2>6 months</h2>
+              <p class="desc">Six months of chat + agent, billed at once.</p>
+              <div class="price"><small>R$</small><b>899</b><small>/6 months</small></div>
+              <p class="note">Works out to R$ 149.83 per month · <span class="save">save 16%</span> vs. monthly</p>
+              <ul><li>Everything in monthly Combo</li><li>Price locked for 6 months</li></ul>
+              <a class="button button-outline" href="/STRIPE_COMBO_SEMESTRAL" rel="noopener">Subscribe for 6 months <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix · Card</p>
+            </article>
+            <article class="plan b2c-annual">
+              <p class="k">Combo · annual</p>
+              <h2>Annual</h2>
+              <p class="desc">The full package at the lowest price.</p>
+              <div class="price"><small>R$</small><b>1.690</b><small>/year</small></div>
+              <p class="note">Works out to R$ 140.83 per month · separately: R$ 1,980 · <span class="save">save 15%</span></p>
+              <ul><li>Everything in monthly Combo</li><li>Price locked for 12 months</li></ul>
+              <a class="button button-outline" href="/STRIPE_COMBO_ANUAL" rel="noopener">Subscribe yearly <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix · Card</p>
+            </article>
+          </div>
+          <div class="tablewrap sub-compare"><table>
+            <thead><tr><th>What's included</th><th>Uncensored chat</th><th>Agentio</th><th>Combo</th></tr></thead>
+            <tbody>
+              <tr><td>Uncensored chat on the site</td><td class="ok">&check;</td><td>&mdash;</td><td class="ok">&check;</td></tr>
+              <tr><td>Agent on WhatsApp or Telegram</td><td>3-day bonus</td><td class="ok">&check;</td><td class="ok">&check;</td></tr>
+              <tr><td>Weekly (7 days)</td><td>R$ 24.90</td><td>R$ 39.90</td><td>R$ 54.90</td></tr>
+              <tr><td>Monthly</td><td>R$ 79</td><td>R$ 129</td><td>R$ 179</td></tr>
+              <tr><td>6 months</td><td>&mdash;</td><td>R$ 649</td><td>R$ 899</td></tr>
+              <tr><td>Annual</td><td>R$ 790</td><td>R$ 1,190</td><td>R$ 1,690</td></tr>
+            </tbody>
+          </table></div>
+        </div>
 
         <div class="lista" id="lista">
           <div>
@@ -336,6 +459,8 @@
               <label><input type="radio" name="plano" value="mensal" checked>Monthly · R$ 79</label>
               <label><input type="radio" name="plano" value="semanal">7-day pass · R$ 24.90</label>
               <label><input type="radio" name="plano" value="anual">Annual · R$ 790</label>
+              <label><input type="radio" name="plano" value="agentio">Agentio · from R$ 39.90</label>
+              <label><input type="radio" name="plano" value="combo">Combo Chat + Agentio · from R$ 54.90</label>
             </fieldset>
             <fieldset class="lead-pick lead-acesso">
               <legend>How do you want to get in?</legend>
@@ -351,7 +476,7 @@
 
         <div class="compare">
           <p class="section-kicker">Comparison · for you</p>
-          <h2>What changes between the three personal plans.</h2>
+          <h2>What changes between the three chat plans.</h2>
           <div class="tablewrap"><table>
             <thead><tr><th>What matters</th><th>Monthly · R$ 79</th><th>7-day pass · R$ 24.90</th><th>Annual · R$ 790</th></tr></thead>
             <tbody>
@@ -362,8 +487,7 @@
               <tr><td>Pix</td><td class="ok">✓ Yes</td><td class="ok">✓ Yes</td><td class="ok">✓ Yes, in up to 12 installments</td></tr>
               <tr><td>Card, Apple Pay, Google Pay</td><td class="ok">&check;</td><td class="ok">&check;</td><td class="ok">&check;</td></tr>
               <tr><td>Uncensored chat on the site</td><td class="ok">✓ Unlimited, fair use</td><td class="ok">✓ Unlimited, fair use</td><td class="ok">✓ Unlimited, fair use</td></tr>
-              <tr><td>WhatsApp agent</td><td class="ok">✓ Included while your subscription is active</td><td class="ok">✓ Included for the 7 days</td><td class="ok">✓ Included while your subscription is active</td></tr>
-              <tr><td>Telegram agent</td><td class="ok">✓ Same agent, same plan</td><td class="ok">✓ Same agent, same plan</td><td class="ok">✓ Same agent, same plan</td></tr>
+              <tr><td>Agentio on WhatsApp or Telegram</td><td>3-day bonus · then Agentio or Combo</td><td>3-day bonus</td><td>3-day bonus · then Agentio or Combo</td></tr>
               <tr><td>When it ends</td><td>The chat locks until you renew</td><td>The chat locks on day 8</td><td>The chat locks until you renew</td></tr>
               <tr><td>Conversation history</td><td class="ok">✓ Kept in your account</td><td class="ok">✓ Kept in your account</td><td class="ok">✓ Kept in your account</td></tr>
             </tbody>
@@ -374,10 +498,10 @@
         <div class="faq">
           <div><p class="section-kicker">FAQ · for you</p><h2>Billing, Pix and what happens after the trial.</h2></div>
           <div>
-            <details><summary>Can I pay for personal plans with Pix?</summary><p>Yes. Monthly, the 7-day Pass and Annual all accept Pix, and Annual can be split into up to 12 installments. With Pix there are no automatic charges: when the period ends, we let you know by email and you decide whether to renew. <b>This answer applies to personal plans</b> — on business plans Pix works differently, as explained on the “For businesses” tab.</p></details>
+            <details><summary>Can I pay for personal plans with Pix?</summary><p>Yes. All personal plans — chat, Agentio and Combo — accept Pix, and annual plans can be split into up to 12 installments. With Pix there is no automatic charge: when the period ends, we email you and you decide whether to renew. <b>This answer applies to personal plans</b> — on business plans Pix works differently, as explained on the “For businesses” tab.</p></details>
             <details><summary>Does the monthly plan auto-renew?</summary><p>On a card, yes: it renews every month until you cancel, and cancellation takes effect at the end of the month you've already paid for — with no fee. With Pix, no: nothing is charged again unless you pay again. The 7-day Pass never auto-renews, whatever the payment method.</p></details>
             <details><summary>What happens after the 5 free questions?</summary><p>The chat locks and nothing is charged. Your conversations stay in your account, and you choose a plan whenever you like — or simply don't. The 5 questions are once per account, not per month.</p></details>
-            <details><summary>Is the WhatsApp and Telegram agent included?</summary><p>Yes, on all three personal plans, while your access is active — no separate subscription. You turn it on by entering your number: the agent works <b>only on your WhatsApp or your Telegram</b>, never through a computer or terminal. Without a plan, the <b>3-day</b> bonus starts on the day you turn it on; when it ends, the chat on the site keeps working normally.</p></details>
+            <details><summary>Is the WhatsApp and Telegram agent included?</summary><p>The agent is now <b>Agentio</b> (by Trustio &amp; Hermes), sold in its own plans — weekly, monthly, 6-month and annual — or together with the chat in the <b>Combo</b>, which costs less than both separately. Chat plans come with a <b>3-day Agentio bonus</b>, starting on the day you activate it. The agent answers <b>only on your WhatsApp or your Telegram</b>, on the number you register, never through a computer or terminal. Anyone who subscribed to the chat before this change keeps the agent included while their subscription is active.</p></details>
             <details><summary>When does my access open?</summary><p>If you subscribe to any of the three plans, <b>within 1 business day</b> after payment is confirmed: early access opened on September 23, so there's no need to wait for the launch. Without a plan, the chat opens on <b>October 1, 2026</b> with 5 free questions — no queue: on the day, your account opens on its own.</p></details>
             <details><summary>Do I have to give my phone number?</summary><p>No. For the chat on the site, name, email and password are enough. A phone number is only needed if you want the WhatsApp agent, because it works on exactly that number.</p></details>
           </div>

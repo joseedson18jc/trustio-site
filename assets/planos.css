@@ -149,3 +149,19 @@
 
 /* diagnóstico: caminho de conversa para quem ainda não quer pagar */
 .diag .diag-alt{display:block;margin-top:14px;font-size:13.5px}
+/* Sub-abas de "Para você": Chat sem censura | Agentio | Combo */
+.seg-sub{margin-top:30px}
+.sub-panel[hidden]{display:none}
+.sub-panel{animation:seg-in .35s var(--ease,ease)}
+.sub-head{max-width:760px;margin-top:30px}
+.sub-head h3{font-size:clamp(22px,3vw,32px);letter-spacing:-.03em;margin:6px 0 12px}
+.sub-head p:not(.section-kicker){color:var(--muted,#a9b4c6);font-size:16px;line-height:1.6;margin:0}
+.plan-grid.g4{grid-template-columns:repeat(4,1fr);margin-top:34px}
+.plan .save{display:inline-block;padding:1px 8px;border-radius:999px;background:rgba(94,167,255,.14);color:var(--blue-signal,#5ea7ff);font-weight:600;white-space:nowrap}
+.sub-nota{max-width:760px;margin:22px 0 0;color:var(--muted,#a9b4c6);font-size:14px;line-height:1.6}
+.sub-nota a{color:var(--blue-signal,#5ea7ff)}
+.sub-compare{margin-top:34px}
+@media(max-width:1180px){.plan-grid.g4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.plan-grid.g4{grid-template-columns:1fr}}
+@media(max-width:600px){.seg-sub button small{display:none}}
+@media(prefers-reduced-motion:reduce){.sub-panel{animation:none}}

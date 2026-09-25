@@ -21,10 +21,10 @@
   <link rel="preload" href="assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="assets/theme.js?v=673d4355"></script>
   <link rel="stylesheet" href="assets/styles.css?v=3cf59e12">
-  <link rel="stylesheet" href="assets/planos.css?v=4193d49b">
+  <link rel="stylesheet" href="assets/planos.css?v=8fff7828">
   <link rel="stylesheet" href="assets/voice.css?v=0270d464">
   <script type="module" src="assets/app.js?v=3c8c4b14"></script>
-  <script defer src="assets/planos.js?v=8e3cf801"></script>
+  <script defer src="assets/planos.js?v=b3a777d8"></script>
   <script defer src="assets/optin.js?v=615091c5"></script>
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"OfferCatalog","name":"Planos Trustio","url":"https://trustio.com.br/planos.html","itemListElement":[
@@ -96,7 +96,7 @@
     <div class="container">
       <p class="eyebrow"><span class="status-dot"></span> Planos e pagamentos</p>
       <h1 id="plans-title">Infraestrutura privada de IA.<span>Contratada em minutos.</span></h1>
-      <p class="lead">Para empresas, ambientes privados no Brasil. Para voc&ecirc;, IA privada e sem censura por assinatura. Pague em reais, com Pix, cart&atilde;o, Apple Pay ou Google Pay.</p>
+      <p class="lead">Para empresas, ambientes privados no Brasil. Para voc&ecirc;, IA privada e sem censura e o agente Agentio, por assinatura. Pague em reais, com Pix, cart&atilde;o, Apple Pay ou Google Pay.</p>
       <div class="seg" role="tablist" aria-label="Tipo de plano">
         <button type="button" role="tab" id="tab-empresas" aria-selected="true" aria-controls="empresas" data-seg="empresas">Para empresas</button>
         <button type="button" role="tab" id="tab-pessoal" aria-selected="false" aria-controls="pessoal" data-seg="pessoal" tabindex="-1">Para voc&ecirc; <small>sem censura</small></button>
@@ -196,6 +196,14 @@
           <p>Os mesmos modelos abertos que rodamos para empresas, num acesso individual. Sem filtro de conte&uacute;do imposto pelo fornecedor, suas conversas n&atilde;o treinam ningu&eacute;m e tudo roda no Brasil. Cobrado em reais &mdash; sem IOF, sem surpresa de d&oacute;lar, sem cobran&ccedil;a por token.</p>
           <p class="acesso-estado"><b>Estado de hoje:</b> o acesso antecipado j&aacute; abriu. Quem assina qualquer plano abaixo tem a conta liberada <b>em at&eacute; 1 dia &uacute;til</b> ap&oacute;s a confirma&ccedil;&atilde;o do pagamento, sem esperar o lan&ccedil;amento. Para todo mundo, <b>o chat abre em 1&ordm; de outubro de 2026</b>, com 5 perguntas gr&aacute;tis.</p>
         </div>
+
+        <div class="seg seg-sub" role="tablist" aria-label="Produto para voc&ecirc;">
+          <button type="button" role="tab" id="sub-chat" aria-selected="true" aria-controls="pessoal-chat" data-sub="chat">Chat sem censura</button>
+          <button type="button" role="tab" id="sub-agentio" aria-selected="false" aria-controls="agentio" data-sub="agentio" tabindex="-1">Agentio <small>Trustio &amp; Hermes</small></button>
+          <button type="button" role="tab" id="sub-combo" aria-selected="false" aria-controls="combo" data-sub="combo" tabindex="-1">Combo <small>Chat + Agentio</small></button>
+        </div>
+
+        <div class="sub-panel" id="pessoal-chat" role="tabpanel" aria-labelledby="sub-chat">
         <div class="plan-grid b2c-grid">
           <article class="plan featured">
             <span class="tag">Recomendado</span>
@@ -232,6 +240,121 @@
             <p class="methods">Pix &middot; Cart&atilde;o</p>
           </article>
         </div>
+        </div>
+
+        <div class="sub-panel" id="agentio" role="tabpanel" aria-labelledby="sub-agentio" hidden>
+          <div class="sub-head">
+            <p class="section-kicker">Agentio &middot; by Trustio &amp; Hermes (Nous)</p>
+            <h3>Um agente que faz por voc&ecirc;. No seu WhatsApp ou Telegram.</h3>
+            <p>O Agentio &eacute; o agente de IA da Trustio, constru&iacute;do sobre o Hermes Agent da Nous Research. Voc&ecirc; pede em linguagem natural e ele executa: pesquisa, escreve, resume, organiza rotinas e lembretes. Atende s&oacute; no n&uacute;mero que voc&ecirc; cadastrar e confirma antes de qualquer a&ccedil;&atilde;o irrevers&iacute;vel.</p>
+          </div>
+          <div class="plan-grid g4">
+            <article class="plan">
+              <p class="k">Agentio &middot; 7 dias</p>
+              <h2>Semanal</h2>
+              <p class="desc">Uma semana inteira de agente, paga uma vez. N&atilde;o renova sozinho.</p>
+              <div class="price"><small>R$</small><b>39<i>,90</i></b><small>por 7 dias</small></div>
+              <p class="note">Pagamento &uacute;nico &middot; ativa&ccedil;&atilde;o em <b>at&eacute; 1 dia &uacute;til</b></p>
+              <ul><li>Agente no WhatsApp ou Telegram</li><li>Tarefas, pesquisa, escrita e resumos</li><li>Rotinas e lembretes</li></ul>
+              <a class="button button-outline" href="STRIPE_AGENTIO_SEMANAL" rel="noopener">Comprar 7 dias <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix &middot; Cart&atilde;o</p>
+            </article>
+            <article class="plan featured">
+              <span class="tag">Mais escolhido</span>
+              <p class="k">Agentio &middot; mensal</p>
+              <h2>Mensal</h2>
+              <p class="desc">O agente trabalhando por voc&ecirc; o m&ecirc;s todo, por pre&ccedil;o fixo.</p>
+              <div class="price"><small>R$</small><b>129</b><small>/m&ecirc;s</small></div>
+              <p class="note">Renova todo m&ecirc;s &middot; cancele quando quiser</p>
+              <ul><li>Tudo do semanal</li><li>Mem&oacute;ria das suas prefer&ecirc;ncias e rotinas</li><li>Uso justo, sem contar tokens</li></ul>
+              <a class="button button-primary" href="STRIPE_AGENTIO_MENSAL" rel="noopener">Assinar mensal <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix &middot; Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
+            </article>
+            <article class="plan">
+              <p class="k">Agentio &middot; semestral</p>
+              <h2>Semestral</h2>
+              <p class="desc">Seis meses com desconto, cobrados de uma vez.</p>
+              <div class="price"><small>R$</small><b>649</b><small>/6 meses</small></div>
+              <p class="note">Equivale a R$ 108,17 por m&ecirc;s &middot; <span class="save">economize 16%</span></p>
+              <ul><li>Tudo do mensal</li><li>Pre&ccedil;o travado por 6 meses</li></ul>
+              <a class="button button-outline" href="STRIPE_AGENTIO_SEMESTRAL" rel="noopener">Assinar semestral <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix &middot; Cart&atilde;o</p>
+            </article>
+            <article class="plan b2c-annual">
+              <p class="k">Agentio &middot; anual</p>
+              <h2>Anual</h2>
+              <p class="desc">O menor pre&ccedil;o por m&ecirc;s. Para quem j&aacute; delegou a rotina.</p>
+              <div class="price"><small>R$</small><b>1.190</b><small>/ano</small></div>
+              <p class="note">Equivale a R$ 99,17 por m&ecirc;s &middot; <span class="save">economize 23%</span></p>
+              <ul><li>Tudo do mensal</li><li>Pre&ccedil;o travado por 12 meses</li></ul>
+              <a class="button button-outline" href="STRIPE_AGENTIO_ANUAL" rel="noopener">Assinar anual <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix &middot; Cart&atilde;o</p>
+            </article>
+          </div>
+          <p class="sub-nota">O Hermes Agent &eacute; o framework de agentes de c&oacute;digo aberto da Nous Research; o Agentio &eacute; operado pela Trustio, com o modelo rodando na infraestrutura da Trustio. Quer tamb&eacute;m o chat sem censura no site? O <a href="#combo" data-sub-link="combo">Combo</a> sai mais barato que os dois separados.</p>
+        </div>
+
+        <div class="sub-panel" id="combo" role="tabpanel" aria-labelledby="sub-combo" hidden>
+          <div class="sub-head">
+            <p class="section-kicker">Combo &middot; Chat sem censura + Agentio</p>
+            <h3>O chat no site e o agente no seu celular. Um pre&ccedil;o s&oacute;.</h3>
+            <p>Converse sem censura no chat da Trustio e delegue tarefas ao Agentio no WhatsApp ou Telegram &mdash; mesma conta, mesmo modelo privado, cobran&ccedil;a &uacute;nica e mais barata do que assinar os dois separadamente.</p>
+          </div>
+          <div class="plan-grid g4">
+            <article class="plan">
+              <p class="k">Combo &middot; 7 dias</p>
+              <h2>Semanal</h2>
+              <p class="desc">Chat + Agentio por uma semana. Pagamento &uacute;nico.</p>
+              <div class="price"><small>R$</small><b>54<i>,90</i></b><small>por 7 dias</small></div>
+              <p class="note">Separados: R$ 64,80 &middot; <span class="save">economize 15%</span></p>
+              <ul><li>Chat sem censura no site</li><li>Agentio no WhatsApp ou Telegram</li><li>N&atilde;o renova sozinho</li></ul>
+              <a class="button button-outline" href="STRIPE_COMBO_SEMANAL" rel="noopener">Comprar 7 dias <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix &middot; Cart&atilde;o</p>
+            </article>
+            <article class="plan featured">
+              <span class="tag">Melhor custo</span>
+              <p class="k">Combo &middot; mensal</p>
+              <h2>Mensal</h2>
+              <p class="desc">Tudo da Trustio para voc&ecirc;, todo m&ecirc;s.</p>
+              <div class="price"><small>R$</small><b>179</b><small>/m&ecirc;s</small></div>
+              <p class="note">Separados: R$ 208 &middot; <span class="save">economize 14%</span></p>
+              <ul><li>Chat sem censura, uso justo</li><li>Agentio com mem&oacute;ria e rotinas</li><li>Hist&oacute;rico guardado no Brasil</li><li>Cancele quando quiser</li></ul>
+              <a class="button button-primary" href="STRIPE_COMBO_MENSAL" rel="noopener">Assinar Combo mensal <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix &middot; Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
+            </article>
+            <article class="plan">
+              <p class="k">Combo &middot; semestral</p>
+              <h2>Semestral</h2>
+              <p class="desc">Seis meses de chat + agente, cobrados de uma vez.</p>
+              <div class="price"><small>R$</small><b>899</b><small>/6 meses</small></div>
+              <p class="note">Equivale a R$ 149,83 por m&ecirc;s &middot; <span class="save">economize 16%</span> sobre o mensal</p>
+              <ul><li>Tudo do Combo mensal</li><li>Pre&ccedil;o travado por 6 meses</li></ul>
+              <a class="button button-outline" href="STRIPE_COMBO_SEMESTRAL" rel="noopener">Assinar semestral <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix &middot; Cart&atilde;o</p>
+            </article>
+            <article class="plan b2c-annual">
+              <p class="k">Combo &middot; anual</p>
+              <h2>Anual</h2>
+              <p class="desc">O pacote completo pelo menor pre&ccedil;o.</p>
+              <div class="price"><small>R$</small><b>1.690</b><small>/ano</small></div>
+              <p class="note">Equivale a R$ 140,83 por m&ecirc;s &middot; separados: R$ 1.980 &middot; <span class="save">economize 15%</span></p>
+              <ul><li>Tudo do Combo mensal</li><li>Pre&ccedil;o travado por 12 meses</li></ul>
+              <a class="button button-outline" href="STRIPE_COMBO_ANUAL" rel="noopener">Assinar anual <span aria-hidden="true">&#8599;</span></a>
+              <p class="methods">Pix &middot; Cart&atilde;o</p>
+            </article>
+          </div>
+          <div class="tablewrap sub-compare"><table>
+            <thead><tr><th>O que est&aacute; incluso</th><th>Chat sem censura</th><th>Agentio</th><th>Combo</th></tr></thead>
+            <tbody>
+              <tr><td>Chat sem censura no site</td><td class="ok">&check;</td><td>&mdash;</td><td class="ok">&check;</td></tr>
+              <tr><td>Agente no WhatsApp ou Telegram</td><td>3 dias de b&ocirc;nus</td><td class="ok">&check;</td><td class="ok">&check;</td></tr>
+              <tr><td>Semanal (7 dias)</td><td>R$ 24,90</td><td>R$ 39,90</td><td>R$ 54,90</td></tr>
+              <tr><td>Mensal</td><td>R$ 79</td><td>R$ 129</td><td>R$ 179</td></tr>
+              <tr><td>Semestral</td><td>&mdash;</td><td>R$ 649</td><td>R$ 899</td></tr>
+              <tr><td>Anual</td><td>R$ 790</td><td>R$ 1.190</td><td>R$ 1.690</td></tr>
+            </tbody>
+          </table></div>
+        </div>
 
         <div class="lista" id="lista">
           <div>
@@ -256,6 +379,8 @@
               <label><input type="radio" name="plano" value="mensal" checked>Mensal &middot; R$ 79</label>
               <label><input type="radio" name="plano" value="semanal">Passe 7 dias &middot; R$ 24,90</label>
               <label><input type="radio" name="plano" value="anual">Anual &middot; R$ 790</label>
+              <label><input type="radio" name="plano" value="agentio">Agentio &middot; a partir de R$ 39,90</label>
+              <label><input type="radio" name="plano" value="combo">Combo Chat + Agentio &middot; a partir de R$ 54,90</label>
             </fieldset>
             <fieldset class="lead-pick lead-acesso">
               <legend>Como voc&ecirc; quer entrar?</legend>
@@ -271,7 +396,7 @@
 
         <div class="compare">
           <p class="section-kicker">Comparativo &middot; para voc&ecirc;</p>
-          <h2>O que muda entre os tr&ecirc;s acessos pessoais.</h2>
+          <h2>O que muda entre os tr&ecirc;s acessos ao chat.</h2>
           <div class="tablewrap"><table>
             <thead><tr><th>O que importa</th><th>Mensal &middot; R$ 79</th><th>Passe 7 dias &middot; R$ 24,90</th><th>Anual &middot; R$ 790</th></tr></thead>
             <tbody>
@@ -282,8 +407,7 @@
               <tr><td>Pix</td><td class="ok">&check; Sim</td><td class="ok">&check; Sim</td><td class="ok">&check; Sim, em at&eacute; 12&times;</td></tr>
               <tr><td>Cart&atilde;o, Apple Pay, Google Pay</td><td class="ok">&check;</td><td class="ok">&check;</td><td class="ok">&check;</td></tr>
               <tr><td>Chat sem censura no site</td><td class="ok">&check; Ilimitado, uso justo</td><td class="ok">&check; Ilimitado, uso justo</td><td class="ok">&check; Ilimitado, uso justo</td></tr>
-              <tr><td>Agente no WhatsApp</td><td class="ok">&check; Incluso enquanto a assinatura estiver ativa</td><td class="ok">&check; Incluso nos 7 dias</td><td class="ok">&check; Incluso enquanto a assinatura estiver ativa</td></tr>
-              <tr><td>Agente no Telegram</td><td class="ok">&check; Mesmo agente, mesmo plano</td><td class="ok">&check; Mesmo agente, mesmo plano</td><td class="ok">&check; Mesmo agente, mesmo plano</td></tr>
+              <tr><td>Agentio no WhatsApp ou Telegram</td><td>3 dias de b&ocirc;nus &middot; depois, Agentio ou Combo</td><td>3 dias de b&ocirc;nus</td><td>3 dias de b&ocirc;nus &middot; depois, Agentio ou Combo</td></tr>
               <tr><td>Quando acaba</td><td>O chat trava at&eacute; voc&ecirc; renovar</td><td>O chat trava no 8&ordm; dia</td><td>O chat trava at&eacute; voc&ecirc; renovar</td></tr>
               <tr><td>Hist&oacute;rico das conversas</td><td class="ok">&check; Fica guardado na sua conta</td><td class="ok">&check; Fica guardado na sua conta</td><td class="ok">&check; Fica guardado na sua conta</td></tr>
             </tbody>
@@ -294,10 +418,10 @@
         <div class="faq">
           <div><p class="section-kicker">D&uacute;vidas frequentes &middot; para voc&ecirc;</p><h2>Cobran&ccedil;a, Pix e o que acontece depois do teste.</h2></div>
           <div>
-            <details><summary>Posso pagar os planos pessoais com Pix?</summary><p>Sim. Mensal, Passe de 7 dias e Anual aceitam Pix, e o Anual parcela em at&eacute; 12&times;. Pagando por Pix n&atilde;o existe cobran&ccedil;a autom&aacute;tica: quando o per&iacute;odo acaba, avisamos por e-mail e voc&ecirc; decide se renova. <b>Esta resposta vale para os planos pessoais</b> &mdash; nos planos empresariais o Pix funciona de outro jeito, explicado na aba &ldquo;Para empresas&rdquo;.</p></details>
+            <details><summary>Posso pagar os planos pessoais com Pix?</summary><p>Sim. Todos os planos pessoais &mdash; chat, Agentio e Combo &mdash; aceitam Pix, e os anuais parcelam em at&eacute; 12&times;. Pagando por Pix n&atilde;o existe cobran&ccedil;a autom&aacute;tica: quando o per&iacute;odo acaba, avisamos por e-mail e voc&ecirc; decide se renova. <b>Esta resposta vale para os planos pessoais</b> &mdash; nos planos empresariais o Pix funciona de outro jeito, explicado na aba &ldquo;Para empresas&rdquo;.</p></details>
             <details><summary>O plano mensal renova sozinho?</summary><p>No cart&atilde;o, sim: ele renova todo m&ecirc;s at&eacute; voc&ecirc; cancelar, e o cancelamento vale at&eacute; o fim do m&ecirc;s que voc&ecirc; j&aacute; pagou &mdash; sem multa. No Pix, n&atilde;o: nada &eacute; cobrado de novo sem voc&ecirc; pagar de novo. O Passe de 7 dias nunca renova sozinho, em nenhuma forma de pagamento.</p></details>
             <details><summary>O que acontece depois das 5 perguntas gr&aacute;tis?</summary><p>O chat trava e nada &eacute; cobrado. Suas conversas continuam na conta, e voc&ecirc; escolhe um plano quando quiser &mdash; ou simplesmente n&atilde;o escolhe. As 5 perguntas s&atilde;o uma vez por conta, n&atilde;o por m&ecirc;s.</p></details>
-            <details><summary>O agente no WhatsApp e no Telegram est&aacute; incluso?</summary><p>Est&aacute;, nos tr&ecirc;s planos pessoais, enquanto o acesso estiver ativo &mdash; sem assinatura separada. Voc&ecirc; ativa informando o seu n&uacute;mero: o agente atende <b>somente no seu WhatsApp ou no seu Telegram</b>, nunca por computador ou terminal. Sem plano, o b&ocirc;nus de <b>3 dias</b> come&ccedil;a no dia em que voc&ecirc; ativa; quando termina, o chat no site continua funcionando normalmente.</p></details>
+            <details><summary>O agente no WhatsApp e no Telegram est&aacute; incluso?</summary><p>O agente agora &eacute; o <b>Agentio</b> (by Trustio &amp; Hermes), vendido em planos pr&oacute;prios &mdash; semanal, mensal, semestral e anual &mdash; ou junto com o chat no <b>Combo</b>, mais barato que os dois separados. Os planos do chat trazem <b>3 dias de Agentio de b&ocirc;nus</b>, que come&ccedil;am no dia em que voc&ecirc; ativa. O agente atende <b>somente no seu WhatsApp ou no seu Telegram</b>, no n&uacute;mero que voc&ecirc; cadastrar, nunca por computador ou terminal. Quem assinou o chat antes desta mudan&ccedil;a mant&eacute;m o agente incluso enquanto a assinatura estiver ativa.</p></details>
             <details><summary>Quando o meu acesso abre?</summary><p>Se voc&ecirc; assina qualquer um dos tr&ecirc;s planos, <b>em at&eacute; 1 dia &uacute;til</b> ap&oacute;s a confirma&ccedil;&atilde;o do pagamento: o acesso antecipado abriu em 23 de setembro, ent&atilde;o n&atilde;o &eacute; preciso esperar o lan&ccedil;amento. Sem plano, o chat abre em <b>1&ordm; de outubro de 2026</b> com 5 perguntas gr&aacute;tis &mdash; sem fila: na data, sua conta abre sozinha.</p></details>
             <details><summary>Preciso dar meu telefone?</summary><p>N&atilde;o. Para o chat no site bastam nome, e-mail e senha. O telefone s&oacute; &eacute; necess&aacute;rio se voc&ecirc; quiser o agente no WhatsApp, porque ele atende exatamente nesse n&uacute;mero.</p></details>
           </div>

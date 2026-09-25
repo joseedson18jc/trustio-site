@@ -43,16 +43,20 @@ Deno.serve(async (req) => {
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const agora = new Date().toISOString();
 
-  // Lê todas as páginas: uma lista cortada no limite da API tiraria números que deviam ficar.
-  type Linha = { whatsapp_numero: string | null; telefone: string | null };
+  // Lê todas as páginas por chave (id > último lido), não por posição: um cadastro que entra ou
+  // sai no meio da leitura não desloca as páginas seguintes nem esconde outro número.
+  type Linha = { id: string; whatsapp_numero: string | null; telefone: string | null };
   async function todas(filtro: (q: any) => any): Promise<Linha[] | null> {
     const linhas: Linha[] = [];
-    for (let de = 0; ; de += PAGINA) {
-      const { data, error } = await filtro(admin.from("crm_leads").select("whatsapp_numero,telefone"))
-        .order("id").range(de, de + PAGINA - 1);
+    let ultimo: string | null = null;
+    while (true) {
+      let q = filtro(admin.from("crm_leads").select("id,whatsapp_numero,telefone"));
+      if (ultimo) q = q.gt("id", ultimo);
+      const { data, error } = await q.order("id").limit(PAGINA);
       if (error) return null;
       linhas.push(...(data ?? []));
       if (!data || data.length < PAGINA) return linhas;
+      ultimo = data[data.length - 1].id;
     }
   }
   const [teste, assinantes] = await Promise.all([

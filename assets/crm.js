@@ -390,7 +390,7 @@
   });
 
   $("[data-export]").addEventListener("click", function () {
-    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "created_at", "confirmed_at", "ultimo_acesso", "notas"];
+    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "papel", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "created_at", "confirmed_at", "ultimo_acesso", "notas"];
     // Valores vindos do cadastro público: neutraliza prefixos que planilhas interpretam como fórmula.
     var cell = function (v) {
       v = v == null ? "" : String(v);

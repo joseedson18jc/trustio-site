@@ -30,6 +30,14 @@ returns boolean language sql stable security definer set search_path = public as
   select exists (select 1 from auth.users u where u.id = p_user_id and lower(u.email) = any (public.emails_admin()));
 $$;
 
+-- Admin = está em admins E o e-mail atual da conta está na lista. Quem troca o e-mail do
+-- Auth para outro endereço perde os poderes na hora, mesmo antes de alguém limpar admins.
+create or replace function public.is_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.admins where user_id = auth.uid())
+     and public.pode_ser_admin(auth.uid());
+$$;
+
 -- Equipe = admin ou colaborador: quem entra no CRM.
 create or replace function public.is_staff()
 returns boolean language sql stable security definer set search_path = public as $$
@@ -40,8 +48,9 @@ $$;
 -- Papel de quem está logado, para a página decidir o que mostrar (o banco decide o que vale).
 create or replace function public.meu_papel()
 returns text language sql stable security definer set search_path = public as $$
+  -- papel 'admin' sem is_admin() (e-mail trocado para fora da lista) não vale: conta como teste.
   select case when public.is_admin() then 'admin'
-              else coalesce((select papel from public.crm_leads where user_id = auth.uid()), 'teste') end;
+              else coalesce((select nullif(papel, 'admin') from public.crm_leads where user_id = auth.uid()), 'teste') end;
 $$;
 
 -- ─────────────────────────────────────────────────────────────── regras do tipo
@@ -55,9 +64,14 @@ begin
   if new.papel = 'admin' and not public.pode_ser_admin(new.user_id) then
     raise exception 'admin_restrito' using hint = 'Só joseedson18@hotmail.com e matheuscastrocorrea@gmail.com podem ser admin.';
   end if;
-  if tg_op = 'UPDATE' and old.papel = 'admin' and new.papel <> 'admin'
-     and not exists (select 1 from public.crm_leads where papel = 'admin' and id <> new.id) then
-    raise exception 'ultimo_admin' using hint = 'Precisa haver pelo menos um admin.';
+  if tg_op = 'UPDATE' and old.papel = 'admin' and new.papel <> 'admin' then
+    -- Serializa os rebaixamentos: dois admins saindo ao mesmo tempo não podem, cada um,
+    -- contar com o outro como "o admin que fica". A trava vale até o fim da transação,
+    -- e a contagem abaixo já enxerga o que a outra transação gravou.
+    perform pg_advisory_xact_lock(hashtext('trustio_rebaixa_admin'));
+    if not exists (select 1 from public.crm_leads where papel = 'admin' and id <> new.id) then
+      raise exception 'ultimo_admin' using hint = 'Precisa haver pelo menos um admin.';
+    end if;
   end if;
   return new;
 end $$;
@@ -117,6 +131,9 @@ returns trigger language plpgsql set search_path = public as $$
 begin
   if current_setting('trustio.lead_rpc', true) = 'on' then return new; end if;
   if auth.uid() is null then return new; end if;
+  -- Identidade do lead (a conta e o e-mail que carregam o tipo) não muda por aqui, nem para
+  -- a equipe: trocar user_id de um lead colaborador daria acesso de equipe a outra conta.
+  new.user_id := old.user_id; new.email := old.email;
   if not public.is_staff() then
     -- Cliente editando o próprio cadastro: só os dados de contato mudam.
     new.status := old.status; new.plano := old.plano; new.mensagens_usadas := old.mensagens_usadas;
@@ -126,8 +143,13 @@ begin
     new.whatsapp_trial_requested_at := old.whatsapp_trial_requested_at;
     new.whatsapp_trial_started_at := old.whatsapp_trial_started_at;
     new.whatsapp_trial_ends_at := old.whatsapp_trial_ends_at;
-  elsif new.papel is distinct from old.papel and not public.is_admin() then
-    raise exception 'papel_so_admin' using hint = 'Só um admin muda o tipo de usuário.';
+  elsif not public.is_admin() then
+    if new.papel is distinct from old.papel then
+      raise exception 'papel_so_admin' using hint = 'Só um admin muda o tipo de usuário.';
+    end if;
+    -- Colaborador trabalha o lead (status, plano, notas, WhatsApp); o histórico fica.
+    new.mensagens_usadas := old.mensagens_usadas; new.origem := old.origem;
+    new.confirmed_at := old.confirmed_at; new.created_at := old.created_at;
   end if;
   return new;
 end $$;
@@ -246,7 +268,7 @@ begin
   select (value #>> '{}')::timestamptz into antecipado
     from public.app_settings where key = 'acesso_antecipado_em';
 
-  eh_admin := exists (select 1 from public.admins a where a.user_id = p_user_id)
+  eh_admin := (exists (select 1 from public.admins a where a.user_id = p_user_id) and public.pode_ser_admin(p_user_id))
            or exists (select 1 from public.crm_leads l where l.user_id = p_user_id and l.papel = 'colaborador');
   eh_pre := exists (
     select 1 from public.crm_leads l

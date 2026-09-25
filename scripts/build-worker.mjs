@@ -9,7 +9,9 @@ const mimeTypes = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
+  ".gz": "application/gzip",
   ".mp3": "audio/mpeg",
   ".webp": "image/webp",
   ".png": "image/png",
@@ -20,7 +22,7 @@ const mimeTypes = {
   ".xml": "application/xml; charset=utf-8",
 };
 
-const textExtensions = new Set([".css", ".html", ".js", ".json", ".svg", ".txt", ".webmanifest", ".xml"]);
+const textExtensions = new Set([".css", ".html", ".js", ".mjs", ".json", ".svg", ".txt", ".webmanifest", ".xml"]);
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -58,10 +60,8 @@ const sourceFiles = [
   "robots.txt",
   "sitemap.xml",
   "site.webmanifest",
-  // OCR do chat (tesseract.js e pdf.js, ~11 MB) fica de fora do worker embutido: o site em
-  // produção é servido estático, e aqui o anexo só mostra "não foi possível ler".
-  ...((await walk(join(root, "assets"))).map((file) => relative(root, file))
-    .filter((file) => !/^assets[\\/]vendor[\\/](ocr|pdfjs)[\\/]/.test(file))),
+  // Inclui o OCR do chat (assets/vendor/ocr e pdfjs): /app/ lê anexos aqui também.
+  ...((await walk(join(root, "assets"))).map((file) => relative(root, file))),
 ];
 
 const files = {};
@@ -80,7 +80,7 @@ for (const sourceFile of sourceFiles.sort()) {
 const worker = `const FILES = ${JSON.stringify(files)};
 
 const SECURITY_HEADERS = {
-  "Content-Security-Policy": "default-src 'self'; base-uri 'self'; connect-src 'self' https://api.trustio.com.br https://mjdaluioyutnxlyomzyd.supabase.co; font-src 'self' data:; form-action 'self' mailto: https://formsubmit.co https://api.trustio.com.br; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self'; style-src 'self'; upgrade-insecure-requests",
+  "Content-Security-Policy": "default-src 'self'; base-uri 'self'; connect-src 'self' https://api.trustio.com.br https://mjdaluioyutnxlyomzyd.supabase.co; font-src 'self' data:; form-action 'self' mailto: https://formsubmit.co https://api.trustio.com.br; frame-ancestors 'none'; img-src 'self' data: blob:; object-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; upgrade-insecure-requests",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",

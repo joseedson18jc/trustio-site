@@ -473,9 +473,23 @@
       showNotice(T("Aguarde terminar a leitura dos anexos.", "Wait for the attachments to finish reading."));
       return;
     }
+    // Anexo que não pôde ser lido não some calado do envio: a pessoa decide (tira e manda).
+    var ruins = anexos.filter(function (a) { return a.estado === "erro" || a.estado === "vazio"; });
+    if (ruins.length) {
+      showNotice(esc(T("Remova antes de enviar o que não pôde ser lido: ", "Remove what couldn't be read before sending: ") + ruins.map(function (a) { return a.nome; }).join(", ")));
+      return;
+    }
     var prontos = anexos.filter(function (a) { return a.estado === "pronto"; });
     if (!text && !prontos.length) return;
+    // O que foi digitado e os anexos, para devolver à caixa se o envio for recusado.
+    var rascunho = { texto: text, anexos: anexos.slice() };
+    // Texto digitado nunca vira bloco de anexo na tela.
+    text = semMarcador(text);
     if (!text) text = T("Analise o conteúdo dos anexos.", "Analyze the content of the attachments.");
+    if (text.length > LIMITE_MENSAGEM - 1000) {
+      showNotice(T("Mensagem longa demais. Divida em partes menores.", "Message too long. Split it into smaller parts."));
+      return;
+    }
     if (state.fechado) { input.value = ""; autosize(); return; }
     if (!state.user.email_confirmed_at) { showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); return; }
     state.sending = true;
@@ -484,9 +498,15 @@
     showNotice("");
     input.value = ""; autosize();
     sendBtn.disabled = true; input.disabled = true;
-    text += blocosDeAnexo(prontos);
+    text += blocosDeAnexo(prontos, LIMITE_MENSAGEM - text.length);
     anexos = []; renderAnexos();
-    appendMessage("user", text);
+    var userEl = appendMessage("user", text);
+    // Envio recusado antes de começar: a mensagem sai da conversa e volta para a caixa.
+    function devolverRascunho() {
+      if (userEl.parentNode) userEl.remove();
+      input.value = rascunho.texto; autosize();
+      anexos = rascunho.anexos; renderAnexos();
+    }
     var pending = appendMessage("assistant", "");
     pending.classList.add("msg-pending");
     var body = pending.querySelector(".msg-body");
@@ -607,13 +627,15 @@
       });
     }).catch(function (err) {
       var code = err && err.message;
+      if (code === "sem_sessao" || (err && err.status === 401)) { location.replace(CFG.loginPath); return; }
+      devolverRascunho();
       if (code === "trial_esgotado") { pending.remove(); if (state.lead) { state.lead.status = "trial_esgotado"; state.lead.mensagens_usadas = state.limit; } renderMe(); }
       else if (code === "email_nao_confirmado") { pending.remove(); showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); }
       else if (code === "chat_ainda_fechado") { pending.remove(); fechar(true, (err && err.data) || {}); }
       else if (code === "modelo_nao_configurado") { pending.remove(); fechar(true, { motivo: "sem_modelo" }); }
       else if (code === "contexto_cheio") { pending.remove(); sessaoCheia((err && err.data && err.data.janela) || 0); }
+      else if (code === "mensagem_longa") { pending.remove(); showNotice(T("Mensagem longa demais, mesmo com os anexos cortados. Divida em partes menores.", "Message too long, even with the attachments trimmed. Split it into smaller parts.")); }
       else if (code === "modelo_indisponivel") { pending.remove(); showNotice(T("O modelo não respondeu agora. Tente novamente em instantes.", "The model didn't respond just now. Try again in a moment.")); }
-      else if (code === "sem_sessao" || (err && err.status === 401)) { location.replace(CFG.loginPath); }
       else { pending.remove(); showNotice(T("Não foi possível enviar. Verifique a conexão e tente de novo.", "We couldn't send that. Check your connection and try again.")); console.error(err); }
     }).then(function () {
       pending.classList.remove("msg-pending");
@@ -646,7 +668,11 @@
   // ---------------------------------------------------------------- anexos (fotos e PDFs, OCR no navegador)
   // Até 3 arquivos por envio. O arquivo não sai do aparelho: assets/ocr.js extrai o texto
   // aqui, e só o texto vai junto da mensagem, em blocos [[anexo: …]] … [[/anexo]].
-  var MAX_ANEXOS = 3, MAX_BYTES = 10 * 1024 * 1024, MAX_TEXTO_ANEXO = 12000, MAX_TEXTO_TOTAL = 30000;
+  // LIMITE_MENSAGEM acompanha o teto da função chat (40 mil), com folga para os marcadores.
+  var MAX_ANEXOS = 3, MAX_BYTES = 10 * 1024 * 1024, MAX_TEXTO_ANEXO = 12000, MAX_TEXTO_TOTAL = 30000, LIMITE_MENSAGEM = 39000;
+  // "[[anexo" digitado ou dentro de um documento não pode abrir nem fechar um bloco de anexo:
+  // um espaço invisível entre os colchetes desfaz o marcador sem mudar o que se lê.
+  function semMarcador(t) { return String(t || "").replace(/\[\[(?=\s*\/?\s*anexo)/gi, "[\u200b["); }
   var anexos = [], seqAnexo = 0;
   var anexosEl = $("[data-anexos]"), fileInput = $("[data-file]"), attachBtn = $("[data-attach]");
 
@@ -710,11 +736,13 @@
   }
 
   // Blocos que vão para o modelo, com teto por anexo e no total (o contexto do modelo é finito).
-  function blocosDeAnexo(lista) {
-    var out = "", usado = 0;
+  function blocosDeAnexo(lista, orcamento) {
+    // Orçamento = o que sobra do limite da mensagem depois do texto digitado; os marcadores
+    // e nomes também contam (reserva de 200 por anexo).
+    var out = "", usado = 0, teto_total = Math.min(MAX_TEXTO_TOTAL, Math.max(0, (orcamento || MAX_TEXTO_TOTAL) - 200 * lista.length));
     lista.forEach(function (a) {
-      var livre = MAX_TEXTO_TOTAL - usado; if (livre <= 200) return;
-      var teto = Math.min(MAX_TEXTO_ANEXO, livre), txt = a.texto, cortado = txt.length > teto;
+      var livre = teto_total - usado; if (livre <= 200) return;
+      var teto = Math.min(MAX_TEXTO_ANEXO, livre), txt = semMarcador(a.texto), cortado = txt.length > teto;
       if (cortado) txt = txt.slice(0, teto);
       usado += txt.length;
       var pags = a.pdf && a.info ? a.info.paginas : 0;
@@ -734,8 +762,12 @@
   });
   // Colar uma imagem (print) e arrastar arquivos para a conversa também anexam.
   input.addEventListener("paste", function (e) {
-    var fs = e.clipboardData && e.clipboardData.files;
-    if (fs && fs.length) { e.preventDefault(); adicionarArquivos(fs); }
+    var cd = e.clipboardData; if (!cd || !cd.files || !cd.files.length) return;
+    var aceitos = Array.prototype.filter.call(cd.files, tipoAceito);
+    if (!aceitos.length) return; // nada anexável: a colagem segue normal
+    // Com texto junto (ex.: trecho de página com imagem), o texto entra na caixa normalmente.
+    if (!cd.getData("text/plain")) e.preventDefault();
+    adicionarArquivos(aceitos);
   });
   ["dragover", "drop"].forEach(function (ev) {
     composer.addEventListener(ev, function (e) {

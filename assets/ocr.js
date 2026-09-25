@@ -30,7 +30,8 @@
       workerPronto = tesseractPronto.then(function () {
         return window.Tesseract.createWorker("por", 1, {
           workerPath: BASE + "ocr/worker.min.js",
-          corePath: BASE + "ocr/",
+          // Só a variante SIMD do motor (todo navegador atual tem: Chrome, Firefox, Safari 16.4+).
+          corePath: BASE + "ocr/tesseract-core-simd-lstm.wasm.js",
           langPath: BASE + "ocr/",
           gzip: true,
           // Worker a partir do arquivo, não de blob: a CSP da página não aceita blob: em scripts.
@@ -69,7 +70,7 @@
       var lib = r[0];
       return lib.getDocument({ data: new Uint8Array(r[1]), isEvalSupported: false }).promise;
     }).then(function (doc) {
-      var total = Math.min(doc.numPages, MAX_PAGINAS), partes = [], ocrUsadas = 0, i = 0;
+      var total = Math.min(doc.numPages, MAX_PAGINAS), partes = [], ocrUsadas = 0, falhas = 0, i = 0;
       function proxima() {
         i++;
         if (i > total) return null;
@@ -84,14 +85,19 @@
             return pag.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise.then(function () {
               return reconhecer(canvas, function (p) { progresso((i - 1 + p) / total); });
             });
+          }).catch(function (err) {
+            // Uma página que não renderiza ou não passa no OCR não derruba as outras.
+            console.warn("ocr página " + i, err); falhas++;
+            return "[página " + i + ": não foi possível ler]";
           }).then(function (txt) {
-            if (txt && txt.trim()) partes.push((total > 1 ? "[página " + i + "]\n" : "") + txt.trim());
+            if (txt && txt.trim()) partes.push((total > 1 && txt.indexOf("[página " + i + ":") !== 0 ? "[página " + i + "]\n" : "") + txt.trim());
             progresso(i / total);
             return proxima();
           });
         });
       }
       return Promise.resolve(proxima()).then(function () {
+        if (falhas && falhas === total) throw new Error("nenhuma_pagina_legivel");
         return { texto: partes.join("\n\n"), paginas: doc.numPages, lidas: total, ocr: ocrUsadas };
       });
     });

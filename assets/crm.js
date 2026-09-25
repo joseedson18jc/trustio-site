@@ -220,17 +220,32 @@
   }
 
   // Avisos da ativação (e-mail com instruções e mensagem no WhatsApp), enviados pelo banco.
+  // Por canal: saiu (✓), está saindo (reserva com menos de 2 min), falhou (erro) ou pendente.
+  var DOIS_MIN = 2 * 60 * 1000;
   function avisoFoi(em, l) { return !!em && (!l.whatsapp_trial_started_at || new Date(em) >= new Date(l.whatsapp_trial_started_at)); }
+  function avisoCanal(l, p) {
+    if (avisoFoi(l[p + "_em"], l)) return "ok";
+    if (l[p + "_reserva"] && Date.now() - new Date(l[p + "_reserva"]) < DOIS_MIN) return "saindo";
+    if (l[p + "_erro"]) return "erro";
+    return "pendente";
+  }
+  function avisoErros(l) {
+    return [l.whatsapp_aviso_email_erro && "e-mail: " + l.whatsapp_aviso_email_erro, l.whatsapp_aviso_wa_erro && "WhatsApp: " + l.whatsapp_aviso_wa_erro].filter(Boolean).join(" · ");
+  }
   function avisoHtml(l) {
-    var email = avisoFoi(l.whatsapp_aviso_email_em, l), zap = avisoFoi(l.whatsapp_aviso_wa_em, l);
-    var partes = ["e-mail " + (email ? "✓" : "—"), "WhatsApp " + (zap ? "✓" : "—")];
+    var email = avisoCanal(l, "whatsapp_aviso_email"), zap = avisoCanal(l, "whatsapp_aviso_wa");
+    var sinal = { ok: "✓", saindo: "…", erro: "✕", pendente: "—" };
+    var texto = "Aviso: e-mail " + sinal[email] + " · WhatsApp " + sinal[zap];
     var reenviar = "<button type=\"button\" class=\"wa-go\" data-wa-reenviar>Reenviar avisos</button>";
-    if (l.whatsapp_aviso_erro) return "<small class=\"wa-aviso wa-aviso-erro\" title=\"" + esc(l.whatsapp_aviso_erro) + "\">Aviso: " + partes.join(" · ") + " · falhou</small>" + reenviar;
-    if (email && zap) return "<small class=\"wa-aviso\">Aviso: " + partes.join(" · ") + "</small>";
-    // Logo depois de ativar, os avisos ainda estão saindo; passado isso, o que falta pode ser reenviado.
-    var recente = l.whatsapp_trial_started_at && Date.now() - new Date(l.whatsapp_trial_started_at) < 2 * 60 * 1000;
-    if (recente) return "<small class=\"wa-aviso\">" + (email || zap ? "Aviso: " + partes.join(" · ") : "Enviando avisos…") + "</small>";
-    return "<small class=\"wa-aviso\">" + (email || zap ? "Aviso: " + partes.join(" · ") : "Sem aviso enviado") + "</small>" + reenviar;
+    if (email === "ok" && zap === "ok") return "<small class=\"wa-aviso\">" + texto + "</small>";
+    // Logo depois de ativar, ou com envio em andamento, ainda não há o que reenviar.
+    var recente = l.whatsapp_trial_started_at && Date.now() - new Date(l.whatsapp_trial_started_at) < DOIS_MIN;
+    if (email === "saindo" || zap === "saindo" || (recente && email === "pendente" && zap === "pendente")) {
+      return "<small class=\"wa-aviso\">" + (email === "pendente" && zap === "pendente" ? "Enviando avisos…" : texto) + "</small>";
+    }
+    var erros = avisoErros(l);
+    if (erros) return "<small class=\"wa-aviso wa-aviso-erro\" title=\"" + esc(erros) + "\">" + texto + " · falhou</small>" + reenviar;
+    return "<small class=\"wa-aviso\">" + (email === "pendente" && zap === "pendente" ? "Sem aviso enviado" : texto) + "</small>" + reenviar;
   }
   // O aviso sai logo depois da ativação, fora do navegador: recarrega uma vez para mostrar o resultado.
   function recarregarAvisos() { setTimeout(function () { loadLeads(); }, 8000); }
@@ -361,7 +376,7 @@
       ["Teste até", fmt(l.whatsapp_trial_ends_at)],
       ["Aviso por e-mail", fmt(l.whatsapp_aviso_email_em)],
       ["Aviso no WhatsApp", fmt(l.whatsapp_aviso_wa_em)],
-      ["Falha no aviso", esc(l.whatsapp_aviso_erro || "—")],
+      ["Falha no aviso", esc(avisoErros(l) || "—")],
       ["Conta no chat", l.user_id ? "sim" : "não (só lista de espera)"],
       ["Notas", esc(l.notas || "—")]
     ];
@@ -382,7 +397,7 @@
   });
 
   $("[data-export]").addEventListener("click", function () {
-    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "whatsapp_aviso_email_em", "whatsapp_aviso_wa_em", "whatsapp_aviso_erro", "created_at", "confirmed_at", "ultimo_acesso", "notas"];
+    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "whatsapp_aviso_email_em", "whatsapp_aviso_email_erro", "whatsapp_aviso_wa_em", "whatsapp_aviso_wa_erro", "created_at", "confirmed_at", "ultimo_acesso", "notas"];
     // Valores vindos do cadastro público: neutraliza prefixos que planilhas interpretam como fórmula.
     var cell = function (v) {
       v = v == null ? "" : String(v);

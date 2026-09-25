@@ -31,7 +31,7 @@ const SITE = "https://trustio.com.br";
 
 type Lead = {
   id: string; nome: string | null; email: string | null; whatsapp_numero: string | null;
-  whatsapp_trial_status: string; whatsapp_trial_ends_at: string | null;
+  whatsapp_trial_status: string; whatsapp_trial_started_at: string | null; whatsapp_trial_ends_at: string | null;
 };
 
 function responder(status: number, corpo: unknown) {
@@ -150,45 +150,56 @@ function textoDoWhatsapp(nome: string, fim: string, agente: string) {
   ].join("\n");
 }
 
-// Falha passageira (rede, 429 ou 5xx do provedor): uma nova tentativa depois de 2 s.
-class Definitivo extends Error {}
+// Nova tentativa só quando repetir não duplica: o e-mail leva chave de idempotência (o Resend
+// descarta a segunda cópia), então tenta de novo em falha passageira (rede, 429, 5xx); no
+// WhatsApp, só em 429, quando a mensagem com certeza não foi aceita. Cada chamada tem 15 s,
+// bem dentro dos 2 minutos da reserva.
+class Repetivel extends Error {}
 async function comNovaTentativa(fn: () => Promise<void>) {
   try { await fn(); } catch (e) {
-    if (e instanceof Definitivo) throw e;
+    if (!(e instanceof Repetivel)) throw e;
     await new Promise((r) => setTimeout(r, 2000));
     await fn();
   }
 }
-function falha(servico: string, r: Response, corpo: string) {
-  const msg = `${servico} ${r.status}: ${corpo.slice(0, 200)}`;
-  return r.status === 429 || r.status >= 500 ? new Error(msg) : new Definitivo(msg);
-}
+const PRAZO_MS = 15000;
 
-async function enviarEmail(para: string, nome: string, fim: string, agente: string, numeroCliente: string) {
-  const r = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: EMAIL_FROM,
-      to: [para],
-      // O remetente é no-reply: respostas ("não pedi este teste") vão para o contato da Trustio.
-      reply_to: "contato@trustio.com.br",
-      subject: "Seu Agentio está ativo no WhatsApp · 3 dias grátis",
-      html: corpoDoEmail(nome, fim, agente, numeroCliente),
-      text: textoDoEmail(nome, fim, agente, numeroCliente),
-    }),
-  });
-  if (!r.ok) throw falha("resend", r, await r.text());
+async function enviarEmail(chave: string, para: string, nome: string, fim: string, agente: string, numeroCliente: string) {
+  let r: Response;
+  try {
+    r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      signal: AbortSignal.timeout(PRAZO_MS),
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": chave },
+      body: JSON.stringify({
+        from: EMAIL_FROM,
+        to: [para],
+        // O remetente é no-reply: respostas ("não pedi este teste") vão para o contato da Trustio.
+        reply_to: "contato@trustio.com.br",
+        subject: "Seu Agentio está ativo no WhatsApp · 3 dias grátis",
+        html: corpoDoEmail(nome, fim, agente, numeroCliente),
+        text: textoDoEmail(nome, fim, agente, numeroCliente),
+      }),
+    });
+  } catch (e) { throw new Repetivel(`resend: ${(e as Error).message}`); }
+  if (!r.ok) {
+    const msg = `resend ${r.status}: ${(await r.text()).slice(0, 200)}`;
+    throw r.status === 429 || r.status >= 500 ? new Repetivel(msg) : new Error(msg);
+  }
 }
 
 async function enviarWhatsapp(numero: string, texto: string) {
   const r = await fetch(`${EVOLUTION_URL}/message/sendText/${encodeURIComponent(EVOLUTION_INSTANCE)}`, {
     method: "POST",
+    signal: AbortSignal.timeout(PRAZO_MS),
     headers: { apikey: EVOLUTION_API_KEY, "Content-Type": "application/json" },
     // "text" é o formato da Evolution v2; "textMessage", o da v1. Cada versão ignora o outro.
     body: JSON.stringify({ number: numero, text: texto, textMessage: { text: texto } }),
   });
-  if (!r.ok) throw falha("evolution", r, await r.text());
+  if (!r.ok) {
+    const msg = `evolution ${r.status}: ${(await r.text()).slice(0, 200)}`;
+    throw r.status === 429 ? new Repetivel(msg) : new Error(msg);
+  }
 }
 
 Deno.serve(async (req) => {
@@ -201,10 +212,12 @@ Deno.serve(async (req) => {
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const { data: lead, error } = await admin.from("crm_leads")
-    .select("id,nome,email,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_ends_at")
+    .select("id,nome,email,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_started_at,whatsapp_trial_ends_at")
     .eq("id", leadId).maybeSingle<Lead>();
   if (error) return responder(500, { error: "lead" });
-  if (!lead || lead.whatsapp_trial_status !== "ativo") return responder(200, { ok: true, ignorado: "nao_ativo" });
+  if (!lead || lead.whatsapp_trial_status !== "ativo" || !lead.whatsapp_trial_started_at) return responder(200, { ok: true, ignorado: "nao_ativo" });
+  // A ativação que esta chamada viu: reservas e erros só valem para ela.
+  const inicio = lead.whatsapp_trial_started_at;
 
   const { data: cfg } = await admin.from("app_settings").select("value").eq("key", "hermes_numero").maybeSingle();
   // Só entra nas instruções um número completo (DDI + DDD + número): o do painel ou o da instância.
@@ -218,33 +231,34 @@ Deno.serve(async (req) => {
   const enviados: string[] = [];
 
   // Cada canal é reservado no banco antes do envio (um aviso por ativação, mesmo com chamadas
-  // simultâneas) e a reserva é desfeita se o envio falhar, para o "Reenviar avisos" tentar de novo.
-  async function canal(nomeCanal: "email" | "whatsapp", rotulo: string, pronto: string | null, enviar: () => Promise<void>) {
-    if (pronto) { erros.push(`${rotulo}: ${pronto}`); return; }
-    const { data: marca, error: reserva } = await admin.rpc("aviso_reservar", { p_lead_id: lead!.id, p_canal: nomeCanal });
-    if (reserva) { erros.push(`${rotulo}: ${reserva.message}`); return; }
-    if (!marca) return; // já saiu (ou está saindo) nesta ativação
-    try { await comNovaTentativa(enviar); enviados.push(nomeCanal); }
-    catch (e) {
-      erros.push(`${rotulo}: ${(e as Error).message}`);
-      await admin.rpc("aviso_liberar", { p_lead_id: lead!.id, p_canal: nomeCanal, p_marca: marca });
+  // simultâneas) e só conta como enviado quando o provedor aceita. Se o envio falha, a reserva é
+  // desfeita e o motivo fica no canal; se a função cai no meio, a reserva expira em 2 minutos.
+  async function canal(nomeCanal: "email" | "whatsapp", rotulo: string, falta: string | null, enviar: () => Promise<void>) {
+    if (falta) {
+      erros.push(`${rotulo}: ${falta}`);
+      await admin.rpc("aviso_falta", { p_lead_id: lead!.id, p_canal: nomeCanal, p_inicio: inicio, p_erro: falta });
+      return;
     }
+    const { data: marca, error: reserva } = await admin.rpc("aviso_reservar", { p_lead_id: lead!.id, p_canal: nomeCanal, p_inicio: inicio });
+    if (reserva) { erros.push(`${rotulo}: ${reserva.message}`); return; }
+    if (!marca) return; // já saiu, ou outra chamada está enviando
+    let erro: string | null = null;
+    try { await comNovaTentativa(enviar); enviados.push(nomeCanal); }
+    catch (e) { erro = (e as Error).message; erros.push(`${rotulo}: ${erro}`); }
+    const { error: fechar } = await admin.rpc("aviso_concluir", { p_lead_id: lead!.id, p_canal: nomeCanal, p_marca: marca, p_erro: erro });
+    if (fechar) console.error("aviso_concluir", nomeCanal, fechar.message);
   }
 
   // Sem o número do Agentio as instruções levariam a lugar nenhum: nada sai até ele ser configurado.
   const semAgente = agente ? null : "número do Agentio não configurado (painel → hermes_numero)";
   await canal("email", "e-mail",
     semAgente ?? (!RESEND_API_KEY ? "RESEND_API_KEY ausente" : !lead.email ? "lead sem e-mail" : null),
-    () => enviarEmail(lead.email!, nome, fim, agente!, numeroCliente));
+    () => enviarEmail(`aviso-agente/${lead.id}/${inicio}`, lead.email!, nome, fim, agente!, numeroCliente));
   await canal("whatsapp", "WhatsApp",
     semAgente ?? (!EVOLUTION_URL || !EVOLUTION_INSTANCE || !EVOLUTION_API_KEY ? "Evolution API não configurada"
       : numeroCliente.length < 12 ? "lead sem número válido" : null),
     () => enviarWhatsapp(numeroCliente, textoDoWhatsapp(nome, fim, agente!)));
 
-  const { error: gravar } = await admin.from("crm_leads")
-    .update({ whatsapp_aviso_erro: erros.length ? erros.join(" · ").slice(0, 500) : null })
-    .eq("id", lead.id);
-  if (gravar) console.error("aviso_gravar", gravar.message);
   if (erros.length) console.error("aviso_erros", lead.id, erros.join(" · "));
   return responder(200, { ok: erros.length === 0, enviados, erros });
 });

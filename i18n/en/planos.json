@@ -323,7 +323,6 @@
     "O pacote completo pelo menor preço.": "The full package at the lowest price.",
     "Equivale a R$ 140,83 por mês · separados: R$ 1.980 ·": "Works out to R$ 140.83 per month · separately: R$ 1,980 ·",
     "O que está incluso": "What's included",
-    "3 dias de bônus": "3-day bonus",
     "Semanal (7 dias)": "Weekly (7 days)",
     "R$ 24,90": "R$ 24.90",
     "R$ 39,90": "R$ 39.90",
@@ -339,13 +338,14 @@
     "Agentio · a partir de R$ 39,90": "Agentio · from R$ 39.90",
     "Combo Chat + Agentio · a partir de R$ 54,90": "Combo Chat + Agentio · from R$ 54.90",
     "O que muda entre os três acessos ao chat.": "What changes between the three chat plans.",
-    "3 dias de bônus · depois, Agentio ou Combo": "3-day bonus · then Agentio or Combo",
     "Sim. Todos os planos pessoais — chat, Agentio e Combo — aceitam Pix, e os anuais parcelam em até 12×. Pagando por Pix não existe cobrança automática: quando o período acaba, avisamos por e-mail e você decide se renova.": "Yes. All personal plans — chat, Agentio and Combo — accept Pix, and annual plans can be split into up to 12 installments. With Pix there is no automatic charge: when the period ends, we email you and you decide whether to renew.",
     "O agente agora é o": "The agent is now",
     "(by Trustio & Hermes), vendido em planos próprios — semanal, mensal, semestral e anual — ou junto com o chat no": "(by Trustio & Hermes), sold in its own plans — weekly, monthly, 6-month and annual — or together with the chat in the",
     ", mais barato que os dois separados. Os planos do chat trazem": ", which costs less than both separately. Chat plans come with a",
-    "3 dias de Agentio de bônus": "3-day Agentio bonus",
     ", que começam no dia em que você ativa. O agente atende": ", starting on the day you activate it. The agent answers",
-    ", no número que você cadastrar, nunca por computador ou terminal. Quem assinou o chat antes desta mudança mantém o agente incluso enquanto a assinatura estiver ativa.": ", on the number you register, never through a computer or terminal. Anyone who subscribed to the chat before this change keeps the agent included while their subscription is active."
+    ", no número que você cadastrar, nunca por computador ou terminal. Depois dos 3 dias de teste, o agente continua só com um plano Agentio ou Combo.": ", on the number you register, never through a computer or terminal. After the 3-day trial, the agent continues only with an Agentio or Combo plan.",
+    "3 dias de Agentio para testar": "3-day Agentio trial",
+    "3 dias para testar · depois, Agentio ou Combo": "3-day trial · then Agentio or Combo",
+    "3 dias para testar": "3-day trial"
   }
 }

@@ -415,9 +415,10 @@ p {
 
 .desktop-nav a {
   position: relative;
-  color: var(--muted-strong);
-  font-size: 14px;
-  font-weight: 500;
+  color: var(--ice);
+  font-size: 15px;
+  font-weight: 560;
+  letter-spacing: -0.005em;
   white-space: nowrap;
   transition: color 180ms ease;
 }
@@ -1891,22 +1892,22 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
 }
 
 /* Responsive */
-/* Cabeçalho: nove itens + CTA + alternador de tema precisam de ~1270px; a faixa do cabeçalho
-   cresce até 1360px (mais larga que o container de conteúdo) e, abaixo de 1321px, o menu
-   hambúrguer assume (breakpoint espelhado em app.js). */
-@media (min-width: 1321px) {
+/* Cabeçalho: seis itens + Entrar + CTA + idioma + tema precisam de ~1130px; a faixa do
+   cabeçalho cresce até 1360px (mais larga que o container de conteúdo) e, abaixo de 1181px,
+   o menu hambúrguer assume (breakpoint espelhado em app.js). */
+@media (min-width: 1181px) {
   .header-inner { width: min(1360px, calc(100vw - 48px)); gap: var(--space-16); }
-  .desktop-nav { gap: var(--space-12); }
-  .desktop-nav a { font-size: 13.5px; }
+  .desktop-nav { gap: var(--space-20); }
+  .desktop-nav a { font-size: 14.5px; }
 }
 
-@media (min-width: 1601px) {
+@media (min-width: 1441px) {
   .header-inner { gap: var(--space-20); }
-  .desktop-nav { gap: var(--space-16); }
-  .desktop-nav a { font-size: 14px; }
+  .desktop-nav { gap: var(--space-28); }
+  .desktop-nav a { font-size: 15px; }
 }
 
-@media (max-width: 1320px) {
+@media (max-width: 1180px) {
   .desktop-nav { display: none; }
   .menu-toggle { display: block; }
   .header-cta { margin-left: auto; }
@@ -2510,8 +2511,16 @@ h3 { letter-spacing: -0.018em; }
 }
 
 /* Link "Entrar" do cabeçalho (área do cliente). */
-.header-login { flex: 0 0 auto; margin-left: auto; padding: 8px 6px; font-size: 13.5px; font-weight: 600; color: var(--muted-strong); white-space: nowrap; }
-.header-login:hover { color: var(--ice); }
+.header-login { flex: 0 0 auto; margin-left: auto; padding: 8px 6px; font-size: 15px; font-weight: 600; color: var(--ice); white-space: nowrap; }
+.header-login:hover { color: var(--blue-signal); }
+/* Botões do cabeçalho mais evidentes: CTA em azul cheio; idioma e tema com borda e ícone claros. */
+.site-header .header-cta { border-color: transparent; background: var(--cta-gradient); box-shadow: 0 10px 26px rgba(37, 99, 235, 0.3), inset 0 1px rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 14px; }
+.site-header .header-cta:hover { border-color: transparent; background: var(--cta-gradient); box-shadow: 0 16px 36px rgba(37, 99, 235, 0.42), inset 0 1px rgba(255, 255, 255, 0.35); color: #ffffff; }
+.site-header .lang-switch,
+.site-header .theme-toggle { border-color: rgba(var(--on-surface-rgb), 0.24); background: rgba(var(--on-surface-rgb), 0.06); color: var(--ice); }
+.site-header .lang-switch { font-size: 12px; font-weight: 600; }
+.site-header .lang-switch:hover,
+.site-header .theme-toggle:hover { border-color: var(--line-bright); background: rgba(94, 167, 255, 0.12); color: var(--text-strong); }
 .header-login + .header-cta { margin-left: 0; }
 @media (max-width: 960px) { .header-login { display: none; } }
 

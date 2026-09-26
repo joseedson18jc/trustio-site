@@ -16,11 +16,15 @@ const check = process.argv.includes("--check");
 const ORIGEM = "https://trustio.com.br/";
 
 // https://trustio.com.br/juridico/ → juridico/index.html; …/en/modelos.html → en/modelos.html
-export function arquivoDaUrl(url) {
+export function caminhoDaUrl(url) {
   if (!url.startsWith(ORIGEM)) return null;
-  let caminho = url.slice(ORIGEM.length);
-  if (caminho === "" || caminho.endsWith("/")) caminho += "index.html";
-  return existsSync(join(root, caminho)) ? caminho : null;
+  const caminho = url.slice(ORIGEM.length);
+  return caminho === "" || caminho.endsWith("/") ? `${caminho}index.html` : caminho;
+}
+
+export function arquivoDaUrl(url) {
+  const caminho = caminhoDaUrl(url);
+  return caminho && existsSync(join(root, caminho)) ? caminho : null;
 }
 
 function git(...args) {

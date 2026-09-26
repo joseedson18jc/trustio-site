@@ -84,6 +84,12 @@ function ehRecusaDeImagem(status: number, detalhe: string) {
   if ([401, 403, 404, 408, 429].includes(status)) return false;
   return status >= 400 && status < 500;
 }
+// Erro que indica nome de modelo desconhecido pelo servidor (ex.: mlx_vlm tentando carregar outro
+// modelo: "Failed to load model…"; OpenAI/xAI: "model_not_found").
+function ehErroDeNomeDoModelo(status: number, detalhe: string) {
+  return [400, 404, 422].includes(status) && !ehContextoCheio(status, detalhe) &&
+    /failed to load model|model[_ ]not[_ ]found|does not exist|unknown model|no such model|cached snapshot/i.test(detalhe);
+}
 // Conversa maior que o contexto do modelo.
 function ehContextoCheio(status: number, detalhe: string) {
   return status === 400 && /exceed_context_size|context (size|length)|maximum context/i.test(detalhe);
@@ -160,7 +166,8 @@ Deno.serve(async (req) => {
       pre_assinante: acesso.pre_assinante ?? false,
       modelo_configurado: configurado,
       // O modelo efetivo (banco, /models do servidor ou LLM_MODEL), o mesmo que a conversa usa.
-      modelo: ehAdmin && configurado ? await modeloDaChamada(await modeloDoBanco(admin)) : null,
+      // Sem consultar o servidor: a verificação não pode esperar um GET /models lento.
+      modelo: ehAdmin && configurado ? (await modeloDoBanco(admin)) ?? modeloDescoberto?.id ?? LLM_MODEL : null,
       provedor: ehAdmin && configurado ? new URL(LLM_BASE_URL).host : null,
     }, origin);
   }
@@ -281,10 +288,12 @@ Deno.serve(async (req) => {
     // Nome vindo do GET /models guardado: se o servidor trocou de modelo nesse meio tempo, a
     // chamada falha. Descarta o nome guardado, pergunta de novo e, se mudou, tenta mais uma vez.
     // (O nome definido no banco é escolha do administrador e não é trocado aqui.)
+    // Só quando o erro aponta para o nome do modelo: limite de uso, servidor fora do ar ou
+    // contexto cheio não passam por aqui (não adianta, e custaria mais uma espera).
     if ((!upstream.ok || !upstream.body) && !modeloConfigurado && modeloDescoberto) {
       if (!detail) detail = await upstream.text().catch(() => "");
-      modeloDescoberto = null;
-      if (!ehContextoCheio(upstream.status, detail)) {
+      if (ehErroDeNomeDoModelo(upstream.status, detail)) {
+        modeloDescoberto = null;
         const novo = await modeloDaChamada(null);
         if (novo !== modelo) {
           console.log("llm_modelo_trocado", modelo, "→", novo);

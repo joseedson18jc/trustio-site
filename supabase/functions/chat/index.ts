@@ -25,6 +25,11 @@ const LLM_MODEL = (Deno.env.get("LLM_MODEL") ?? "grok-4").trim();
 // mlx_vlm.server só atendem com o nome exato do modelo carregado: qualquer outro eles tentam
 // carregar e falham. O resultado de /models fica guardado por 10 minutos.
 let modeloDescoberto: { id: string; em: number } | null = null;
+// deno-lint-ignore no-explicit-any
+async function modeloDoBanco(admin: any): Promise<string | null> {
+  const { data } = await admin.from("app_settings").select("value").eq("key", "llm_model").maybeSingle();
+  return typeof data?.value === "string" && data.value.trim() ? data.value.trim() : null;
+}
 async function modeloDaChamada(configurado: string | null): Promise<string> {
   // app_settings.llm_model (definido no banco) vale primeiro: muda na hora, sem depender da
   // propagação dos segredos da função nem do workflow que os regrava a cada deploy.
@@ -154,7 +159,8 @@ Deno.serve(async (req) => {
       antecipado_em: acesso.antecipado_em ?? null,
       pre_assinante: acesso.pre_assinante ?? false,
       modelo_configurado: configurado,
-      modelo: ehAdmin && configurado ? LLM_MODEL : null,
+      // O modelo efetivo (banco, /models do servidor ou LLM_MODEL), o mesmo que a conversa usa.
+      modelo: ehAdmin && configurado ? await modeloDaChamada(await modeloDoBanco(admin)) : null,
       provedor: ehAdmin && configurado ? new URL(LLM_BASE_URL).host : null,
     }, origin);
   }
@@ -226,15 +232,14 @@ Deno.serve(async (req) => {
   const { data: history } = await admin.from("messages").select("role,content")
     .eq("conversation_id", conversationId).order("created_at", { ascending: false }).limit(HISTORY - 1);
   const { data: promptRow } = await admin.from("app_settings").select("value").eq("key", "system_prompt").maybeSingle();
-  const { data: modeloRow } = await admin.from("app_settings").select("value").eq("key", "llm_model").maybeSingle();
-  const modeloConfigurado = typeof modeloRow?.value === "string" && modeloRow.value.trim() ? modeloRow.value.trim() : null;
+  const modeloConfigurado = await modeloDoBanco(admin);
   const systemPrompt = typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.";
 
   const anteriores = [
     { role: "system", content: systemPrompt },
     ...(history ?? []).reverse().map((m) => ({ role: m.role, content: m.content })),
   ];
-  const modelo = await modeloDaChamada(modeloConfigurado);
+  let modelo = await modeloDaChamada(modeloConfigurado);
   console.log("llm_modelo", modelo);
   const chamarModelo = (ultima: unknown) => fetch(`${LLM_BASE_URL}/chat/completions`, {
     method: "POST",
@@ -247,9 +252,10 @@ Deno.serve(async (req) => {
     }),
   });
 
-  let upstream: Response;
+  let upstream!: Response;
   let detail = "";
-  try {
+  const tentar = async () => {
+    detail = "";
     if (imagens.length) {
       // Com fotos: texto + imagens no formato da API da OpenAI. Servidor que não aceita
       // imagem (modelo só de texto) recusa; aí vai de novo só o texto, com um aviso ao
@@ -268,6 +274,24 @@ Deno.serve(async (req) => {
       }
     } else {
       upstream = await chamarModelo(message);
+    }
+  };
+  try {
+    await tentar();
+    // Nome vindo do GET /models guardado: se o servidor trocou de modelo nesse meio tempo, a
+    // chamada falha. Descarta o nome guardado, pergunta de novo e, se mudou, tenta mais uma vez.
+    // (O nome definido no banco é escolha do administrador e não é trocado aqui.)
+    if ((!upstream.ok || !upstream.body) && !modeloConfigurado && modeloDescoberto) {
+      if (!detail) detail = await upstream.text().catch(() => "");
+      modeloDescoberto = null;
+      if (!ehContextoCheio(upstream.status, detail)) {
+        const novo = await modeloDaChamada(null);
+        if (novo !== modelo) {
+          console.log("llm_modelo_trocado", modelo, "→", novo);
+          modelo = novo;
+          await tentar();
+        }
+      }
     }
   } catch (err) {
     console.error("llm_fetch_error", err);

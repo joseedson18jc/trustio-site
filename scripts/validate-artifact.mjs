@@ -35,7 +35,7 @@ for (const [path, expectedStatus, expectedType] of [
   ["/en", 200, "text/html"],
   ["/en/", 200, "text/html"],
   ["/en/voice", 200, "text/html"],
-  ["/en/agentio", 200, "text/html"],
+  ["/en/agentio.html", 200, "text/html"],
   ["/en/planos.html", 200, "text/html"],
   ["/en/juridico/", 200, "text/html"],
   ["/en/console/", 200, "text/html"],

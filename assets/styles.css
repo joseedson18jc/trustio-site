@@ -548,6 +548,9 @@ p {
 .mobile-nav {
   display: grid;
   height: calc(100svh - 80px);
+  /* Com o menu aberto a página não rola: em tela baixa, o próprio menu rola até "Entrar". */
+  overflow-y: auto;
+  overscroll-behavior: contain;
   align-content: start;
   gap: 0;
   padding: var(--space-24);

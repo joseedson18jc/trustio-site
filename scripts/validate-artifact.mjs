@@ -69,4 +69,20 @@ for (const [path, expectedLocation] of [
   }
 }
 
+// O Cloudflare injeta o script do Web Analytics em todas as páginas; a CSP (a do cabeçalho do
+// worker e a da própria página do chat) precisa liberar o script e o envio, senão o chat some
+// das estatísticas sem nenhum outro sinal.
+const ANALYTICS = [["script-src", "https://static.cloudflareinsights.com"], ["connect-src", "https://cloudflareinsights.com"]];
+const diretiva = (csp, nome) => (csp.split(";").map((d) => d.trim()).find((d) => d.startsWith(nome + " ")) ?? "").split(/\s+/);
+for (const path of ["/app/", "/en/app/"]) {
+  const response = await worker.fetch(new Request(`https://trustio.example${path}`));
+  const header = response.headers.get("content-security-policy") ?? "";
+  const meta = (await response.text()).match(/http-equiv="Content-Security-Policy" content="([^"]*)"/)?.[1] ?? "";
+  for (const [onde, csp] of [["cabeçalho", header], ["meta", meta]]) {
+    for (const [nome, origem] of ANALYTICS) {
+      if (!diretiva(csp, nome).includes(origem)) throw new Error(`${path}: CSP (${onde}) não libera ${origem} em ${nome}.`);
+    }
+  }
+}
+
 console.log("Trustio production artifact is valid.");

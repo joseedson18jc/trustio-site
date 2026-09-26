@@ -14,7 +14,37 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LLM_API_KEY = Deno.env.get("LLM_API_KEY") ?? Deno.env.get("XAI_API_KEY") ?? "";
 const LLM_BASE_URL = (Deno.env.get("LLM_BASE_URL") ?? "https://api.x.ai/v1").replace(/\/$/, "");
-const LLM_MODEL = Deno.env.get("LLM_MODEL") ?? "grok-4";
+const LLM_MODEL = (Deno.env.get("LLM_MODEL") ?? "grok-4").trim();
+
+// Nome do modelo que vai na chamada. O servidor próprio (mlx_vlm.server) só reusa o modelo
+// carregado se o campo "model" for idêntico ao id com que foi aberto; qualquer outro nome ele
+// tenta carregar do cache e falha. Por isso o id é lido de GET /models do próprio servidor:
+// com um modelo só na lista, vale esse; com vários (provedor na nuvem), vale LLM_MODEL se
+// estiver na lista. Sem resposta, LLM_MODEL. Guardado por 10 minutos.
+let modeloDescoberto: { id: string; em: number } | null = null;
+async function modeloDaChamada(configurado: string | null): Promise<string> {
+  // app_settings.llm_model (definido no banco) vale primeiro: muda na hora, sem depender da
+  // propagação dos segredos da função nem do workflow que os regrava a cada deploy.
+  if (configurado) return configurado;
+  if (modeloDescoberto && Date.now() - modeloDescoberto.em < 10 * 60_000) return modeloDescoberto.id;
+  try {
+    // 25 s: a primeira chamada depois de ociosidade longa acorda o modelo (~15 s).
+    const r = await fetch(`${LLM_BASE_URL}/models`, {
+      headers: { "Authorization": `Bearer ${LLM_API_KEY}` },
+      signal: AbortSignal.timeout(25_000),
+    });
+    if (r.ok) {
+      const j = await r.json();
+      const ids: string[] = (Array.isArray(j?.data) ? j.data : []).map((m: { id?: unknown }) => String(m?.id ?? "")).filter(Boolean);
+      const id = ids.includes(LLM_MODEL) ? LLM_MODEL : ids.length === 1 ? ids[0] : null;
+      if (!id) console.log("llm_models_lista", ids.length);
+      if (id) { modeloDescoberto = { id, em: Date.now() }; return id; }
+    }
+  } catch (err) {
+    console.error("llm_models_indisponivel", String(err).slice(0, 200));
+  }
+  return LLM_MODEL;
+}
 const HISTORY = 30;
 // Teto de tokens por resposta, opcional e explícito: só com o segredo LLM_MAX_TOKENS a
 // função limita o modelo, e só então o chat mostra a porcentagem da resposta (contra esse
@@ -193,17 +223,21 @@ Deno.serve(async (req) => {
   const { data: history } = await admin.from("messages").select("role,content")
     .eq("conversation_id", conversationId).order("created_at", { ascending: false }).limit(HISTORY - 1);
   const { data: promptRow } = await admin.from("app_settings").select("value").eq("key", "system_prompt").maybeSingle();
+  const { data: modeloRow } = await admin.from("app_settings").select("value").eq("key", "llm_model").maybeSingle();
+  const modeloConfigurado = typeof modeloRow?.value === "string" && modeloRow.value.trim() ? modeloRow.value.trim() : null;
   const systemPrompt = typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.";
 
   const anteriores = [
     { role: "system", content: systemPrompt },
     ...(history ?? []).reverse().map((m) => ({ role: m.role, content: m.content })),
   ];
+  const modelo = await modeloDaChamada(modeloConfigurado);
+  console.log("llm_modelo", modelo);
   const chamarModelo = (ultima: unknown) => fetch(`${LLM_BASE_URL}/chat/completions`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: LLM_MODEL, messages: [...anteriores, { role: "user", content: ultima }], stream: true, temperature: 0.7,
+      model: modelo, messages: [...anteriores, { role: "user", content: ultima }], stream: true, temperature: 0.7,
       stream_options: { include_usage: true },
       ...(LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
       ...(LLAMA_TIMINGS ? { timings_per_token: true } : {}),
@@ -369,7 +403,7 @@ Deno.serve(async (req) => {
     if (raciocinioRetido) soltarRaciocinio(true);
 
     if (full) {
-      await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full, model: LLM_MODEL });
+      await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full, model: modelo });
       await admin.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
       if (interrompido) send({ error: "stream_interrompido" });
       send({

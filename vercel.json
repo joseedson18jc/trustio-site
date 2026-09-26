@@ -15,7 +15,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://api.trustio.com.br https://mjdaluioyutnxlyomzyd.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self' https://api.trustio.com.br; frame-ancestors 'none'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://api.trustio.com.br https://mjdaluioyutnxlyomzyd.supabase.co https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self' https://api.trustio.com.br; frame-ancestors 'none'; upgrade-insecure-requests"
         },
         {
           "key": "Referrer-Policy",

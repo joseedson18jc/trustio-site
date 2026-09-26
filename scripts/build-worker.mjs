@@ -81,7 +81,7 @@ for (const sourceFile of sourceFiles.sort()) {
 const worker = `const FILES = ${JSON.stringify(files)};
 
 const SECURITY_HEADERS = {
-  "Content-Security-Policy": "default-src 'self'; base-uri 'self'; connect-src 'self' https://api.trustio.com.br https://mjdaluioyutnxlyomzyd.supabase.co; font-src 'self' data:; form-action 'self' mailto: https://formsubmit.co https://api.trustio.com.br; frame-ancestors 'none'; img-src 'self' data: blob:; object-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; upgrade-insecure-requests",
+  "Content-Security-Policy": "default-src 'self'; base-uri 'self'; connect-src 'self' https://api.trustio.com.br https://mjdaluioyutnxlyomzyd.supabase.co https://cloudflareinsights.com; font-src 'self' data:; form-action 'self' mailto: https://formsubmit.co https://api.trustio.com.br; frame-ancestors 'none'; img-src 'self' data: blob:; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com; style-src 'self'; upgrade-insecure-requests",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",

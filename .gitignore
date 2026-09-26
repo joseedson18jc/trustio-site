@@ -13,3 +13,4 @@ Trustio-Site-Final.zip
 
 # Pasta criada pelo app Claude ao entregar arquivos nesta pasta conectada — não faz parte do site
 Claude outputs/
+supabase/.temp/

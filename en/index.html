@@ -36,6 +36,8 @@
   <script src="/assets/theme.js?v=673d4355"></script>
   <link rel="stylesheet" href="/assets/styles.css?v=3e2886a0">
   <script type="module" src="/assets/app.js?v=a756f472"></script>
+  <link rel="stylesheet" href="/assets/brasil-banner.css?v=a65b4355">
+  <script defer src="/assets/brasil-banner.js?v=2309d3bc"></script>
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -44,6 +46,10 @@
       "@type": "Organization",
       "@id": "https://trustio.com.br/en/#organization",
       "name": "Trustio",
+      "alternateName": [
+        "Trustio Brasil",
+        "trustio.com.br"
+      ],
       "url": "https://trustio.com.br/en/",
       "logo": "https://trustio.com.br/assets/trustio-mark.svg",
       "image": "https://trustio.com.br/assets/social-card.png",
@@ -73,6 +79,7 @@
       "@id": "https://trustio.com.br/en/#website",
       "url": "https://trustio.com.br/en/",
       "name": "Trustio",
+      "alternateName": "Trustio Brasil",
       "inLanguage": "en",
       "publisher": {
         "@id": "https://trustio.com.br/en/#organization"
@@ -285,6 +292,89 @@
     </section>
 
 
+
+    <section class="tb-band" aria-labelledby="tb-title">
+      <div class="tb-banner">
+        <div class="tb-hero">
+          <canvas class="tb-stars" id="tb-stars" aria-hidden="true"></canvas>
+          <div class="tb-ring tb-r1" aria-hidden="true"></div>
+          <div class="tb-ring tb-r2" aria-hidden="true"></div>
+          <div class="tb-ring tb-r3" aria-hidden="true"></div>
+
+          <div class="tb-copy">
+            <div class="tb-brand">
+              <img class="tb-mark" src="/assets/trustio-mark.svg" alt="" width="52" height="52">
+              <span class="tb-wordmark">Trustio</span>
+              <i class="tb-flag" aria-hidden="true"></i>
+            </div>
+            <p class="tb-tagline">TECHNOLOGY THAT STRENGTHENS BRAZIL</p>
+
+            <h2 class="tb-headline" id="tb-title">
+              <span class="tb-l"><span>NATIONAL SOVEREIGNTY</span></span>
+              <span class="tb-l"><span>LOCAL COMMITMENT</span></span>
+            </h2>
+
+            <p class="tb-sub">Infrastructure and intelligence for a safer, more independent and connected Brazil.</p>
+
+            <ul class="tb-pillars">
+              <li class="tb-pillar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3.3 8.4-7 10-3.7-1.6-7-5-7-10V6l7-3z"/></svg>
+                <span>DATA<br>IN BRAZIL</span>
+              </li>
+              <li class="tb-pillar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.3"/></svg>
+                <span>COMPLIANT WITH<br>LGPD</span>
+              </li>
+              <li class="tb-pillar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16"/><rect x="6" y="12" width="3" height="8"/><rect x="11" y="8" width="3" height="12"/><rect x="16" y="4" width="3" height="16"/></svg>
+                <span>HIGH<br>PERFORMANCE</span>
+              </li>
+              <li class="tb-pillar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><circle cx="5" cy="10" r="2"/><circle cx="19" cy="10" r="2"/><path d="M7 20a5 5 0 0 1 10 0"/><path d="M2 18a3 3 0 0 1 4-2.8"/><path d="M22 18a3 3 0 0 0-4-2.8"/></svg>
+                <span>REAL<br>IMPACT</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="tb-mapwrap">
+            <svg class="tb-map" id="tb-map" viewBox="0 0 410 400" role="img" aria-label="Map of Brazil with a data network connecting the state capitals">
+              <defs>
+                <linearGradient id="tb-land-fill" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#173a8a" stop-opacity=".55"/>
+                  <stop offset="1" stop-color="#0a1b4a" stop-opacity=".35"/>
+                </linearGradient>
+                <linearGradient id="tb-arc-grad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="#F5B041"/><stop offset="1" stop-color="#FFD98A"/>
+                </linearGradient>
+                <filter id="tb-glow-blue" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <filter id="tb-glow-amber" x="-200%" y="-200%" width="500%" height="500%">
+                  <feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+              <g id="tb-land"></g>
+              <g id="tb-dots"></g>
+              <g id="tb-arcs"></g>
+              <g id="tb-packets"></g>
+              <g id="tb-cities"></g>
+            </svg>
+          </div>
+
+          <div class="tb-rail" aria-hidden="true">
+            <div class="tb-hex"><svg viewBox="0 0 56 62"><path d="M28 2l24 14v30L28 60 4 46V16z"/><path d="M18 22h20M28 22v20" stroke-width="2.2"/></svg></div>
+            BUILT<br>IN BRAZIL
+            <span class="tb-sep"></span>
+            HOSTED<br>IN BRAZIL
+          </div>
+          <div class="tb-rail-bottom" aria-hidden="true">BRAZIL<br>STRONGER<br>THROUGH TECHNOLOGY</div>
+
+          <div class="tb-earth" aria-hidden="true"></div>
+          <canvas class="tb-lights" id="tb-lights" aria-hidden="true"></canvas>
+          <div class="tb-horizon" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
 
     <section class="statement section-shell" aria-labelledby="statement-title">
       <div class="container statement-grid">

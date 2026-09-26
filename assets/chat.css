@@ -166,37 +166,25 @@
 .welcome[data-mode="returning"] .onboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 900px) { .onboard-grid, .welcome[data-mode="returning"] .onboard-grid { grid-template-columns: 1fr; } .widget-form { flex-direction: column; } .widget-form .btn { width: 100%; } }
 
-/* ── Fundo tecnológico do portal: grade fina + linhas de circuito + brilho em movimento ── */
-.chat-main { position: relative; isolation: isolate; overflow: hidden; }
-.chat-main::before {
-  content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none;
-  background-image:
-    linear-gradient(rgba(94, 167, 255, 0.075) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(94, 167, 255, 0.075) 1px, transparent 1px);
-  background-size: 44px 44px;
-  -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 35%, #000 20%, transparent 78%);
-  mask-image: radial-gradient(ellipse 85% 75% at 50% 35%, #000 20%, transparent 78%);
+/* ── Fundo do chat: cinza-escuro liso, sem grade, linhas ou brilho. Só no chat (admin e CRM
+   também usam .chat-page, mas têm .crm-page) e só no tema escuro; o claro segue o padrão. ── */
+:root:not([data-theme="light"]) .chat-page:not(.crm-page) {
+  --abyss: #1e1f22;
+  --surface: #17181a;
+  --surface-raised: #2a2b2f;
+  --bg-rgb: 30, 31, 34;
+  --line: rgba(255, 255, 255, 0.09);
+  --scroll-thumb: #3a3b40;
+  --scroll-thumb-hover: #4a4b51;
+  --card-gradient: #25262a;
+  --card-gradient-strong: #25262a;
+  --card-gradient-hover: #2c2d31;
 }
-.chat-main::after {
-  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background:
-    radial-gradient(520px 320px at 78% 12%, rgba(37, 99, 235, 0.22), transparent 70%),
-    radial-gradient(420px 260px at 18% 88%, rgba(94, 167, 255, 0.12), transparent 70%),
-    url("tech-lines.svg") center / cover no-repeat;
-  opacity: 0.9;
-  animation: techDrift 22s ease-in-out infinite alternate;
-}
-@keyframes techDrift {
-  0% { background-position: 78% 12%, 18% 88%, 50% 50%; }
-  100% { background-position: 62% 30%, 30% 70%, 50% 52%; }
-}
+.chat-main { position: relative; overflow: hidden; background: var(--abyss); }
 .thread, .composer, .notice, .paywall, .chat-top { position: relative; z-index: 1; }
 .chat-top { background: rgba(var(--bg-rgb), 0.72); }
-.composer textarea { background: rgba(var(--bg-rgb), 0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-.widget, .starters button, .msg-body pre { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-[data-theme="light"] .chat-main::before { background-image: linear-gradient(rgba(37, 99, 235, 0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(37, 99, 235, 0.09) 1px, transparent 1px); }
-[data-theme="light"] .chat-main::after { opacity: 0.55; }
-@media (prefers-reduced-motion: reduce) { .chat-main::after { animation: none; } }
+.chat-page:not(.crm-page) .chat-top { background: rgba(var(--bg-rgb), 0.92); }
+:root:not([data-theme="light"]) .chat-page:not(.crm-page) .widget-wa { background: var(--card-gradient-strong); }
 
 /* Anexos: fotos e PDFs lidos no navegador (assets/ocr.js) */
 .composer textarea { padding-left: 50px; }

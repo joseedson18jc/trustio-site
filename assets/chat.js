@@ -837,13 +837,18 @@
 
   // Tema (mesma chave do site).
   var toggle = $(".theme-toggle");
+  // Barra do navegador no celular na cor do fundo do chat (cinza-escuro ou claro).
+  var themeColor = document.querySelector('meta[name="theme-color"]');
+  function paintThemeColor(t) { if (themeColor) themeColor.setAttribute("content", t === "light" ? "#f4f6fa" : "#1e1f22"); }
   function applyTheme(t) {
     if (t === "light") document.documentElement.setAttribute("data-theme", "light"); else document.documentElement.removeAttribute("data-theme");
+    paintThemeColor(t);
     toggle.setAttribute("aria-pressed", t === "light" ? "true" : "false");
     try { localStorage.setItem("trustio-theme", t); } catch (e) { /* sem storage */ }
   }
   toggle.addEventListener("click", function () { applyTheme(document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light"); });
   toggle.setAttribute("aria-pressed", document.documentElement.getAttribute("data-theme") === "light" ? "true" : "false");
+  paintThemeColor(document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
 
   boot();
 })();

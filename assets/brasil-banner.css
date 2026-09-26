@@ -1,0 +1,149 @@
+/* Faixa "Soberania Nacional, Compromisso Local" da home (index.html), entre Mentoria e
+   "O ponto de partida". Tudo com prefixo tb- para não colidir com .hero, .brand etc. do site.
+   As animações ficam paradas (.tb-wait, posto pelo assets/brasil-banner.js) até a faixa
+   aparecer na tela; sem JavaScript, rodam direto no carregamento. */
+.tb-band { position: relative; padding: 0; }
+
+.tb-banner {
+  --tb-blue-deep: #0f2c6b;
+  --tb-blue-mid: #2e6bf0;
+  --tb-ice: #5ad0ff;
+  --tb-amber: #f5b041;
+  --tb-amber-soft: #ffd98a;
+  --tb-white: #f4f8ff;
+  --tb-muted: #c9d9ff;
+  container-type: inline-size;
+  width: 100%;
+  font-family: var(--display);
+  color: var(--tb-white);
+  -webkit-font-smoothing: antialiased;
+}
+.tb-banner * { box-sizing: border-box; margin: 0; padding: 0; }
+.tb-wait, .tb-wait * { animation-play-state: paused !important; }
+
+/* ---------- Faixa 2:1, escala com a largura ---------- */
+.tb-hero {
+  position: relative; overflow: hidden; width: 100%; aspect-ratio: 2 / 1;
+  background: radial-gradient(120% 80% at 70% 20%, var(--tb-blue-deep) 0%, #071538 35%, #030918 75%);
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: center;
+  padding: 3cqw 6cqw 12cqw; gap: 3cqw;
+}
+.tb-stars { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; animation: tb-fade 2.2s ease .1s forwards; }
+
+.tb-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(94, 167, 255, .2); pointer-events: none;
+  left: 58%; top: 50%; transform: translate(-50%, -50%) scale(.6); opacity: 0; animation: tb-ring 3.4s cubic-bezier(.2, .7, .2, 1) .4s forwards; aspect-ratio: 1; }
+.tb-ring.tb-r1 { width: 115cqw; }
+.tb-ring.tb-r2 { width: 88cqw; animation-delay: .7s; border-color: rgba(94, 167, 255, .12); }
+.tb-ring.tb-r3 { width: 60cqw; animation-delay: 1s; border-style: dashed; border-color: rgba(94, 167, 255, .16); }
+@keyframes tb-ring { to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+
+/* ---------- Horizonte da Terra ---------- */
+.tb-earth {
+  --tb-rise: 12cqw;
+  position: absolute; left: 50%; bottom: 0; transform: translateX(-50%) translateY(calc(100% - var(--tb-rise)));
+  width: 230cqw; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(60% 40% at 50% 8%, rgba(46, 107, 240, .4), transparent 60%), radial-gradient(100% 100% at 50% 50%, #08265e 0%, #04143a 40%, #020a20 70%);
+  box-shadow: 0 -6px 24px rgba(120, 205, 255, .9), 0 -22px 70px rgba(94, 167, 255, .55), 0 -70px 190px rgba(46, 107, 240, .35), 0 -160px 320px rgba(46, 107, 240, .15);
+  opacity: 0; animation: tb-earth 2.6s cubic-bezier(.2, .7, .2, 1) .2s forwards;
+}
+@keyframes tb-earth {
+  from { opacity: 0; transform: translateX(-50%) translateY(calc(100% - var(--tb-rise) + 60px)); }
+  to { opacity: 1; transform: translateX(-50%) translateY(calc(100% - var(--tb-rise))); }
+}
+.tb-lights { position: absolute; left: 0; bottom: 0; width: 100%; height: 14cqw; pointer-events: none; opacity: 0; animation: tb-fade 2s ease 1.2s forwards; }
+.tb-horizon { position: absolute; left: 0; right: 0; bottom: 0; height: 22cqw; background: linear-gradient(to top, rgba(3, 9, 24, .9), transparent); pointer-events: none; }
+
+/* ---------- Marca e texto ---------- */
+.tb-copy { position: relative; z-index: 3; max-width: 44cqw; }
+.tb-brand { display: flex; align-items: center; gap: 1.2cqw; opacity: 0; animation: tb-up 1s cubic-bezier(.2, .7, .2, 1) .5s forwards; }
+.tb-mark { width: 5.2cqw; height: auto; aspect-ratio: 1; flex: none; filter: drop-shadow(0 .6cqw 1.8cqw rgba(46, 107, 240, .45)); }
+.tb-wordmark { font-size: 5cqw; font-weight: 700; letter-spacing: -.045em; line-height: 1; color: #fff; }
+.tb-brand .tb-flag { width: 3.4cqw; height: auto; aspect-ratio: 10 / 7; border-radius: 14%; margin-left: .4cqw; animation-delay: .9s; }
+
+.tb-tagline { --tb-bar: 7cqw; margin-top: 1.2cqw; font-size: .9cqw; letter-spacing: .42em; color: var(--tb-muted); font-weight: 500; opacity: 0; animation: tb-up 1s cubic-bezier(.2, .7, .2, 1) .9s forwards; }
+.tb-tagline::after { content: ""; display: block; width: 0; height: 2px; margin-top: .9cqw; background: linear-gradient(90deg, var(--tb-blue-mid), var(--tb-ice)); animation: tb-grow 1.4s cubic-bezier(.2, .7, .2, 1) 1.4s forwards; }
+@keyframes tb-grow { to { width: var(--tb-bar); } }
+
+.tb-headline { margin-top: 3.2cqw; font-weight: 600; letter-spacing: .22em; line-height: 1.3; font-size: 2.4cqw; white-space: nowrap; color: var(--tb-white); }
+.tb-headline .tb-l { display: flex; align-items: center; gap: .4em; overflow: hidden; }
+.tb-headline .tb-l span { display: inline-block; transform: translateY(110%); animation: tb-rise 1.1s cubic-bezier(.2, .8, .2, 1) forwards; }
+.tb-headline .tb-l:nth-child(1) span { animation-delay: 1.3s; }
+.tb-headline .tb-l:nth-child(2) span { animation-delay: 1.55s; color: var(--tb-ice); }
+@keyframes tb-rise { to { transform: translateY(0); } }
+.tb-flag { flex: none; background: #009c3b; position: relative; overflow: hidden; opacity: 0; animation: tb-fade .8s ease 2.1s forwards; box-shadow: 0 2px 10px rgba(0, 0, 0, .4); }
+.tb-flag::before { content: ""; position: absolute; inset: 14%; background: #ffdf00; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.tb-flag::after { content: ""; position: absolute; left: 35%; top: 30%; width: 30%; height: 40%; border-radius: 50%; background: #002776; }
+
+.tb-sub { margin-top: 1.6cqw; font-size: 1.25cqw; line-height: 1.5; color: #dbe6ff; max-width: 34ch; opacity: 0; animation: tb-up 1s cubic-bezier(.2, .7, .2, 1) 2s forwards; }
+
+.tb-pillars { margin-top: 3cqw; display: flex; flex-wrap: nowrap; list-style: none; }
+.tb-pillar { display: flex; align-items: center; gap: .7cqw; padding: .4cqw 1.2cqw .4cqw 0; font-size: .72cqw; letter-spacing: .1em; font-weight: 600; line-height: 1.35;
+  opacity: 0; animation: tb-up .9s cubic-bezier(.2, .7, .2, 1) forwards; position: relative; }
+.tb-pillar + .tb-pillar { padding-left: 1.2cqw; }
+.tb-pillar:not(:last-child)::after { content: ""; position: absolute; right: 0; top: 12%; height: 76%; width: 1px; background: rgba(159, 179, 217, .35); }
+.tb-pillar:nth-child(1) { animation-delay: 2.4s; } .tb-pillar:nth-child(2) { animation-delay: 2.55s; }
+.tb-pillar:nth-child(3) { animation-delay: 2.7s; } .tb-pillar:nth-child(4) { animation-delay: 2.85s; }
+.tb-pillar svg { width: 1.7cqw; height: 1.7cqw; stroke: var(--tb-white); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* ---------- Mapa ---------- */
+.tb-mapwrap { position: relative; z-index: 2; width: 100%; display: flex; justify-content: center; align-items: center; padding-right: 9cqw; }
+.tb-map { width: 100%; max-width: 44cqw; height: auto; overflow: visible; filter: drop-shadow(0 0 1.8cqw rgba(46, 107, 240, .28)); }
+.tb-outline { fill: url(#tb-land-fill); stroke: var(--tb-ice); stroke-width: 1.4; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; filter: url(#tb-glow-blue); animation: tb-draw 3.2s cubic-bezier(.4, .1, .2, 1) .6s forwards; }
+@keyframes tb-draw { to { stroke-dashoffset: 0; } }
+.tb-outline-fill { fill: url(#tb-land-fill); opacity: 0; animation: tb-fade 1.6s ease 2.4s forwards; }
+.tb-arc { fill: none; stroke: url(#tb-arc-grad); stroke-width: .9; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: .85; animation: tb-draw 1.8s cubic-bezier(.4, .1, .3, 1) forwards; }
+.tb-arc.tb-minor { stroke-width: .5; opacity: .45; }
+.tb-city { opacity: 0; animation: tb-pop .7s cubic-bezier(.2, .9, .3, 1.4) forwards; }
+@keyframes tb-pop { from { opacity: 0; transform: scale(.2); } to { opacity: 1; transform: scale(1); } }
+.tb-city circle.tb-core { fill: #fff8e6; filter: url(#tb-glow-amber); }
+.tb-city circle.tb-halo { fill: none; stroke: var(--tb-amber); stroke-width: .6; opacity: .7; animation: tb-pulse 2.6s ease-out infinite; }
+@keyframes tb-pulse { 0% { r: 2; opacity: .8; } 100% { r: 11; opacity: 0; } }
+.tb-city text { font-family: var(--display); font-size: 7.4px; font-weight: 500; fill: #e8f0ff; letter-spacing: .02em; paint-order: stroke; stroke: rgba(3, 9, 24, .75); stroke-width: 2.2px; }
+.tb-dot { fill: var(--tb-amber-soft); opacity: 0; animation: tb-twinkle 3s ease-in-out infinite; }
+@keyframes tb-twinkle { 0%, 100% { opacity: .25; } 50% { opacity: .9; } }
+.tb-packet { fill: #fff; filter: url(#tb-glow-amber); }
+
+/* ---------- Coluna da direita ---------- */
+.tb-rail { position: absolute; right: 3.5cqw; top: 3cqw; z-index: 4; text-align: center; font-size: .72cqw; letter-spacing: .28em; font-weight: 600; color: var(--tb-muted); line-height: 1.7; opacity: 0; animation: tb-up 1s cubic-bezier(.2, .7, .2, 1) 3s forwards; }
+.tb-hex { width: 3.6cqw; height: 4cqw; margin: 0 auto .9cqw; }
+.tb-hex svg { width: 100%; height: 100%; stroke: var(--tb-ice); fill: none; stroke-width: 1.5; filter: drop-shadow(0 0 8px rgba(90, 208, 255, .6)); }
+.tb-rail .tb-sep { display: block; width: 5px; height: 5px; border-radius: 50%; background: var(--tb-ice); margin: .9cqw auto; }
+.tb-rail-bottom { position: absolute; right: 3.5cqw; bottom: 4cqw; z-index: 4; text-align: right; font-size: .8cqw; letter-spacing: .3em; font-weight: 600; color: var(--tb-muted); line-height: 1.7; opacity: 0; animation: tb-up 1s cubic-bezier(.2, .7, .2, 1) 3.3s forwards; }
+.tb-rail-bottom::before { content: ""; display: block; width: 3.5cqw; height: 2px; margin: 0 0 .8cqw auto; background: linear-gradient(90deg, transparent, var(--tb-ice)); }
+
+@keyframes tb-fade { to { opacity: 1; } }
+@keyframes tb-up { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ---------- Tablet: faixa 16:10 ---------- */
+@container (max-width: 1100px) {
+  .tb-hero { aspect-ratio: 16 / 10; padding: 4cqw 5cqw 14cqw; gap: 2cqw; }
+  .tb-copy { max-width: 48cqw; }
+  .tb-wordmark { font-size: 5.6cqw; } .tb-mark { width: 5.8cqw; }
+  .tb-headline { font-size: 2.5cqw; letter-spacing: .18em; }
+  .tb-sub { font-size: 1.45cqw; }
+  .tb-pillar { font-size: .85cqw; } .tb-pillar svg { width: 2cqw; height: 2cqw; }
+  .tb-rail { display: none; }
+  .tb-rail-bottom { font-size: .9cqw; }
+  .tb-mapwrap { padding-right: 0; } .tb-map { max-width: 46cqw; }
+}
+/* ---------- Celular: empilhado, ainda como faixa ---------- */
+@container (max-width: 700px) {
+  .tb-hero { aspect-ratio: auto; grid-template-columns: 1fr; padding: 8cqw 6cqw 26cqw; gap: 4cqw; }
+  .tb-copy { max-width: 100%; }
+  .tb-mapwrap { order: -1; padding-right: 0; } .tb-map { max-width: 82cqw; }
+  .tb-brand { gap: 3cqw; } .tb-mark { width: 12cqw; } .tb-wordmark { font-size: 11.5cqw; } .tb-brand .tb-flag { width: 8cqw; }
+  .tb-tagline { --tb-bar: 18cqw; font-size: 2.3cqw; letter-spacing: .32em; margin-top: 2.6cqw; } .tb-tagline::after { margin-top: 2cqw; }
+  .tb-headline { font-size: 4.6cqw; letter-spacing: .16em; margin-top: 6cqw; white-space: normal; }
+  .tb-sub { font-size: 3.4cqw; margin-top: 3.5cqw; }
+  .tb-pillars { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw 4cqw; margin-top: 6cqw; }
+  .tb-pillar, .tb-pillar + .tb-pillar { font-size: 2.6cqw; padding: 0; gap: 2cqw; } .tb-pillar svg { width: 5cqw; height: 5cqw; }
+  .tb-pillar:not(:last-child)::after { display: none; }
+  .tb-rail, .tb-rail-bottom { display: none; }
+  .tb-earth { --tb-rise: 22cqw; }
+  .tb-lights { height: 26cqw; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tb-banner *, .tb-banner *::before, .tb-banner *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
+  .tb-outline, .tb-arc { stroke-dashoffset: 0; }
+  .tb-packet { display: none; }
+}

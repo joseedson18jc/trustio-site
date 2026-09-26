@@ -272,7 +272,7 @@ function traduzirTag(tag, pagina, traduz) {
 // Dados estruturados: mesmo dicionário, só em valores que casam por inteiro. Texto sem
 // tradução conta como faltando, como no resto da página; identificadores e endereços
 // (as chaves abaixo) passam direto.
-const JSONLD_LITERAL = new Set(["@context", "@type", "@id", "url", "logo", "image", "sameAs", "alternateName", "email", "telephone",
+const JSONLD_LITERAL = new Set(["@context", "@type", "@id", "url", "logo", "image", "sameAs", "alternateName", "legalName", "taxID", "streetAddress", "email", "telephone",
   "addressCountry", "addressRegion", "addressLocality", "postalCode", "priceCurrency", "price", "inLanguage", "contentUrl", "unitCode", "areaServed"]);
 
 function traduzirJsonLd(bloco, traduz) {

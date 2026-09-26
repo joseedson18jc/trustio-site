@@ -430,6 +430,18 @@ const CONFIRMACAO = {
   },
 };
 
+/** Compara a chave recebida com a de serviço em tempo constante (via SHA-256 dos dois). */
+async function chaveDeServicoConfere(env, recebida) {
+  const certa = String(env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+  if (!certa || !recebida) return false;
+  const codificar = (t) => crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
+  const [a, b] = await Promise.all([codificar(certa), codificar(String(recebida).trim())]);
+  const x = new Uint8Array(a), y = new Uint8Array(b);
+  let dif = 0;
+  for (let i = 0; i < x.length; i++) dif |= x[i] ^ y[i];
+  return dif === 0;
+}
+
 // ─────────────────────────────────────────────────────────────── rotas
 export default {
   async fetch(req, env) {
@@ -448,6 +460,23 @@ export default {
         remetente: env.EMAIL_FROM || null,
         exemplo_de_link: linkDeConfirmacao(env, "TOKEN_DE_EXEMPLO"),
       }, origin);
+    }
+
+    // ---- exportação única do KV SIGNUPS para a importação no crm_leads (temporária: sai
+    // depois de usada). Só responde a quem manda a própria chave de serviço do Supabase no
+    // cabeçalho x-chave-servico; sem ela, 404, como qualquer rota que não existe.
+    if (url.pathname === "/admin/exportar-kv" && req.method === "GET") {
+      if (!env.SIGNUPS || !(await chaveDeServicoConfere(env, req.headers.get("x-chave-servico")))) {
+        return json(404, { ok: false, error: "nao_encontrado" }, origin);
+      }
+      const itens = [];
+      let cursor;
+      do {
+        const pagina = await env.SIGNUPS.list({ cursor });
+        for (const { name } of pagina.keys) itens.push({ chave: name, valor: await env.SIGNUPS.get(name) });
+        cursor = pagina.list_complete ? undefined : pagina.cursor;
+      } while (cursor);
+      return json(200, { ok: true, total: itens.length, itens }, origin);
     }
 
     // ---- inscrição

@@ -57,7 +57,7 @@ Em GitHub → Settings → Secrets and variables → Actions → New repository 
 | `SUPABASE_DB_PASSWORD` | Project Settings → Database → Database password | aplicar migrações e admins (obrigatório) |
 | `SMTP_PASS` | API key do provedor de e-mail (ex.: Resend, com o domínio trustio.com.br verificado) | e-mails saírem de `contato@trustio.com.br` sem limite baixo |
 | `LLM_API_KEY` | chave da xAI (ou de outro provedor compatível com OpenAI) | o chat responder |
-| `LLM_BASE_URL`, `LLM_MODEL` | opcionais (padrão `https://api.x.ai/v1` e `grok-4`) | trocar provedor/modelo |
+| `LLM_BASE_URL`, `LLM_MODEL` | opcionais (padrão `https://api.x.ai/v1` e `grok-4`) | trocar provedor/modelo. O nome do modelo também pode vir do banco, `app_settings.llm_model` (prioridade sobre o segredo, vale na hora); sem nenhum dos dois, a função usa o que o servidor anuncia em `GET /models` quando ele lista um modelo só |
 | `LLM_SERVIDOR` | opcional: `llama.cpp` quando o modelo roda num llama-server | contagem exata de tokens durante a resposta |
 | `LLM_CONTEXTO` | opcional: o contexto do modelo (o `-c` do llama-server), ex.: `8192` | "sessão N%" e o aviso de sessão cheia |
 | `LLM_MAX_TOKENS` | opcional: teto de tokens por resposta, ex.: `8192` | a % da resposta durante a geração |

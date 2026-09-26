@@ -7,6 +7,9 @@
 //   LLM_API_KEY   obrigatório  (aceita XAI_API_KEY como alternativa)
 //   LLM_BASE_URL  opcional     padrão https://api.x.ai/v1
 //   LLM_MODEL     opcional     padrão grok-4
+//
+// O nome do modelo pode vir também do banco (app_settings.llm_model, só admins leem), que tem
+// prioridade: muda na hora, sem esperar a propagação dos segredos nem o workflow que os regrava.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -14,7 +17,42 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LLM_API_KEY = Deno.env.get("LLM_API_KEY") ?? Deno.env.get("XAI_API_KEY") ?? "";
 const LLM_BASE_URL = (Deno.env.get("LLM_BASE_URL") ?? "https://api.x.ai/v1").replace(/\/$/, "");
-const LLM_MODEL = Deno.env.get("LLM_MODEL") ?? "grok-4";
+const LLM_MODEL = (Deno.env.get("LLM_MODEL") ?? "grok-4").trim();
+
+// Nome do modelo que vai na chamada, nesta ordem: app_settings.llm_model; o que o próprio
+// servidor anuncia em GET /models (com um modelo só na lista, vale esse; com vários, como num
+// provedor na nuvem, vale LLM_MODEL se estiver na lista); LLM_MODEL. Servidores como o
+// mlx_vlm.server só atendem com o nome exato do modelo carregado: qualquer outro eles tentam
+// carregar e falham. O resultado de /models fica guardado por 10 minutos.
+let modeloDescoberto: { id: string; em: number } | null = null;
+// deno-lint-ignore no-explicit-any
+async function modeloDoBanco(admin: any): Promise<string | null> {
+  const { data } = await admin.from("app_settings").select("value").eq("key", "llm_model").maybeSingle();
+  return typeof data?.value === "string" && data.value.trim() ? data.value.trim() : null;
+}
+async function modeloDaChamada(configurado: string | null): Promise<string> {
+  // app_settings.llm_model (definido no banco) vale primeiro: muda na hora, sem depender da
+  // propagação dos segredos da função nem do workflow que os regrava a cada deploy.
+  if (configurado) return configurado;
+  if (modeloDescoberto && Date.now() - modeloDescoberto.em < 10 * 60_000) return modeloDescoberto.id;
+  try {
+    // 25 s: a primeira chamada depois de ociosidade longa acorda o modelo (~15 s).
+    const r = await fetch(`${LLM_BASE_URL}/models`, {
+      headers: { "Authorization": `Bearer ${LLM_API_KEY}` },
+      signal: AbortSignal.timeout(25_000),
+    });
+    if (r.ok) {
+      const j = await r.json();
+      const ids: string[] = (Array.isArray(j?.data) ? j.data : []).map((m: { id?: unknown }) => String(m?.id ?? "")).filter(Boolean);
+      const id = ids.includes(LLM_MODEL) ? LLM_MODEL : ids.length === 1 ? ids[0] : null;
+      if (!id) console.log("llm_models_lista", ids.length);
+      if (id) { modeloDescoberto = { id, em: Date.now() }; return id; }
+    }
+  } catch (err) {
+    console.error("llm_models_indisponivel", String(err).slice(0, 200));
+  }
+  return LLM_MODEL;
+}
 const HISTORY = 30;
 // Teto de tokens por resposta, opcional e explícito: só com o segredo LLM_MAX_TOKENS a
 // função limita o modelo, e só então o chat mostra a porcentagem da resposta (contra esse
@@ -45,6 +83,12 @@ function ehRecusaDeImagem(status: number, detalhe: string) {
   if (/image|imagem|vision|multimodal|image_url|content.?(part|type)|mmproj|clip/i.test(detalhe)) return true;
   if ([401, 403, 404, 408, 429].includes(status)) return false;
   return status >= 400 && status < 500;
+}
+// Erro que indica nome de modelo desconhecido pelo servidor (ex.: mlx_vlm tentando carregar outro
+// modelo: "Failed to load model…"; OpenAI/xAI: "model_not_found").
+function ehErroDeNomeDoModelo(status: number, detalhe: string) {
+  return [400, 404, 422].includes(status) && !ehContextoCheio(status, detalhe) &&
+    /failed to load model|model[_ ]not[_ ]found|does not exist|unknown model|no such model|cached snapshot/i.test(detalhe);
 }
 // Conversa maior que o contexto do modelo.
 function ehContextoCheio(status: number, detalhe: string) {
@@ -121,7 +165,9 @@ Deno.serve(async (req) => {
       antecipado_em: acesso.antecipado_em ?? null,
       pre_assinante: acesso.pre_assinante ?? false,
       modelo_configurado: configurado,
-      modelo: ehAdmin && configurado ? LLM_MODEL : null,
+      // O modelo efetivo (banco, /models do servidor ou LLM_MODEL), o mesmo que a conversa usa.
+      // Sem consultar o servidor: a verificação não pode esperar um GET /models lento.
+      modelo: ehAdmin && configurado ? (await modeloDoBanco(admin)) ?? modeloDescoberto?.id ?? LLM_MODEL : null,
       provedor: ehAdmin && configurado ? new URL(LLM_BASE_URL).host : null,
     }, origin);
   }
@@ -193,26 +239,30 @@ Deno.serve(async (req) => {
   const { data: history } = await admin.from("messages").select("role,content")
     .eq("conversation_id", conversationId).order("created_at", { ascending: false }).limit(HISTORY - 1);
   const { data: promptRow } = await admin.from("app_settings").select("value").eq("key", "system_prompt").maybeSingle();
+  const modeloConfigurado = await modeloDoBanco(admin);
   const systemPrompt = typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.";
 
   const anteriores = [
     { role: "system", content: systemPrompt },
     ...(history ?? []).reverse().map((m) => ({ role: m.role, content: m.content })),
   ];
+  let modelo = await modeloDaChamada(modeloConfigurado);
+  console.log("llm_modelo", modelo);
   const chamarModelo = (ultima: unknown) => fetch(`${LLM_BASE_URL}/chat/completions`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: LLM_MODEL, messages: [...anteriores, { role: "user", content: ultima }], stream: true, temperature: 0.7,
+      model: modelo, messages: [...anteriores, { role: "user", content: ultima }], stream: true, temperature: 0.7,
       stream_options: { include_usage: true },
       ...(LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
       ...(LLAMA_TIMINGS ? { timings_per_token: true } : {}),
     }),
   });
 
-  let upstream: Response;
+  let upstream!: Response;
   let detail = "";
-  try {
+  const tentar = async () => {
+    detail = "";
     if (imagens.length) {
       // Com fotos: texto + imagens no formato da API da OpenAI. Servidor que não aceita
       // imagem (modelo só de texto) recusa; aí vai de novo só o texto, com um aviso ao
@@ -231,6 +281,26 @@ Deno.serve(async (req) => {
       }
     } else {
       upstream = await chamarModelo(message);
+    }
+  };
+  try {
+    await tentar();
+    // Nome vindo do GET /models guardado: se o servidor trocou de modelo nesse meio tempo, a
+    // chamada falha. Descarta o nome guardado, pergunta de novo e, se mudou, tenta mais uma vez.
+    // (O nome definido no banco é escolha do administrador e não é trocado aqui.)
+    // Só quando o erro aponta para o nome do modelo: limite de uso, servidor fora do ar ou
+    // contexto cheio não passam por aqui (não adianta, e custaria mais uma espera).
+    if ((!upstream.ok || !upstream.body) && !modeloConfigurado && modeloDescoberto) {
+      if (!detail) detail = await upstream.text().catch(() => "");
+      if (ehErroDeNomeDoModelo(upstream.status, detail)) {
+        modeloDescoberto = null;
+        const novo = await modeloDaChamada(null);
+        if (novo !== modelo) {
+          console.log("llm_modelo_trocado", modelo, "→", novo);
+          modelo = novo;
+          await tentar();
+        }
+      }
     }
   } catch (err) {
     console.error("llm_fetch_error", err);
@@ -369,7 +439,7 @@ Deno.serve(async (req) => {
     if (raciocinioRetido) soltarRaciocinio(true);
 
     if (full) {
-      await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full, model: LLM_MODEL });
+      await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full, model: modelo });
       await admin.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
       if (interrompido) send({ error: "stream_interrompido" });
       send({

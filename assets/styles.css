@@ -2774,3 +2774,15 @@ h3 { letter-spacing: -0.018em; }
 .error-shell > .lang-switch { position: absolute; top: clamp(var(--space-28), 5vw, 64px); right: clamp(var(--space-28), 5vw, 64px); z-index: 3; }
 /* console: altura dos botões da barra superior */
 .topbar-right .lang-switch { height: 34px; }
+
+/* ---------- Rodapé: redes sociais e dados da empresa (linha pequena, abaixo da barra) ---------- */
+.footer-legal { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 28px; padding-top: 14px; padding-bottom: 22px; border-top: 1px solid var(--line); color: var(--label-color); font-size: 11.5px; line-height: 1.6; }
+.footer-legal address { display: grid; gap: 2px; margin: 0; font-style: normal; text-align: right; }
+.footer-social { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.footer-social a { display: inline-flex; align-items: center; gap: 7px; color: var(--muted-strong); font-size: 12.5px; transition: color 180ms ease; }
+.footer-social a:hover { color: var(--text-strong); }
+.footer-social svg { width: 15px; height: 15px; flex: none; fill: currentColor; }
+@media (max-width: 720px) {
+  .footer-legal { flex-direction: column; align-items: flex-start; }
+  .footer-legal address { text-align: left; }
+}

@@ -21,6 +21,12 @@ Não chute endpoint, nome de modelo ou assinatura do SDK — busque na doc.
 
 Autenticação pela variável de ambiente `BROWSER_USE_API_KEY` (chaves começam com `bu_`, enviadas no header `X-Browser-Use-API-Key`).
 **Nunca** faça hard-code, print ou commit da chave. Localmente ela fica em `.env` (já no `.gitignore`).
+
+O SDK lê a variável do ambiente do processo, não o arquivo `.env`. Carregue-a antes de rodar:
+
+- Shell: `set -a; source .env; set +a`
+- Node 20.6+: `node --env-file=.env script.js`
+- Python: `pip install python-dotenv` e `from dotenv import load_dotenv; load_dotenv()` antes de criar o client
 Criar chave: https://cloud.browser-use.com/settings?tab=api-keys&new=1
 
 ## Qual API usar

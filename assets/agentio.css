@@ -21,7 +21,7 @@
   -webkit-mask: url("nous-research.webp") center/contain no-repeat; mask: url("nous-research.webp") center/contain no-repeat;
 }
 .ag-nous { width: 34px; height: 34px; }
-.ag-lockup small { display: inline-flex; align-items: center; gap: 8px; flex-basis: 100%; color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; }
+.ag-lockup small { display: inline-flex; align-items: center; gap: 8px; flex-basis: 100%; color: var(--muted); font-family: var(--mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; }
 .ag-lockup small i { width: 6px; height: 6px; border-radius: 50%; background: var(--ag-green); box-shadow: 0 0 0 3px var(--ag-green-soft); }
 
 .ag-copy h1 { margin: 0; color: var(--ice); font-family: var(--display); font-size: clamp(44px, 6.2vw, 84px); font-weight: 700; letter-spacing: -0.055em; line-height: 0.98; }

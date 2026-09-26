@@ -66,7 +66,7 @@
 .starters button:hover { border-color: var(--line-bright); color: var(--ice); }
 
 .msg { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; padding: 12px 0; }
-.msg-av { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.06em; }
+.msg-av { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; }
 .msg-user .msg-av { background: rgba(var(--on-surface-rgb), 0.08); color: var(--muted-strong); }
 .msg-assistant .msg-av { background: linear-gradient(135deg, #5ea7ff, #2563eb); color: #06101f; }
 .msg-body { font-size: 15.5px; line-height: 1.65; color: var(--ice); min-width: 0; overflow-wrap: anywhere; }
@@ -150,7 +150,7 @@
 .widget ul { margin: 0; padding-left: 16px; color: var(--muted); font-size: 13px; line-height: 1.5; display: grid; gap: 4px; }
 .widget small { font-family: var(--mono); font-size: var(--label); color: var(--label-color); letter-spacing: 0.04em; line-height: 1.5; }
 .widget small.is-ok { color: #6fe3b3; }
-.widget small.is-error { color: #ff9ab8; }
+.widget small.is-error { color: var(--danger); }
 .widget-meter { height: 5px; margin-top: auto; border-radius: 5px; background: rgba(var(--on-surface-rgb), 0.08); overflow: hidden; }
 .widget-meter span { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #5ea7ff, #2563eb); transition: width 0.4s var(--ease); }
 .widget-wa { border-color: rgba(94, 167, 255, 0.28); background: linear-gradient(145deg, rgba(37, 99, 235, 0.16), rgba(8, 10, 15, 0.7)); }
@@ -200,7 +200,7 @@
 .anexo-ico { flex: none; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.08em; padding: 5px 6px; border-radius: 6px; background: rgba(94, 167, 255, 0.12); color: var(--blue-signal); }
 .anexo-txt { display: grid; min-width: 0; }
 .anexo-txt b { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.anexo-txt small { font-family: var(--mono); font-size: 10.5px; color: var(--label-color); }
+.anexo-txt small { font-family: var(--mono); font-size: 11px; color: var(--label-color); }
 .anexo-chip.is-lendo small { color: var(--blue-signal); }
 .anexo-x { flex: none; width: 24px; height: 24px; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 16px; line-height: 1; cursor: pointer; }
 .anexo-x:hover { color: var(--ice); background: rgba(255, 255, 255, 0.06); }

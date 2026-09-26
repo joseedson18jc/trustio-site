@@ -16,12 +16,12 @@ function updateHeader() {
 }
 
 // Com o menu aberto, o resto da página fica inerte (o Tab não cai no conteúdo coberto).
-const menuInert = () => document.querySelectorAll("main, footer");
+const contentBehindMenu = () => document.querySelectorAll("main, footer");
 
 function closeMenu(returnFocus = false) {
   if (!menuButton || !mobileMenu || !header) return;
   const wasOpen = menuButton.getAttribute("aria-expanded") === "true";
-  menuInert().forEach((el) => { el.inert = false; });
+  contentBehindMenu().forEach((el) => { el.inert = false; });
   menuButton.setAttribute("aria-expanded", "false");
   menuButton.setAttribute("aria-label", T("Abrir menu", "Open menu"));
   mobileMenu.hidden = true;
@@ -43,7 +43,7 @@ function toggleMenu() {
   mobileMenu.hidden = false;
   header.classList.add("menu-active");
   document.body.classList.add("menu-open");
-  menuInert().forEach((el) => { el.inert = true; });
+  contentBehindMenu().forEach((el) => { el.inert = true; });
   mobileMenu.querySelector("a, button")?.focus();
 }
 
@@ -97,6 +97,14 @@ if ("IntersectionObserver" in window && !reducedMotion.matches) {
 } else {
   revealItems.forEach((item) => item.classList.add("is-visible"));
 }
+
+// Tabelas mais largas que a tela: a classe liga o esmaecido da borda direita enquanto
+// ainda houver coluna escondida, e sai quando a rolagem chega ao fim.
+document.querySelectorAll(".tablewrap, .vc-wrap").forEach((wrap) => {
+  const update = () => wrap.classList.toggle("tem-mais", wrap.scrollLeft + wrap.clientWidth < wrap.scrollWidth - 2);
+  wrap.addEventListener("scroll", update, { passive: true });
+  new ResizeObserver(update).observe(wrap);
+});
 
 const year = String(new Date().getFullYear());
 document.querySelectorAll("[data-year]").forEach((item) => {

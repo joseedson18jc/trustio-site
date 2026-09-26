@@ -20,12 +20,12 @@
   <link rel="preload" href="assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="assets/theme.js?v=673d4355"></script>
-  <link rel="stylesheet" href="assets/styles.css?v=0133027b">
-  <link rel="stylesheet" href="assets/planos.css?v=dff1cd4e">
-  <link rel="stylesheet" href="assets/voice.css?v=0270d464">
-  <script type="module" src="assets/app.js?v=65c413db"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=769568a1">
+  <link rel="stylesheet" href="assets/planos.css?v=92802c09">
+  <link rel="stylesheet" href="assets/voice.css?v=0c59a54e">
+  <script type="module" src="assets/app.js?v=c02ba709"></script>
   <script defer src="assets/planos.js?v=b3a777d8"></script>
-  <script defer src="assets/optin.js?v=7ac35944"></script>
+  <script defer src="assets/optin.js?v=0c0020f4"></script>
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"OfferCatalog","name":"Planos Trustio","url":"https://trustio.com.br/planos.html","itemListElement":[
     {"@type":"Offer","name":"Trustio Starter","price":"2900.00","priceCurrency":"BRL","priceSpecification":{"@type":"UnitPriceSpecification","price":"2900.00","priceCurrency":"BRL","billingIncrement":1,"unitCode":"MON"}},
@@ -164,8 +164,8 @@
 
       <div class="compare">
         <p class="section-kicker">Comparativo · empresas</p>
-        <h2>O que muda entre Starter, Pro e Dedicado.</h2>
-        <div class="tablewrap"><table>
+        <h2 id="compare-empresas">O que muda entre Starter, Pro e Dedicado.</h2>
+        <div class="tablewrap" tabindex="0" role="region" aria-labelledby="compare-empresas"><table>
           <thead><tr><th>Recurso</th><th>Starter</th><th>Pro</th><th>Dedicado</th></tr></thead>
           <tbody>
             <tr><td>Casos de uso em produção</td><td>1</td><td>Até 5</td><td>Ilimitados</td></tr>
@@ -347,7 +347,8 @@
               <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
             </article>
           </div>
-          <div class="tablewrap sub-compare"><table>
+          <div class="tablewrap sub-compare" tabindex="0" role="region" aria-labelledby="compare-pessoal"><table>
+            <caption id="compare-pessoal" class="visually-hidden">Comparativo: Chat sem censura, Agentio e Combo</caption>
             <thead><tr><th>O que est&aacute; incluso</th><th>Chat sem censura</th><th>Agentio</th><th>Combo</th></tr></thead>
             <tbody>
               <tr><td>Chat sem censura no site</td><td class="ok">&check;</td><td>&mdash;</td><td class="ok">&check;</td></tr>
@@ -400,8 +401,8 @@
 
         <div class="compare">
           <p class="section-kicker">Comparativo &middot; para voc&ecirc;</p>
-          <h2>O que muda entre os tr&ecirc;s acessos ao chat.</h2>
-          <div class="tablewrap"><table>
+          <h2 id="compare-chat">O que muda entre os tr&ecirc;s acessos ao chat.</h2>
+          <div class="tablewrap" tabindex="0" role="region" aria-labelledby="compare-chat"><table>
             <thead><tr><th>O que importa</th><th>Mensal &middot; R$ 79</th><th>Passe 7 dias &middot; R$ 24,90</th><th>Anual &middot; R$ 790</th></tr></thead>
             <tbody>
               <tr><td>Per&iacute;odo de acesso</td><td>1 m&ecirc;s</td><td>7 dias corridos</td><td>12 meses</td></tr>

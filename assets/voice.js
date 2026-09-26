@@ -79,7 +79,7 @@ function stop() {
   cancelAnimationFrame(raf);
   resetEq();
   if (typeof heroStop === "function" && current && stageOrb?.classList.contains("playing")) heroStop();
-  if (current) { orbs.get(current.orb)?.setLevel(0); current.orb.style.setProperty("--lv", "0"); current.orb.classList.remove("speaking"); current.card?.classList.remove("speaking"); current = null; }
+  if (current) { orbs.get(current.orb)?.setLevel(0); current.orb.style.setProperty("--lv", "0"); current.orb.classList.remove("speaking"); current.card?.classList.remove("speaking"); current.card?.querySelector(".play")?.setAttribute("aria-pressed", "false"); current = null; }
   player.pause();
 }
 function play(key, orb, caption) {
@@ -88,6 +88,7 @@ function play(key, orb, caption) {
   stop(); ensureAudio(); ctx?.resume?.();
   current = { key, orb, card };
   orb.classList.add("speaking"); card?.classList.add("speaking");
+  card?.querySelector(".play")?.setAttribute("aria-pressed", "true");
   if (caption) flashCaption(orb, caption);
   player.src = src(key);
   player.play().catch((err) => {
@@ -174,8 +175,8 @@ prepCaption(heroKey);
 // --- voice library
 document.querySelectorAll(".voice").forEach((card) => {
   const orb = card.querySelector(".orb");
+  // O botão "Ouvir" leva o foco e o teclado; o clique em qualquer parte do cartão também toca.
   card.addEventListener("click", () => play(card.dataset.voice, orb));
-  card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); card.click(); } });
 });
 
 // --- use-case tabs

@@ -357,7 +357,7 @@
   }
 
   function loadConversations() {
-    return sb.from("conversations").select("id,title,created_at,updated_at").order("updated_at", { ascending: false }).limit(100)
+    return sb.from("conversations").select("id,title,created_at,updated_at").eq("user_id", state.user.id).order("updated_at", { ascending: false }).limit(100)
       .then(function (r) { state.conversations = r.data || []; renderConversations(); });
   }
 

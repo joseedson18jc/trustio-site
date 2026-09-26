@@ -79,7 +79,7 @@ function stop() {
   cancelAnimationFrame(raf);
   resetEq();
   if (typeof heroStop === "function" && current && stageOrb?.classList.contains("playing")) heroStop();
-  if (current) { orbs.get(current.orb)?.setLevel(0); current.orb.style.setProperty("--lv", "0"); current.orb.classList.remove("speaking"); current.card?.classList.remove("speaking"); current = null; }
+  if (current) { orbs.get(current.orb)?.setLevel(0); current.orb.style.setProperty("--lv", "0"); current.orb.classList.remove("speaking"); current.card?.classList.remove("speaking"); current.card?.querySelector(".play")?.setAttribute("aria-pressed", "false"); current = null; }
   player.pause();
 }
 function play(key, orb, caption) {
@@ -88,9 +88,14 @@ function play(key, orb, caption) {
   stop(); ensureAudio(); ctx?.resume?.();
   current = { key, orb, card };
   orb.classList.add("speaking"); card?.classList.add("speaking");
+  card?.querySelector(".play")?.setAttribute("aria-pressed", "true");
   if (caption) flashCaption(orb, caption);
   player.src = src(key);
-  player.play().catch(() => { flashCaption(orb, T("Toque novamente para ouvir.", "Tap again to listen.")); stop(); });
+  player.play().catch((err) => {
+    // Um play() interrompido por outro clique não é falha: não derruba o áudio novo.
+    if (err?.name === "AbortError" || current?.key !== key) return;
+    flashCaption(orb, T("Toque novamente para ouvir.", "Tap again to listen.")); stop();
+  });
   meter();
 }
 player.addEventListener("ended", stop);
@@ -170,8 +175,8 @@ prepCaption(heroKey);
 // --- voice library
 document.querySelectorAll(".voice").forEach((card) => {
   const orb = card.querySelector(".orb");
+  // O botão "Ouvir" leva o foco e o teclado; o clique em qualquer parte do cartão também toca.
   card.addEventListener("click", () => play(card.dataset.voice, orb));
-  card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); card.click(); } });
 });
 
 // --- use-case tabs
@@ -188,9 +193,9 @@ window.addEventListener("pagehide", stop);
 const CHANNELS_PT = {
   phone: { icon: "phone", kicker: "Telefonia", title: "Ligação de voz",
     lede: "O canal mais exigente — e onde o agente mais se prova. Fala-a-fala em tempo real, com número local e transferência para humano sem perder o fio.",
-    how: "A chamada entra por SIP (seu número ou um número novo com o DDD da cidade) e passa pela camada Trustio antes do modelo: identificação, mascaramento de dados sensíveis e playbook. O agente escuta, raciocina, chama ferramentas no meio da conversa e responde em menos de um segundo. Se precisar de gente, transfere com um resumo do que já foi dito.",
+    how: "A chamada entra por SIP (seu número ou um número novo com o DDD da cidade) e passa pela camada Trustio antes do modelo: identificação, contexto mínimo e playbook. O agente escuta, raciocina, chama ferramentas no meio da conversa e responde em menos de um segundo. Se precisar de gente, transfere com um resumo do que já foi dito.",
     quick: ["< 1 s fala-a-fala", "Seu número via SIP", "Transfere com contexto"],
-    facts: [["Entrada", "Número novo (DDD local) ou porte/SIP do número atual; também WebRTC no site"], ["Latência", "Sub-segundo ponta a ponta, com interrupções tratadas (o cliente pode falar por cima)"], ["Registro", "Gravação, transcrição e eventos da chamada no perímetro, no Brasil"], ["Boa prática", "O agente se identifica como assistente virtual no início da ligação"]],
+    facts: [["Entrada", "Número novo (DDD local) ou porte/SIP do número atual; também WebRTC no site"], ["Latência", "Abaixo de 1 s ponta a ponta, com interrupções tratadas (o cliente pode falar por cima)"], ["Registro", "Gravação, transcrição e eventos da chamada no perímetro, no Brasil"], ["Boa prática", "O agente se identifica como assistente virtual no início da ligação"]],
     uses: ["Atendimento N1", "Confirmação de consulta", "Cobrança e acordos", "Recepção 24/7", "Qualificação outbound"] },
   whatsapp: { icon: "whatsapp", kicker: "Mensageria", title: "WhatsApp",
     lede: "O canal que o Brasil usa. Pela API oficial de negócios, o mesmo agente responde texto, áudio e documentos — e sabe quando só um template é permitido.",
@@ -239,9 +244,9 @@ const CHANNELS_PT = {
 const CHANNELS_EN = {
   phone: { icon: "phone", kicker: "Telephony", title: "Voice call",
     lede: "The most demanding channel — and where the agent proves itself most. Real-time speech-to-speech, with a local number and handoff to a human without losing the thread.",
-    how: "The call comes in over SIP (your number, or a new one with your city's area code) and goes through the Trustio layer before the model: identification, masking of sensitive data and the playbook. The agent listens, reasons, calls tools mid-conversation and answers in under a second. If it needs a person, it transfers the call with a summary of what's already been said.",
+    how: "The call comes in over SIP (your number, or a new one with your city's area code) and goes through the Trustio layer before the model: identification, minimal context and the playbook. The agent listens, reasons, calls tools mid-conversation and answers in under a second. If it needs a person, it transfers the call with a summary of what's already been said.",
     quick: ["< 1 s speech-to-speech", "Your number via SIP", "Transfers with context"],
-    facts: [["Inbound", "A new number (local area code) or porting/SIP of your current number; WebRTC on your site too"], ["Latency", "Sub-second end to end, with interruptions handled (the customer can talk over it)"], ["Logging", "Call recording, transcript and events inside the perimeter, in Brazil"], ["Good practice", "The agent identifies itself as a virtual assistant at the start of the call"]],
+    facts: [["Inbound", "A new number (local area code) or porting/SIP of your current number; WebRTC on your site too"], ["Latency", "Under 1 s end to end, with interruptions handled (the customer can talk over it)"], ["Logging", "Call recording, transcript and events inside the perimeter, in Brazil"], ["Good practice", "The agent identifies itself as a virtual assistant at the start of the call"]],
     uses: ["Tier-1 support", "Appointment confirmation", "Collections and settlements", "24/7 reception", "Outbound qualification"] },
   whatsapp: { icon: "whatsapp", kicker: "Messaging", title: "WhatsApp",
     lede: "The channel Brazil actually uses. Through the official Business API, the same agent answers text, audio and documents — and knows when only a template is allowed.",
@@ -297,7 +302,7 @@ chBtns.forEach((b) => {
   const inner = document.createElement("div");
   const facts = document.createElement("div"); facts.className = "ch-facts";
   c.quick.forEach((q) => { const s = document.createElement("span"); s.textContent = q; facts.appendChild(s); });
-  const hint = document.createElement("span"); hint.className = "ch-hint"; hint.textContent = "Ver detalhes";
+  const hint = document.createElement("span"); hint.className = "ch-hint"; hint.textContent = T("Ver detalhes", "See details");
   inner.append(facts, hint); more.appendChild(inner); b.appendChild(more);
 });
 function cdSet(name, fn) { const el = chDetail?.querySelector(`[data-cd="${name}"]`); if (el) fn(el); }

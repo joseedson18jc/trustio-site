@@ -263,6 +263,24 @@
     "HOSPEDADO": "HOSTED",
     "BRASIL": "BRAZIL",
     "MAIS FORTE": "STRONGER",
-    "COM TECNOLOGIA": "THROUGH TECHNOLOGY"
-  }
+    "COM TECNOLOGIA": "THROUGH TECHNOLOGY",
+    "O chat sem censura funciona aqui, no trustio.com.br: modelos em ambiente privado e local, sem filtro de conteúdo imposto pelo fornecedor. No WhatsApp e no Telegram entra o agente Hermes (Hermes Agent, de código aberto da Nous Research): autônomo, executa tarefas por você e muito mais. Para quem valoriza a privacidade e quer acompanhar, passo a passo, os avanços mais recentes da tecnologia.": "The uncensored chat works right here, on trustio.com.br: models in a private, local environment, with no content filter imposed by the vendor. On WhatsApp and Telegram, the Hermes agent (Hermes Agent, open source from Nous Research) takes over: autonomous, it gets things done for you and much more. For people who value privacy and want to follow, step by step, the latest advances in the technology.",
+    "Para testar: 5 perguntas grátis no chat e 3 dias do agente no WhatsApp": "To try it: 5 free questions in the chat and 3 days of the agent on WhatsApp",
+    "Passe de 7 dias por R$ 24,90, sem renovação automática · mensal R$ 79 e anual R$ 790, que renovam até você cancelar": "7-day pass for R$ 24.90, no automatic renewal · monthly R$ 79 and annual R$ 790, which renew until you cancel",
+    "WhatsApp, e-mail, Telegram e até uma ligação telefônica: é o mesmo agente, com a mesma memória. Ele se lembra de todo o contexto da conversa, não importa por onde ela começou, e responde com latência tão baixa que parece uma pessoa real do outro lado.": "WhatsApp, email, Telegram and even a phone call: it's the same agent, with the same memory. It remembers the whole context of the conversation, no matter where it started, and answers with latency so low it feels like a real person on the other end.",
+    "2 horas de mentoria, totalmente privada.": "2 hours of mentoring, completely private.",
+    "Ajustamos a IA ao que você precisa: do seu jeito de trabalhar às tarefas que quer automatizar.": "We tailor the AI to what you need: from the way you work to the tasks you want to automate.",
+    "2 h ao vivo, 1x1, com a IA ajustada ao seu uso": "2 h live, 1:1, with the AI tailored to how you use it",
+    "VOICEAI · POWERED BY XAI": "VOICEAI · POWERED BY XAI"
+  },
+  "raw": [
+    [
+      "# mesma interface, seu perímetro",
+      "# same interface, your perimeter"
+    ],
+    [
+      "Resuma o contrato 4402.",
+      "Summarize contract 4402."
+    ]
+  ]
 }

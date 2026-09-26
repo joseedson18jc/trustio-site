@@ -51,8 +51,10 @@ páginas geram conteúdo duplicado indexável e prejudicam o SEO. O `.gitignore`
 
 ## Segurança
 
-Todas as páginas aplicam uma CSP restrita via `<meta http-equiv>`:
-`default-src 'self'` com `connect-src 'none'` e `object-src 'none'`.
+Todas as páginas aplicam uma CSP restrita via `<meta http-equiv>`: `default-src 'self'`,
+`object-src 'none'`, e `script-src`/`connect-src`/`form-action` limitados às origens que a página
+usa (Cloudflare Web Analytics, `api.trustio.com.br`, o projeto Supabase). Cabeçalhos que o `<meta>`
+não cobre (anti-clickjacking) vão na Cloudflare — ver `SECURITY.md`.
 
 Consequência prática: **nada de `<script>` inline, `style=""` inline ou recursos de terceiros**
 (CDN, fontes remotas, imagens externas). Ícones e logotipos são SVG embutidos no HTML ou arquivos

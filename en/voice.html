@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark light">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow, max-image-preview:large">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self' https://formsubmit.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>VoiceAI powered by xAI | Trustio — Omnichannel voice and text agents in Brazil</title>
   <meta name="description" content="Omnichannel agents: voice, WhatsApp, Telegram, email, SMS, iMessage and calendar. xAI's Grok Voice models orchestrated by Trustio, with telephony, guardrails and logs hosted in Brazil.">
   <link rel="canonical" href="https://trustio.com.br/en/voice.html">
@@ -20,11 +20,11 @@
   <link rel="preload" href="/assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/assets/theme.js?v=673d4355"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=8f136a06">
-  <link rel="stylesheet" href="/assets/voice.css?v=0270d464">
-  <script type="module" src="/assets/app.js?v=a756f472"></script>
+  <link rel="stylesheet" href="/assets/styles.css?v=769568a1">
+  <link rel="stylesheet" href="/assets/voice.css?v=0c59a54e">
+  <script type="module" src="/assets/app.js?v=c02ba709"></script>
   <script defer src="/assets/orb.js?v=2a1bad38"></script>
-  <script defer src="/assets/voice.js?v=764cb4d5"></script>
+  <script defer src="/assets/voice.js?v=c6ca9ef1"></script>
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -160,70 +160,70 @@
       </div>
 
       <div class="channels" role="list">
-        <article class="ch has-insight" role="listitem">
+        <div class="ch has-insight" role="listitem">
           <button type="button" class="ch-btn" data-ch="phone" aria-expanded="false" aria-controls="ch-detail">
           <img src="/assets/connectors/phone.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>Voice call</b>
           <small>Local numbers with your city's area code. Takes and makes calls, with handoff to a human.</small>
           <p class="insight-line">Takes calls, transfers them and hands the context to a human.</p>
           </button>
-        </article>
-        <article class="ch has-insight" role="listitem">
+        </div>
+        <div class="ch has-insight" role="listitem">
           <button type="button" class="ch-btn" data-ch="whatsapp" aria-expanded="false" aria-controls="ch-detail">
           <img src="/assets/connectors/whatsapp.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>WhatsApp</b>
           <small>The channel Brazil actually uses. Text, audio and documents on the official Business API.</small>
           <p class="insight-line">Official Business API, with opt-in and the 24-hour window.</p>
           </button>
-        </article>
-        <article class="ch has-insight" role="listitem">
+        </div>
+        <div class="ch has-insight" role="listitem">
           <button type="button" class="ch-btn" data-ch="telegram" aria-expanded="false" aria-controls="ch-detail">
           <img src="/assets/connectors/telegram.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>Telegram</b>
           <small>Bots and groups handled by the same agent, with the same permissions.</small>
           <p class="insight-line">Bots and groups with the same permissions as the agent.</p>
           </button>
-        </article>
-        <article class="ch has-insight" role="listitem">
+        </div>
+        <div class="ch has-insight" role="listitem">
           <button type="button" class="ch-btn" data-ch="gmail" aria-expanded="false" aria-controls="ch-detail">
           <img src="/assets/connectors/gmail.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>Gmail</b>
           <small>Reads, replies and forwards in the company inbox, with drafts for approval whenever you want.</small>
           <p class="insight-line">Draft for approval or send directly, by rule.</p>
           </button>
-        </article>
-        <article class="ch has-insight" role="listitem">
+        </div>
+        <div class="ch has-insight" role="listitem">
           <button type="button" class="ch-btn" data-ch="outlook" aria-expanded="false" aria-controls="ch-detail">
           <img src="/assets/connectors/outlook.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>Outlook</b>
           <small>Microsoft 365 with the same rules, queues and logs as the rest of the operation.</small>
           <p class="insight-line">Microsoft 365 with the operation's queues and logs.</p>
           </button>
-        </article>
-        <article class="ch has-insight" role="listitem">
+        </div>
+        <div class="ch has-insight" role="listitem">
           <button type="button" class="ch-btn" data-ch="calendar" aria-expanded="false" aria-controls="ch-detail">
           <img src="/assets/connectors/calendar.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>Calendar</b>
           <small>Google Calendar and Outlook: books, reschedules, confirms and prevents no-shows.</small>
           <p class="insight-line">Confirms, reschedules and cuts no-shows before they happen.</p>
           </button>
-        </article>
-        <article class="ch has-insight" role="listitem">
+        </div>
+        <div class="ch has-insight" role="listitem">
           <button type="button" class="ch-btn" data-ch="imessage" aria-expanded="false" aria-controls="ch-detail">
           <img src="/assets/connectors/imessage.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>iMessage</b>
           <small>Apple messages showing your brand name instead of an unknown number.</small>
           <p class="insight-line">Your brand name instead of an unknown number.</p>
           </button>
-        </article>
-        <article class="ch has-insight" role="listitem">
+        </div>
+        <div class="ch has-insight" role="listitem">
           <button type="button" class="ch-btn" data-ch="sms" aria-expanded="false" aria-controls="ch-detail">
           <img src="/assets/connectors/sms.svg" alt="" width="26" height="26" loading="lazy" decoding="async">
           <b>SMS</b>
           <small>Confirmations, codes and notices where there's no internet or app.</small>
           <p class="insight-line">Reaches people with no internet and no app installed.</p>
           </button>
-        </article>
+        </div>
       </div>
 
       <div class="ch-detail" id="ch-detail" hidden aria-live="polite">
@@ -280,11 +280,11 @@
         <p>Warm, expressive and quick on their feet — speaking real Brazilian Portuguese, not text rendered from English. Choose from xAI's Grok voices or clone your brand's voice from two minutes of audio. Tap an orb to hear a preview.</p>
       </div>
       <div class="voices" role="list">
-        <div class="voice" role="listitem" tabindex="0" data-voice="ara" data-sample="Oi, eu sou a Ara. Posso ajudar com o seu pedido, com a sua fatura ou com um agendamento. O que você precisa hoje?"><div class="orb ice" data-bg="#0b0e14" data-colors="#c9e6ff,#2f7dff,#081a3a" data-glow="#7abeff"></div><b>Ara</b><small>Welcoming and clear. Customer service and reception.</small><span class="play">▶ Listen</span></div>
-        <div class="voice" role="listitem" tabindex="0" data-voice="eve" data-sample="Oi, aqui é a Eve. Vi que você deixou o carrinho pela metade. Quer que eu finalize o pedido com o mesmo cartão?"><div class="orb violet" data-bg="#0b0e14" data-colors="#e2ccff,#7b4dff,#160a38" data-glow="#a888ff"></div><b>Eve</b><small>Quick and friendly. Sales and win-back.</small><span class="play">▶ Listen</span></div>
-        <div class="voice" role="listitem" tabindex="0" data-voice="leo" data-sample="Boa tarde, sou o Leo. Confirmo o pagamento de duzentos e trinta reais recebido hoje. Posso enviar o comprovante por e-mail?"><div class="orb amber" data-bg="#0b0e14" data-colors="#ffe4a8,#ff9a3c,#3a1606" data-glow="#ffb454"></div><b>Leo</b><small>Firm and calm. Collections and confirmations.</small><span class="play">▶ Listen</span></div>
-        <div class="voice" role="listitem" tabindex="0" data-voice="rex" data-sample="Aqui é o Rex. Sua ocorrência foi registrada com prioridade alta. Um técnico entra em contato em até duas horas."><div class="orb mint" data-bg="#0b0e14" data-colors="#c6fff0,#22c48f,#052a1e" data-glow="#3ddc97"></div><b>Rex</b><small>Deep and to the point. Technical support.</small><span class="play">▶ Listen</span></div>
-        <div class="voice" role="listitem" tabindex="0" data-voice="sal" data-sample="Olá, sou a Sal. Encontrei três decisões recentes do STJ sobre o tema. Quer o resumo agora ou por e-mail?"><div class="orb rose" data-bg="#0b0e14" data-colors="#ffd0dd,#ff4f8a,#33081a" data-glow="#ff7aa8"></div><b>Sal</b><small>Precise and discreet. Legal and research.</small><span class="play">▶ Listen</span></div>
+        <div class="voice" role="listitem" data-voice="ara" data-sample="Oi, eu sou a Ara. Posso ajudar com o seu pedido, com a sua fatura ou com um agendamento. O que você precisa hoje?"><div class="orb ice" data-bg="#0b0e14" data-colors="#c9e6ff,#2f7dff,#081a3a" data-glow="#7abeff"></div><b id="voz-ara">Ara</b><small>Welcoming and clear. Customer service and reception.</small><button type="button" class="play" id="ouvir-ara" aria-labelledby="ouvir-ara voz-ara" aria-pressed="false">▶ Listen</button></div>
+        <div class="voice" role="listitem" data-voice="eve" data-sample="Oi, aqui é a Eve. Vi que você deixou o carrinho pela metade. Quer que eu finalize o pedido com o mesmo cartão?"><div class="orb violet" data-bg="#0b0e14" data-colors="#e2ccff,#7b4dff,#160a38" data-glow="#a888ff"></div><b id="voz-eve">Eve</b><small>Quick and friendly. Sales and win-back.</small><button type="button" class="play" id="ouvir-eve" aria-labelledby="ouvir-eve voz-eve" aria-pressed="false">▶ Listen</button></div>
+        <div class="voice" role="listitem" data-voice="leo" data-sample="Boa tarde, sou o Leo. Confirmo o pagamento de duzentos e trinta reais recebido hoje. Posso enviar o comprovante por e-mail?"><div class="orb amber" data-bg="#0b0e14" data-colors="#ffe4a8,#ff9a3c,#3a1606" data-glow="#ffb454"></div><b id="voz-leo">Leo</b><small>Firm and calm. Collections and confirmations.</small><button type="button" class="play" id="ouvir-leo" aria-labelledby="ouvir-leo voz-leo" aria-pressed="false">▶ Listen</button></div>
+        <div class="voice" role="listitem" data-voice="rex" data-sample="Aqui é o Rex. Sua ocorrência foi registrada com prioridade alta. Um técnico entra em contato em até duas horas."><div class="orb mint" data-bg="#0b0e14" data-colors="#c6fff0,#22c48f,#052a1e" data-glow="#3ddc97"></div><b id="voz-rex">Rex</b><small>Deep and to the point. Technical support.</small><button type="button" class="play" id="ouvir-rex" aria-labelledby="ouvir-rex voz-rex" aria-pressed="false">▶ Listen</button></div>
+        <div class="voice" role="listitem" data-voice="sal" data-sample="Olá, sou a Sal. Encontrei três decisões recentes do STJ sobre o tema. Quer o resumo agora ou por e-mail?"><div class="orb rose" data-bg="#0b0e14" data-colors="#ffd0dd,#ff4f8a,#33081a" data-glow="#ff7aa8"></div><b id="voz-sal">Sal</b><small>Precise and discreet. Legal and research.</small><button type="button" class="play" id="ouvir-sal" aria-labelledby="ouvir-sal voz-sal" aria-pressed="false">▶ Listen</button></div>
       </div>
       <div class="br-strip">
         <div><b>Brazilian rhythm and accent</b><span>Brazilian prosody, with a neutral or regional accent depending on who it's serving.</span></div>
@@ -316,7 +316,7 @@
       </div>
       <div class="usecase-panel" role="tabpanel" id="uc-2" aria-labelledby="t-uc-2" hidden>
         <div><h3>Consultative selling, with the catalog on the tip of its tongue.</h3><p>Understands the need, compares options, applies commercial terms and closes with a payment link — all in one call.</p></div>
-        <div class="call"><div class="bar"><span>Call · outbound</span><span><i>●</i> live</span></div><p>Hi, Marina! I saw you asked for a quote on the Pro plan. Can I answer any questions now?</p><p class="me">I want to know if it covers 5 use cases.</p><p>It does — Pro includes up to five. If you like, I can send a payment link with ten percent off the annual plan.</p><p class="tool">→ criar_link_pagamento(pro, cupom=ANUAL10)</p></div>
+        <div class="call"><div class="bar"><span>Call · outbound</span><span><i>●</i> live</span></div><p>Hi, Marina! I saw you asked for a quote on the Pro plan. Can I answer any questions now?</p><p class="me">I'd like to know whether 5 use cases fit.</p><p>It does — Pro includes up to five. If you like, I can send a payment link with ten percent off the annual plan.</p><p class="tool">→ criar_link_pagamento(pro, cupom=ANUAL10)</p></div>
       </div>
       <div class="usecase-panel" role="tabpanel" id="uc-3" aria-labelledby="t-uc-3" hidden>
         <div><h3>Lead qualification in minutes, not days.</h3><p>Calls every new lead, runs the BANT script, scores them and books them with the right salesperson.</p></div>
@@ -337,7 +337,7 @@
     <div class="container">
       <div class="head">
         <div><p class="section-kicker">Smart, with no wait</p><h2 id="smart-title">Real reasoning, an answer in under a second.</h2></div>
-        <p>Most voice AIs trade intelligence for speed. Grok Voice doesn't: it reasons, calls tools and answers with sub-second latency, trained on the hardest calls.</p>
+        <p>Most voice AIs trade intelligence for speed. Grok Voice doesn't: it reasons, calls tools and responds in under a second, trained on the hardest calls.</p>
       </div>
       <div class="bench">
         <div class="bench-card"><div class="t"><span>τ-voice Bench · overall</span><span>source: xAI</span></div>
@@ -360,9 +360,9 @@
         <article class="feat"><p class="k">Guardrails</p><h3>Limits you set</h3><p>What the agent can say, ask for and do. Sensitive data is never read aloud.</p><div class="chips"><span>PII</span><span>LGPD</span><span>Escalation</span></div></article>
       </div>
       <div class="playbook">
-        <div class="pb"><p class="n">01 · GREETING</p><h3>Write the playbook</h3><pre>Cumprimente pelo nome. Confirme o motivo da ligação em uma frase. Nunca peça dados de cartão.</pre></div>
-        <div class="pb"><p class="n">02 · RESOLVE</p><h3>Follow the flow, always</h3><pre>Consulte o pedido. Aplique a política de troca. Se valor &gt; R$ 500, peça aprovação humana antes de executar.</pre></div>
-        <div class="pb"><p class="n">03 · CLOSE</p><h3>Confirm and log</h3><pre>Resuma o que foi feito. Envie protocolo por WhatsApp. Registre a chamada com transcrição e tags.</pre></div>
+        <div class="pb"><p class="n">01 · GREETING</p><h3>Write the playbook</h3><pre>Greet the caller by name. Confirm the reason for the call in one sentence. Never ask for card details.</pre></div>
+        <div class="pb"><p class="n">02 · RESOLVE</p><h3>Follow the flow, always</h3><pre>Look up the order. Apply the exchange policy. If the amount is over R$ 500, ask for human approval before acting.</pre></div>
+        <div class="pb"><p class="n">03 · CLOSE</p><h3>Confirm and log</h3><pre>Summarize what was done. Send the ticket number via WhatsApp. Log the call with its transcript and tags.</pre></div>
       </div>
     </div>
   </section>
@@ -374,8 +374,8 @@
         <p>The voice model is xAI's; everything else stays with you. Trustio orchestrates the call, applies guardrails, logs every event and keeps recordings, transcripts and customer data hosted in Brazil.</p>
       </div>
       <div class="perim">
-        <div><h3>How the call crosses the perimeter</h3><p>Audio and context pass through the Trustio layer before and after the model. Sensitive data is masked before it leaves; recordings, logs and tools never leave your environment.</p>
-          <ul class="points"><li>PII masking before the model</li><li>Tools executed inside the perimeter</li><li>Recordings and transcripts in Brazil</li><li>Audit trail per call, per agent, per team</li></ul></div>
+        <div><h3>How the call crosses the perimeter</h3><p>Audio and context pass through the Trustio layer before and after the model. Only what each response needs goes to the model; recordings, logs and tools never leave your environment.</p>
+          <ul class="points"><li>Context sent to the model kept to the minimum</li><li>Tools executed inside the perimeter</li><li>Recordings and transcripts in Brazil</li><li>Audit trail per call, per agent, per team</li></ul></div>
         <div class="flow" aria-label="Call flow">
           <div><span>Customer · phone / WhatsApp / web</span><small>audio</small></div>
           <div class="core"><span>Trustio · telephony, guardrails, masking</span><small>BR</small></div>
@@ -394,7 +394,7 @@
         <p>Beyond conversational agents, the same infrastructure delivers transcription, speech synthesis and voice cloning for your products and operations.</p>
       </div>
       <div class="suite">
-        <article><h3>Speech to speech</h3><p>Real-time conversations with sub-second latency.</p><b>Voice agents</b></article>
+        <article><h3>Speech to speech</h3><p>Real-time conversations with under one second of latency.</p><b>Voice agents</b></article>
         <article><h3>Speech to text</h3><p>Transcription of calls, meetings and videos, in batch or live.</p><b>Transcription</b></article>
         <article><h3>Text to speech</h3><p>Natural, expressive voice in 25+ languages.</p><b>Synthesis</b></article>
         <article><h3>Voice cloning</h3><p>Your brand's voice from two minutes of audio.</p><b>Your own voice</b></article>
@@ -423,7 +423,7 @@
           <img class="brand-mark" src="/assets/trustio-mark.svg" alt="" width="34" height="34">
           <span class="brand-word"><span>Trust</span><strong>io</strong></span>
         </a>
-        <p>Private artificial intelligence infrastructure for businesses.</p>
+        <p>Personal and business AI, private and under your control.</p>
       </div>
       <div class="footer-links">
         <div><span>EXPLORE</span><a href="index.html#plataforma">Platform</a><a href="modelos.html">Powerful Models</a><a href="voice.html">VoiceAI · xAI</a><a href="agentio.html">Agentio · Nous</a><a href="/en/juridico/">Legal</a><a href="index.html#seguranca">Security</a><a href="index.html#implantacao">Deployment</a><a href="planos.html">Plans</a><a href="espera.html">Waitlist</a></div>
@@ -434,7 +434,6 @@
       <p>© <span data-year>2026</span> Trustio. All rights reserved.</p>
       <div class="iso-badge">
         <picture><source srcset="/assets/iso-27001.webp" type="image/webp"><img src="/assets/iso-27001.png" alt="ISO 27001 certification" width="120" height="120"></picture>
-        <picture><source srcset="/assets/anpd.webp" type="image/webp"><img src="/assets/anpd.png" alt="ANPD — Brazilian National Data Protection Authority" width="249" height="140"></picture>
         <picture><source srcset="/assets/lgpd.webp" type="image/webp"><img src="/assets/lgpd.png" alt="LGPD — Brazil's General Data Protection Law" width="240" height="120"></picture>
         <div class="iso-badge-text">
           <span>ISO 27001 certification · LGPD compliance</span>
@@ -450,11 +449,11 @@
       </div>
       <address>
         <span>JCSC BRAZIL MANAGEMENT LTDA · CNPJ 58.451.617/0001-03 · Trustio IA</span>
-        <span>Av. Paulista, 1106, sala 01 · Bela Vista · São Paulo-SP · CEP 01310-914</span>
+        <span>Av. Paulista, 1106, sala 01 · Bela Vista · São Paulo-SP · CEP 01310‑914</span>
       </address>
     </div>
   </footer>
-<!-- Cloudflare Web Analytics (sem cookies, LGPD-friendly) — ative colando o token do painel Web Analytics -->
+<!-- Cloudflare Web Analytics: métricas agregadas, sem cookies -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "68961161fc6848c0b9e1d755f829fd30"}'></script>
 </body>
 </html>

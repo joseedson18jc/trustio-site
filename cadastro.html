@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark light">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://mjdaluioyutnxlyomzyd.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://mjdaluioyutnxlyomzyd.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Criar conta | Trustio — IA privada e sem censura</title>
   <meta name="description" content="Crie sua conta grátis na Trustio em um minuto. O chat com IA privada e sem censura abre em 1º de outubro de 2026; o acesso antecipado para assinantes já abriu. Dados no Brasil.">
   <link rel="canonical" href="https://trustio.com.br/cadastro.html">
@@ -20,13 +20,13 @@
   <link rel="preload" href="assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="assets/theme.js?v=673d4355"></script>
-  <link rel="stylesheet" href="assets/styles.css?v=8f136a06">
-  <link rel="stylesheet" href="assets/planos.css?v=3a663b9b">
-  <link rel="stylesheet" href="assets/conta.css?v=98bfe117">
-  <script type="module" src="assets/app.js?v=a756f472"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=769568a1">
+  <link rel="stylesheet" href="assets/planos.css?v=92802c09">
+  <link rel="stylesheet" href="assets/conta.css?v=32465bb7">
+  <script type="module" src="assets/app.js?v=c02ba709"></script>
   <script defer src="assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="assets/auth-config.js?v=7ebbf495"></script>
-  <script defer src="assets/conta.js?v=261f23d0"></script>
+  <script defer src="assets/conta.js?v=1b209564"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/cadastro.html">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/cadastro.html">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/cadastro.html"><!--/i18n:alt-->
@@ -97,7 +97,7 @@
           <ol class="conta-passos">
             <li><b>Você cria a conta</b>Nome, e-mail e uma senha. Para empresas, o segmento. O telefone é opcional.</li>
             <li><b>Confirma o e-mail</b>Enviamos um link. Ao clicar, você já entra autenticado, sem digitar senha de novo.</li>
-            <li><b>Conversa sem censura*</b>Na abertura, cinco prompts grátis no chat. Depois, você escolhe um plano quando quiser, sem cobrança automática. <span class="pix-tag"><svg class="pix-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.3 20.7 12 12 20.7 3.3 12z"/><path d="M6.9 8.2h1.9c.7 0 1.4.3 1.9.8l1.3 1.3 1.3-1.3c.5-.5 1.2-.8 1.9-.8h1.9M6.9 15.8h1.9c.7 0 1.4-.3 1.9-.8l1.3-1.3 1.3 1.3c.5.5 1.2.8 1.9.8h1.9"/></svg>Pix aceito</span></li>
+            <li><b>Conversa sem censura*</b>Na abertura, cinco perguntas grátis no chat. Depois, você escolhe um plano quando quiser; o teste não gera cobrança.</li>
           </ol>
           <div class="conta-bonus">
             <p class="conta-bonus-tag">Bônus opcional</p>
@@ -106,14 +106,14 @@
           <div class="conta-tags" aria-label="Garantias">
             <span>Dados no Brasil</span><span>Sem censura*</span><span>LGPD</span><span>Sem cartão</span>
           </div>
-          <p class="fine-print">* A responsabilidade pelo conteúdo dos prompts enviados e pelo uso das respostas é inteiramente de quem os envia.</p>
+          <p class="fine-print">* Quem envia as perguntas responde pelo conteúdo delas e pelo uso que faz das respostas, nos termos da lei.</p>
           <p class="conta-alt conta-alt-left">Já tem conta? <a href="entrar.html">Entrar</a></p>
         </div>
 
         <div class="conta-card">
           <h2>Criar conta</h2>
           <p>Leva menos de um minuto.</p>
-          <form class="lead-form" id="cadastro-form" novalidate>
+          <form class="lead-form" id="cadastro-form" method="post" novalidate>
             <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
 
             <label for="c-nome">Nome <span>obrigatório</span></label>
@@ -140,7 +140,7 @@
             </div>
 
             <p class="form-expectativa">Ao enviar, você recebe <b>um e-mail de confirmação em poucos minutos</b>. Confirmado o e-mail, a conta fica pronta e o chat abre em <b>1º/10</b> — ou em até 1 dia útil após o pagamento, se você assinar um plano. Nenhuma cobrança acontece aqui.</p>
-            <button class="button button-primary" type="submit" data-submit>Criar conta e receber o link <span aria-hidden="true">↗</span></button>
+            <button class="button button-primary" type="submit" data-submit disabled>Criar conta e receber o link <span aria-hidden="true">↗</span></button>
             <p class="lead-legal" data-status role="status" aria-live="polite"></p>
             <div class="conta-done" data-done hidden>
               <b>Falta só confirmar.</b> Abra o e-mail enviado para <code data-done-email></code> e clique em <b>Confirmar e entrar</b>. Não chegou? Confira o spam ou peça um novo link em <a href="entrar.html">Entrar</a>.
@@ -160,7 +160,7 @@
           <img class="brand-mark" src="assets/trustio-mark.svg" alt="" width="34" height="34">
           <span class="brand-word"><span>Trust</span><strong>io</strong></span>
         </a>
-        <p>Infraestrutura privada de inteligência artificial para empresas.</p>
+        <p>IA pessoal e empresarial, privada e sob seu controle.</p>
       </div>
       <div class="footer-links">
         <div><span>EXPLORAR</span><a href="index.html#plataforma">Plataforma</a><a href="modelos.html">Modelos Poderosos</a><a href="voice.html">VoiceAI · xAI</a><a href="agentio.html">Agentio · Nous</a><a href="/juridico/">Jurídico</a><a href="index.html#seguranca">Segurança</a><a href="index.html#implantacao">Implantação</a><a href="planos.html">Planos</a><a href="espera.html">Lista de espera</a></div>
@@ -178,7 +178,7 @@
       </div>
       <address>
         <span>JCSC BRAZIL MANAGEMENT LTDA · CNPJ 58.451.617/0001-03 · Trustio IA</span>
-        <span>Av. Paulista, 1106, sala 01 · Bela Vista · São Paulo-SP · CEP 01310-914</span>
+        <span>Av. Paulista, 1106, sala 01 · Bela Vista · São Paulo-SP · CEP 01310‑914</span>
       </address>
     </div>
   </footer>

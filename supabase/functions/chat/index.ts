@@ -457,9 +457,10 @@ Deno.serve(async (req) => {
         limit: reservation.subscriber ? null : reservation.limit,
       });
     } else {
-      // Nada de texto: a mensagem não conta na cota e o navegador recebe o motivo.
+      // Nada de texto. Só devolve a pergunta à cota se nada chegou ao navegador: raciocínio
+      // já entregue conta como uso (sem isso, pedir só o raciocínio virava pergunta grátis).
       console.error(interrompido ? "stream_interrompido_sem_texto" : "llm_resposta_vazia");
-      await release();
+      if (!pensando) await release();
       send({ error: interrompido ? "stream_interrompido" : "resposta_vazia" });
     }
     fechar();

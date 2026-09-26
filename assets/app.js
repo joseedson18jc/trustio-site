@@ -15,20 +15,26 @@ function updateHeader() {
   header.classList.toggle("is-scrolled", window.scrollY > 20);
 }
 
-function closeMenu() {
+// Com o menu aberto, o resto da página fica inerte (o Tab não cai no conteúdo coberto).
+const contentBehindMenu = () => document.querySelectorAll("main, footer");
+
+function closeMenu(returnFocus = false) {
   if (!menuButton || !mobileMenu || !header) return;
+  const wasOpen = menuButton.getAttribute("aria-expanded") === "true";
+  contentBehindMenu().forEach((el) => { el.inert = false; });
   menuButton.setAttribute("aria-expanded", "false");
   menuButton.setAttribute("aria-label", T("Abrir menu", "Open menu"));
   mobileMenu.hidden = true;
   header.classList.remove("menu-active");
   document.body.classList.remove("menu-open");
+  if (wasOpen && returnFocus) menuButton.focus();
 }
 
 function toggleMenu() {
   if (!menuButton || !mobileMenu || !header) return;
   const open = menuButton.getAttribute("aria-expanded") === "true";
   if (open) {
-    closeMenu();
+    closeMenu(true);
     return;
   }
 
@@ -37,12 +43,14 @@ function toggleMenu() {
   mobileMenu.hidden = false;
   header.classList.add("menu-active");
   document.body.classList.add("menu-open");
+  contentBehindMenu().forEach((el) => { el.inert = true; });
+  mobileMenu.querySelector("a, button")?.focus();
 }
 
 updateHeader();
 window.addEventListener("scroll", updateHeader, { passive: true });
 menuButton?.addEventListener("click", toggleMenu);
-mobileMenu?.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
+mobileMenu?.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => closeMenu()));
 window.addEventListener("resize", () => {
   if (window.innerWidth > 1300) closeMenu();
 });
@@ -72,7 +80,7 @@ window.addEventListener("scroll", updateActiveNavigation, { passive: true });
 window.addEventListener("resize", updateActiveNavigation);
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeMenu();
+  if (event.key === "Escape") closeMenu(true);
 });
 
 const revealItems = document.querySelectorAll(".reveal");
@@ -89,6 +97,14 @@ if ("IntersectionObserver" in window && !reducedMotion.matches) {
 } else {
   revealItems.forEach((item) => item.classList.add("is-visible"));
 }
+
+// Tabelas mais largas que a tela: a classe liga o esmaecido da borda direita enquanto
+// ainda houver coluna escondida, e sai quando a rolagem chega ao fim.
+document.querySelectorAll(".tablewrap, .vc-wrap").forEach((wrap) => {
+  const update = () => wrap.classList.toggle("tem-mais", wrap.scrollLeft + wrap.clientWidth < wrap.scrollWidth - 2);
+  wrap.addEventListener("scroll", update, { passive: true });
+  new ResizeObserver(update).observe(wrap);
+});
 
 const year = String(new Date().getFullYear());
 document.querySelectorAll("[data-year]").forEach((item) => {

@@ -39,7 +39,7 @@ if (qs.get("lista") === "pre") {
   document.querySelector("[data-plan-title]").textContent = T("Falta só o pagamento.", "Just the payment left.");
   const pk = qs.get("plano");
   const actions = document.querySelector(".thanks-actions");
-  if (payLinks[pk]) {
+  if (Object.hasOwn(payLinks, pk)) {
     document.querySelector("[data-plan-lead]").textContent = T("Recebemos seus dados. Falta só o pagamento (cartão, Apple Pay ou Google Pay): confirmado, seu acesso é liberado em até 1 dia útil, sem esperar o lançamento oficial de 1º de outubro. Se preferir pagar depois, o link também vai por e-mail e WhatsApp.", "We've got your details. All that's left is payment (card, Apple Pay or Google Pay): once confirmed, your access is granted within 1 business day, without waiting for the official October 1 launch. If you'd rather pay later, the link is also on its way by email and WhatsApp.");
     if (actions) { const a = document.createElement("a"); a.className = "button button-primary"; a.href = payLinks[pk][0]; a.rel = "noopener"; a.textContent = payLinks[pk][1] + " ↗"; actions.prepend(a); actions.querySelectorAll("a:not(:first-child)").forEach((b) => { b.className = "button button-outline"; }); }
   } else {
@@ -49,14 +49,14 @@ if (qs.get("lista") === "pre") {
 } else if (qs.get("lista") === "espera") {
   listaMode(T("Lista de espera confirmada", "Waitlist confirmed"));
   document.querySelector("[data-plan-title]").textContent = T("Você está na lista de espera.", "You're on the waitlist.");
-  document.querySelector("[data-plan-lead]").textContent = T("Lançamento em 1º de outubro de 2026. No dia, você recebe o link de acesso por e-mail e WhatsApp, na ordem da lista, com 5 perguntas grátis no modelo sem censura. Empresas: um arquiteto entra em contato antes para desenhar o ambiente.", "Launching October 1, 2026. On the day, you'll get your access link by email and WhatsApp, in list order, with 5 free questions on the uncensored model. Businesses: an architect will reach out beforehand to design your environment.");
+  document.querySelector("[data-plan-lead]").textContent = T("Lançamento em 1º de outubro de 2026. No dia, você recebe o link de acesso por e-mail e WhatsApp, sem fila, com 5 perguntas grátis no modelo sem censura. Empresas: um arquiteto entra em contato antes para desenhar o ambiente.", "Launching October 1, 2026. On the day, you'll get your access link by email and WhatsApp, with no queue, with 5 free questions on the uncensored model. Businesses: an architect will reach out beforehand to design your environment.");
 } else if (qs.get("lista") === "pessoal") {
   listaMode(T("Lista confirmada", "List confirmed"));
   document.querySelector("[data-plan-title]").textContent = T("Você está na lista.", "You're on the list.");
   document.querySelector("[data-plan-lead]").textContent = T("Recebemos seu pedido de acesso individual. Avisamos por e-mail (e pelo WhatsApp, se você deixou) assim que o seu lote abrir. Nada é cobrado até você escolher pagar.", "We've received your request for individual access. We'll let you know by email (and on WhatsApp, if you left your number) as soon as your batch opens. Nothing is charged until you choose to pay.");
 }
 const plan = qs.get("plano");
-if (plans[plan]) {
+if (Object.hasOwn(plans, plan)) {
   document.querySelector("[data-plan-title]").textContent = plans[plan][0];
   document.querySelector("[data-plan-lead]").textContent = plans[plan][1];
 }

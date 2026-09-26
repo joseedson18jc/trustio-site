@@ -1,0 +1,55 @@
+# Avisa os buscadores do IndexNow (Bing, Yandex, Seznam, Naver…) quando páginas do site mudam
+# na main. O índice do Bing também alimenta a busca do ChatGPT, o Copilot e o DuckDuckGo.
+# Sem segredos: a chave é pública por definição (arquivo <chave>.txt na raiz do site).
+name: IndexNow
+
+on:
+  push:
+    branches: [main]
+    paths: ["**.html", "sitemap.xml"]
+  workflow_dispatch:
+    inputs:
+      todas:
+        description: "Avisar todas as URLs do sitemap (não só as alteradas)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: indexnow
+  cancel-in-progress: false
+
+jobs:
+  avisar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # O GitHub Pages publica depois do push: espera o arquivo da chave e a página nova no ar,
+      # senão o buscador valida a chave ou rastreia a versão antiga.
+      - name: Esperar o site publicado
+        run: |
+          chave=$(ls | grep -E '^[0-9a-f]{32}\.txt$' | head -1)
+          for i in $(seq 1 40); do
+            if [ "$(curl -fsS "https://trustio.com.br/$chave" 2>/dev/null)" = "${chave%.txt}" ]; then
+              echo "Chave no ar."; sleep 60; exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::https://trustio.com.br/$chave não respondeu com a chave em 10 minutos."
+          exit 1
+
+      - name: Avisar o IndexNow
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.todas }}" = "true" ]; then
+            node scripts/indexnow.mjs --all
+          elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            node scripts/indexnow.mjs --changed "${{ github.event.before }}" "${{ github.sha }}"
+          else
+            node scripts/indexnow.mjs --changed HEAD~1 HEAD
+          fi

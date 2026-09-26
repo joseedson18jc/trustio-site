@@ -12,6 +12,10 @@
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
   });
   var appUrl = location.origin + CFG.appPath;
+  // Os botões chegam desabilitados no HTML: sem este script (bloqueado ou com erro), o formulário
+  // não envia nada — muito menos a senha na URL.
+  document.querySelectorAll("#entrar-form [data-submit], #recuperar-form [data-submit], #cadastro-form [data-submit]")
+    .forEach(function (b) { b.disabled = false; });
 
   function status(form, text, kind) {
     var note = form.querySelector("[data-status]");

@@ -6,18 +6,23 @@
 # criado na instalação; sem esse arquivo o script não mexe em nada.
 # A lista só conta como aplicada depois que o gateway reinicia com sucesso (~/.hermes/allowed-aplicado.txt):
 # se o reinício falha, a próxima execução tenta de novo. Consulta que falha não mexe em nada.
+# Reinícios têm intervalo mínimo (TRUSTIO_HERMES_ESPERA, 120 s): trocas em rajada na lista não
+# derrubam o gateway a cada 30 s; a lista nova entra no reinício seguinte.
 set -u
 ENV_FILE="$HOME/.hermes/.env"
 FIXOS="$HOME/.hermes/allowed-fixos.txt"
 APLICADO="$HOME/.hermes/allowed-aplicado.txt"
 CHAVE="$HOME/.trustio-hermes-sync-key"
+ULTIMO="$HOME/.hermes/allowed-reinicio.txt"
+ESPERA="${TRUSTIO_HERMES_ESPERA:-120}"
 URL="${TRUSTIO_HERMES_URL:-https://mjdaluioyutnxlyomzyd.supabase.co/functions/v1/hermes-autorizados}"
 log() { printf '%s\n' "$(date '+%F %T') $*"; }
 
 [ -s "$CHAVE" ] || { log "sem chave em $CHAVE"; exit 0; }
 [ -e "$FIXOS" ] || { log "sem $FIXOS (crie com os números permanentes); nada feito"; exit 0; }
 
-resp=$(curl -fsS -m 15 -H "x-trustio-segredo: $(cat "$CHAVE")" "$URL") || { log "consulta falhou; lista mantida"; exit 0; }
+# O segredo vai para o curl pela entrada padrão (-K -), não pela linha de comando: assim não aparece no `ps`.
+resp=$(printf 'header = "x-trustio-segredo: %s"\n' "$(tr -d '\r\n' < "$CHAVE")" | curl -fsS -m 15 -K - "$URL") || { log "consulta falhou; lista mantida"; exit 0; }
 
 # Junta fixos e dinâmicos no formato do Hermes (DDI + número, só dígitos; BR sem DDI ganha 55).
 lista=$(printf '%s' "$resp" | python3 -c '
@@ -58,6 +63,14 @@ if novo != texto:
     os.replace(tmp, caminho)
 PY
 
+agora=$(date +%s)
+ultimo=$(cat "$ULTIMO" 2>/dev/null || echo 0)
+case "$ultimo" in ''|*[!0-9]*) ultimo=0 ;; esac
+if [ $((agora - ultimo)) -lt "$ESPERA" ]; then
+  log "reinício adiado (o último foi há $((agora - ultimo)) s); a lista entra no próximo"
+  exit 0
+fi
+printf '%s' "$agora" > "$ULTIMO"
 if hermes gateway restart >/dev/null 2>&1; then
   printf '%s' "$lista" > "$APLICADO"
   log "lista aplicada e gateway reiniciado: $lista"

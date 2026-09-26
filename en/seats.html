@@ -9,7 +9,7 @@
   <!-- Página de campanha: repete o bloco da home, então fica fora da busca para não
      disputar com ela. Continua acessível por link direto, que é o seu propósito. -->
   <meta name="robots" content="noindex, follow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self' https://formsubmit.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Private, uncensored AI for you | Trustio</title>
   <meta name="description" content="Individual access to the same open models we run for businesses: uncensored, no provider filter, with your account and your conversations stored in Brazil. Launching October 1, 2026; early access for subscribers is already open.">
   <meta name="keywords" content="uncensored AI, private personal AI, uncensored chat Brazil, private LLM, individual access, data in Brazil, LGPD">
@@ -33,11 +33,9 @@
   <link rel="manifest" href="/site.webmanifest">
   <link rel="preload" href="/assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/instrument-serif-latin-400-italic.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/assets/theme.js?v=673d4355"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=8f136a06">
-  <script type="module" src="/assets/app.js?v=a756f472"></script>
+  <link rel="stylesheet" href="/assets/styles.css?v=0133027b">
+  <script type="module" src="/assets/app.js?v=65c413db"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/seats.html">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/seats.html">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/seats.html"><!--/i18n:alt-->
@@ -54,17 +52,17 @@
       </a>
 
       <nav class="desktop-nav" aria-label="Main navigation">
-        <a href="#plataforma">Platform</a>
+        <a href="index.html#plataforma">Platform</a>
         <a href="voice.html" class="nav-voice">VoiceAI <small>powered by xAI</small></a>
         <a href="agentio.html" class="nav-agentio">Agentio <small>by</small><span class="nav-nous" role="img" aria-label="Nous Research"></span></a>
-        <a href="#seguranca">Security</a>
-        <a href="#implantacao">Deployment</a>
+        <a href="index.html#seguranca">Security</a>
+        <a href="index.html#implantacao">Deployment</a>
         <a href="planos.html">Plans</a>
         <a href="manifesto.html">Manifesto</a>
       </nav>
 
       <a class="header-login" href="entrar.html">Sign in</a>
-      <a class="button button-small button-ghost header-cta" href="#contato">Talk to Trustio</a>
+      <a class="button button-small button-ghost header-cta" href="index.html#contato">Talk to Trustio</a>
 
       <!--i18n:lang--><a class="lang-switch" href="/seats.html" hreflang="pt-BR" lang="pt-BR" aria-label="Mudar para português" title="Português"><svg viewBox="0 0 20 14" aria-hidden="true" focusable="false"><rect width="20" height="14" fill="#009c3b"/><path d="M10 1.6 18.4 7 10 12.4 1.6 7z" fill="#ffdf00"/><circle cx="10" cy="7" r="3.1" fill="#002776"/></svg><span>PT</span></a><!--/i18n:lang-->
       <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to light theme" title="Toggle theme">
@@ -77,14 +75,14 @@
     </div>
 
     <nav class="mobile-nav" id="mobile-menu" aria-label="Mobile navigation" hidden>
-      <a href="#plataforma">Platform</a>
+      <a href="index.html#plataforma">Platform</a>
       <a href="voice.html" class="nav-voice">VoiceAI <small>powered by xAI</small></a>
       <a href="agentio.html" class="nav-agentio">Agentio <small>by</small><span class="nav-nous" role="img" aria-label="Nous Research"></span></a>
-      <a href="#seguranca">Security</a>
-      <a href="#implantacao">Deployment</a>
+      <a href="index.html#seguranca">Security</a>
+      <a href="index.html#implantacao">Deployment</a>
       <a href="planos.html">Plans</a>
       <a href="manifesto.html">Manifesto</a>
-      <a href="#contato">Talk to Trustio</a>
+      <a href="index.html#contato">Talk to Trustio</a>
       <a href="entrar.html">Sign in</a>
     </nav>
   </header>
@@ -102,10 +100,10 @@
           <a class="text-link" href="espera.html">Just notify me at launch <span aria-hidden="true">&#8594;</span></a>
         </div>
         <div class="hero-signals" aria-label="What individual access includes">
-          <span>UNCENSORED</span><i></i><span>5 FREE QUESTIONS</span><i></i><span>EARLY ACCESS OPEN</span><i></i><span>DATA IN BRAZIL</span><i></i><span class="signal-pix"><svg class="pix-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.3 20.7 12 12 20.7 3.3 12z"/><path d="M6.9 8.2h1.9c.7 0 1.4.3 1.9.8l1.3 1.3 1.3-1.3c.5-.5 1.2-.8 1.9-.8h1.9M6.9 15.8h1.9c.7 0 1.4-.3 1.9-.8l1.3-1.3 1.3 1.3c.5.5 1.2.8 1.9.8h1.9"/></svg>PIX ACCEPTED</span>
+          <span>UNCENSORED</span><i></i><span>5 FREE QUESTIONS</span><i></i><span>EARLY ACCESS OPEN</span><i></i><span>DATA IN BRAZIL</span><i></i><span>CANCEL ANYTIME</span>
         </div>
         <p class="acesso-estado seats-acesso"><b>Status today:</b> early access is already open for subscribers — the account is activated within 1 business day of payment. For everyone, <b>the chat opens on October 1, 2026</b>, with no queue: on the day, your account opens on its own. <a href="cadastro.html">Create a free account</a></p>
-        <p class="fine-print">* Full responsibility for the content of the prompts submitted, and for how the answers are used, lies with whoever sends them.</p>
+        <p class="fine-print">* Whoever sends the questions is responsible for their content and for how they use the answers, as provided by law.</p>
         <p class="seats-voltar"><a href="index.html">Explore all of Trustio <span aria-hidden="true">&#8594;</span></a></p>
       </div>
     </section>
@@ -118,10 +116,10 @@
           <img class="brand-mark" src="/assets/trustio-mark.svg" alt="" width="34" height="34">
           <span class="brand-word"><span>Trust</span><strong>io</strong></span>
         </a>
-        <p>Private artificial intelligence infrastructure for businesses.</p>
+        <p>Personal and business AI, private and under your control.</p>
       </div>
       <div class="footer-links">
-        <div><span>EXPLORE</span><a href="#plataforma">Platform</a><a href="modelos.html">Powerful Models</a><a href="voice.html">VoiceAI · xAI</a><a href="agentio.html">Agentio · Nous</a><a href="/en/juridico/">Legal</a><a href="#seguranca">Security</a><a href="#implantacao">Deployment</a><a href="planos.html">Plans</a><a href="espera.html">Waitlist</a></div>
+        <div><span>EXPLORE</span><a href="index.html#plataforma">Platform</a><a href="modelos.html">Powerful Models</a><a href="voice.html">VoiceAI · xAI</a><a href="agentio.html">Agentio · Nous</a><a href="/en/juridico/">Legal</a><a href="index.html#seguranca">Security</a><a href="index.html#implantacao">Deployment</a><a href="planos.html">Plans</a><a href="espera.html">Waitlist</a></div>
         <div><span>COMPANY</span><a href="manifesto.html">Manifesto</a><a href="fundador.html">Founder</a><a href="privacidade.html">Privacy</a><!--email_off--><a href="mailto:contato@trustio.com.br">Contact</a><!--/email_off--></div>
       </div>
     </div>
@@ -129,7 +127,6 @@
       <p>© <span data-year>2026</span> Trustio. All rights reserved.</p>
       <div class="iso-badge">
         <picture><source srcset="/assets/iso-27001.webp" type="image/webp"><img src="/assets/iso-27001.png" alt="ISO 27001 certification" width="120" height="120"></picture>
-        <picture><source srcset="/assets/anpd.webp" type="image/webp"><img src="/assets/anpd.png" alt="ANPD — Brazilian National Data Protection Authority" width="249" height="140"></picture>
         <picture><source srcset="/assets/lgpd.webp" type="image/webp"><img src="/assets/lgpd.png" alt="LGPD — Brazil's General Data Protection Law" width="240" height="120"></picture>
         <div class="iso-badge-text">
           <span>ISO 27001 certification · LGPD compliance</span>
@@ -145,11 +142,11 @@
       </div>
       <address>
         <span>JCSC BRAZIL MANAGEMENT LTDA · CNPJ 58.451.617/0001-03 · Trustio IA</span>
-        <span>Av. Paulista, 1106, sala 01 · Bela Vista · São Paulo-SP · CEP 01310-914</span>
+        <span>Av. Paulista, 1106, sala 01 · Bela Vista · São Paulo-SP · CEP 01310‑914</span>
       </address>
     </div>
   </footer>
-<!-- Cloudflare Web Analytics (sem cookies, LGPD-friendly) — ative colando o token do painel Web Analytics -->
+<!-- Cloudflare Web Analytics: métricas agregadas, sem cookies -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "68961161fc6848c0b9e1d755f829fd30"}'></script>
 </body>
 </html>

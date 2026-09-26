@@ -45,6 +45,10 @@
     "Nova senha": "New password",
     "Salvar e entrar": "Save and sign in",
     "Anexar foto ou PDF (até 3)": "Attach a photo or PDF (up to 3)",
-    "Fotos e PDFs: até 3 por envio. O texto é lido no seu navegador; das fotos, uma cópia reduzida também vai ao modelo. A IA pode errar. Confira informações importantes. * Os prompts enviados e o uso das respostas são de responsabilidade inteiramente sua.": "Photos and PDFs: up to 3 per message. The text is read in your browser; for photos, a reduced copy also goes to the model. AI can make mistakes. Check important information. * You are solely responsible for the prompts you send and how you use the answers."
+    "Fotos e PDFs: até 3 por envio. O texto é lido no seu navegador; das fotos, uma cópia reduzida também vai ao modelo. A IA pode errar. Confira informações importantes. * Os prompts enviados e o uso das respostas são de responsabilidade inteiramente sua.": "Photos and PDFs: up to 3 per message. The text is read in your browser; for photos, a reduced copy also goes to the model. AI can make mistakes. Check important information. * You are solely responsible for the prompts you send and how you use the answers.",
+    "perguntas grátis": "free questions",
+    "Cada pergunta enviada conta como uma. Ao terminar, o chat trava até você escolher um plano. O teste não gera cobrança.": "Each question you send counts as one. When they run out, the chat locks until you choose a plan. The trial is never charged.",
+    "Para continuar conversando, escolha um plano. O teste não gera cobrança e suas conversas continuam salvas.": "To keep chatting, choose a plan. The trial is never charged and your conversations stay saved.",
+    "Fotos e PDFs: até 3 por envio. O texto é lido no seu navegador; das fotos, uma cópia reduzida também vai ao modelo. A IA pode errar. Confira informações importantes. * Você responde pelo conteúdo que envia e pelo uso que faz das respostas, nos termos da lei.": "Photos and PDFs: up to 3 per message. The text is read in your browser; for photos, a reduced copy also goes to the model. AI can make mistakes. Check important information. * You are responsible for the content you send and for how you use the answers, as provided by law."
   }
 }

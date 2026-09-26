@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark light">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://mjdaluioyutnxlyomzyd.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://mjdaluioyutnxlyomzyd.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Entrar | Trustio</title>
   <meta name="description" content="Entre na sua conta Trustio e vá direto para o chat com IA privada e sem censura.">
   <link rel="canonical" href="https://trustio.com.br/entrar.html">
@@ -20,13 +20,13 @@
   <link rel="preload" href="assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="assets/theme.js?v=673d4355"></script>
-  <link rel="stylesheet" href="assets/styles.css?v=8f136a06">
-  <link rel="stylesheet" href="assets/planos.css?v=3a663b9b">
-  <link rel="stylesheet" href="assets/conta.css?v=98bfe117">
-  <script type="module" src="assets/app.js?v=a756f472"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=0133027b">
+  <link rel="stylesheet" href="assets/planos.css?v=dff1cd4e">
+  <link rel="stylesheet" href="assets/conta.css?v=26727001">
+  <script type="module" src="assets/app.js?v=65c413db"></script>
   <script defer src="assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="assets/auth-config.js?v=7ebbf495"></script>
-  <script defer src="assets/conta.js?v=261f23d0"></script>
+  <script defer src="assets/conta.js?v=1b209564"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/entrar.html">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/entrar.html">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/entrar.html"><!--/i18n:alt-->
@@ -97,19 +97,19 @@
           <div class="conta-tags" aria-label="Garantias">
             <span>Dados no Brasil</span><span>Sem censura*</span><span>LGPD</span>
           </div>
-          <p class="fine-print">* A responsabilidade pelo conteúdo dos prompts enviados e pelo uso das respostas é inteiramente de quem os envia.</p>
+          <p class="fine-print">* Quem envia as perguntas responde pelo conteúdo delas e pelo uso que faz das respostas, nos termos da lei.</p>
         </div>
 
         <div class="conta-card">
           <div data-panel="entrar">
             <h2>Entrar</h2>
             <p>Use o e-mail e a senha do cadastro.</p>
-            <form class="lead-form" id="entrar-form" novalidate>
+            <form class="lead-form" id="entrar-form" method="post" novalidate>
               <label for="e-email">E-mail</label>
               <input id="e-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com" required>
               <label for="e-senha">Senha</label>
               <input id="e-senha" name="senha" type="password" autocomplete="current-password" placeholder="••••••••" required>
-              <button class="button button-primary" type="submit" data-submit>Entrar no chat <span aria-hidden="true">↗</span></button>
+              <button class="button button-primary" type="submit" data-submit disabled>Entrar no chat <span aria-hidden="true">↗</span></button>
               <p class="lead-legal" data-status role="status" aria-live="polite"></p>
               <button class="conta-resend" type="button" data-resend hidden>Reenviar link de confirmação</button>
               <div class="conta-links">
@@ -122,10 +122,10 @@
           <div data-panel="recuperar" hidden>
             <h2>Recuperar senha</h2>
             <p>Enviamos um link para você definir uma nova senha.</p>
-            <form class="lead-form" id="recuperar-form" novalidate>
+            <form class="lead-form" id="recuperar-form" method="post" novalidate>
               <label for="r-email">E-mail</label>
               <input id="r-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com" required>
-              <button class="button button-primary" type="submit" data-submit>Enviar link <span aria-hidden="true">↗</span></button>
+              <button class="button button-primary" type="submit" data-submit disabled>Enviar link <span aria-hidden="true">↗</span></button>
               <p class="lead-legal" data-status role="status" aria-live="polite"></p>
               <div class="conta-links">
                 <a href="#" data-show="entrar">Voltar para entrar</a>
@@ -145,7 +145,7 @@
           <img class="brand-mark" src="assets/trustio-mark.svg" alt="" width="34" height="34">
           <span class="brand-word"><span>Trust</span><strong>io</strong></span>
         </a>
-        <p>Infraestrutura privada de inteligência artificial para empresas.</p>
+        <p>IA pessoal e empresarial, privada e sob seu controle.</p>
       </div>
       <div class="footer-links">
         <div><span>EXPLORAR</span><a href="index.html#plataforma">Plataforma</a><a href="modelos.html">Modelos Poderosos</a><a href="voice.html">VoiceAI · xAI</a><a href="agentio.html">Agentio · Nous</a><a href="/juridico/">Jurídico</a><a href="index.html#seguranca">Segurança</a><a href="index.html#implantacao">Implantação</a><a href="planos.html">Planos</a><a href="espera.html">Lista de espera</a></div>
@@ -163,7 +163,7 @@
       </div>
       <address>
         <span>JCSC BRAZIL MANAGEMENT LTDA · CNPJ 58.451.617/0001-03 · Trustio IA</span>
-        <span>Av. Paulista, 1106, sala 01 · Bela Vista · São Paulo-SP · CEP 01310-914</span>
+        <span>Av. Paulista, 1106, sala 01 · Bela Vista · São Paulo-SP · CEP 01310‑914</span>
       </address>
     </div>
   </footer>

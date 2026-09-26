@@ -89,6 +89,8 @@
     ", consultado em 09/09/2026.": ", checked on September 9, 2026.",
     "Ver o VoiceAI em operação": "See VoiceAI in action",
     "Qual desses modelos resolve o seu caso de uso?": "Which of these models solves your use case?",
-    "Converse com a Trustio sobre qual modelo faz sentido para o seu processo — e como executá-lo dentro do seu perímetro.": "Talk to Trustio about which model makes sense for your process — and how to run it inside your perimeter."
+    "Converse com a Trustio sobre qual modelo faz sentido para o seu processo — e como executá-lo dentro do seu perímetro.": "Talk to Trustio about which model makes sense for your process — and how to run it inside your perimeter.",
+    "Os modelos de última geração disponíveis na Trustio: GPT-6 Astra da OpenAI, Claude Fable 5.1 (classe Mythos) e Claude Opus 5.1 da Anthropic e Kimi K3.1 da Moonshot AI — com a forma de execução definida no desenho da sua implantação.": "The latest-generation models available at Trustio: OpenAI's GPT-6 Astra, Anthropic's Claude Fable 5.1 (Mythos class) and Claude Opus 5.1, and Moonshot AI's Kimi K3.1 — with how each one runs defined in the design of your deployment.",
+    "O topo da geração atual, contratado via API e governado pela sua implantação.": "The top of the current generation, contracted via API and governed by your deployment."
   }
 }

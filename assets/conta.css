@@ -16,9 +16,13 @@
   background: var(--surface-raised); color: var(--ice); font: inherit; font-size: 16px;
 }
 .lead-form input[type=password]:focus { outline: none; border-color: var(--line-bright); box-shadow: 0 0 0 3px rgba(94, 167, 255, 0.12); }
+.lead-form input[type=password]:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 2px; }
 .lead-form [data-status] { min-height: 1.2em; }
 .lead-form [data-status].is-error { color: #ff9ab8; }
 .lead-form [data-status].is-ok { color: #6fe3b3; }
+/* no tema claro, rosa e verde-água sobre branco davam 2:1 e 1,6:1 */
+[data-theme="light"] .lead-form [data-status].is-error { color: #b4233c; }
+[data-theme="light"] .lead-form [data-status].is-ok { color: #0f7a4f; }
 .lead-form input:disabled, .lead-form select:disabled, .lead-form fieldset:disabled { opacity: 0.55; }
 .conta-alt { margin-top: 18px; font-size: 14px; color: var(--muted); text-align: center; }
 .conta-alt-left { text-align: left; margin-top: 14px; }

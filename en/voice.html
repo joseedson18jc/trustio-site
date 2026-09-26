@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark light">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow, max-image-preview:large">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self' https://formsubmit.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>VoiceAI powered by xAI | Trustio — Omnichannel voice and text agents in Brazil</title>
   <meta name="description" content="Omnichannel agents: voice, WhatsApp, Telegram, email, SMS, iMessage and calendar. xAI's Grok Voice models orchestrated by Trustio, with telephony, guardrails and logs hosted in Brazil.">
   <link rel="canonical" href="https://trustio.com.br/en/voice.html">
@@ -20,11 +20,11 @@
   <link rel="preload" href="/assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/assets/theme.js?v=673d4355"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=8f136a06">
+  <link rel="stylesheet" href="/assets/styles.css?v=0133027b">
   <link rel="stylesheet" href="/assets/voice.css?v=0270d464">
-  <script type="module" src="/assets/app.js?v=a756f472"></script>
+  <script type="module" src="/assets/app.js?v=65c413db"></script>
   <script defer src="/assets/orb.js?v=2a1bad38"></script>
-  <script defer src="/assets/voice.js?v=764cb4d5"></script>
+  <script defer src="/assets/voice.js?v=819a6d3d"></script>
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -316,7 +316,7 @@
       </div>
       <div class="usecase-panel" role="tabpanel" id="uc-2" aria-labelledby="t-uc-2" hidden>
         <div><h3>Consultative selling, with the catalog on the tip of its tongue.</h3><p>Understands the need, compares options, applies commercial terms and closes with a payment link — all in one call.</p></div>
-        <div class="call"><div class="bar"><span>Call · outbound</span><span><i>●</i> live</span></div><p>Hi, Marina! I saw you asked for a quote on the Pro plan. Can I answer any questions now?</p><p class="me">I want to know if it covers 5 use cases.</p><p>It does — Pro includes up to five. If you like, I can send a payment link with ten percent off the annual plan.</p><p class="tool">→ criar_link_pagamento(pro, cupom=ANUAL10)</p></div>
+        <div class="call"><div class="bar"><span>Call · outbound</span><span><i>●</i> live</span></div><p>Hi, Marina! I saw you asked for a quote on the Pro plan. Can I answer any questions now?</p><p class="me">I'd like to know whether 5 use cases fit.</p><p>It does — Pro includes up to five. If you like, I can send a payment link with ten percent off the annual plan.</p><p class="tool">→ criar_link_pagamento(pro, cupom=ANUAL10)</p></div>
       </div>
       <div class="usecase-panel" role="tabpanel" id="uc-3" aria-labelledby="t-uc-3" hidden>
         <div><h3>Lead qualification in minutes, not days.</h3><p>Calls every new lead, runs the BANT script, scores them and books them with the right salesperson.</p></div>
@@ -337,7 +337,7 @@
     <div class="container">
       <div class="head">
         <div><p class="section-kicker">Smart, with no wait</p><h2 id="smart-title">Real reasoning, an answer in under a second.</h2></div>
-        <p>Most voice AIs trade intelligence for speed. Grok Voice doesn't: it reasons, calls tools and answers with sub-second latency, trained on the hardest calls.</p>
+        <p>Most voice AIs trade intelligence for speed. Grok Voice doesn't: it reasons, calls tools and responds in under a second, trained on the hardest calls.</p>
       </div>
       <div class="bench">
         <div class="bench-card"><div class="t"><span>τ-voice Bench · overall</span><span>source: xAI</span></div>
@@ -360,9 +360,9 @@
         <article class="feat"><p class="k">Guardrails</p><h3>Limits you set</h3><p>What the agent can say, ask for and do. Sensitive data is never read aloud.</p><div class="chips"><span>PII</span><span>LGPD</span><span>Escalation</span></div></article>
       </div>
       <div class="playbook">
-        <div class="pb"><p class="n">01 · GREETING</p><h3>Write the playbook</h3><pre>Cumprimente pelo nome. Confirme o motivo da ligação em uma frase. Nunca peça dados de cartão.</pre></div>
-        <div class="pb"><p class="n">02 · RESOLVE</p><h3>Follow the flow, always</h3><pre>Consulte o pedido. Aplique a política de troca. Se valor &gt; R$ 500, peça aprovação humana antes de executar.</pre></div>
-        <div class="pb"><p class="n">03 · CLOSE</p><h3>Confirm and log</h3><pre>Resuma o que foi feito. Envie protocolo por WhatsApp. Registre a chamada com transcrição e tags.</pre></div>
+        <div class="pb"><p class="n">01 · GREETING</p><h3>Write the playbook</h3><pre>Greet the caller by name. Confirm the reason for the call in one sentence. Never ask for card details.</pre></div>
+        <div class="pb"><p class="n">02 · RESOLVE</p><h3>Follow the flow, always</h3><pre>Look up the order. Apply the exchange policy. If the amount is over R$ 500, ask for human approval before acting.</pre></div>
+        <div class="pb"><p class="n">03 · CLOSE</p><h3>Confirm and log</h3><pre>Summarize what was done. Send the ticket number via WhatsApp. Log the call with its transcript and tags.</pre></div>
       </div>
     </div>
   </section>
@@ -374,8 +374,8 @@
         <p>The voice model is xAI's; everything else stays with you. Trustio orchestrates the call, applies guardrails, logs every event and keeps recordings, transcripts and customer data hosted in Brazil.</p>
       </div>
       <div class="perim">
-        <div><h3>How the call crosses the perimeter</h3><p>Audio and context pass through the Trustio layer before and after the model. Sensitive data is masked before it leaves; recordings, logs and tools never leave your environment.</p>
-          <ul class="points"><li>PII masking before the model</li><li>Tools executed inside the perimeter</li><li>Recordings and transcripts in Brazil</li><li>Audit trail per call, per agent, per team</li></ul></div>
+        <div><h3>How the call crosses the perimeter</h3><p>Audio and context pass through the Trustio layer before and after the model. Only what each response needs goes to the model; recordings, logs and tools never leave your environment.</p>
+          <ul class="points"><li>Context sent to the model kept to the minimum</li><li>Tools executed inside the perimeter</li><li>Recordings and transcripts in Brazil</li><li>Audit trail per call, per agent, per team</li></ul></div>
         <div class="flow" aria-label="Call flow">
           <div><span>Customer · phone / WhatsApp / web</span><small>audio</small></div>
           <div class="core"><span>Trustio · telephony, guardrails, masking</span><small>BR</small></div>
@@ -394,7 +394,7 @@
         <p>Beyond conversational agents, the same infrastructure delivers transcription, speech synthesis and voice cloning for your products and operations.</p>
       </div>
       <div class="suite">
-        <article><h3>Speech to speech</h3><p>Real-time conversations with sub-second latency.</p><b>Voice agents</b></article>
+        <article><h3>Speech to speech</h3><p>Real-time conversations with under one second of latency.</p><b>Voice agents</b></article>
         <article><h3>Speech to text</h3><p>Transcription of calls, meetings and videos, in batch or live.</p><b>Transcription</b></article>
         <article><h3>Text to speech</h3><p>Natural, expressive voice in 25+ languages.</p><b>Synthesis</b></article>
         <article><h3>Voice cloning</h3><p>Your brand's voice from two minutes of audio.</p><b>Your own voice</b></article>
@@ -423,7 +423,7 @@
           <img class="brand-mark" src="/assets/trustio-mark.svg" alt="" width="34" height="34">
           <span class="brand-word"><span>Trust</span><strong>io</strong></span>
         </a>
-        <p>Private artificial intelligence infrastructure for businesses.</p>
+        <p>Personal and business AI, private and under your control.</p>
       </div>
       <div class="footer-links">
         <div><span>EXPLORE</span><a href="index.html#plataforma">Platform</a><a href="modelos.html">Powerful Models</a><a href="voice.html">VoiceAI · xAI</a><a href="agentio.html">Agentio · Nous</a><a href="/en/juridico/">Legal</a><a href="index.html#seguranca">Security</a><a href="index.html#implantacao">Deployment</a><a href="planos.html">Plans</a><a href="espera.html">Waitlist</a></div>
@@ -434,7 +434,6 @@
       <p>© <span data-year>2026</span> Trustio. All rights reserved.</p>
       <div class="iso-badge">
         <picture><source srcset="/assets/iso-27001.webp" type="image/webp"><img src="/assets/iso-27001.png" alt="ISO 27001 certification" width="120" height="120"></picture>
-        <picture><source srcset="/assets/anpd.webp" type="image/webp"><img src="/assets/anpd.png" alt="ANPD — Brazilian National Data Protection Authority" width="249" height="140"></picture>
         <picture><source srcset="/assets/lgpd.webp" type="image/webp"><img src="/assets/lgpd.png" alt="LGPD — Brazil's General Data Protection Law" width="240" height="120"></picture>
         <div class="iso-badge-text">
           <span>ISO 27001 certification · LGPD compliance</span>
@@ -450,11 +449,11 @@
       </div>
       <address>
         <span>JCSC BRAZIL MANAGEMENT LTDA · CNPJ 58.451.617/0001-03 · Trustio IA</span>
-        <span>Av. Paulista, 1106, sala 01 · Bela Vista · São Paulo-SP · CEP 01310-914</span>
+        <span>Av. Paulista, 1106, sala 01 · Bela Vista · São Paulo-SP · CEP 01310‑914</span>
       </address>
     </div>
   </footer>
-<!-- Cloudflare Web Analytics (sem cookies, LGPD-friendly) — ative colando o token do painel Web Analytics -->
+<!-- Cloudflare Web Analytics: métricas agregadas, sem cookies -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "68961161fc6848c0b9e1d755f829fd30"}'></script>
 </body>
 </html>

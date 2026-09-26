@@ -255,6 +255,25 @@
     "Planejar meu agente": "Plan my agent",
     "VoiceAI powered by xAI | Trustio — agentes Omnichannel de voz e texto no Brasil": "VoiceAI powered by xAI | Trustio — Omnichannel voice and text agents in Brazil",
     "Trustio VoiceAI · powered by xAI": "Trustio VoiceAI · powered by xAI",
-    "Agentes Omnichannel de voz e texto (telefone, WhatsApp, Telegram, e-mail, SMS, iMessage e agenda) com modelos Grok Voice da xAI, orquestrados e hospedados no Brasil pela Trustio.": "Omnichannel voice and text agents (phone, WhatsApp, Telegram, email, SMS, iMessage and calendar) with xAI's Grok Voice models, orchestrated and hosted in Brazil by Trustio."
-  }
+    "Agentes Omnichannel de voz e texto (telefone, WhatsApp, Telegram, e-mail, SMS, iMessage e agenda) com modelos Grok Voice da xAI, orquestrados e hospedados no Brasil pela Trustio.": "Omnichannel voice and text agents (phone, WhatsApp, Telegram, email, SMS, iMessage and calendar) with xAI's Grok Voice models, orchestrated and hosted in Brazil by Trustio.",
+    "Quero saber se cabem 5 casos de uso.": "I'd like to know whether 5 use cases fit.",
+    "A maioria das IAs de voz troca inteligência por velocidade. O Grok Voice não: raciocina, chama ferramentas e responde com latência abaixo de 1 segundo, treinado nas ligações mais difíceis.": "Most voice AIs trade intelligence for speed. Grok Voice doesn't: it reasons, calls tools and responds in under a second, trained on the hardest calls.",
+    "Áudio e contexto passam pela camada Trustio antes e depois do modelo. Só o necessário para cada resposta segue para o modelo; gravações, logs e ferramentas nunca deixam o seu ambiente.": "Audio and context pass through the Trustio layer before and after the model. Only what each response needs goes to the model; recordings, logs and tools never leave your environment.",
+    "Contexto enviado ao modelo reduzido ao necessário": "Context sent to the model kept to the minimum",
+    "Conversas em tempo real com latência abaixo de 1 segundo.": "Real-time conversations with under one second of latency."
+  },
+  "raw": [
+    [
+      "Cumprimente pelo nome. Confirme o motivo da ligação em uma frase. Nunca peça dados de cartão.",
+      "Greet the caller by name. Confirm the reason for the call in one sentence. Never ask for card details."
+    ],
+    [
+      "Consulte o pedido. Aplique a política de troca. Se valor &gt; R$ 500, peça aprovação humana antes de executar.",
+      "Look up the order. Apply the exchange policy. If the amount is over R$ 500, ask for human approval before acting."
+    ],
+    [
+      "Resuma o que foi feito. Envie protocolo por WhatsApp. Registre a chamada com transcrição e tags.",
+      "Summarize what was done. Send the ticket number via WhatsApp. Log the call with its transcript and tags."
+    ]
+  ]
 }

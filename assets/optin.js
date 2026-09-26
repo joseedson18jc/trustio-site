@@ -44,6 +44,15 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, data: d }; }); })
       .then(function (res) {
         if (!res.ok || !res.data.ok) throw new Error(res.data.error || "erro");
+        // Quem marcou "Assinar agora" vai para a página com o link de pagamento (lida antes do
+        // reset, que devolveria o _next ao valor padrão da lista gratuita).
+        var nextInput = form.querySelector("[data-next]");
+        var next = nextInput ? nextInput.value : "";
+        if (/[?&]lista=pre\b/.test(next) && /^https:\/\/trustio\.com\.br\//.test(next)) {
+          if (btn) btn.textContent = T("Abrindo o pagamento…", "Opening checkout…");
+          location.assign(next);
+          return;
+        }
         form.reset();
         if (btn) btn.textContent = T("Inscrição enviada ✓", "You're signed up ✓");
         note.textContent = T("Tudo certo! Enviamos um link de confirmação para o seu e-mail. Confirme para garantir sua vaga na lista.", "All set! We sent a confirmation link to your email. Confirm it to secure your spot on the list.");

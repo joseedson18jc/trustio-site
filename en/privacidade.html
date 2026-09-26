@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark light">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow, max-image-preview:large">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self' https://formsubmit.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Privacy | Trustio</title>
   <meta name="description" content="What Trustio collects, why, who we share it with, how long we keep it and how you ask us to delete it. In plain English.">
   <link rel="canonical" href="https://trustio.com.br/en/privacidade.html">
@@ -30,10 +30,9 @@
   <link rel="manifest" href="/site.webmanifest">
   <link rel="preload" href="/assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/instrument-serif-latin-400-italic.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/assets/theme.js?v=673d4355"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=8f136a06">
-  <script type="module" src="/assets/app.js?v=a756f472"></script>
+  <link rel="stylesheet" href="/assets/styles.css?v=0133027b">
+  <script type="module" src="/assets/app.js?v=65c413db"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/privacidade.html">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/privacidade.html">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/privacidade.html"><!--/i18n:alt-->
@@ -85,7 +84,7 @@
       <p class="eyebrow"><span class="status-dot"></span> Privacy</p>
       <h1 id="priv-title">How we handle your data.<span>In plain English, no runaround.</span></h1>
       <p class="lead">This page says exactly what Trustio collects, why, who we share it with, how long we keep it and how you delete it all. If any line here doesn't match what you see in the product, write to us — the line is wrong, not you.</p>
-      <p class="legal-data">Last updated: September 22, 2026 · Data controller: Trustio · <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off--></p>
+      <p class="legal-data">Last updated: September 26, 2026 · Controller: JCSC BRAZIL MANAGEMENT LTDA (Trustio), CNPJ 58.451.617/0001-03 · Channel for data subjects and the data protection officer: <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off--></p>
     </div>
   </section>
 
@@ -123,17 +122,19 @@
 
       <h2 id="processamento">Where your conversations are processed</h2>
       <p>Your account, your sign-up details and the text of your conversations are stored in a Trustio database hosted in <b>São Paulo, Brazil</b> (region <code>sa-east-1</code>), with access restricted by policies in the database itself: each person can see only their own conversations.</p>
-      <p>To generate the answer, the text of your question and the recent conversation history are sent to the <b>language model provider Trustio has contracted</b>. This transfer is necessary for the service to exist: without it there is no answer. The provider in use, the country where it processes the data and the contract governing that transfer are disclosed in writing to anyone who asks, at <!--email_off--><a href="mailto:contato@trustio.com.br?subject=Model%20provider%20and%20processing%20location">contato@trustio.com.br</a><!--/email_off-->. If the provider processes outside Brazil, that is an international transfer, and you have the right to know it before you write anything — which is why the information is given on request, not hidden.</p>
+      <p>To generate the answer, the text of your question and the recent conversation history are processed by the <b>language model Trustio operates on infrastructure in Brazil</b>. The content of your conversations is not sent to model providers abroad. If that changes, this notice will be updated beforehand, naming the provider, the country and the safeguard covering the international transfer.</p>
       <p>For anyone who needs a contractual guarantee that nothing leaves the country, there's the private environment for businesses, where inference runs on dedicated infrastructure. <a href="planos.html#empresas">See plans for businesses</a>.</p>
 
       <h2 id="terceiros">Who we share with</h2>
       <ul class="legal-lista">
-        <li><b>Language model provider</b> — receives the text of your question to generate the answer, as explained above.</li>
+        <li><b>Supabase</b> — hosts your account's database and authentication, in the São Paulo region (<code>sa-east-1</code>).</li>
         <li><b>Stripe</b> — processes payments. Your card details go straight to Stripe and <b>never pass through Trustio's servers</b>. We only get back the confirmation and the contact details needed to grant access.</li>
-        <li><b>Email service</b> — delivers account confirmations, password resets and launch notices.</li>
-        <li><b>Cloudflare</b> — serves the site and counts visits in aggregate, without cookies and without identifying anyone.</li>
+        <li><b>Resend</b> — delivers the account confirmation, password recovery and opening notice emails.</li>
+        <li><b>Cloudflare</b> — delivers the website and the waitlist API and counts visits in aggregate (Web Analytics), without cookies and without identifying anyone.</li>
+        <li><b>GitHub Pages</b> — hosts the website files and, like any server, logs technical access data such as the IP address.</li>
+        <li><b>WhatsApp and Telegram</b> — when you use the agent, messages travel through these platforms, under their own terms.</li>
       </ul>
-      <p>No one else. No social media pixels, no retargeting, no selling of lists.</p>
+      <p>Beyond these processors, no one else: no social media pixels, no remarketing and no list selling.</p>
 
       <h2 id="prazo">How long we keep it</h2>
       <ul class="legal-lista">
@@ -143,14 +144,14 @@
       </ul>
 
       <h2 id="direitos">Your rights, and how to exercise them</h2>
-      <p>Under Brazil's General Data Protection Law (LGPD) you can ask, at any time and without giving a reason, for: confirmation that we process your data, access to it, correction of anything wrong, a copy in a readable format, anonymization or <b>complete deletion</b>, and withdrawal of consent.</p>
+      <p>Under Brazil's General Data Protection Law (LGPD) you may request, at any time and without giving a reason: confirmation that we process your data, access to it, correction of anything wrong, anonymization or blocking of anything unnecessary, portability, information about who we share it with, <b>complete deletion</b>, withdrawal of consent, objection to a processing activity and review of automated decisions. You may also file a complaint with the National Data Protection Authority (ANPD).</p>
       <p>There's one way to do it, and no form: write to <!--email_off--><a href="mailto:contato@trustio.com.br?subject=LGPD%20request">contato@trustio.com.br</a><!--/email_off--> from your account's email address, saying what you want. <b>We reply within 15 days.</b> A deletion request erases the account, the sign-up details and the conversation history — and it can't be undone.</p>
 
       <h2 id="seguranca">Security</h2>
       <p>Access to the site is always encrypted. Passwords are stored as hashes. The database isolates data per person at the database level, not just on screen — even if someone bypasses the interface, they can't reach anyone else's conversations. Model provider keys live only on the server and are never sent to the browser. No system is perfect: if we discover an incident that could put you at risk, we notify you and the ANPD.</p>
 
       <h2 id="responsabilidade">About uncensored content</h2>
-      <p>Trustio imposes no editorial filter on the model's answers. In return, responsibility for the content of the prompts sent and for how the answers are used lies <b>entirely with whoever sends them</b>. Brazilian law and the rights of others still apply: the absence of a filter is not permission for unlawful use, and illegal content may be investigated and the account closed.</p>
+      <p>Trustio imposes no editorial filter on the model's answers. In return, whoever sends the questions <b>is responsible for their content and for how they use the answers</b>, as provided by law. Brazilian law and the rights of others still apply: the absence of a filter is not permission for unlawful use, and illegal content may be investigated and the account closed.</p>
 
       <h2 id="mudancas">Changes to this notice</h2>
       <p>If anything changes materially — a different provider, a different retention period, a different purpose — we update the date at the top and email everyone with an account before the change takes effect.</p>
@@ -171,7 +172,6 @@
       <p>© <span data-year>2026</span> Trustio. All rights reserved.</p>
       <div class="iso-badge">
         <picture><source srcset="/assets/iso-27001.webp" type="image/webp"><img src="/assets/iso-27001.png" alt="ISO 27001 certification" width="120" height="120"></picture>
-        <picture><source srcset="/assets/anpd.webp" type="image/webp"><img src="/assets/anpd.png" alt="ANPD — Brazilian National Data Protection Authority" width="249" height="140"></picture>
         <picture><source srcset="/assets/lgpd.webp" type="image/webp"><img src="/assets/lgpd.png" alt="LGPD — Brazil's General Data Protection Law" width="240" height="120"></picture>
         <div class="iso-badge-text">
           <span>ISO 27001 certification · LGPD compliance</span>
@@ -187,11 +187,11 @@
       </div>
       <address>
         <span>JCSC BRAZIL MANAGEMENT LTDA · CNPJ 58.451.617/0001-03 · Trustio IA</span>
-        <span>Av. Paulista, 1106, sala 01 · Bela Vista · São Paulo-SP · CEP 01310-914</span>
+        <span>Av. Paulista, 1106, sala 01 · Bela Vista · São Paulo-SP · CEP 01310‑914</span>
       </address>
     </div>
   </footer>
-<!-- Cloudflare Web Analytics (sem cookies, LGPD-friendly) — ative colando o token do painel Web Analytics -->
+<!-- Cloudflare Web Analytics: métricas agregadas, sem cookies -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "68961161fc6848c0b9e1d755f829fd30"}'></script>
 </body>
 </html>

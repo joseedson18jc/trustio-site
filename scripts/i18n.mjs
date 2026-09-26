@@ -280,14 +280,22 @@ function traduzirJsonLd(bloco, traduz) {
   if (!m) return bloco;
   let dados;
   try { dados = JSON.parse(m[2]); } catch { return bloco; }
-  const anda = (v, chave) => {
+  // A empresa e o site são uma entidade só nos dois idiomas: o @id deles (e a url/logo da
+  // Organization) não ganham /en/, senão o Google enxerga uma segunda organização.
+  const IDENTIDADE = /#(organization|website)$/;
+  const ehOrganizacao = (o) => [].concat(o["@type"] ?? []).some((t) => /Organization|Corporation|LocalBusiness/.test(t));
+  const anda = (v, chave, pai) => {
     if (typeof v === "string") {
-      if (/^https:\/\/trustio\.com\.br\//.test(v)) return reescreverUrl(v, "index.html");
+      if (/^https:\/\/trustio\.com\.br\//.test(v)) {
+        if (IDENTIDADE.test(v)) return v;
+        if (pai && ehOrganizacao(pai) && ["url", "logo", "@id"].includes(chave)) return v;
+        return reescreverUrl(v, "index.html");
+      }
       if (JSONLD_LITERAL.has(chave)) return v;
       return traduz(v) ?? v;
     }
-    if (Array.isArray(v)) return v.map((x) => anda(x, chave));
-    if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, k === "inLanguage" ? "en" : anda(x, k)]));
+    if (Array.isArray(v)) return v.map((x) => anda(x, chave, pai));
+    if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, k === "inLanguage" ? "en" : anda(x, k, v)]));
     return v;
   };
   return `${m[1]}\n${JSON.stringify(anda(dados, ""), null, 2)}\n${m[3]}`;

@@ -16,7 +16,7 @@ const aplicado = join(hermesDir, "allowed-aplicado.txt"), reinicios = join(raiz,
 const falhaReinicio = join(raiz, "reinicio-falha");
 
 writeFileSync(join(home, ".trustio-hermes-sync-key"), "segredo");
-writeFileSync(envFile, "WHATSAPP_ENABLED=true\nWHATSAPP_ALLOWED_USERS=5511991921181\nWHATSAPP_MODE=bot\n");
+writeFileSync(envFile, "WHATSAPP_ENABLED=true\nWHATSAPP_ALLOWED_USERS=5511990000081\nWHATSAPP_MODE=bot\n");
 chmodSync(envFile, 0o640);
 // `hermes` falso: registra cada chamada e falha quando o arquivo de falha existe.
 writeFileSync(join(bin, "hermes"), `#!/bin/bash\necho "$*" >> "${reinicios}"\n[ -e "${falhaReinicio}" ] && exit 1 || exit 0\n`);
@@ -35,7 +35,7 @@ const url = `http://127.0.0.1:${servidor.address().port}/`;
 // O servidor roda neste processo: o script roda assíncrono para não travar o event loop.
 function rodar() {
   return new Promise((resolve) => {
-    const p = spawn("bash", [SCRIPT], { env: { ...process.env, HOME: home, PATH: `${bin}:${process.env.PATH}`, TRUSTIO_HERMES_URL: url } });
+    const p = spawn("bash", [SCRIPT], { env: { ...process.env, HOME: home, PATH: `${bin}:${process.env.PATH}`, TRUSTIO_HERMES_URL: url, TRUSTIO_HERMES_ESPERA: process.env.TRUSTIO_HERMES_ESPERA_TESTE ?? "0" } });
     let saida = "";
     p.stdout.on("data", (d) => (saida += d));
     p.stderr.on("data", (d) => (saida += d));
@@ -55,12 +55,12 @@ function check(cond, msg, extra) {
 // 1. Sem o arquivo de fixos, nada muda (não há semente automática).
 resposta = { status: 200, numeros: ["5511900000001"] };
 await rodar();
-check(lista() === "5511991921181" && nReinicios() === 0, "sem allowed-fixos.txt não mexe em nada", lista());
+check(lista() === "5511990000081" && nReinicios() === 0, "sem allowed-fixos.txt não mexe em nada", lista());
 
 // 2. Fixos (um sem DDI) + teste ativo: aplica, normaliza e reinicia.
-writeFileSync(fixos, "5511991921181\n11976759745\n");
+writeFileSync(fixos, "5511990000081\n11970000045\n");
 await rodar();
-check(lista() === "5511900000001,5511976759745,5511991921181", "junta fixos e testes, com 55 no número sem DDI", lista());
+check(lista() === "5511900000001,5511970000045,5511990000081", "junta fixos e testes, com 55 no número sem DDI", lista());
 check(nReinicios() === 1 && marcador() === lista(), "reinicia e marca a lista como aplicada");
 
 // 3. Nada mudou: não reinicia.
@@ -70,18 +70,18 @@ check(nReinicios() === 1, "lista igual não reinicia o gateway");
 // 4. Consulta falha: mantém tudo.
 resposta = { status: 500 };
 await rodar();
-check(lista() === "5511900000001,5511976759745,5511991921181" && nReinicios() === 1, "erro na consulta mantém a lista");
+check(lista() === "5511900000001,5511970000045,5511990000081" && nReinicios() === 1, "erro na consulta mantém a lista");
 
 // 5. Teste vence e o reinício falha: o marcador fica na lista antiga...
 resposta = { status: 200, numeros: [] };
 writeFileSync(falhaReinicio, "");
 await rodar();
-check(lista() === "5511976759745,5511991921181", "teste vencido sai do .env", lista());
-check(marcador() === "5511900000001,5511976759745,5511991921181", "reinício que falhou não marca a lista como aplicada");
+check(lista() === "5511970000045,5511990000081", "teste vencido sai do .env", lista());
+check(marcador() === "5511900000001,5511970000045,5511990000081", "reinício que falhou não marca a lista como aplicada");
 // ...e a execução seguinte, com o reinício funcionando, aplica sozinha.
 rmSync(falhaReinicio);
 await rodar();
-check(marcador() === "5511976759745,5511991921181", "a execução seguinte reinicia e aplica");
+check(marcador() === "5511970000045,5511990000081", "a execução seguinte reinicia e aplica");
 
 // 6. .env divergente do marcador (reinício falhou e a lista voltou ao valor aplicado): corrige.
 writeFileSync(falhaReinicio, "");
@@ -92,7 +92,7 @@ rmSync(falhaReinicio);
 resposta = { status: 200, numeros: [] };
 const antes = nReinicios();
 await rodar();
-check(lista() === "5511976759745,5511991921181" && nReinicios() === antes + 1, ".env divergente é corrigido e o gateway reinicia", lista());
+check(lista() === "5511970000045,5511990000081" && nReinicios() === antes + 1, ".env divergente é corrigido e o gateway reinicia", lista());
 
 // 7. Sem fixos e sem testes: sentinela, nunca "sem lista".
 writeFileSync(fixos, "");
@@ -103,6 +103,16 @@ check(lista() === "000000000000" && marcador() === "000000000000", "lista vazia 
 check((statSync(envFile).mode & 0o777) === 0o640, "permissões do .env preservadas");
 check(/^WHATSAPP_MODE=bot$/m.test(readFileSync(envFile, "utf8")), "outras linhas do .env preservadas");
 check(!readdirSync(hermesDir).some((f) => f.startsWith(".env.")), "sem arquivos temporários sobrando");
+
+// 9. Intervalo mínimo entre reinícios: trocas em rajada gravam o .env, mas só reiniciam depois.
+process.env.TRUSTIO_HERMES_ESPERA_TESTE = "3600";
+resposta = { status: 200, numeros: ["5511900000003"] };
+const antesDaRajada = nReinicios();
+await rodar();
+check(lista().includes("5511900000003") && nReinicios() === antesDaRajada, "reinício adiado dentro do intervalo mínimo", lista());
+delete process.env.TRUSTIO_HERMES_ESPERA_TESTE;
+await rodar();
+check(nReinicios() === antesDaRajada + 1 && marcador().includes("5511900000003"), "fora do intervalo, reinicia e aplica");
 
 servidor.close();
 rmSync(raiz, { recursive: true, force: true });

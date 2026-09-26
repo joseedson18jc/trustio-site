@@ -29,37 +29,30 @@ concurrency:
   group: supabase-${{ github.ref }}
   cancel-in-progress: false
 
+# O job só lê o repositório; o GITHUB_TOKEN não precisa de escrita.
+permissions:
+  contents: read
+
 jobs:
   apply:
     runs-on: ubuntu-latest
+    # Cada segredo entra só no passo que o usa: as actions de terceiros (checkout, setup-cli)
+    # rodam sem nenhum deles no ambiente.
     env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-      SMTP_PASS: ${{ secrets.SMTP_PASS }}
-      SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
-      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-      LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
-      LLM_MODEL: ${{ secrets.LLM_MODEL }}
-      LLM_SERVIDOR: ${{ secrets.LLM_SERVIDOR }}
-      LLM_CONTEXTO: ${{ secrets.LLM_CONTEXTO }}
-      LLM_MAX_TOKENS: ${{ secrets.LLM_MAX_TOKENS }}
-      ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
-      AVISOS_SEGREDO: ${{ secrets.AVISOS_SEGREDO }}
-      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-      EVOLUTION_URL: ${{ secrets.EVOLUTION_URL }}
-      EVOLUTION_INSTANCE: ${{ secrets.EVOLUTION_INSTANCE }}
-      EVOLUTION_API_KEY: ${{ secrets.EVOLUTION_API_KEY }}
-      EVOLUTION_NUMERO: ${{ secrets.EVOLUTION_NUMERO }}
-      HERMES_SEGREDO: ${{ secrets.HERMES_SEGREDO }}
       PROJECT_REF: mjdaluioyutnxlyomzyd
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1
         with:
-          version: latest
+          version: 2.118.0
 
       - name: Verificar segredos
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
         run: |
           missing=""
           [ -n "$SUPABASE_ACCESS_TOKEN" ] || missing="$missing SUPABASE_ACCESS_TOKEN"
@@ -83,20 +76,28 @@ jobs:
           fi
           if [ "$token" != "$SUPABASE_ACCESS_TOKEN" ]; then
             echo "::warning::SUPABASE_ACCESS_TOKEN tinha espaço, quebra de linha ou aspas; foram removidos nesta execução. Corrija também o secret, colando só o sbp_…"
-            echo "::add-mask::$token"
-            echo "SUPABASE_ACCESS_TOKEN=$token" >> "$GITHUB_ENV"
           fi
+          # Os passos seguintes (só `run:`, nenhuma action de terceiro) recebem o token limpo daqui.
+          echo "::add-mask::$token"
+          echo "SUPABASE_ACCESS_TOKEN=$token" >> "$GITHUB_ENV"
 
           [ -n "$SMTP_PASS" ] || echo "::warning::SMTP_PASS ausente: e-mails seguem pelo remetente padrão do Supabase (limite de poucos por hora)."
           [ -n "$LLM_API_KEY" ] || echo "::warning::LLM_API_KEY ausente: o chat responde 'modelo não ativado' até a chave existir."
 
       - name: Vincular projeto
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: supabase link --project-ref "$PROJECT_REF"
 
       - name: Aplicar migrações (banco)
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: supabase db push
 
       - name: Aplicar configuração de Auth, e-mails e SMTP
+        env:
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
         run: |
           if [ -z "$SMTP_PASS" ]; then
             # Sem senha de SMTP, mantém o remetente padrão para não quebrar o envio.
@@ -120,26 +121,48 @@ jobs:
         run: supabase functions deploy hermes-autorizados --no-verify-jwt --project-ref "$PROJECT_REF"
 
       - name: Definir segredos da função de aviso
+        env:
+          AVISOS_SEGREDO: ${{ secrets.AVISOS_SEGREDO }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EVOLUTION_URL: ${{ secrets.EVOLUTION_URL }}
+          EVOLUTION_INSTANCE: ${{ secrets.EVOLUTION_INSTANCE }}
+          EVOLUTION_API_KEY: ${{ secrets.EVOLUTION_API_KEY }}
+          EVOLUTION_NUMERO: ${{ secrets.EVOLUTION_NUMERO }}
+          HERMES_SEGREDO: ${{ secrets.HERMES_SEGREDO }}
         run: |
-          args=""
+          # Os valores vão num arquivo 600, não na linha de comando (argv aparece em listagens de
+          # processo e quebra com espaço ou caractere especial).
+          f=$(mktemp); chmod 600 "$f"; trap 'rm -f "$f"' EXIT
           for v in AVISOS_SEGREDO RESEND_API_KEY EVOLUTION_URL EVOLUTION_INSTANCE EVOLUTION_API_KEY EVOLUTION_NUMERO HERMES_SEGREDO; do
-            [ -n "${!v}" ] && args="$args $v=${!v}"
+            val="${!v}"; [ -n "$val" ] || continue
+            val="${val//\\/\\\\}"; val="${val//\"/\\\"}"
+            printf '%s="%s"\n' "$v" "$val" >> "$f"
           done
-          [ -n "$args" ] || { echo "Nenhum segredo de aviso definido; pulando."; exit 0; }
-          supabase secrets set $args --project-ref "$PROJECT_REF"
+          [ -s "$f" ] || { echo "Nenhum segredo de aviso definido; pulando."; exit 0; }
+          supabase secrets set --env-file "$f" --project-ref "$PROJECT_REF"
 
       - name: Definir segredos da função
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          LLM_SERVIDOR: ${{ secrets.LLM_SERVIDOR }}
+          LLM_CONTEXTO: ${{ secrets.LLM_CONTEXTO }}
+          LLM_MAX_TOKENS: ${{ secrets.LLM_MAX_TOKENS }}
         run: |
           [ -n "$LLM_API_KEY" ] || { echo "LLM_API_KEY ausente; pulando."; exit 0; }
-          args="LLM_API_KEY=$LLM_API_KEY"
-          [ -n "$LLM_BASE_URL" ] && args="$args LLM_BASE_URL=$LLM_BASE_URL"
-          [ -n "$LLM_MODEL" ] && args="$args LLM_MODEL=$LLM_MODEL"
-          [ -n "$LLM_SERVIDOR" ] && args="$args LLM_SERVIDOR=$LLM_SERVIDOR"
-          [ -n "$LLM_CONTEXTO" ] && args="$args LLM_CONTEXTO=$LLM_CONTEXTO"
-          [ -n "$LLM_MAX_TOKENS" ] && args="$args LLM_MAX_TOKENS=$LLM_MAX_TOKENS"
-          supabase secrets set $args --project-ref "$PROJECT_REF"
+          f=$(mktemp); chmod 600 "$f"; trap 'rm -f "$f"' EXIT
+          for v in LLM_API_KEY LLM_BASE_URL LLM_MODEL LLM_SERVIDOR LLM_CONTEXTO LLM_MAX_TOKENS; do
+            val="${!v}"; [ -n "$val" ] || continue
+            val="${val//\\/\\\\}"; val="${val//\"/\\\"}"
+            printf '%s="%s"\n' "$v" "$val" >> "$f"
+          done
+          supabase secrets set --env-file "$f" --project-ref "$PROJECT_REF"
 
       - name: Administradores do CRM
+        env:
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
         run: |
           [ -n "$ADMIN_EMAILS" ] || { echo "ADMIN_EMAILS ausente; pulando."; exit 0; }
           list=$(echo "$ADMIN_EMAILS" | tr ',' '\n' | sed "s/^ *//;s/ *$//;/^$/d;s/.*/'\\L&'/" | paste -sd, -)

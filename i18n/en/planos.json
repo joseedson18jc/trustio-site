@@ -368,6 +368,16 @@
     "Pix ainda não está disponível": "Pix isn't available yet",
     ": em breve ele entra nos passes de 7 dias (pagamento único); as assinaturas mensais, semestrais e anuais seguem no cartão.": ": it's coming soon to the 7-day passes (one-time payment); monthly, 6-month and annual subscriptions stay on card.",
     "— nos planos empresariais o pagamento funciona de outro jeito, explicado na aba “Para empresas”.": "— business plans handle payment differently, as explained in the “For businesses” tab.",
-    "No cartão, sim: ele renova todo mês até você cancelar, e o cancelamento vale até o fim do mês que você já pagou — sem multa. O Passe de 7 dias nunca renova sozinho, em nenhuma forma de pagamento.": "Yes: it renews every month until you cancel, and cancellation takes effect at the end of the month you've already paid — no fee. The 7-day pass never renews on its own."
+    "No cartão, sim: ele renova todo mês até você cancelar, e o cancelamento vale até o fim do mês que você já pagou — sem multa. O Passe de 7 dias nunca renova sozinho, em nenhuma forma de pagamento.": "Yes: it renews every month until you cancel, and cancellation takes effect at the end of the month you've already paid — no fee. The 7-day pass never renews on its own.",
+    "Planos Starter, Pro e Dedicado de infraestrutura privada de IA, com pagamento por cartão, Apple Pay, Google Pay ou Pix. Diagnóstico de caso de uso com valor abatido das primeiras mensalidades.": "Starter, Pro and Dedicated private AI infrastructure plans, paid by card, Apple Pay, Google Pay or Pix. A use-case assessment whose fee is credited against your first monthly payments.",
+    "Para empresas, ambientes privados no Brasil. Para você, IA privada e sem censura e o agente Agentio, por assinatura. Pague em reais: cartão, Apple Pay ou Google Pay, e Pix no diagnóstico e no plano Dedicado.": "For businesses, private environments in Brazil. For you, private, uncensored AI and the Agentio agent, by subscription. Pay in reais: card, Apple Pay or Google Pay, plus Pix for the assessment and the Dedicated plan.",
+    "Nota fiscal e recibo": "Invoice and receipt",
+    "VoiceAI e integrações sob medida": "VoiceAI and custom integrations",
+    "Dois workshops de descoberta, mapa de dados, riscos e integrações, arquitetura recomendada e estimativa de custos em até 10 dias úteis. O valor é abatido integralmente das primeiras mensalidades de qualquer plano.": "Two discovery workshops, a map of data, risks and integrations, a recommended architecture and a cost estimate within 10 business days. The full fee is credited against the first monthly payments of any plan.",
+    "✓ todos + VoiceAI": "✓ all + VoiceAI",
+    "Equivale a R$ 65,83 por mês · acesso em": "Works out to R$ 65.83 a month · access",
+    "Entre na lista. Leva 30 segundos.": "Join the list. It takes 30 seconds.",
+    "no modelo sem censura — depois escolhe um plano, se quiser. O teste não gera cobrança.": "with the uncensored model — then pick a plan, if you want. The trial is never charged.",
+    "Dedicado": "Dedicated"
   }
 }

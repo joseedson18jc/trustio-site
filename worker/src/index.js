@@ -334,6 +334,13 @@ const EMAIL = {
   },
 };
 
+/** Nome na saudação do e-mail: curto e sem nada que vire link (o formulário é público). */
+export function nomeParaSaudacao(nome) {
+  const limpo = String(nome ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
+  if (!limpo || /:\/\/|www\.|@|\.[a-z]{2,}\b/i.test(limpo)) return "";
+  return limpo.slice(0, 40).trim();
+}
+
 function corpoDoEmail(nome, link, idioma = "pt") {
   const t = EMAIL[idioma] || EMAIL.pt;
   const saudacao = nome ? `${t.ola}, ${escapar(nome)}!` : `${t.ola}!`;
@@ -527,7 +534,7 @@ export default {
       // para não revelar a terceiros quem está na lista.
       if (registro.token) {
         try {
-          await enviarEmail(env, email, String(dados.nome || "").trim(), linkDeConfirmacao(env, registro.token, idioma), idioma);
+          await enviarEmail(env, email, nomeParaSaudacao(dados.nome), linkDeConfirmacao(env, registro.token, idioma), idioma);
         } catch (err) {
           // O lead já está salvo; o reenvio é possível. Não mentimos dizendo que deu certo.
           console.error("envio_falhou", err.message);

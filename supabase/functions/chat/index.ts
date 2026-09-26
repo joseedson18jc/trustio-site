@@ -38,10 +38,13 @@ const AVISO_SEM_IMAGEM = "[Aviso do sistema: a pessoa anexou foto(s), mas o serv
 // Recusa de imagem pelo servidor do modelo (modelo só de texto): 4xx, ou 5xx cujo erro fala
 // de imagem. Chave inválida, limite de uso, servidor fora do ar e contexto cheio não contam:
 // repetir só com o texto não resolveria e descartaria a foto à toa.
+// O erro que fala de imagem vale em qualquer status: o servidor MLX em uso responde 404
+// "Only 'text' content type is supported." a uma mensagem com foto.
 function ehRecusaDeImagem(status: number, detalhe: string) {
-  if (ehContextoCheio(status, detalhe) || [401, 403, 404, 408, 429].includes(status)) return false;
-  const falaDeImagem = /image|imagem|vision|multimodal|image_url|content.?(part|type)|mmproj|clip/i.test(detalhe);
-  return (status >= 400 && status < 500) || falaDeImagem;
+  if (ehContextoCheio(status, detalhe)) return false;
+  if (/image|imagem|vision|multimodal|image_url|content.?(part|type)|mmproj|clip/i.test(detalhe)) return true;
+  if ([401, 403, 404, 408, 429].includes(status)) return false;
+  return status >= 400 && status < 500;
 }
 // Conversa maior que o contexto do modelo.
 function ehContextoCheio(status: number, detalhe: string) {

@@ -548,6 +548,9 @@ p {
 .mobile-nav {
   display: grid;
   height: calc(100svh - 80px);
+  /* Com o menu aberto a página não rola: em tela baixa, o próprio menu rola até "Entrar". */
+  overflow-y: auto;
+  overscroll-behavior: contain;
   align-content: start;
   gap: 0;
   padding: var(--space-24);
@@ -1892,10 +1895,10 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
 }
 
 /* Responsive */
-/* Cabeçalho: seis itens + Entrar + CTA + idioma + tema precisam de ~1130px; a faixa do
-   cabeçalho cresce até 1360px (mais larga que o container de conteúdo) e, abaixo de 1181px,
-   o menu hambúrguer assume (breakpoint espelhado em app.js). */
-@media (min-width: 1181px) {
+/* Cabeçalho: sete itens (com os pares VoiceAI e Agentio) + Entrar + CTA + idioma + tema precisam
+   de ~1280px; a faixa do cabeçalho cresce até 1360px (mais larga que o container de conteúdo) e,
+   abaixo de 1301px, o menu hambúrguer assume (breakpoint espelhado em app.js). */
+@media (min-width: 1301px) {
   .header-inner { width: min(1360px, calc(100vw - 48px)); gap: var(--space-16); }
   .desktop-nav { gap: var(--space-20); }
   .desktop-nav a { font-size: 14.5px; }
@@ -1907,7 +1910,7 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   .desktop-nav a { font-size: 15px; }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1300px) {
   .desktop-nav { display: none; }
   .menu-toggle { display: block; }
   .header-cta { margin-left: auto; }
@@ -2240,6 +2243,15 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
 /* VoiceAI menu label */
 .nav-voice small{display:inline-block;white-space:nowrap;font-family:var(--mono);font-size:var(--label);letter-spacing:.1em;text-transform:uppercase;color:var(--blue-signal);margin-left:6px;vertical-align:middle}
 .mobile-nav .nav-voice small{font-size:var(--label-lg)}
+/* "Agentio by Nous Research": mesmo par do VoiceAI (nome + rótulo monoespaçado em azul), com a
+   marca da Nous como máscara. A marca original é letra preta sobre um disco branco; aqui fica só
+   a letra, na cor do rótulo, e acompanha o tema. */
+.nav-agentio{display:inline-flex;align-items:center}
+.nav-agentio small{display:inline-block;white-space:nowrap;font-family:var(--mono);font-size:var(--label);letter-spacing:.1em;text-transform:uppercase;color:var(--blue-signal);margin-left:6px}
+.nav-nous{display:inline-block;flex:0 0 auto;width:22px;height:22px;margin-left:5px;background-color:var(--blue-signal);
+  -webkit-mask:url("nous-research.webp") center/contain no-repeat;mask:url("nous-research.webp") center/contain no-repeat}
+.mobile-nav .nav-agentio small{font-size:var(--label-lg)}
+.mobile-nav .nav-nous{width:30px;height:30px;margin-left:8px}
 
 
 /* ---------- Seats banner — segunda dobra da home ---------- */

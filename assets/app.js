@@ -44,7 +44,7 @@ window.addEventListener("scroll", updateHeader, { passive: true });
 menuButton?.addEventListener("click", toggleMenu);
 mobileMenu?.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
 window.addEventListener("resize", () => {
-  if (window.innerWidth > 1180) closeMenu();
+  if (window.innerWidth > 1300) closeMenu();
 });
 
 const inPageLinks = Array.from(document.querySelectorAll('.desktop-nav a[href^="#"], .mobile-nav a[href^="#"]'));

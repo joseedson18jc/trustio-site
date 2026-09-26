@@ -19,6 +19,7 @@ for (const [path, expectedStatus, expectedType] of [
   ["/seats.html", 200, "text/html"],
   ["/juridico/", 200, "text/html"],
   ["/voice.html", 200, "text/html"],
+  ["/agentio.html", 200, "text/html"],
   ["/planos.html", 200, "text/html"],
   ["/console/", 200, "text/html"],
   ["/cadastro.html", 200, "text/html"],
@@ -34,6 +35,7 @@ for (const [path, expectedStatus, expectedType] of [
   ["/en", 200, "text/html"],
   ["/en/", 200, "text/html"],
   ["/en/voice", 200, "text/html"],
+  ["/en/agentio.html", 200, "text/html"],
   ["/en/planos.html", 200, "text/html"],
   ["/en/juridico/", 200, "text/html"],
   ["/en/console/", 200, "text/html"],
@@ -47,6 +49,23 @@ for (const [path, expectedStatus, expectedType] of [
   if (response.status !== expectedStatus) throw new Error(`${path} returned ${response.status}.`);
   if (!response.headers.get("content-type")?.startsWith(expectedType)) {
     throw new Error(`${path} returned the wrong content type.`);
+  }
+}
+
+// Aliases que redirecionam para a página canônica (a página usa caminhos relativos, então
+// não pode ser servida sob /agentio/).
+for (const [path, expectedLocation] of [
+  ["/agentio", "/agentio.html"],
+  ["/agentio/", "/agentio.html"],
+  ["/agentio/?utm=x", "/agentio.html?utm=x"],
+  ["/en/agentio", "/en/agentio.html"],
+  ["/en/agentio/", "/en/agentio.html"],
+]) {
+  const response = await worker.fetch(new Request(`https://trustio.example${path}`));
+  if (response.status !== 308) throw new Error(`${path} returned ${response.status}, expected 308.`);
+  const location = new URL(response.headers.get("location") ?? "", "https://trustio.example");
+  if (location.origin !== "https://trustio.example" || location.pathname + location.search !== expectedLocation) {
+    throw new Error(`${path} redirected to ${response.headers.get("location")}, expected ${expectedLocation}.`);
   }
 }
 

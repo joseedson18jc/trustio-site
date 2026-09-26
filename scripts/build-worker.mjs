@@ -44,6 +44,7 @@ const sourceFiles = [
   "fundador.html",
   "juridico/index.html",
   "voice.html",
+  "agentio.html",
   "planos.html",
   "planos-teste.html",
   "obrigado.html",
@@ -137,6 +138,11 @@ export default {
     if (path === "/seats" || path === "/seats/") path = "/seats.html";
     if (path === "/juridico" || path === "/juridico/") path = "/juridico/index.html";
     if (path === "/voice" || path === "/voice/") path = "/voice.html";
+    // /agentio e /agentio/ redirecionam (não servem o HTML no lugar): a página usa caminhos
+    // relativos (assets/…, app/, planos.html), que sob /agentio/ apontariam para lugar nenhum.
+    if (path === "/agentio" || path === "/agentio/") {
+      return Response.redirect(new URL(prefix + "/agentio.html" + url.search, url), 308);
+    }
     if (path === "/planos" || path === "/planos/") path = "/planos.html";
     if (path === "/console" || path === "/console/") path = "/console/index.html";
     if (path === "/app" || path === "/app/") path = "/app/index.html";

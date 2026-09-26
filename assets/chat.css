@@ -182,7 +182,9 @@
 }
 .chat-main { position: relative; overflow: hidden; background: var(--abyss); }
 .thread, .composer, .notice, .paywall, .chat-top { position: relative; z-index: 1; }
-.chat-top { background: rgba(var(--bg-rgb), 0.92); }
+.chat-top { background: rgba(var(--bg-rgb), 0.72); }
+.chat-page:not(.crm-page) .chat-top { background: rgba(var(--bg-rgb), 0.92); }
+:root:not([data-theme="light"]) .chat-page:not(.crm-page) .widget-wa { background: var(--card-gradient-strong); }
 
 /* Anexos: fotos e PDFs lidos no navegador (assets/ocr.js) */
 .composer textarea { padding-left: 50px; }

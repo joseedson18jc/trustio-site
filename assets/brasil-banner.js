@@ -154,8 +154,10 @@
       // begin="indefinite": os pacotes partem quando a faixa aparece, não no carregamento da página.
       const m = el("animateMotion", { dur: `${(3 + Math.random() * 3).toFixed(1)}s`, begin: "indefinite", repeatCount: "indefinite", keyPoints: k ? "1;0" : "0;1", keyTimes: "0;1", calcMode: "linear" });
       m.appendChild(el("mpath", { href: "#" + id })); c.appendChild(m);
+      const aparece = el("set", { attributeName: "opacity", to: "1", begin: "indefinite", fill: "freeze" });
+      c.appendChild(aparece);
       pg.appendChild(c);
-      pacotes.push({ c, m, atraso: (4 + i * 0.13 + k * 1.7) * 1000 });
+      pacotes.push({ m, aparece, atraso: 4 + i * 0.13 + k * 1.7 });
     }
   });
   minorPts.forEach((p, i) => {
@@ -169,8 +171,10 @@
     if (iniciado) return;
     iniciado = true;
     banner.classList.remove("tb-wait");
-    for (const { c, m, atraso } of pacotes) {
-      setTimeout(() => { c.setAttribute("opacity", "1"); if (m.beginElement) m.beginElement(); }, atraso);
+    // Agendados no relógio do próprio SVG (não em setTimeout): quando a faixa sai da tela e o
+    // SVG pausa, os lançamentos pendentes pausam junto e o escalonamento se mantém.
+    for (const { m, aparece, atraso } of pacotes) {
+      if (m.beginElementAt) { m.beginElementAt(atraso); aparece.beginElementAt(atraso); }
     }
   }
 

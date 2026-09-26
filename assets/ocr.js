@@ -1,6 +1,7 @@
 /* assets/ocr.js — leitura de anexos do chat no navegador (fotos e PDFs).
-   O arquivo não sai do aparelho: o texto é extraído aqui e só ele vai para o modelo.
-   - Foto: OCR com tesseract.js (português).
+   O arquivo original não sai do aparelho: o texto é extraído aqui.
+   - Foto: OCR com tesseract.js (português), e uma cópia reduzida (JPEG, até 1280 px)
+     para o modelo ver a imagem — foto de paisagem, pessoa ou objeto não tem texto.
    - PDF: texto direto com pdf.js; página sem texto (digitalizada) passa pelo OCR.
    As bibliotecas (assets/vendor/ocr e assets/vendor/pdfjs) só carregam no primeiro anexo. */
 (function () {
@@ -47,7 +48,7 @@
     var tarefa = fila.then(function () {
       return ocrWorker().then(function (w) {
         ocrWorker.aviso = progresso;
-        return w.recognize(imagem).then(function (r) { ocrWorker.aviso = null; return (r && r.data && r.data.text) || ""; });
+        return w.recognize(imagem).then(function (r) { ocrWorker.aviso = null; return (r && r.data) || {}; });
       });
     });
     fila = tarefa.catch(function () {});
@@ -83,7 +84,7 @@
             var vp = pag.getViewport({ scale: 2 }), canvas = document.createElement("canvas");
             canvas.width = Math.ceil(vp.width); canvas.height = Math.ceil(vp.height);
             return pag.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise.then(function () {
-              return reconhecer(canvas, function (p) { progresso((i - 1 + p) / total); });
+              return reconhecer(canvas, function (p) { progresso((i - 1 + p) / total); }).then(function (d) { return d.text || ""; });
             });
           }).catch(function (err) {
             // Uma página que não renderiza ou não passa no OCR não derruba as outras.
@@ -109,9 +110,32 @@
       progresso = progresso || function () {};
       var tipo = String(arquivo.type || "").toLowerCase(), nome = String(arquivo.name || "").toLowerCase();
       if (tipo === "application/pdf" || /\.pdf$/.test(nome)) return lerPdf(arquivo, progresso);
-      return reconhecer(arquivo, progresso).then(function (texto) {
+      return reconhecer(arquivo, progresso).then(function (d) {
         progresso(1);
-        return { texto: String(texto || "").trim(), paginas: 1, lidas: 1, ocr: 1 };
+        var texto = String(d.text || "").trim();
+        // Foto sem texto (paisagem, rosto, objeto) sai do OCR como ruído de baixa confiança:
+        // abaixo de 55%, ou com menos de 8 letras, conta como "sem texto".
+        var letras = (texto.match(/[A-Za-zÀ-ÿ]/g) || []).length;
+        if ((typeof d.confidence === "number" && d.confidence < 55) || letras < 8) texto = "";
+        return { texto: texto, paginas: 1, lidas: 1, ocr: 1 };
+      });
+    },
+    // Resolve um data: URL JPEG da foto, com o lado maior em até 1280 px (a orientação da
+    // câmera é respeitada). É isso, e não o arquivo original, que vai para o modelo.
+    miniatura: function (arquivo) {
+      var LADO = 1280;
+      var abrir = window.createImageBitmap
+        ? createImageBitmap(arquivo, { imageOrientation: "from-image" }).catch(function () { return createImageBitmap(arquivo); })
+        : Promise.reject(new Error("sem_createImageBitmap"));
+      return abrir.then(function (bmp) {
+        var escala = Math.min(1, LADO / Math.max(bmp.width, bmp.height));
+        var c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(bmp.width * escala)); c.height = Math.max(1, Math.round(bmp.height * escala));
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, c.width, c.height); // PNG transparente vira fundo branco
+        ctx.drawImage(bmp, 0, 0, c.width, c.height);
+        if (bmp.close) bmp.close();
+        return c.toDataURL("image/jpeg", 0.82);
       });
     }
   };

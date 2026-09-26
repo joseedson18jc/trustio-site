@@ -30,6 +30,16 @@ const LLM_CONTEXTO = contextoConfigurado > 0 ? Math.floor(contextoConfigurado) :
 // desconhecidos derrubaria o chat; por isso só vai com LLM_SERVIDOR = "llama.cpp".
 const LLAMA_TIMINGS = (Deno.env.get("LLM_SERVIDOR") ?? "").trim().toLowerCase() === "llama.cpp";
 
+// Fotos do chat: data: URL de imagem, cada uma com até ~1,5 MB (a página manda JPEG de até 1280 px).
+const RE_IMAGEM = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+const MAX_IMAGEM = 1_500_000;
+const AVISO_SEM_IMAGEM = "[Aviso do sistema: a pessoa anexou foto(s), mas o servidor do modelo não aceitou imagens nesta mensagem. " +
+  "Você recebeu só o texto lido delas, se havia. Se precisar ver a foto para responder, diga isso com franqueza.]";
+// Conversa maior que o contexto do modelo.
+function ehContextoCheio(status: number, detalhe: string) {
+  return status === 400 && /exceed_context_size|context (size|length)|maximum context/i.test(detalhe);
+}
+
 const ALLOWED_ORIGINS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$|^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
 
 function cors(origin: string | null) {
@@ -107,13 +117,20 @@ Deno.serve(async (req) => {
 
   if (!user.email_confirmed_at) return json(403, { error: "email_nao_confirmado" }, origin);
 
-  let body: { conversation_id?: string; message?: string };
+  let body: { conversation_id?: string; message?: string; imagens?: unknown };
   try { body = await req.json(); } catch { return json(400, { error: "bad_json" }, origin); }
   const message = String(body.message ?? "").trim();
   if (!message) return json(400, { error: "mensagem_vazia" }, origin);
   // 40 mil caracteres: mensagem com até 3 anexos lidos por OCR no navegador (o texto de
   // cada anexo é cortado em 12 mil, e o total dos anexos em 30 mil, antes de sair da página).
   if (message.length > 40000) return json(413, { error: "mensagem_longa" }, origin);
+  // Fotos anexadas: até 3 cópias reduzidas (JPEG/PNG/WebP em data: URL) para o modelo ver
+  // a imagem. Não são gravadas: o histórico guarda só o texto da mensagem.
+  const imagens = body.imagens === undefined ? [] : body.imagens;
+  if (!Array.isArray(imagens) || imagens.length > 3 ||
+      !imagens.every((u) => typeof u === "string" && u.length <= MAX_IMAGEM && RE_IMAGEM.test(u))) {
+    return json(400, { error: "imagem_invalida" }, origin);
+  }
 
   // Sem chave do modelo nada é consumido nem gravado.
   if (!LLM_API_KEY) return json(503, { error: "modelo_nao_configurado" }, origin);
@@ -167,35 +184,54 @@ Deno.serve(async (req) => {
   const { data: promptRow } = await admin.from("app_settings").select("value").eq("key", "system_prompt").maybeSingle();
   const systemPrompt = typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.";
 
-  const messages = [
+  const anteriores = [
     { role: "system", content: systemPrompt },
     ...(history ?? []).reverse().map((m) => ({ role: m.role, content: m.content })),
-    { role: "user", content: message },
   ];
+  const chamarModelo = (ultima: unknown) => fetch(`${LLM_BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: LLM_MODEL, messages: [...anteriores, { role: "user", content: ultima }], stream: true, temperature: 0.7,
+      stream_options: { include_usage: true },
+      ...(LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
+      ...(LLAMA_TIMINGS ? { timings_per_token: true } : {}),
+    }),
+  });
 
   let upstream: Response;
+  let detail = "";
   try {
-    upstream = await fetch(`${LLM_BASE_URL}/chat/completions`, {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: LLM_MODEL, messages, stream: true, temperature: 0.7,
-        stream_options: { include_usage: true },
-        ...(LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
-        ...(LLAMA_TIMINGS ? { timings_per_token: true } : {}),
-      }),
-    });
+    if (imagens.length) {
+      // Com fotos: texto + imagens no formato da API da OpenAI. Servidor que não aceita
+      // imagem (modelo só de texto) recusa; aí vai de novo só o texto, com um aviso ao
+      // modelo de que as fotos não chegaram — a pessoa recebe resposta do mesmo jeito.
+      upstream = await chamarModelo([
+        { type: "text", text: message },
+        ...imagens.map((url) => ({ type: "image_url", image_url: { url } })),
+      ]);
+      if (!upstream.ok || !upstream.body) {
+        detail = await upstream.text().catch(() => "");
+        console.error("llm_sem_imagem", upstream.status, detail.slice(0, 300));
+        if (!ehContextoCheio(upstream.status, detail)) {
+          upstream = await chamarModelo(message + "\n\n" + AVISO_SEM_IMAGEM);
+          detail = "";
+        }
+      }
+    } else {
+      upstream = await chamarModelo(message);
+    }
   } catch (err) {
     console.error("llm_fetch_error", err);
     await release();
     return json(502, { error: "modelo_indisponivel" }, origin);
   }
   if (!upstream.ok || !upstream.body) {
-    const detail = await upstream.text().catch(() => "");
+    detail = detail || await upstream.text().catch(() => "");
     console.error("llm_error", upstream.status, detail.slice(0, 500));
     await release();
     // Conversa maior que o contexto do modelo: não é falha do modelo; o chat pede uma sessão nova.
-    if (upstream.status === 400 && /exceed_context_size|context (size|length)|maximum context/i.test(detail)) {
+    if (ehContextoCheio(upstream.status, detail)) {
       return json(409, { error: "contexto_cheio", janela: LLM_CONTEXTO }, origin);
     }
     return json(502, { error: "modelo_indisponivel", status: upstream.status }, origin);

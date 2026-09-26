@@ -499,6 +499,8 @@
     input.value = ""; autosize();
     sendBtn.disabled = true; input.disabled = true;
     text += blocosDeAnexo(prontos, LIMITE_MENSAGEM - text.length);
+    // As fotos também vão como imagem (cópia reduzida), para o modelo ver o que não é texto.
+    var imagens = prontos.filter(function (a) { return a.imagem; }).map(function (a) { return a.imagem; });
     anexos = []; renderAnexos();
     var userEl = appendMessage("user", text);
     // Envio recusado antes de começar: a mensagem sai da conversa e volta para a caixa.
@@ -555,7 +557,9 @@
       return fetch(CFG.chatEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token, "apikey": CFG.key },
-        body: JSON.stringify({ conversation_id: state.conversationId, message: text })
+        body: JSON.stringify(imagens.length
+          ? { conversation_id: state.conversationId, message: text, imagens: imagens }
+          : { conversation_id: state.conversationId, message: text })
       });
     }).then(function (res) {
       if (!res.ok) {
@@ -667,7 +671,8 @@
 
   // ---------------------------------------------------------------- anexos (fotos e PDFs, OCR no navegador)
   // Até 3 arquivos por envio. O arquivo não sai do aparelho: assets/ocr.js extrai o texto
-  // aqui, e só o texto vai junto da mensagem, em blocos [[anexo: …]] … [[/anexo]].
+  // aqui, e o texto vai junto da mensagem, em blocos [[anexo: …]] … [[/anexo]]; das fotos vai
+  // também uma cópia reduzida, para o modelo ver o que não é texto.
   // LIMITE_MENSAGEM acompanha o teto da função chat (40 mil), com folga para os marcadores.
   var MAX_ANEXOS = 3, MAX_BYTES = 10 * 1024 * 1024, MAX_TEXTO_ANEXO = 12000, MAX_TEXTO_TOTAL = 30000, LIMITE_MENSAGEM = 39000;
   // "[[anexo" digitado ou dentro de um documento não pode abrir nem fechar um bloco de anexo:
@@ -701,10 +706,21 @@
       a.progresso = p;
       var el = anexosEl.querySelector("[data-anexo-id=\"" + a.id + "\"] .anexo-estado");
       if (el) el.textContent = T("lendo ", "reading ") + Math.round(p * 100) + "%";
+    }).catch(function (err) {
+      // Foto em que o OCR falha ainda pode ir como imagem; PDF que não lê é erro.
+      console.error("ocr", err);
+      if (a.pdf) throw err;
+      return { texto: "", paginas: 1, lidas: 1, ocr: 1 };
     }).then(function (r) {
+      // Foto: além do texto, uma cópia reduzida vai para o modelo ver a imagem.
+      if (a.pdf) return [r, null];
+      return window.TrustioOCR.miniatura(a.file)
+        .then(function (url) { return [r, url]; }, function (err) { console.error("miniatura", err); return [r, null]; });
+    }).then(function (par) {
       if (anexos.indexOf(a) < 0) return; // removido enquanto lia
-      a.texto = r.texto; a.info = r;
-      a.estado = r.texto ? "pronto" : "vazio";
+      var r = par[0];
+      a.texto = r.texto; a.info = r; a.imagem = par[1];
+      a.estado = r.texto || a.imagem ? "pronto" : "vazio";
       renderAnexos();
     }).catch(function (err) {
       console.error("ocr", err);
@@ -718,6 +734,7 @@
     if (a.estado === "erro") return T("não foi possível ler", "couldn't read it");
     if (a.estado === "vazio") return T("sem texto legível", "no readable text");
     var n = (a.texto || "").length, pags = a.pdf && a.info ? a.info.paginas : 0;
+    if (!a.pdf) return n ? T("foto · ", "photo · ") + n.toLocaleString(LOCAL) + T(" caracteres", " characters") : T("foto", "photo");
     return (pags ? pags + (pags === 1 ? T(" página · ", " page · ") : T(" páginas · ", " pages · ")) : "") + n.toLocaleString(LOCAL) + T(" caracteres", " characters");
   }
 
@@ -742,11 +759,12 @@
     var out = "", usado = 0, teto_total = Math.min(MAX_TEXTO_TOTAL, Math.max(0, (orcamento || MAX_TEXTO_TOTAL) - 200 * lista.length));
     lista.forEach(function (a) {
       var livre = teto_total - usado; if (livre <= 200) return;
-      var teto = Math.min(MAX_TEXTO_ANEXO, livre), txt = semMarcador(a.texto), cortado = txt.length > teto;
+      // Foto sem texto: o bloco registra no histórico que houve uma foto (a imagem vai à parte).
+      var teto = Math.min(MAX_TEXTO_ANEXO, livre), txt = semMarcador(a.texto) || T("(foto sem texto legível)", "(photo with no readable text)"), cortado = txt.length > teto;
       if (cortado) txt = txt.slice(0, teto);
       usado += txt.length;
       var pags = a.pdf && a.info ? a.info.paginas : 0;
-      var titulo = a.nome.replace(/[\[\]\n]/g, " ") + (pags ? " · " + pags + (pags === 1 ? T(" página", " page") : T(" páginas", " pages")) : "") + (cortado ? T(" · texto cortado", " · text truncated") : "");
+      var titulo = a.nome.replace(/[\[\]\n]/g, " ") + (a.pdf ? "" : T(" · foto", " · photo")) + (pags ? " · " + pags + (pags === 1 ? T(" página", " page") : T(" páginas", " pages")) : "") + (cortado ? T(" · texto cortado", " · text truncated") : "");
       out += "\n\n[[anexo: " + titulo + "]]\n" + txt + "\n[[/anexo]]";
     });
     return out;

@@ -7,6 +7,9 @@
 //   LLM_API_KEY   obrigatório  (aceita XAI_API_KEY como alternativa)
 //   LLM_BASE_URL  opcional     padrão https://api.x.ai/v1
 //   LLM_MODEL     opcional     padrão grok-4
+//
+// O nome do modelo pode vir também do banco (app_settings.llm_model, só admins leem), que tem
+// prioridade: muda na hora, sem esperar a propagação dos segredos nem o workflow que os regrava.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -16,11 +19,11 @@ const LLM_API_KEY = Deno.env.get("LLM_API_KEY") ?? Deno.env.get("XAI_API_KEY") ?
 const LLM_BASE_URL = (Deno.env.get("LLM_BASE_URL") ?? "https://api.x.ai/v1").replace(/\/$/, "");
 const LLM_MODEL = (Deno.env.get("LLM_MODEL") ?? "grok-4").trim();
 
-// Nome do modelo que vai na chamada. O servidor próprio (mlx_vlm.server) só reusa o modelo
-// carregado se o campo "model" for idêntico ao id com que foi aberto; qualquer outro nome ele
-// tenta carregar do cache e falha. Por isso o id é lido de GET /models do próprio servidor:
-// com um modelo só na lista, vale esse; com vários (provedor na nuvem), vale LLM_MODEL se
-// estiver na lista. Sem resposta, LLM_MODEL. Guardado por 10 minutos.
+// Nome do modelo que vai na chamada, nesta ordem: app_settings.llm_model; o que o próprio
+// servidor anuncia em GET /models (com um modelo só na lista, vale esse; com vários, como num
+// provedor na nuvem, vale LLM_MODEL se estiver na lista); LLM_MODEL. Servidores como o
+// mlx_vlm.server só atendem com o nome exato do modelo carregado: qualquer outro eles tentam
+// carregar e falham. O resultado de /models fica guardado por 10 minutos.
 let modeloDescoberto: { id: string; em: number } | null = null;
 async function modeloDaChamada(configurado: string | null): Promise<string> {
   // app_settings.llm_model (definido no banco) vale primeiro: muda na hora, sem depender da

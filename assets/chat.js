@@ -760,7 +760,7 @@
     lista.forEach(function (a) {
       var livre = teto_total - usado; if (livre <= 200) return;
       // Foto sem texto: o bloco registra no histórico que houve uma foto (a imagem vai à parte).
-      var teto = Math.min(MAX_TEXTO_ANEXO, livre), txt = semMarcador(a.texto) || T("(foto sem texto legível)", "(photo with no readable text)"), cortado = txt.length > teto;
+      var teto = Math.min(MAX_TEXTO_ANEXO, livre), txt = semMarcador(a.texto) || T("(foto sem texto legível; a imagem só vai ao modelo na mensagem em que foi anexada)", "(photo with no readable text; the image only goes to the model in the message it was attached to)"), cortado = txt.length > teto;
       if (cortado) txt = txt.slice(0, teto);
       usado += txt.length;
       var pags = a.pdf && a.info ? a.info.paginas : 0;

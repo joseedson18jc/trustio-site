@@ -114,16 +114,18 @@
         progresso(1);
         var texto = String(d.text || "").trim();
         // Foto sem texto (paisagem, rosto, objeto) sai do OCR como ruído de baixa confiança:
-        // abaixo de 55%, ou com menos de 8 letras, conta como "sem texto".
-        var letras = (texto.match(/[A-Za-zÀ-ÿ]/g) || []).length;
-        if ((typeof d.confidence === "number" && d.confidence < 55) || letras < 8) texto = "";
+        // abaixo de 55%, ou sem nenhuma letra ou número, conta como "sem texto". Texto curto
+        // e legível ("PARE", um código) fica.
+        if ((typeof d.confidence === "number" && d.confidence < 55) || !/[A-Za-zÀ-ÿ0-9]/.test(texto)) texto = "";
         return { texto: texto, paginas: 1, lidas: 1, ocr: 1 };
       });
     },
     // Resolve um data: URL JPEG da foto, com o lado maior em até 1280 px (a orientação da
     // câmera é respeitada). É isso, e não o arquivo original, que vai para o modelo.
+    // Foto muito detalhada é recomprimida (e reduzida) até caber no limite da função do
+    // chat; se não couber nem assim, resolve null e a foto vai só com o texto lido.
     miniatura: function (arquivo) {
-      var LADO = 1280;
+      var LADO = 1280, LIMITE = 1400000;
       var abrir = window.createImageBitmap
         ? createImageBitmap(arquivo, { imageOrientation: "from-image" }).catch(function () { return createImageBitmap(arquivo); })
         : Promise.reject(new Error("sem_createImageBitmap"));
@@ -135,7 +137,18 @@
         ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, c.width, c.height); // PNG transparente vira fundo branco
         ctx.drawImage(bmp, 0, 0, c.width, c.height);
         if (bmp.close) bmp.close();
-        return c.toDataURL("image/jpeg", 0.82);
+        var tentativas = [[1, 0.82], [1, 0.65], [0.75, 0.6], [0.5, 0.55]];
+        for (var i = 0; i < tentativas.length; i++) {
+          var alvo = c;
+          if (tentativas[i][0] < 1) {
+            alvo = document.createElement("canvas");
+            alvo.width = Math.max(1, Math.round(c.width * tentativas[i][0])); alvo.height = Math.max(1, Math.round(c.height * tentativas[i][0]));
+            alvo.getContext("2d").drawImage(c, 0, 0, alvo.width, alvo.height);
+          }
+          var url = alvo.toDataURL("image/jpeg", tentativas[i][1]);
+          if (url.length <= LIMITE) return url;
+        }
+        return null;
       });
     }
   };

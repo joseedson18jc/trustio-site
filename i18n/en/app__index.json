@@ -45,6 +45,6 @@
     "Nova senha": "New password",
     "Salvar e entrar": "Save and sign in",
     "Anexar foto ou PDF (até 3)": "Attach a photo or PDF (up to 3)",
-    "Fotos e PDFs: até 3 por envio, lidos no seu navegador (só o texto vai ao modelo). A IA pode errar. Confira informações importantes. * Os prompts enviados e o uso das respostas são de responsabilidade inteiramente sua.": "Photos and PDFs: up to 3 per message, read in your browser (only the text goes to the model). AI can make mistakes. Check important information. * You are solely responsible for the prompts you send and how you use the answers."
+    "Fotos e PDFs: até 3 por envio. O texto é lido no seu navegador; das fotos, uma cópia reduzida também vai ao modelo. A IA pode errar. Confira informações importantes. * Os prompts enviados e o uso das respostas são de responsabilidade inteiramente sua.": "Photos and PDFs: up to 3 per message. The text is read in your browser; for photos, a reduced copy also goes to the model. AI can make mistakes. Check important information. * You are solely responsible for the prompts you send and how you use the answers."
   }
 }

@@ -175,13 +175,21 @@
   }
 
   if ("IntersectionObserver" in window) {
+    // Começa quando 20% da faixa aparece. Fora da tela, pausa tudo: animações CSS (tb-wait),
+    // pacotes e demais animações do SVG, e o redesenho do céu.
     new IntersectionObserver((entradas) => {
-      visivel = entradas[0].isIntersecting;
+      const alvo = entradas[0];
+      visivel = alvo.isIntersecting;
+      if (alvo.intersectionRatio >= 0.2) iniciar();
+      if (!iniciado) return;
+      banner.classList.toggle("tb-wait", !visivel);
       if (visivel) {
-        iniciar();
+        svg.unpauseAnimations();
         if (!quadro && !reduce) quadro = requestAnimationFrame(drawStars);
+      } else {
+        svg.pauseAnimations();
       }
-    }, { threshold: 0.2 }).observe(banner);
+    }, { threshold: [0, 0.2] }).observe(banner);
   } else {
     visivel = true;
     iniciar();

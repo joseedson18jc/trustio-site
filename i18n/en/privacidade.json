@@ -82,6 +82,8 @@
     "Se algo mudar de forma relevante — outro provedor, outro prazo, outra finalidade — atualizamos a data no topo e avisamos por e-mail quem tem conta, antes da mudança valer.": "If anything changes materially — a different provider, a different retention period, a different purpose — we update the date at the top and email everyone with an account before the change takes effect.",
     "Ficou alguma dúvida?": "Any questions?",
     "Escreva para": "Write to",
-    ". Resposta em até 1 dia útil para dúvidas comuns e em até 15 dias para pedidos formais de LGPD.": ". We reply within 1 business day to general questions and within 15 days to formal LGPD requests."
+    ". Resposta em até 1 dia útil para dúvidas comuns e em até 15 dias para pedidos formais de LGPD.": ". We reply within 1 business day to general questions and within 15 days to formal LGPD requests.",
+    "Fotos e PDFs anexados": "Attached photos and PDFs",
+    "— o arquivo original não sai do seu aparelho: o texto é lido no seu navegador e vai junto da pergunta. Das fotos, uma cópia reduzida também é enviada ao provedor do modelo, só para gerar aquela resposta; ela não é guardada. Fica no histórico apenas o texto.": "— the original file never leaves your device: the text is read in your browser and sent with your question. For photos, a reduced copy is also sent to the model provider, only to generate that answer; it is not stored. Only the text stays in your history."
   }
 }

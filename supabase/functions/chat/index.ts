@@ -35,6 +35,14 @@ const RE_IMAGEM = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 const MAX_IMAGEM = 1_500_000;
 const AVISO_SEM_IMAGEM = "[Aviso do sistema: a pessoa anexou foto(s), mas o servidor do modelo não aceitou imagens nesta mensagem. " +
   "Você recebeu só o texto lido delas, se havia. Se precisar ver a foto para responder, diga isso com franqueza.]";
+// Recusa de imagem pelo servidor do modelo (modelo só de texto): 4xx, ou 5xx cujo erro fala
+// de imagem. Chave inválida, limite de uso, servidor fora do ar e contexto cheio não contam:
+// repetir só com o texto não resolveria e descartaria a foto à toa.
+function ehRecusaDeImagem(status: number, detalhe: string) {
+  if (ehContextoCheio(status, detalhe) || [401, 403, 404, 408, 429].includes(status)) return false;
+  const falaDeImagem = /image|imagem|vision|multimodal|image_url|content.?(part|type)|mmproj|clip/i.test(detalhe);
+  return (status >= 400 && status < 500) || falaDeImagem;
+}
 // Conversa maior que o contexto do modelo.
 function ehContextoCheio(status: number, detalhe: string) {
   return status === 400 && /exceed_context_size|context (size|length)|maximum context/i.test(detalhe);
@@ -213,7 +221,7 @@ Deno.serve(async (req) => {
       if (!upstream.ok || !upstream.body) {
         detail = await upstream.text().catch(() => "");
         console.error("llm_sem_imagem", upstream.status, detail.slice(0, 300));
-        if (!ehContextoCheio(upstream.status, detail)) {
+        if (ehRecusaDeImagem(upstream.status, detail)) {
           upstream = await chamarModelo(message + "\n\n" + AVISO_SEM_IMAGEM);
           detail = "";
         }

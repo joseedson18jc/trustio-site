@@ -18,11 +18,12 @@
   <link rel="icon" href="assets/favicon-32.png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preload" href="assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="assets/theme.js?v=673d4355"></script>
-  <link rel="stylesheet" href="assets/styles.css?v=769568a1">
-  <link rel="stylesheet" href="assets/planos.css?v=92802c09">
-  <link rel="stylesheet" href="assets/conta.css?v=32465bb7">
+  <link rel="stylesheet" href="assets/styles.css?v=2560bce9">
+  <link rel="stylesheet" href="assets/planos.css?v=875a4fc5">
+  <link rel="stylesheet" href="assets/conta.css?v=6a860d5d">
   <script type="module" src="assets/app.js?v=c02ba709"></script>
   <script defer src="assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="assets/auth-config.js?v=7ebbf495"></script>
@@ -109,7 +110,7 @@
               <input id="e-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com" required>
               <label for="e-senha">Senha</label>
               <input id="e-senha" name="senha" type="password" autocomplete="current-password" placeholder="••••••••" required>
-              <button class="button button-primary" type="submit" data-submit disabled>Entrar no chat <span aria-hidden="true">↗</span></button>
+              <button class="button button-primary" type="submit" data-submit disabled>Entrar no chat <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
               <p class="lead-legal" data-status role="status" aria-live="polite"></p>
               <button class="conta-resend" type="button" data-resend hidden>Reenviar link de confirmação</button>
               <div class="conta-links">
@@ -125,7 +126,7 @@
             <form class="lead-form" id="recuperar-form" method="post" novalidate>
               <label for="r-email">E-mail</label>
               <input id="r-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com" required>
-              <button class="button button-primary" type="submit" data-submit disabled>Enviar link <span aria-hidden="true">↗</span></button>
+              <button class="button button-primary" type="submit" data-submit disabled>Enviar link <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
               <p class="lead-legal" data-status role="status" aria-live="polite"></p>
               <div class="conta-links">
                 <a href="#" data-show="entrar">Voltar para entrar</a>

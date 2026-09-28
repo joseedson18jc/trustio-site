@@ -87,5 +87,7 @@ Abra `http://localhost:8080` no navegador.
 
 ## Fontes e licenças
 
-Geist, Geist Mono e Instrument Serif são distribuídas sob a SIL Open Font License.
+Identidade Trustio 2.0: **Unbounded** nos títulos, métricas e logotipo, **Geist** no corpo e nos botões,
+**Martian Mono** nos rótulos e dados e **Instrument Serif** só nas citações. Geist Mono segue como fallback do mono.
+Todas são distribuídas sob a SIL Open Font License e hospedadas em `assets/fonts/` (sem fontes remotas, por causa da CSP).
 As licenças estão em `assets/licenses/` e `assets/fonts/`.

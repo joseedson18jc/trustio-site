@@ -1,8 +1,8 @@
 /* Planos e pagamentos — trustio.com.br/planos.html */
 
 .plans-hero{padding-top:clamp(120px,14vh,170px);padding-bottom:40px;text-align:center}
-.plans-hero h1{font-size:clamp(40px,6vw,76px);letter-spacing:-.045em;line-height:.98}
-.plans-hero h1 span{display:block;color:var(--blue-signal,#5ea7ff);font-weight:500}
+.plans-hero h1{font-size:clamp(32.8px,4.92vw,62.3px);letter-spacing:-.045em;line-height:.98}
+.plans-hero h1 span{display:block;color:var(--blue-signal,#5ea7ff);font-weight:300}
 .plans-hero .lead{margin:22px auto 0;max-width:58ch;color:var(--muted,#a9b4c6);font-size:17px}
 .pay-methods{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:26px}
 .pay-methods span{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--line,rgba(160,179,211,.16));border-radius:999px;font-family:var(--mono,ui-monospace);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-strong)}
@@ -11,22 +11,22 @@
 .plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
 .plan{position:relative;display:flex;flex-direction:column;padding:28px 26px;border:1px solid var(--line,rgba(160,179,211,.16));border-radius:20px;background:linear-gradient(180deg,rgba(var(--surface-blue-rgb), .35),rgba(var(--bg-rgb), .7))}
 .plan.featured{border-color:rgba(94,167,255,.45);box-shadow:0 0 0 4px rgba(94,167,255,.06),0 40px 120px rgba(var(--bg-rgb), .42)}
-.plan .tag{position:absolute;top:-12px;left:26px;padding:4px 10px;border-radius:999px;background:var(--cta-gradient);color:#fff;font-family:var(--mono,ui-monospace);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.plan .tag{position:absolute;top:-12px;left:26px;padding:4px 10px;border-radius:999px;background:var(--cta-gradient);color:#fff;font-family:var(--mono,ui-monospace);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:500}
 .plan .k{font-family:var(--mono,ui-monospace);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue-signal,#5ea7ff)}
-.plan h2{font-size:26px;margin:10px 0 6px;letter-spacing:-.03em}
+.plan h2{font-size:22.4px;margin:10px 0 6px;letter-spacing:-.03em;font-weight:500}
 .plan .desc{color:var(--muted,#a9b4c6);font-size:14.5px;min-height:3.2em}
-.plan .price{display:flex;align-items:baseline;gap:6px;margin:22px 0 4px;font-family:var(--display,sans-serif);font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
-.plan .price b{font-size:40px;line-height:1} .plan .price small{font-size:14px;color:var(--muted,#a9b4c6);font-weight:500;letter-spacing:0;font-family:var(--body,sans-serif)}
+.plan .price{display:flex;align-items:baseline;gap:6px;margin:22px 0 4px;font-family:var(--display,sans-serif);font-weight:400;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.plan .price b{font-size:32.8px;line-height:1;font-weight:400} .plan .price small{font-size:14px;color:var(--muted,#a9b4c6);font-weight:500;letter-spacing:0;font-family:var(--body,sans-serif)}
 .plan .note{font-size:12.5px;color:var(--muted);margin-bottom:22px}
 .plan ul{list-style:none;margin:0 0 26px;padding:0;display:grid;gap:9px;flex:1}
 .plan li{display:flex;gap:10px;font-size:14px;color:var(--muted-strong)} .plan li::before{content:"";flex:0 0 auto;width:6px;height:6px;border-radius:50%;background:var(--blue-signal,#5ea7ff);margin-top:8px}
 .plan .button{width:100%}
 .plan .methods{margin-top:12px;text-align:center;font-family:var(--mono,ui-monospace);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .diag{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:32px;align-items:center;margin-top:20px;padding:34px;border:1px solid var(--line,rgba(160,179,211,.16));border-radius:20px;background:var(--surface,#0b0e14)}
-.diag h2{font-size:clamp(24px,3vw,34px)} .diag p{color:var(--muted,#a9b4c6);margin-top:12px}
+.diag h2{font-size:clamp(19.7px,2.46vw,27.9px)} .diag p{color:var(--muted,#a9b4c6);margin-top:12px}
 .diag .side{border-left:1px solid var(--line,rgba(160,179,211,.16));padding-left:32px}
-.diag .side .price{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;font-family:var(--display,sans-serif);font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums}.diag .side .price small{font-size:14px;color:var(--muted,#a9b4c6);font-weight:500;letter-spacing:0;font-family:var(--body,sans-serif)}.diag .side .price b{font-size:44px}
-.compare{margin-top:72px} .compare h2{font-size:clamp(26px,3.4vw,40px)}
+.diag .side .price{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;font-family:var(--display,sans-serif);font-weight:400;letter-spacing:-.04em;font-variant-numeric:tabular-nums}.diag .side .price small{font-size:14px;color:var(--muted,#a9b4c6);font-weight:500;letter-spacing:0;font-family:var(--body,sans-serif)}.diag .side .price b{font-size:36.1px;font-weight:400}
+.compare{margin-top:72px} .compare h2{font-size:clamp(21.3px,2.79vw,32.8px)}
 .tablewrap{overflow-x:auto;border:1px solid var(--line,rgba(160,179,211,.16));border-radius:16px;margin-top:26px;background:var(--surface,#0b0e14)}
 /* tabela mais larga que a tela: a borda direita esmaece enquanto houver coluna escondida (classe posta por app.js) */
 .tablewrap.tem-mais{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 56px),transparent)}
@@ -37,7 +37,7 @@
 .compare td:first-child{color:var(--muted-strong)} .compare td{color:var(--muted,#a9b4c6)} .compare tr:last-child td{border:0}
 .compare .ok{color:var(--ok)}
 .faq{margin-top:72px;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:40px}
-.faq h2{font-size:clamp(26px,3.4vw,40px)}
+.faq h2{font-size:clamp(21.3px,2.79vw,32.8px)}
 .faq details{border-top:1px solid var(--line,rgba(160,179,211,.16));padding:16px 0} .faq details:last-child{border-bottom:1px solid var(--line,rgba(160,179,211,.16))}
 .faq summary{cursor:pointer;list-style:none;font-weight:600;font-size:16px;display:flex;justify-content:space-between;gap:16px}
 .faq summary::-webkit-details-marker{display:none} .faq summary::after{content:"+";color:var(--blue-signal,#5ea7ff)} .faq details[open] summary::after{content:"–"}
@@ -58,14 +58,14 @@
 @keyframes seg-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 .b2c-head{max-width:760px;margin-top:8px}
-.b2c-head h2{font-size:clamp(28px,4vw,44px);letter-spacing:-.035em;margin:0 0 14px}
+.b2c-head h2{font-size:clamp(23px,3.28vw,36.1px);letter-spacing:-.035em;margin:0 0 14px}
 .b2c-head p{color:var(--muted,#a9b4c6);font-size:16.5px;line-height:1.6}
 .b2c-grid{margin-top:34px}
 .plan .price b i{font-style:normal;font-size:22px;letter-spacing:-.02em}
 .plan.b2c-annual .price small:last-child{white-space:nowrap}
 
 .lista{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:36px;align-items:start;margin-top:28px;padding:clamp(24px,3.5vw,40px);border:1px solid rgba(94,167,255,.35);border-radius:22px;background:linear-gradient(180deg,rgba(var(--surface-blue-rgb), .55),var(--surface,#0b0e14));box-shadow:0 30px 70px -40px rgba(37,99,235,.55);scroll-margin-top:110px}
-.lista h2{font-size:clamp(24px,3vw,34px);letter-spacing:-.03em;margin:0 0 12px}
+.lista h2{font-size:clamp(19.7px,2.46vw,27.9px);letter-spacing:-.03em;margin:0 0 12px}
 .lista>div>p{color:var(--muted,#a9b4c6);font-size:15.5px;line-height:1.6}
 .lista-pontos{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:9px}
 .lista-pontos li{display:flex;gap:10px;font-size:14px;color:var(--muted-strong)}
@@ -93,7 +93,7 @@
 /* ── Lista de espera (espera.html) ── */
 .espera-stats{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:30px}
 .espera-stats>div{min-width:180px;padding:16px 22px;border:1px solid var(--line,rgba(160,179,211,.16));border-radius:14px;background:var(--surface,#0b0e14);text-align:center}
-.espera-stats b{display:block;font-family:var(--display,sans-serif);font-size:30px;font-weight:800;letter-spacing:-.035em;line-height:1;font-variant-numeric:tabular-nums;color:var(--ice,#f4f6fa)}
+.espera-stats b{display:block;font-family:var(--display,sans-serif);font-size:25.8px;font-weight:400;letter-spacing:-.035em;line-height:1;font-variant-numeric:tabular-nums;color:var(--ice,#f4f6fa)}
 .espera-stats b i{font-style:normal;font-family:var(--mono,ui-monospace);font-size:12px;font-weight:500;color:var(--blue-signal,#5ea7ff);margin:0 6px 0 2px;letter-spacing:.06em}
 .espera-stats small{display:block;margin-top:8px;font-family:var(--mono,ui-monospace);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .espera-lista{margin-top:36px}
@@ -127,7 +127,7 @@
 .lead-acesso label:has([data-acesso="pre"]:checked){border-color:var(--blue-signal,#5ea7ff);box-shadow:0 0 0 1px rgba(94,167,255,.35) inset}
 .plan .plan-alt{display:block;margin-top:12px;text-align:center;font-size:13.5px}
 .plan .note b{color:var(--ice,#f4f6fa);font-weight:600}
-.lista h2 span,.espera-lista h2 span{display:block;font-size:.6em;font-weight:500;color:var(--muted);margin-top:8px;letter-spacing:-.01em}
+.lista h2 span,.espera-lista h2 span{display:block;font-size:.6em;font-weight:300;color:var(--muted);margin-top:8px;letter-spacing:-.01em}
 @media(max-width:600px){.lead-acesso label{flex-wrap:wrap}.lead-acesso label small{display:block;max-width:100%;text-align:left;margin-left:26px}}
 
 /* ── Auditoria UX (22/09/2026) ─────────────────────────────────────────────
@@ -160,7 +160,7 @@
 .sub-panel[hidden]{display:none}
 .sub-panel{animation:seg-in .35s var(--ease,ease)}
 .sub-head{max-width:760px;margin-top:30px}
-.sub-head h3{font-size:clamp(22px,3vw,32px);letter-spacing:-.03em;margin:6px 0 12px}
+.sub-head h3{font-size:clamp(18.9px,2.58vw,27.5px);letter-spacing:-.03em;margin:6px 0 12px;font-weight:500}
 .sub-head p:not(.section-kicker){color:var(--muted,#a9b4c6);font-size:16px;line-height:1.6;margin:0}
 .plan-grid.g4{grid-template-columns:repeat(4,1fr);margin-top:34px}
 .plan .save{display:inline-block;padding:1px 8px;border-radius:999px;background:rgba(94,167,255,.14);color:var(--blue-signal,#5ea7ff);font-weight:600;white-space:nowrap}

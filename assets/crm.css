@@ -7,7 +7,7 @@
 .crm-main { padding: 26px clamp(14px, 3vw, 32px) 60px; flex: 1; min-width: 0; }
 
 .page-head { margin-bottom: 18px; }
-.page-head h1 { font-size: clamp(24px, 3vw, 32px); letter-spacing: -0.03em; margin: 0; }
+.page-head h1 { font-size: clamp(20.6px, 2.58vw, 27.5px); letter-spacing: -0.03em; margin: 0; font-weight: 500; }
 .page-head p { color: var(--muted); font-size: 14.5px; margin-top: 8px; max-width: 78ch; line-height: 1.55; }
 
 /* Números do funil: grade que se ajusta à largura, sem vazar pela direita. */
@@ -16,7 +16,7 @@
 button.stat { cursor: pointer; transition: border-color .15s, background .15s; }
 button.stat:hover { border-color: var(--line-bright); }
 button.stat.is-on { border-color: rgba(94, 167, 255, 0.5); background: rgba(94, 167, 255, 0.08); }
-.stat b { display: block; font-family: var(--display); font-size: 24px; font-weight: 800; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; line-height: 1; }
+.stat b { display: block; font-family: var(--display); font-size: 20.6px; font-weight: 400; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; line-height: 1; }
 .stat small { display: block; font-size: 11.5px; color: var(--label-color); margin-top: 6px; }
 .stat i { display: block; font-style: normal; font-family: var(--mono); font-size: 10.5px; color: var(--blue-signal); margin-top: 4px; }
 .stat-alert b { color: #ffb454; }
@@ -108,7 +108,7 @@ table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-
 .detail { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); padding: 0; border: 1px solid var(--line-bright); border-radius: 16px; background: var(--surface); color: var(--ice); }
 .detail::backdrop { background: rgba(3, 5, 9, 0.62); }
 .detail-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px 10px; }
-.detail-head h2 { margin: 0; font-size: 20px; letter-spacing: -0.02em; }
+.detail-head h2 { margin: 0; font-size: 20px; letter-spacing: -0.02em; font-family: var(--body); font-weight: 600; }
 .detail-x { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 9px; background: none; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
 .detail dl { display: grid; grid-template-columns: 150px 1fr; gap: 8px 14px; margin: 0; padding: 6px 20px 16px; font-size: 13.5px; }
 .detail dt { color: var(--label-color); font-size: 12px; }

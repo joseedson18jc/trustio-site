@@ -2,6 +2,20 @@
 // Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
 const EN = /^en\b/i.test(document.documentElement.lang);
 const T = (pt, en) => (EN ? en : pt);
+// Cápsula com a seta ↗ em SVG, igual à dos botões estáticos (Trustio 2.0).
+function arrowCapsule() {
+  const ns = "http://www.w3.org/2000/svg";
+  const span = document.createElement("span");
+  span.setAttribute("aria-hidden", "true");
+  const svg = document.createElementNS(ns, "svg");
+  const attrs = { class: "arw", viewBox: "0 0 24 24", width: "16", height: "16", focusable: "false", fill: "none", stroke: "currentColor", "stroke-width": "1.8", "stroke-linecap": "round", "stroke-linejoin": "round" };
+  for (const [k, v] of Object.entries(attrs)) svg.setAttribute(k, v);
+  const path = document.createElementNS(ns, "path");
+  path.setAttribute("d", "M7 17 17 7M9 7h8v8");
+  svg.append(path);
+  span.append(svg);
+  return span;
+}
 // Personaliza a página de confirmação a partir do parâmetro ?plano= definido no redirect do Payment Link.
 const plans = {
   diagnostico: [T("Diagnóstico contratado.", "Diagnostic booked."), T("Recebemos sua confirmação. Em até 1 dia útil enviamos as datas dos dois workshops de descoberta e o questionário inicial. Entrega do relatório em até 10 dias úteis após o segundo workshop.", "We've received your confirmation. Within 1 business day we'll send the dates for the two discovery workshops and the initial questionnaire. The report is delivered within 10 business days of the second workshop.")],
@@ -41,7 +55,7 @@ if (qs.get("lista") === "pre") {
   const actions = document.querySelector(".thanks-actions");
   if (Object.hasOwn(payLinks, pk)) {
     document.querySelector("[data-plan-lead]").textContent = T("Recebemos seus dados. Falta só o pagamento (cartão, Apple Pay ou Google Pay): confirmado, seu acesso é liberado em até 1 dia útil, sem esperar o lançamento oficial de 1º de outubro. Se preferir pagar depois, o link também vai por e-mail e WhatsApp.", "We've got your details. All that's left is payment (card, Apple Pay or Google Pay): once confirmed, your access is granted within 1 business day, without waiting for the official October 1 launch. If you'd rather pay later, the link is also on its way by email and WhatsApp.");
-    if (actions) { const a = document.createElement("a"); a.className = "button button-primary"; a.href = payLinks[pk][0]; a.rel = "noopener"; a.textContent = payLinks[pk][1] + " ↗"; actions.prepend(a); actions.querySelectorAll("a:not(:first-child)").forEach((b) => { b.className = "button button-outline"; }); }
+    if (actions) { const a = document.createElement("a"); a.className = "button button-primary"; a.href = payLinks[pk][0]; a.rel = "noopener"; a.textContent = payLinks[pk][1] + " "; a.append(arrowCapsule()); actions.prepend(a); actions.querySelectorAll("a:not(:first-child)").forEach((b) => { b.className = "button button-outline"; }); }
   } else {
     document.querySelector("[data-plan-lead]").textContent = T("Recebemos o pedido de pré-assinatura da sua empresa. Um arquiteto da Trustio entra em contato em até 1 dia útil com a proposta e o link de pagamento; com o pagamento confirmado, o ambiente é liberado no prazo do plano escolhido.", "We've received your company's pre-subscription request. A Trustio architect will reach out within 1 business day with the proposal and the payment link; once payment is confirmed, the environment is delivered within your chosen plan's timeline.");
     if (actions) { const a = document.createElement("a"); a.className = "button button-primary"; a.href = "planos.html#empresas"; a.textContent = T("Ver planos para empresas", "See plans for businesses"); actions.prepend(a); actions.querySelectorAll("a:not(:first-child)").forEach((b) => { b.className = "button button-outline"; }); }

@@ -99,8 +99,8 @@
 .legal-hero h1 {
   max-width: 900px;
   margin-bottom: 28px;
-  font-size: clamp(62px, 8.5vw, 126px);
-  font-weight: 520;
+  font-size: clamp(50.8px, 6.97vw, 103.3px);
+  font-weight: 400;
   letter-spacing: -0.055em;
 }
 
@@ -110,7 +110,7 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  font-weight: 500;
+  font-weight: 300;
 }
 
 .legal-lead {
@@ -159,8 +159,8 @@
 .legal-live-copy h2,
 .legal-security-copy h2 {
   margin-bottom: 26px;
-  font-size: clamp(42px, 5.8vw, 76px);
-  font-weight: 520;
+  font-size: clamp(34.4px, 4.76vw, 62.3px);
+  font-weight: 400;
   letter-spacing: -0.05em;
 }
 
@@ -203,8 +203,8 @@
 
 .legal-principle h3 {
   margin: 48px 0 14px;
-  font-size: 25px;
-  font-weight: 560;
+  font-size: 21.5px;
+  font-weight: 500;
 }
 
 .legal-principle p {
@@ -288,8 +288,8 @@
 
 .legal-feature-card h3 {
   margin-bottom: 16px;
-  font-size: clamp(26px, 3vw, 38px);
-  font-weight: 540;
+  font-size: clamp(21.3px, 2.46vw, 31.2px);
+  font-weight: 500;
 }
 
 .legal-feature-card p {
@@ -505,8 +505,8 @@
   margin: 44px 0 12px;
   color: var(--ice);
   font-family: var(--display);
-  font-size: 24px;
-  font-weight: 520;
+  font-size: 20.6px;
+  font-weight: 400;
 }
 
 .evidence-metrics p {
@@ -556,7 +556,9 @@
 .legal-security-list h3 {
   margin-bottom: 6px;
   font-size: 21px;
-  font-weight: 560;
+  font-weight: 600;
+  font-family: var(--body);
+  letter-spacing: -0.01em;
 }
 
 .legal-security-list p {
@@ -650,8 +652,8 @@
 
 .legal-flow-grid h3 {
   margin-bottom: 12px;
-  font-size: 25px;
-  font-weight: 550;
+  font-size: 21.5px;
+  font-weight: 500;
 }
 
 .legal-flow-grid article > p:last-child {
@@ -713,6 +715,26 @@
   }
 }
 
+/* Trustio 2.0: com a Unbounded, os títulos dos princípios ("Confidencialidade…") não cabem em
+   três colunas abaixo de 1000px; empilham como no celular. */
+@media (max-width: 1000px) {
+  .legal-principles {
+    grid-template-columns: 1fr;
+  }
+
+  .legal-principle,
+  .legal-principle + .legal-principle {
+    min-height: 0;
+    padding: 28px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .legal-principle h3 {
+    margin-top: 24px;
+  }
+}
+
 @media (max-width: 760px) {
   .legal-hero {
     min-height: auto;
@@ -721,7 +743,7 @@
   }
 
   .legal-hero h1 {
-    font-size: clamp(54px, 17vw, 78px);
+    font-size: clamp(44.3px, 13.94vw, 64px);
   }
 
   .legal-lead {
@@ -750,7 +772,7 @@
   .legal-section-heading h2,
   .legal-live-copy h2,
   .legal-security-copy h2 {
-    font-size: clamp(38px, 12vw, 54px);
+    font-size: clamp(31.2px, 9.84vw, 44.3px);
   }
 
   .legal-principles {

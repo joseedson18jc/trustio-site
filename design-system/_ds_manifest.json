@@ -12,7 +12,7 @@
     "name": "Tipografia",
     "path": "design-system/fundamentos/tipografia.html",
     "group": "Fundamentos",
-    "subtitle": "Geist · Geist Mono · Instrument Serif",
+    "subtitle": "Unbounded · Geist · Martian Mono",
     "viewport": {
       "width": 900
     }
@@ -39,7 +39,7 @@
     "name": "Botões",
     "path": "design-system/componentes/botoes.html",
     "group": "Componentes",
-    "subtitle": "Primário / ghost / outline / light · 2 tamanhos",
+    "subtitle": "Primário / vidro / outline / light · 3 tamanhos · estados",
     "viewport": {
       "width": 900
     }

@@ -98,7 +98,7 @@
 .tb-city circle.tb-core { fill: #fff8e6; filter: url(#tb-glow-amber); }
 .tb-city circle.tb-halo { fill: none; stroke: var(--tb-amber); stroke-width: .6; opacity: .7; animation: tb-pulse 2.6s ease-out infinite; }
 @keyframes tb-pulse { 0% { r: 2; opacity: .8; } 100% { r: 11; opacity: 0; } }
-.tb-city text { font-family: var(--display); font-size: 7.4px; font-weight: 500; fill: #e8f0ff; letter-spacing: .02em; paint-order: stroke; stroke: rgba(3, 9, 24, .75); stroke-width: 2.2px; }
+.tb-city text { font-family: var(--body); font-size: 7.4px; font-weight: 500; fill: #e8f0ff; letter-spacing: .02em; paint-order: stroke; stroke: rgba(3, 9, 24, .75); stroke-width: 2.2px; }
 .tb-dot { fill: var(--tb-amber-soft); opacity: 0; animation: tb-twinkle 3s ease-in-out infinite; }
 @keyframes tb-twinkle { 0%, 100% { opacity: .25; } 50% { opacity: .9; } }
 .tb-packet { fill: #fff; filter: url(#tb-glow-amber); }

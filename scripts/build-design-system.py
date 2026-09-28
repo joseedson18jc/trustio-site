@@ -103,18 +103,18 @@ card("fundamentos/cores.html", "Fundamentos", "Cores", "18 tokens · escuro e cl
          for k, v in dark.items() if "gradient" in v) + "</div>" +
      "<h3 class=\"ds-h\">Texto em gradiente</h3><p class=\"text-gradient ds-display\">Infraestrutura privada de IA</p>")
 
-card("fundamentos/tipografia.html", "Fundamentos", "Tipografia", "Geist · Geist Mono · Instrument Serif",
-     "Famílias hospedadas localmente (OFL). Piso tipográfico: 11px em rótulos mono, 12px em qualquer coisa clicável.",
+card("fundamentos/tipografia.html", "Fundamentos", "Tipografia", "Unbounded · Geist · Martian Mono",
+     "Trustio 2.0. Famílias hospedadas localmente (OFL): Unbounded nos títulos, métricas e logotipo; Geist no corpo e nos botões; Martian Mono nos rótulos e dados; Instrument Serif só nas citações. Piso tipográfico: 11px em rótulos mono, 12px em qualquer coisa clicável.",
      """<div class="ds-type">
-  <p class="ds-display" style="font-family: var(--display)">Display · Geist 700 · -0.03em</p>
-  <h1 style="font-size: clamp(54px, 6.3vw, 94px); letter-spacing: -0.055em">Soberania de dados</h1>
-  <h2>H2 · Geist 700</h2>
-  <h3>H3 · Geist 700</h3>
+  <p class="ds-display" style="font-family: var(--display)">Display · Unbounded 400 · -0.035em</p>
+  <h1 style="font-size: clamp(44.3px, 5.17vw, 77.1px); letter-spacing: -0.055em">Soberania de dados</h1>
+  <h2>H2 · Unbounded 400</h2>
+  <h3 style="font-weight: 500">H3 · Unbounded 500 (títulos de card)</h3>
   <p style="font-size: 18px">Body 18 · Geist 400 · line-height 1.6 — modelos, dados e processos corporativos em uma infraestrutura privada.</p>
   <p>Body 16 · Geist 400 — texto corrido padrão do site.</p>
   <p class="ds-serif">Instrument Serif itálico · usado em citações e no manifesto.</p>
-  <p class="eyebrow"><span class="status-dot"></span>Rótulo mono 11px · 0.15em · uppercase</p>
-  <p class="ds-mono">Geist Mono 12px · --label-lg · painel de servidor e API</p>
+  <p class="eyebrow"><span class="status-dot"></span>Rótulo mono 11px · 0.14em · uppercase</p>
+  <p class="ds-mono">Martian Mono 12px · --label-lg · painel de servidor e API</p>
 </div>""")
 
 card("fundamentos/espacamento.html", "Fundamentos", "Espaçamento", "Escala declarada · 16 passos",
@@ -130,28 +130,32 @@ card("fundamentos/tema.html", "Fundamentos", "Tema claro e escuro", "Escuro padr
      """<div class="ds-theme-grid">
   <section class="metric-card"><span class="metric-value">99,9%</span><span class="metric-label">Disponibilidade contratual</span></section>
   <section class="ds-stack">
-    <a class="button button-primary" href="#">Primário</a>
-    <a class="button button-ghost" href="#">Ghost</a>
+    <a class="button button-primary" href="#">Primário <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+    <a class="button button-ghost" href="#">Vidro</a>
     <a class="button button-outline" href="#">Outline</a>
     <a class="button button-light" href="#">Light</a>
   </section>
-  <section class="ds-stack"><p class="section-kicker"><span class="status-dot"></span>Kicker</p><p>Texto corrido com <a class="text-link" href="#">link em linha <span aria-hidden="true">→</span></a>.</p><p class="insight-line">Linha de insight mono · --label-color</p></section>
+  <section class="ds-stack"><p class="section-kicker"><span class="status-dot"></span>Kicker</p><p>Texto corrido com <a class="text-link" href="#">link em linha <span aria-hidden="true"><svg class="arw arw-right" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>.</p><p class="insight-line">Linha de insight mono · --label-color</p></section>
 </div>""")
 
 # ---------------- Componentes ----------------
-card("componentes/botoes.html", "Componentes", "Botões", "Primário / ghost / outline / light · 2 tamanhos",
-     "Base .button (52px, raio 12px, Geist 600 15px). Variantes por modificador; .button-small reduz para 44px. Setas em span[aria-hidden] animam no hover.",
+card("componentes/botoes.html", "Componentes", "Botões", "Primário / vidro / outline / light · 3 tamanhos · estados",
+     "Trustio 2.0. Base .button: pílula de 48px, Geist 500 15px, -0.01em. A seta vai em SVG dentro de span[aria-hidden], que vira uma cápsula redonda; no hover a seta desliza 2px na direção dela. .button-small tem 44px (cabeçalho); .button-large e os botões do hero, 56px. Desativado e carregando (aria-busy) têm estilo próprio.",
      """<div class="ds-stack">
-  <a class="button button-primary" href="#">Falar com a Trustio <span aria-hidden="true">↗</span></a>
-  <a class="button button-ghost" href="#">Ver planos</a>
-  <a class="button button-outline" href="#">Documentação</a>
-  <a class="button button-light" href="#">Agendar diagnóstico</a>
+  <a class="button button-large button-primary" href="#">Criar conta grátis <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+  <a class="button button-large button-ghost" href="#">Falar com um arquiteto <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
 </div>
 <div class="ds-stack">
-  <a class="button button-small button-primary" href="#">Pequeno primário</a>
-  <a class="button button-small button-ghost header-cta" href="#">Pequeno ghost (cabeçalho)</a>
+  <a class="button button-primary" href="#">Falar com a Trustio <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+  <a class="button button-ghost" href="#">Ver planos <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+  <a class="button button-outline" href="#">Ler o manifesto <span aria-hidden="true"><svg class="arw arw-down" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></span></a>
+  <a class="button button-light" href="#">Agendar diagnóstico <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+</div>
+<div class="ds-stack">
+  <a class="button button-small button-primary" href="#">Lista de espera <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+  <a class="button button-small button-ghost header-cta" href="#">Falar com a Trustio</a>
   <a class="button button-small button-outline" href="#">Pequeno outline</a>
-  <button class="button button-primary" type="button" disabled style="opacity:.5;pointer-events:none">Desabilitado</button>
+  <button class="button button-primary" type="button" disabled>Desativado <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
 </div>""")
 
 card("componentes/cards.html", "Componentes", "Cards", "Metric · Pillar · Card clicável",
@@ -182,9 +186,9 @@ card("componentes/rotulos.html", "Componentes", "Rótulos e chips", "Eyebrow · 
 </div>""")
 
 card("componentes/links.html", "Componentes", "Links", "Text link · navegação · rodapé",
-     "Links herdam a cor; .text-link ganha seta animada. Links de navegação usam sublinhado deslizante via ::after.",
+     "Links herdam a cor. .text-link: accent-text, Geist 500 15px, sublinhado de 1px afastado 6px e seta em SVG que desliza no hover. Links de navegação usam sublinhado deslizante via ::after.",
      """<div class="ds-stack ds-col">
-  <p><a class="text-link" href="#">Ler o manifesto <span aria-hidden="true">↓</span></a></p>
+  <p><a class="text-link" href="#">Ler o manifesto <span aria-hidden="true"><svg class="arw arw-down" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></span></a></p>
   <nav class="desktop-nav" aria-label="Exemplo"><a href="#">Plataforma</a><a href="#" class="is-active">Segurança</a><a href="#" class="nav-voice">VoiceAI <small>powered by xAI</small></a></nav>
   <p class="footer-links"><a href="#">Política de privacidade</a> · <a href="#">Termos</a></p>
 </div>""")
@@ -263,7 +267,7 @@ art("artes/conectores.html", "Ícones de conectores", "9 canais · SVG monocrom�
 .ds-swatch figcaption { display: grid; gap: 2px; margin-top: 6px; font-family: var(--mono); font-size: var(--label); }
 .ds-swatch b { color: var(--ice); font-weight: 600; }
 .ds-swatch span { color: var(--label-color); overflow-wrap: anywhere; }
-.ds-display { font-family: var(--display); font-size: clamp(32px, 5vw, 56px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.05; }
+.ds-display { font-family: var(--display); font-size: clamp(28px, 4.1vw, 46px); font-weight: 400; letter-spacing: -0.035em; line-height: 1.05; }
 .ds-serif { font-family: var(--serif); font-style: italic; font-size: 26px; }
 .ds-mono { font-family: var(--mono); font-size: var(--label-lg); color: var(--label-color); }
 .ds-type h1, .ds-type h2, .ds-type h3 { margin-bottom: var(--space-12); }

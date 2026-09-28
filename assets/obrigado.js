@@ -49,7 +49,7 @@ function listaMode(eyebrow) {
   const n = document.querySelector(".thanks-note"); if (n) n.innerHTML = T('Dúvidas: ', 'Questions: ') + '<a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a>';
 }
 if (qs.get("lista") === "pre") {
-  listaMode(T("Pré-assinatura recebida", "Pre-subscription received"));
+  listaMode(T("Pedido de assinatura recebido", "Subscription request received"));
   document.querySelector("[data-plan-title]").textContent = T("Falta só o pagamento.", "Just the payment left.");
   const pk = qs.get("plano");
   const actions = document.querySelector(".thanks-actions");
@@ -57,7 +57,7 @@ if (qs.get("lista") === "pre") {
     document.querySelector("[data-plan-lead]").textContent = T("Recebemos seus dados. Falta só o pagamento (cartão, Apple Pay ou Google Pay): confirmado, seu acesso é liberado em até 1 dia útil, sem esperar o lançamento oficial de 1º de outubro. Se preferir pagar depois, o link também vai por e-mail e WhatsApp.", "We've got your details. All that's left is payment (card, Apple Pay or Google Pay): once confirmed, your access is granted within 1 business day, without waiting for the official October 1 launch. If you'd rather pay later, the link is also on its way by email and WhatsApp.");
     if (actions) { const a = document.createElement("a"); a.className = "button button-primary"; a.href = payLinks[pk][0]; a.rel = "noopener"; a.textContent = payLinks[pk][1] + " "; a.append(arrowCapsule()); actions.prepend(a); actions.querySelectorAll("a:not(:first-child)").forEach((b) => { b.className = "button button-outline"; }); }
   } else {
-    document.querySelector("[data-plan-lead]").textContent = T("Recebemos o pedido de pré-assinatura da sua empresa. Um arquiteto da Trustio entra em contato em até 1 dia útil com a proposta e o link de pagamento; com o pagamento confirmado, o ambiente é liberado no prazo do plano escolhido.", "We've received your company's pre-subscription request. A Trustio architect will reach out within 1 business day with the proposal and the payment link; once payment is confirmed, the environment is delivered within your chosen plan's timeline.");
+    document.querySelector("[data-plan-lead]").textContent = T("Recebemos o pedido de assinatura da sua empresa. Um arquiteto da Trustio entra em contato em até 1 dia útil com a proposta e o link de pagamento; com o pagamento confirmado, o ambiente é liberado no prazo do plano escolhido.", "We've received your company's subscription request. A Trustio architect will reach out within 1 business day with the proposal and the payment link; once payment is confirmed, the environment is delivered within your chosen plan's timeline.");
     if (actions) { const a = document.createElement("a"); a.className = "button button-primary"; a.href = "planos.html#empresas"; a.textContent = T("Ver planos para empresas", "See plans for businesses"); actions.prepend(a); actions.querySelectorAll("a:not(:first-child)").forEach((b) => { b.className = "button button-outline"; }); }
   }
 } else if (qs.get("lista") === "espera") {

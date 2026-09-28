@@ -3004,3 +3004,154 @@ h3 { letter-spacing: -0.018em; }
   .button > span[aria-hidden="true"],
   .arw { transition: none; }
 }
+
+/* ==========================================================================
+   Trustio 2.0 · ajustes da revisão final (set/2026)
+   A Unbounded é mais larga que a Geist: títulos com palavra longa passaram a
+   estourar a coluna em algumas larguras. Aqui ficam os tamanhos que cabem.
+   ========================================================================== */
+
+/* Manifesto: "Manifesto" cabe na coluna do celular ao tablet (a palavra mede ~5,7× o corpo). */
+@media (min-width: 421px) and (max-width: 760px) {
+  .manifesto-hero h1 { font-size: clamp(56px, calc(17.2vw - 6px), 106.6px); }
+}
+@media (max-width: 420px) {
+  .manifesto-hero h1 { font-size: min(62.3px, calc(17.2vw - 6px)); }
+  .error-content h1 { font-size: min(47.6px, calc(13.4vw - 4.3px)); }
+  .capability-card h3 { font-size: min(26.7px, calc(7.4vw - 0.5px)); }
+  .chapter-copy .lead-paragraph { font-size: min(39px, calc(11.4vw - 1px)); }
+}
+
+/* Manifesto: pilares em três colunas estreitas (761–1060 px). */
+@media (min-width: 761px) and (max-width: 1060px) {
+  .pillar-card h3 { font-size: min(31.2px, calc(5.2vw - 12px)); }
+}
+
+/* Planos para empresas: as linhas dos três cartões alinham (título, preço, lista, botão)
+   mesmo quando um título quebra em duas linhas. */
+@media (min-width: 901px) {
+  .plan-grid:not(.g4):not(.b2c-grid) { grid-template-rows: repeat(8, auto); }
+  .plan-grid:not(.g4):not(.b2c-grid) > .plan { display: grid; grid-row: span 8; grid-template-rows: subgrid; row-gap: 0; }
+}
+
+/* Rótulos de botão em duas linhas ficam equilibrados, sem palavra sozinha na segunda. */
+.button { text-wrap: balance; }
+
+/* Hero da home no celular: o selo "serviço pago" desce para baixo do rótulo, ao lado da seta. */
+@media (max-width: 560px) {
+  .hero-actions > .button:has(> small) {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    justify-items: start;
+    column-gap: 12px;
+    row-gap: 4px;
+    padding-block: 8px;
+  }
+  .hero-actions > .button:has(> small) > small { grid-column: 1; grid-row: 2; }
+  .hero-actions > .button:has(> small) > span[aria-hidden="true"] { grid-column: 2; grid-row: 1 / span 2; }
+}
+
+/* Espaço entre o parágrafo do hero e os botões (modelos, fundador). */
+.manifesto-intro + .hero-actions { margin-top: var(--space-36); }
+
+/* Rodapé no celular: "© 2026 Trustio. Todos os direitos reservados." corre como uma frase só. */
+.footer-bottom p:has([data-year]) { display: block; }
+
+/* O ponto de status não achata quando o rótulo quebra em várias linhas. */
+.status-dot { flex: none; }
+
+/* Jurídico: a nota em Martian Mono fica no mesmo peso visual que tinha na Geist Mono. */
+.legal-feature-card small { font-size: 11px; }
+
+/* Política de privacidade: o link do texto legal não pinta o rótulo dos botões. */
+.legal .button-primary { color: #ffffff; }
+.legal .button-outline,
+.legal .button-ghost { color: var(--text-strong); }
+
+/* Tema claro: nas faixas que continuam escuras, o botão claro continua claro. */
+[data-theme="light"] :is(.contact-card, .manifesto-finale, .voice-cta, .ag-cta) .button-light { background: #f4f6fa; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24); color: #071020; }
+[data-theme="light"] :is(.contact-card, .manifesto-finale, .voice-cta, .ag-cta) .button-light > span[aria-hidden="true"] { background: rgba(7, 16, 32, 0.08); }
+
+/* ==========================================================================
+   Suporte 24/7 no WhatsApp: botão flutuante
+   Inserido por scripts/i18n.mjs (bloco <!--i18n:whats-->) em todas as páginas
+   públicas, nas duas línguas. Fica fora das áreas logadas (app/, console/).
+   ========================================================================== */
+.whatsapp-float {
+  position: fixed;
+  z-index: 90; /* abaixo do cabeçalho e do menu (100) */
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(24px, env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 20px 6px 6px;
+  border: 1px solid rgba(37, 211, 102, 0.34);
+  border-radius: 999px;
+  background: rgba(8, 12, 20, 0.86);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 40px -12px rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  font-family: var(--body);
+  line-height: 1.15;
+  text-decoration: none;
+  transition: transform 200ms var(--ease), border-color 240ms var(--ease), box-shadow 240ms var(--ease);
+}
+.whatsapp-float:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37, 211, 102, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 20px 44px -12px rgba(0, 0, 0, 0.7), 0 0 26px rgba(37, 211, 102, 0.24);
+}
+.whatsapp-float:focus-visible { outline: 2px solid #25d366; outline-offset: 3px; }
+.whatsapp-float-icon {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: #25d366;
+  color: #04301a;
+}
+.whatsapp-float-icon svg { display: block; width: 24px; height: 24px; }
+/* Ponto de "online": o atendimento é 24/7. */
+.whatsapp-float-icon::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #8dffbe;
+  box-shadow: 0 0 0 2px #080c14;
+  content: "";
+}
+.whatsapp-float-text { display: grid; gap: 3px; }
+.whatsapp-float-text strong { font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em; }
+.whatsapp-float-text small { color: #9fe8bd; font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+[data-theme="light"] .whatsapp-float {
+  border-color: rgba(15, 122, 79, 0.3);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 36px -14px rgba(10, 29, 61, 0.4);
+  color: #05070b;
+}
+[data-theme="light"] .whatsapp-float-text small { color: #0f7a4f; }
+[data-theme="light"] .whatsapp-float-icon::after { box-shadow: 0 0 0 2px #ffffff; }
+body.menu-open .whatsapp-float { display: none; }
+
+/* Celular: só o ícone, redondo; o rodapé ganha folga para o botão não cobrir a última linha. */
+@media (max-width: 760px) {
+  .whatsapp-float { right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); gap: 0; padding: 5px; }
+  .whatsapp-float-icon { width: 50px; height: 50px; }
+  .whatsapp-float-icon svg { width: 26px; height: 26px; }
+  .whatsapp-float-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .site-footer { padding-bottom: 76px; }
+}
+@media print { .whatsapp-float { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .whatsapp-float { transition: none; }
+  .whatsapp-float:hover { transform: none; }
+}

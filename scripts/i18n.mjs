@@ -154,8 +154,29 @@ function comMarcadores(html, marca, conteudo, onde) {
   return html.slice(0, i) + recuoDoBloco + bloco + "\n" + recuo + html.slice(i);
 }
 
+// ─────────────────────────────────────────────────────────────── suporte no WhatsApp
+// Botão flutuante de suporte 24/7, nas duas línguas, em todas as páginas públicas.
+// Fica fora das áreas logadas (app/ e console/), onde cobriria os controles.
+// O número vai só com dígitos, com DDI e DDD (ex.: 5511999999999).
+export const WHATSAPP_SUPORTE = "5512982689849"; // +55 12 98268-9849
+const SEM_WHATSAPP = new Set(["app/index.html", "console/index.html"]);
+const ICONE_SUPORTE = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 11.5a8 8 0 0 1-11.6 7.1L4 20l1.4-4.2A8 8 0 1 1 20 11.5z"/><path d="M8.6 11.5h.01M12 11.5h.01M15.4 11.5h.01" stroke-width="2.6"/></svg>';
+const TEXTO_SUPORTE = {
+  pt: { rotulo: "Suporte 24/7", aria: "Suporte 24/7 no WhatsApp (abre em nova aba)", mensagem: "Olá! Preciso de suporte da Trustio." },
+  en: { rotulo: "24/7 support", aria: "24/7 support on WhatsApp (opens in a new tab)", mensagem: "Hi! I need help from Trustio support." },
+};
+
+function suporteWhatsApp(idioma) {
+  const t = TEXTO_SUPORTE[idioma];
+  const href = `https://wa.me/${WHATSAPP_SUPORTE}?text=${encodeURIComponent(t.mensagem)}`;
+  return `<a class="whatsapp-float" href="${href}" target="_blank" rel="noopener" aria-label="${t.aria}">` +
+    `<span class="whatsapp-float-icon">${ICONE_SUPORTE}</span>` +
+    `<span class="whatsapp-float-text"><strong>${t.rotulo}</strong><small>WhatsApp</small></span></a>`;
+}
+
 function marcarIdioma(html, pagina, idioma) {
   html = comMarcadores(html, "alt", alternativos(pagina), "</head>");
+  if (WHATSAPP_SUPORTE && !SEM_WHATSAPP.has(pagina)) html = comMarcadores(html, "whats", suporteWhatsApp(idioma), "</body>");
   const ancora = ANCORA_BANDEIRA[pagina] || '<button class="theme-toggle"';
   return comMarcadores(html, "lang", bandeira(pagina, idioma), ancora);
 }

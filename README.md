@@ -19,6 +19,9 @@ publicado em **https://trustio.com.br** via GitHub Pages.
   fotografia e artes). Não é usado pelo site; bloqueado em `robots.txt`. Veja `design-system/README.md`.
 - `assets/app.js`: navegação, animações, campo digital de pontos e painel LED do servidor.
 - `assets/fonts/`: fontes oficiais hospedadas localmente.
+- Botão flutuante "Suporte 24/7" no WhatsApp: o número fica em `WHATSAPP_SUPORTE`, em `scripts/i18n.mjs`.
+  `npm run i18n` insere o botão (bloco `<!--i18n:whats-->`) em todas as páginas públicas, em português e em inglês,
+  e deixa de fora as áreas logadas (`app/`, `console/`). O estilo está em `assets/styles.css` (`.whatsapp-float`).
 - `SECURITY.md`: controles incorporados e cabeçalhos recomendados.
 
 ## Publicação

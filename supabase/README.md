@@ -54,10 +54,10 @@ GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toqu
    ```bash
    bash mac/whatsapp/instalar.sh          # pede a instância e a chave (as dos segredos EVOLUTION_*)
    tail -f ~/Library/Logs/trustio-whatsapp.log   # escaneie o QR no celular
-   curl -s http://127.0.0.1:8080/saude    # "conectado": true
+   curl -s http://127.0.0.1:18080/saude   # "conectado": true
    ```
    Roda pelo launchd (`br.com.trustio.whatsapp`), sobe no login e volta sozinho se cair. Ouve só em
-   `127.0.0.1:8080`; o túnel da Cloudflare leva `evolution.trustio.com.br` até ele. Mensagens recebidas
+   `127.0.0.1:18080`, a porta para onde o túnel da Cloudflare leva `evolution.trustio.com.br` (a mesma que a Evolution usa: é um ou outro, o instalador recusa a porta ocupada). Mensagens recebidas
    são ignoradas, os envios saem um por vez, e número sem WhatsApp é recusado antes do envio. Se o
    celular desconectar o aparelho, o serviço apaga a sessão e mostra um QR novo no log.
 

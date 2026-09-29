@@ -16,7 +16,7 @@ CONFIG="$DIR/config.json"
 ROTULO="br.com.trustio.whatsapp"
 PLIST="$HOME/Library/LaunchAgents/$ROTULO.plist"
 LOG="$HOME/Library/Logs/trustio-whatsapp.log"
-PORTA="${WA_PORTA:-8080}"
+PORTA="${WA_PORTA:-18080}"
 
 NODE="$(command -v node || true)"
 [ -n "$NODE" ] || { echo "Node.js não encontrado. Instale com: brew install node"; exit 1; }
@@ -49,7 +49,7 @@ if [ ! -s "$CONFIG" ]; then
     echo "  e rode o workflow Supabase (Actions → Supabase → Run workflow) para a função receber os valores."
   fi
 fi
-PORTA="$("$NODE" -p 'require(process.argv[1]).porta ?? 8080' "$CONFIG")"
+PORTA="$("$NODE" -p 'require(process.argv[1]).porta ?? 18080' "$CONFIG")"
 
 # Para a versão anterior deste serviço (numa reinstalação) antes de olhar a porta: o que continuar
 # ouvindo nela é outro programa (ex.: o container antigo da Evolution) e impede o serviço de subir.
@@ -59,7 +59,9 @@ if lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN >/dev/null 2>&1; then
   echo
   echo "A porta $PORTA já está em uso:"
   lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN
-  echo "Pare esse programa (ex.: docker stop <container da Evolution>) e rode de novo."
+  echo "Na $PORTA costuma estar a Evolution API: este serviço é a alternativa a ela, e só um dos dois"
+  echo "pode ocupar a porta do túnel. Para trocar, pare o container dela (docker ps --filter publish=$PORTA)"
+  echo "e rode este instalador de novo."
   exit 1
 fi
 

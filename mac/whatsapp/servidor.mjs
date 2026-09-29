@@ -6,7 +6,7 @@
 // só envia o aviso de boas-vindas do teste do Agentio.
 //
 // Configuração em ~/.trustio-whatsapp/config.json (criado pelo instalar.sh, modo 600):
-//   { "chave": "<EVOLUTION_API_KEY>", "instancia": "<EVOLUTION_INSTANCE>", "porta": 8080 }
+//   { "chave": "<EVOLUTION_API_KEY>", "instancia": "<EVOLUTION_INSTANCE>", "porta": 18080 }
 // A sessão do WhatsApp fica em ~/.trustio-whatsapp/sessao/. Para parear por código em vez de QR:
 //   WA_PAREAR=5511999999999 node servidor.mjs
 import { existsSync, readFileSync, rmSync } from "node:fs";
@@ -22,7 +22,7 @@ const SESSAO = join(DIR, "sessao");
 const log = (msg) => console.log(`${new Date().toISOString()} ${msg}`);
 
 const config = JSON.parse(readFileSync(join(DIR, "config.json"), "utf8"));
-const porta = Number(config.porta ?? 8080);
+const porta = Number(config.porta ?? 18080);
 
 let sock = null;
 let conectado = false;

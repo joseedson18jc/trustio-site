@@ -51,6 +51,34 @@ begin
   return new;
 end $$;
 
+-- A regra "número não verificado não recebe WhatsApp" vale no banco, não só na função: a
+-- reserva do canal WhatsApp é recusada para ativação automática. Qualquer versão da função
+-- aviso-agente passa por aqui antes de enviar (a anterior entende a recusa como "já saiu" e
+-- segue só com o e-mail), então a regra vale desde esta migração, mesmo antes de a função nova
+-- ser publicada ou se a publicação falhar.
+create or replace function public.aviso_reservar(p_lead_id uuid, p_canal text, p_inicio timestamptz)
+returns timestamptz language plpgsql security definer set search_path = public as $$
+declare c record; v_marca timestamptz := clock_timestamp(); v_ok uuid;
+begin
+  if p_canal = 'whatsapp' and exists (
+    select 1 from public.crm_leads where id = p_lead_id and whatsapp_ativacao = 'automatica'
+  ) then
+    return null;
+  end if;
+  select * into c from public.aviso_colunas(p_canal);
+  execute format(
+    'update public.crm_leads set %2$I = $2
+      where id = $1 and whatsapp_trial_status = ''ativo'' and whatsapp_trial_started_at = $3
+        and (%1$I is null or %1$I < whatsapp_trial_started_at)
+        and (%2$I is null or %2$I < $2 - interval ''2 minutes'')
+      returning id', c.c_em, c.c_reserva)
+    into v_ok using p_lead_id, v_marca, p_inicio;
+  return case when v_ok is null then null else v_marca end;
+end $$;
+
+revoke execute on function public.aviso_reservar(uuid, text, timestamptz) from public, anon, authenticated;
+grant execute on function public.aviso_reservar(uuid, text, timestamptz) to service_role;
+
 -- O cliente não muda a origem da ativação pelo próprio cadastro (mesmo guard de 26/09, com
 -- whatsapp_ativacao entre as colunas travadas).
 create or replace function public.guard_lead_update()

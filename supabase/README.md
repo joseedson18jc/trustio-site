@@ -28,8 +28,8 @@ GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toqu
    quem só deixou telefone no cadastro). Trocar o seletor para "Ativo" tem o mesmo efeito: o período
    começa na hora e dura `hermes_trial_dias`.
 8. Ao virar "Ativo", o gatilho `crm_leads_whatsapp_aviso` chama a função `aviso-agente` (via `pg_net`),
-   que manda à pessoa um e-mail com as instruções (Resend) e uma mensagem no WhatsApp (Evolution API,
-   com o aviso de uso que a licença dela pede no card do Hermes em `/admin/`).
+   que manda à pessoa um e-mail com as instruções (Resend) e uma mensagem no WhatsApp (pelo serviço do
+   Mac do item 10, que fala o mesmo protocolo da Evolution API).
    O número do Agentio nas instruções vem de `hermes_numero` no painel (ou de `EVOLUTION_NUMERO`); sem
    um número completo, nada sai. O CRM mostra quando cada aviso saiu, ou o motivo da falha, e o botão
    "Reenviar avisos" tenta de novo o que faltou. Um aviso por ativação, mesmo com chamadas simultâneas. O banco precisa saber onde chamar (uma vez,
@@ -47,6 +47,20 @@ GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toqu
    aplicada quando o reinício dá certo, e o `.env` é regravado de forma atômica. Se a consulta falha, a
    lista fica como está. Quando o teste vence, o número sai.
 
+10. O WhatsApp de aviso sai pelo serviço do Mac em `mac/whatsapp/` (Baileys), no lugar da Evolution API.
+   Ele responde no mesmo endpoint e com a mesma chave que a função `aviso-agente` usa
+   (`POST /message/sendText/<EVOLUTION_INSTANCE>`, cabeçalho `apikey`), então os segredos `EVOLUTION_*`
+   continuam valendo e a função não muda. Instalação, uma vez, na pasta do repositório no Mac:
+   ```bash
+   bash mac/whatsapp/instalar.sh          # pede a instância e a chave (as dos segredos EVOLUTION_*)
+   tail -f ~/Library/Logs/trustio-whatsapp.log   # escaneie o QR no celular
+   curl -s http://127.0.0.1:8080/saude    # "conectado": true
+   ```
+   Roda pelo launchd (`br.com.trustio.whatsapp`), sobe no login e volta sozinho se cair. Ouve só em
+   `127.0.0.1:8080`; o túnel da Cloudflare leva `evolution.trustio.com.br` até ele. Mensagens recebidas
+   são ignoradas, os envios saem um por vez, e número sem WhatsApp é recusado antes do envio. Se o
+   celular desconectar o aparelho, o serviço apaga a sessão e mostra um QR novo no log.
+
 ## Ligar tudo (uma vez): secrets do repositório
 
 Em GitHub → Settings → Secrets and variables → Actions → New repository secret:
@@ -63,7 +77,7 @@ Em GitHub → Settings → Secrets and variables → Actions → New repository 
 | `LLM_MAX_TOKENS` | opcional: teto de tokens por resposta, ex.: `8192` | a % da resposta durante a geração |
 | `AVISOS_SEGREDO` | um valor aleatório longo (`openssl rand -hex 32`); o mesmo vai no Vault como `aviso_agente_segredo` | o banco chamar a função `aviso-agente` |
 | `RESEND_API_KEY` | resend.com → API Keys (domínio `send.trustio.com.br` verificado) | e-mail de aviso do teste do Agentio |
-| `EVOLUTION_URL`, `EVOLUTION_INSTANCE`, `EVOLUTION_API_KEY` | o servidor da Evolution API, a instância conectada ao WhatsApp e a chave global | mensagem de aviso no WhatsApp |
+| `EVOLUTION_URL`, `EVOLUTION_INSTANCE`, `EVOLUTION_API_KEY` | o endereço do serviço de WhatsApp do Mac (`https://evolution.trustio.com.br`), o nome da instância e a chave, os mesmos do `~/.trustio-whatsapp/config.json` (item 10) | mensagem de aviso no WhatsApp |
 | `EVOLUTION_NUMERO` | opcional: o número conectado à instância, se for o próprio Agentio | a mensagem pedir para responder ali mesmo |
 | `HERMES_SEGREDO` | um valor aleatório longo; o mesmo vai no Mac em `~/.trustio-hermes-sync-key` | o sincronizador do Mac ler a lista de números autorizados |
 | `ADMIN_EMAILS` | seus e-mails, separados por vírgula (as contas precisam existir no Auth) | abrir o `/crm/` |

@@ -1,0 +1,19 @@
+{
+  "name": "trustio-whatsapp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Serviço de WhatsApp do Mac (Baileys) que responde como a Evolution API para a função aviso-agente.",
+  "type": "module",
+  "main": "servidor.mjs",
+  "scripts": {
+    "start": "node servidor.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "baileys": "7.0.0-rc14",
+    "pino": "9.14.0",
+    "qrcode-terminal": "0.12.0"
+  }
+}

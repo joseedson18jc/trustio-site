@@ -73,6 +73,8 @@
   } else {
     $$(".rv").forEach(function (el) { el.classList.add("in"); });
   }
+  // Avisa o ia-sem-censura-tema.js que as seções escondidas por ".js .rv" já têm quem as revele.
+  document.documentElement.classList.add("js-pronto");
 
   /* ---------- Hero: campo de pontos ---------- */
   var field = (function () {
@@ -333,23 +335,22 @@
 
   /* ---------- 08 · Linha do tempo ---------- */
   (function () {
-    var start = new Date(2026, 8, 23), launch = new Date(2026, 9, 1);
-    var now = new Date(); var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    var DAY = 864e5;
-    var days = Math.round((launch - today) / DAY);
-    var pct = Math.max(0, Math.min(1, (today - start) / (launch - start)));
+    // Instantes absolutos (não a meia-noite do fuso de quem visita): o acesso antecipado abriu em
+    // 23/09 e o chat abriu para todos em 25/09/2026 (app_settings.acesso_abre_em). O HTML já vem no
+    // estado "aberto"; este bloco só mantém a linha do tempo coerente.
+    var start = new Date("2026-09-23T00:00:00-03:00"), launch = new Date("2026-09-25T01:17:05Z");
+    var today = new Date();
+    var DAY = 864e5, open = today >= launch;
+    var pct = open ? 1 : Math.max(0, Math.min(1, (today - start) / (launch - start)));
     var n = $("#cd-n"), t = $("#cd-t"), fill = $("#tl-fill"), mk = $("#tl-today");
-    if (days > 1) { n.textContent = days; t.textContent = "dias para o chat abrir para todos"; }
-    else if (days === 1) { n.textContent = "1"; t.textContent = "dia para o chat abrir para todos"; }
-    else if (days === 0) { n.textContent = "Hoje"; t.textContent = "o chat abre para todos"; }
-    else { n.textContent = "Aberto"; t.textContent = "o chat já está aberto para todos"; }
-    if (today < start || days <= 0) mk.style.display = "none";
-    if (days <= 0) {
-      $$("[data-live]").forEach(function (el) { el.innerHTML = el.getAttribute("data-live"); });
-      $$("[data-live-href]").forEach(function (el) { el.setAttribute("href", el.getAttribute("data-live-href")); });
+    if (open) { n.textContent = "Aberto"; t.textContent = "o chat já está aberto para todos"; }
+    else {
+      var days = Math.ceil((launch - today) / DAY);
+      n.textContent = days; t.textContent = days > 1 ? "dias para o chat abrir para todos" : "dia para o chat abrir para todos";
     }
+    mk.style.display = today < start || open ? "none" : "";
     mk.style.left = (pct * 100).toFixed(2) + "%";
-    watch($("#tl"), function (v) { if (v) fill.style.width = (days <= 0 ? 100 : pct * 100).toFixed(2) + "%"; }, 0.4);
+    watch($("#tl"), function (v) { if (v) fill.style.width = (pct * 100).toFixed(2) + "%"; }, 0.4);
   })();
 
   /* ---------- 09 · Planos ---------- */
@@ -388,7 +389,7 @@
           '<div class="note">' + p.note + "</div>" +
           '<div class="perday">≈ ' + brl(p.v / p.d, true) + " por dia</div>" +
           "<ul>" + FEAT[prod].map(function (f) { return '<li><svg><use href="#i-check"/></svg>' + f + "</li>"; }).join("") + extra + "</ul>" +
-          '<a class="btn ' + (feat ? "btn-primary" : "btn-ghost") + '" href="https://trustio.com.br/planos.html#pessoal">Assinar ' + p.k.toLowerCase() + ' <span class="ico"><svg><use href="#i-arrow"/></svg></span></a>' +
+          '<a class="btn ' + (feat ? "btn-primary" : "btn-ghost") + '" href="planos.html#' + (prod === "chat" ? "pessoal" : prod) + '">Assinar ' + p.k.toLowerCase() + ' <span class="ico"><svg><use href="#i-arrow"/></svg></span></a>' +
           "</article>";
       }).join("");
     }

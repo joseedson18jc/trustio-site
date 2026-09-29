@@ -31,6 +31,7 @@ const SITE = "https://trustio.com.br";
 
 type Lead = {
   id: string; nome: string | null; email: string | null; whatsapp_numero: string | null;
+  whatsapp_ativacao: string | null;
   whatsapp_trial_status: string; whatsapp_trial_started_at: string | null; whatsapp_trial_ends_at: string | null;
 };
 
@@ -212,7 +213,7 @@ Deno.serve(async (req) => {
 
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const { data: lead, error } = await admin.from("crm_leads")
-    .select("id,nome,email,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_started_at,whatsapp_trial_ends_at")
+    .select("id,nome,email,whatsapp_numero,whatsapp_ativacao,whatsapp_trial_status,whatsapp_trial_started_at,whatsapp_trial_ends_at")
     .eq("id", leadId).maybeSingle<Lead>();
   if (error) return responder(500, { error: "lead" });
   if (!lead || lead.whatsapp_trial_status !== "ativo" || !lead.whatsapp_trial_started_at) return responder(200, { ok: true, ignorado: "nao_ativo" });
@@ -254,8 +255,13 @@ Deno.serve(async (req) => {
   await canal("email", "e-mail",
     semAgente ?? (!RESEND_API_KEY ? "RESEND_API_KEY ausente" : !lead.email ? "lead sem e-mail" : null),
     () => enviarEmail(`aviso-agente/${lead.id}/${inicio}`, lead.email!, nome, fim, agente!, numeroCliente));
+  // Ativação automática (confirmação do e-mail): o número veio do cadastro e ninguém verificou
+  // que é da pessoa. Nada sai para ele; o e-mail acima, para o endereço confirmado, leva as
+  // instruções, e o agente só responde quando o próprio número puxa a conversa.
+  const numeroNaoVerificado = lead.whatsapp_ativacao === "automatica"
+    ? "ativação automática: número não verificado, aviso só por e-mail" : null;
   await canal("whatsapp", "WhatsApp",
-    semAgente ?? (!EVOLUTION_URL || !EVOLUTION_INSTANCE || !EVOLUTION_API_KEY ? "Evolution API não configurada"
+    semAgente ?? numeroNaoVerificado ?? (!EVOLUTION_URL || !EVOLUTION_INSTANCE || !EVOLUTION_API_KEY ? "Evolution API não configurada"
       : numeroCliente.length < 12 ? "lead sem número válido" : null),
     () => enviarWhatsapp(numeroCliente, textoDoWhatsapp(nome, fim, agente!)));
 

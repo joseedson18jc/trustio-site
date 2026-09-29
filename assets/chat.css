@@ -133,6 +133,15 @@
   .composer, .paywall { width: calc(100% - 28px); }
   .chat-title small { display: none; }
 }
+/* Celular estreito (até 420 px): com a conversa aberta o cabeçalho tem menu, título, suporte,
+   idioma, tema, baixar e apagar. Botões de 34 px e espaços menores deixam o título visível. */
+@media (max-width: 420px) {
+  .chat-top { padding: 8px 10px; gap: 8px; }
+  .chat-top-right { gap: 4px; }
+  .side-toggle, .chat-top-right .lang-switch, .chat-top-right .theme-toggle, .chat-top-right .btn-icon, .chat-top-right > .wa-float { width: 34px; min-width: 34px; height: 34px; }
+  .chat-top-right > .wa-float svg { width: 20px; height: 20px; }
+  .chat-title { overflow: hidden; }
+}
 @media (prefers-reduced-motion: reduce) { .thread { scroll-behavior: auto; } .chat-side { transition: none; } }
 
 /* ── Widgets de boas-vindas (teste grátis) ── */

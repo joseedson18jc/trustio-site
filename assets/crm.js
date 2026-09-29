@@ -614,7 +614,9 @@
     var light = document.documentElement.getAttribute("data-theme") !== "light";
     if (light) document.documentElement.setAttribute("data-theme", "light"); else document.documentElement.removeAttribute("data-theme");
     toggle.setAttribute("aria-pressed", light ? "true" : "false");
-    try { localStorage.setItem("trustio-theme", light ? "light" : "dark"); } catch (e) { /* sem storage */ }
+    if (window.TrustioTema) window.TrustioTema.escolher(light ? "light" : "dark"); else try { localStorage.setItem("trustio-theme", light ? "light" : "dark"); } catch (e) { /* sem storage */ }
   });
   toggle.setAttribute("aria-pressed", document.documentElement.getAttribute("data-theme") === "light" ? "true" : "false");
+  // Troca automática de horário com a página aberta (assets/theme.js).
+  document.addEventListener("trustio:tema", function (e) { toggle.setAttribute("aria-pressed", e.detail === "light" ? "true" : "false"); });
 })();

@@ -103,6 +103,8 @@
     "Sair dos outros": "Sign out the others",
     "Excluir a conta": "Delete the account",
     "Para apagar a conta e todos os dados (LGPD), escreva para": "To delete the account and all its data (LGPD), write to",
-    "a partir do e-mail da conta.": "from the account's email address."
+    "a partir do e-mail da conta.": "from the account's email address.",
+    "Automático": "Automatic",
+    "Automático: claro das 5h às 19h, escuro à noite": "Automatic: light from 5 a.m. to 7 p.m., dark at night"
   }
 }

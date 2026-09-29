@@ -25,10 +25,12 @@
   themeBtn.addEventListener("click", function () {
     var n = root.dataset.theme === "light" ? "dark" : "light";
     root.dataset.theme = n;
-    try { localStorage.setItem("trustio-theme", n); } catch (e) {}
+    if (window.TrustioTema) window.TrustioTema.escolher(n); else try { localStorage.setItem("trustio-theme", n); } catch (e) {}
     syncThemeLabel();
     if (field) field.recolor();
   });
+  // Troca automática de horário com a página aberta (assets/theme.js).
+  document.addEventListener("trustio:tema", function () { syncThemeLabel(); if (field) field.recolor(); });
 
   /* ---------- Header e progresso ---------- */
   var hdr = $("#hdr"), bar = $("#progress");

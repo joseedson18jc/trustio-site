@@ -949,14 +949,20 @@
   // Cada foto tem nome próprio (derivado de avatar_em): a nova é enviada ao lado da antiga, e a
   // antiga só sai depois que a nova ficou registrada. Uma falha no meio não apaga as duas.
   function caminhoDaFoto(em) { return state.user.id + "/avatar-" + Date.parse(em) + ".jpg"; }
-  // Depois de registrar a foto atual, tira da pasta da conta qualquer outro arquivo (a foto
-  // anterior, ou sobra de uma falha antiga). Se a limpeza falhar, sobra arquivo, nunca falta foto.
-  function limparOutrasFotos(atual) {
-    var pasta = state.user.id;
-    return sb.storage.from("avatares").list(pasta, { limit: 100 }).then(function (r) {
-      var sobras = (r.data || []).map(function (o) { return pasta + "/" + o.name; }).filter(function (c) { return c !== atual; });
-      return sobras.length ? sb.storage.from("avatares").remove(sobras) : null;
-    }).then(function () {}, function () {});
+  // Deixa na pasta da conta só o arquivo "manter" (ou nenhum): a foto anterior e qualquer sobra
+  // de falha antiga saem. Lista em lotes de 100 até não sobrar nada; erro é repassado.
+  function limparPastaDeFotos(manter) {
+    var pasta = state.user.id, voltas = 0;
+    function lote() {
+      return sb.storage.from("avatares").list(pasta, { limit: 100 }).then(function (r) {
+        if (r.error) throw r.error;
+        var sobras = (r.data || []).map(function (o) { return pasta + "/" + o.name; }).filter(function (c) { return c !== manter; });
+        if (!sobras.length) return;
+        if (++voltas > 50) throw new Error("limpeza_incompleta");
+        return sb.storage.from("avatares").remove(sobras).then(function (x) { if (x.error) throw x.error; return lote(); });
+      });
+    }
+    return lote();
   }
   // Uma operação de foto por vez: duas trocas simultâneas partiriam da mesma foto anterior.
   var fotoOcupada = false;
@@ -1024,7 +1030,8 @@
     pintarAvatar($("[data-me-av]"));
     pintarAvatar($("[data-conta-av]"));
     document.querySelectorAll(".msg-user .msg-av").forEach(pintarAvatarMensagem);
-    $("[data-foto-remover]").hidden = !state.avatarUrl;
+    // Segue o registro, não a imagem carregada: com registro e arquivo sumido, ainda dá para limpar.
+    $("[data-foto-remover]").hidden = !state.pref.avatar_em;
   }
 
   // Recorta no centro, reduz para 256 px e grava em JPEG (~20 KB), sem metadados da câmera.
@@ -1060,8 +1067,10 @@
         if (r.error) throw r.error;
         return salvarPrefs({ avatar_em: agora }).then(function () {
           trocarAvatarUrl(URL.createObjectURL(blob));
-          // A anterior só sai agora, com a nova já registrada.
-          limparOutrasFotos(novo);
+          // A anterior só sai agora, com a nova já registrada, e ainda dentro da trava: nenhuma
+          // outra troca começa antes de a limpeza terminar. Se ela falhar, a próxima troca ou
+          // remoção limpa (a pasta inteira é conferida), e a foto nova continua valendo.
+          return limparPastaDeFotos(novo).catch(function (err) { console.error("limpeza_fotos", err); });
         }, function (err) {
           // A marca não gravou: sai só o arquivo novo, e a foto anterior continua valendo.
           return sb.storage.from("avatares").remove([novo]).then(function () { throw err; }, function () { throw err; });
@@ -1075,13 +1084,15 @@
     if (!state.pref.avatar_em || fotoOcupada) return;
     ocuparFoto(true);
     fotoStatus.textContent = T("Removendo…", "Removing…");
-    // Primeiro sai o registro (a conta deixa de ter foto); depois, os arquivos da pasta.
-    salvarPrefs({ avatar_em: null }).then(function () {
+    // Primeiro saem os arquivos; o registro só é limpo com a pasta vazia. Se algo falhar no
+    // caminho, o registro fica e o botão Remover continua lá para tentar de novo.
+    limparPastaDeFotos(null).then(function () {
+      return salvarPrefs({ avatar_em: null });
+    }).then(function () {
       if (state.avatarUrl) URL.revokeObjectURL(state.avatarUrl);
       state.avatarUrl = null; pintarTodosAvatares();
       fotoStatus.textContent = T("Foto removida.", "Photo removed.");
-      return limparOutrasFotos(null);
-    }).catch(function () { fotoStatus.textContent = T("Não foi possível remover agora.", "We couldn't remove it right now."); })
+    }).catch(function () { fotoStatus.textContent = T("Não foi possível remover agora. Tente de novo.", "We couldn't remove it right now. Try again."); })
       .then(function () { ocuparFoto(false); });
   });
 

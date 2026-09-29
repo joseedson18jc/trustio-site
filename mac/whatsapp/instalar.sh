@@ -58,10 +58,14 @@ if [ ! -s "$CONFIG" ]; then
 fi
 # Porta do config.json existente: WA_PORTA, se informada, vale e é gravada; a antiga 8080 (padrão
 # de antes, que o túnel não alcança) ou uma porta ausente ou inválida passa para a 18080.
+PORTA_BRUTA="$("$NODE" -p 'JSON.stringify(require(process.argv[1]).porta ?? "")' "$CONFIG")"
 PORTA_SALVA="$("$NODE" -p 'require(process.argv[1]).porta ?? ""' "$CONFIG")"
+# Comparada já normalizada ("08080" é a 8080, como o servidor a lê); inválida fica vazia.
+if porta_valida "$PORTA_SALVA"; then PORTA_SALVA="$((10#$PORTA_SALVA))"; else PORTA_SALVA=""; fi
 PORTA_NOVA=""
 if [ -n "${WA_PORTA:-}" ] && [ "$PORTA_SALVA" != "$WA_PORTA" ]; then PORTA_NOVA="$WA_PORTA"
-elif [ -z "${WA_PORTA:-}" ] && { [ "$PORTA_SALVA" = "8080" ] || ! porta_valida "$PORTA_SALVA"; }; then PORTA_NOVA=18080
+elif [ -z "${WA_PORTA:-}" ] && { [ "$PORTA_SALVA" = "8080" ] || [ -z "$PORTA_SALVA" ]; }; then PORTA_NOVA=18080
+elif [ "$PORTA_BRUTA" != "$PORTA_SALVA" ]; then PORTA_NOVA="$PORTA_SALVA"  # "19000" → 19000 (número)
 fi
 # A porta nova só é gravada depois de confirmada livre (mais abaixo): se estiver ocupada, o
 # config.json fica com a porta em que o serviço funcionava.
@@ -125,7 +129,7 @@ if [ -n "$PORTA_NOVA" ]; then
     fs.writeFileSync(arq + ".novo", JSON.stringify(c, null, 2) + "\n", { mode: 0o600 });
     fs.chmodSync(arq + ".novo", 0o600); fs.renameSync(arq + ".novo", arq);
   ' "$CONFIG" "$PORTA_NOVA"
-  echo "→ porta ${PORTA_SALVA:-(sem porta)} → $PORTA_NOVA em $CONFIG"
+  echo "→ porta ${PORTA_SALVA:-(ausente ou inválida)} → $PORTA_NOVA em $CONFIG"
 fi
 trap - EXIT
 launchctl bootstrap "gui/$(id -u)" "$PLIST"

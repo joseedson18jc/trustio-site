@@ -2794,7 +2794,8 @@ h3 { letter-spacing: -0.018em; }
 
 /* ── Troca de idioma ───────────────────────────────────────────────────────
    Bandeira pequena ao lado do botão de tema, com a mesma altura e o mesmo
-   contorno. Mostra o idioma para onde leva (na página em português, EN). */
+   contorno. Mostra o idioma da página (na página em português, PT) e leva ao
+   outro; as setas indicam a troca. */
 .lang-switch {
   display: inline-flex;
   align-items: center;
@@ -2816,7 +2817,9 @@ h3 { letter-spacing: -0.018em; }
 }
 .lang-switch:hover { border-color: rgba(94, 167, 255, 0.45); color: var(--ice, #f4f6fa); }
 .lang-switch:focus-visible { outline: 2px solid var(--blue-signal, #5ea7ff); outline-offset: 2px; }
-.lang-switch svg {
+.lang-switch .lang-switch-troca { width: 12px; height: 12px; flex: none; margin-left: -1px; opacity: .65; }
+.lang-switch:hover .lang-switch-troca { opacity: 1; }
+.lang-switch svg:not(.lang-switch-troca) {
   width: 20px;
   height: 14px;
   flex: none;
@@ -2827,6 +2830,7 @@ h3 { letter-spacing: -0.018em; }
 @media (max-width: 560px) {
   .lang-switch { width: 44px; padding: 0; justify-content: center; }
   .lang-switch span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .lang-switch .lang-switch-troca { display: none; }
 }
 /* página de erro: não tem cabeçalho, a bandeira fica no canto */
 .error-shell > .lang-switch { position: absolute; top: clamp(var(--space-28), 5vw, 64px); right: clamp(var(--space-28), 5vw, 64px); z-index: 3; }

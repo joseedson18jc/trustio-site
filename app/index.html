@@ -18,11 +18,11 @@
   <link rel="preload" href="../assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="../assets/theme.js?v=673d4355"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=6073e8dc">
-  <link rel="stylesheet" href="../assets/chat.css?v=996752b1">
+  <link rel="stylesheet" href="../assets/chat.css?v=5af1c027">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=7ebbf495"></script>
   <script defer src="../assets/ocr.js?v=333c1492"></script>
-  <script defer src="../assets/chat.js?v=4fed71dc"></script>
+  <script defer src="../assets/chat.js?v=7d7d7b77"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/app/"><!--/i18n:alt-->
@@ -46,6 +46,8 @@
 
     <nav class="conv-list" aria-label="Conversas" data-conversations>
       <p class="side-k">Conversas</p>
+      <label class="vh" for="conv-busca">Buscar conversas</label>
+      <input class="conv-busca" id="conv-busca" type="search" placeholder="Buscar conversas" autocomplete="off" data-conv-busca hidden>
       <p class="conv-empty" data-conv-empty>Nenhuma conversa ainda.</p>
     </nav>
 
@@ -54,10 +56,11 @@
         <div class="quota-bar"><span data-quota-bar></span></div>
         <small data-quota-text></small>
       </div>
-      <div class="me">
+      <button class="me" type="button" data-conta-open aria-haspopup="dialog" title="Minha conta: perfil, foto e preferências">
         <span class="me-av" data-me-av>…</span>
         <span class="me-txt"><b data-me-name>Carregando…</b><small data-me-plan>—</small></span>
-      </div>
+        <svg class="me-gear" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.5v2M10 15.5v2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M2.5 10h2M15.5 10h2M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4"/></svg>
+      </button>
       <div class="side-actions">
         <button class="side-link" type="button" data-ob-open>Instruções</button>
         <a class="side-link" href="../planos.html">Planos</a>
@@ -80,6 +83,9 @@
         <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Ativar tema claro" title="Alternar tema">
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
           <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+        <button class="btn btn-ghost btn-icon" type="button" data-baixar title="Baixar conversa (.md)" aria-label="Baixar conversa" hidden>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5v9M6 9l4 4 4-4M4 16.5h12"/></svg>
         </button>
         <button class="btn btn-ghost btn-icon" type="button" data-delete title="Apagar conversa" aria-label="Apagar conversa" hidden>
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6"/></svg>
@@ -165,6 +171,109 @@
     </form>
   </main>
 </div>
+
+<dialog class="conta" data-conta aria-labelledby="conta-titulo">
+  <div class="conta-top">
+    <h2 id="conta-titulo">Minha conta</h2>
+    <button class="conta-x" type="button" data-conta-fechar aria-label="Fechar">×</button>
+  </div>
+  <div class="conta-tabs" role="tablist" aria-label="Seções da conta">
+    <button type="button" role="tab" id="tab-perfil" aria-controls="painel-perfil" aria-selected="true" data-tab="perfil">Perfil</button>
+    <button type="button" role="tab" id="tab-preferencias" aria-controls="painel-preferencias" aria-selected="false" tabindex="-1" data-tab="preferencias">Preferências</button>
+    <button type="button" role="tab" id="tab-conversas" aria-controls="painel-conversas" aria-selected="false" tabindex="-1" data-tab="conversas">Conversas</button>
+    <button type="button" role="tab" id="tab-seguranca" aria-controls="painel-seguranca" aria-selected="false" tabindex="-1" data-tab="seguranca">Segurança</button>
+  </div>
+
+  <section class="conta-painel" id="painel-perfil" role="tabpanel" aria-labelledby="tab-perfil" data-painel="perfil">
+    <div class="conta-foto">
+      <span class="conta-av" data-conta-av aria-hidden="true"></span>
+      <div class="conta-foto-acoes">
+        <div class="conta-botoes">
+          <button class="btn btn-ghost" type="button" data-foto-trocar>Trocar foto</button>
+          <button class="btn btn-ghost" type="button" data-foto-remover hidden>Remover</button>
+        </div>
+        <input class="vh" type="file" accept="image/png,image/jpeg,image/webp" data-foto-file tabindex="-1" aria-hidden="true">
+        <small class="conta-dica">JPG, PNG ou WebP. A foto é recortada em quadrado e fica privada: só você a vê.</small>
+        <small class="conta-status" data-foto-status role="status"></small>
+      </div>
+    </div>
+    <form class="conta-form" data-perfil-form>
+      <label for="conta-nome">Nome</label>
+      <input id="conta-nome" name="nome" maxlength="80" autocomplete="name" required>
+      <label for="conta-tel">Telefone</label>
+      <input id="conta-tel" name="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20">
+      <small class="conta-dica" data-tel-travado hidden>Assinantes trocam o telefone falando com a Trustio: é ele que libera o agente no WhatsApp.</small>
+      <label for="conta-email">E-mail</label>
+      <input id="conta-email" type="email" readonly>
+      <div class="conta-acoes"><button class="btn btn-primary" type="submit">Salvar perfil</button><small class="conta-status" data-perfil-status role="status"></small></div>
+    </form>
+    <div class="conta-linha">
+      <div><span class="conta-k">Plano</span><b data-conta-plano>—</b><small data-conta-uso></small></div>
+      <a class="btn btn-ghost" href="../planos.html">Ver planos</a>
+    </div>
+  </section>
+
+  <section class="conta-painel" id="painel-preferencias" role="tabpanel" aria-labelledby="tab-preferencias" data-painel="preferencias" hidden>
+    <form class="conta-form" data-pref-form>
+      <fieldset class="conta-opcoes">
+        <legend>Estilo das respostas</legend>
+        <label><input type="radio" name="estilo" value="direto"><span><b>Direto</b><small>Curto e ao ponto.</small></span></label>
+        <label><input type="radio" name="estilo" value="equilibrado" checked><span><b>Equilibrado</b><small>O padrão.</small></span></label>
+        <label><input type="radio" name="estilo" value="detalhado"><span><b>Detalhado</b><small>Com profundidade e exemplos.</small></span></label>
+      </fieldset>
+      <label for="conta-instrucoes">Instruções pessoais</label>
+      <textarea id="conta-instrucoes" name="instrucoes" maxlength="1500" rows="4" placeholder="Ex.: Sou advogado tributarista. Cite a lei quando possível e use exemplos do Brasil."></textarea>
+      <small class="conta-dica"><span data-instr-conta>0</span>/1500 · Valem para todas as conversas. Só você e o modelo leem.</small>
+      <label for="conta-modelo">Modelo</label>
+      <select id="conta-modelo" name="modelo" data-modelo-select><option value="">Trustio (padrão)</option></select>
+      <small class="conta-dica" data-modelo-dica>Por enquanto há um modelo disponível. Quando houver outros, eles aparecem aqui.</small>
+      <fieldset class="conta-seg">
+        <legend>Tema</legend>
+        <label><input type="radio" name="tema" value="dark"><span>Escuro</span></label>
+        <label><input type="radio" name="tema" value="light"><span>Claro</span></label>
+      </fieldset>
+      <fieldset class="conta-seg">
+        <legend>Tamanho do texto</legend>
+        <label><input type="radio" name="fonte" value="normal" checked><span>Normal</span></label>
+        <label><input type="radio" name="fonte" value="grande"><span>Grande</span></label>
+      </fieldset>
+      <label class="conta-check"><input type="checkbox" name="enter_envia" checked><span>Enter envia a mensagem <small>Desligado: Ctrl+Enter ou ⌘+Enter envia, e Enter quebra a linha.</small></span></label>
+      <div class="conta-acoes"><button class="btn btn-primary" type="submit">Salvar preferências</button><small class="conta-status" data-pref-status role="status"></small></div>
+    </form>
+  </section>
+
+  <section class="conta-painel" id="painel-conversas" role="tabpanel" aria-labelledby="tab-conversas" data-painel="conversas" hidden>
+    <p class="conta-texto" data-conv-total></p>
+    <div class="conta-linha">
+      <div><b>Baixar todas</b><small>Um arquivo .md com todas as conversas, para guardar ou levar para outro lugar.</small></div>
+      <button class="btn btn-ghost" type="button" data-baixar-todas>Baixar</button>
+    </div>
+    <div class="conta-linha is-perigo">
+      <div><b>Apagar todas</b><small>Remove todas as conversas e mensagens da sua conta. Não pode ser desfeito.</small></div>
+      <button class="btn btn-perigo" type="button" data-apagar-todas>Apagar tudo</button>
+    </div>
+    <p class="conta-dica">Cada conversa também tem, na barra lateral, o menu <b>⋯</b> para renomear, baixar ou apagar.</p>
+    <small class="conta-status" data-conv-status role="status"></small>
+  </section>
+
+  <section class="conta-painel" id="painel-seguranca" role="tabpanel" aria-labelledby="tab-seguranca" data-painel="seguranca" hidden>
+    <form class="conta-form" data-senha-form>
+      <label for="conta-senha">Nova senha</label>
+      <input id="conta-senha" type="password" autocomplete="new-password" minlength="8" placeholder="mínimo 8 caracteres" required>
+      <label for="conta-senha2">Repita a nova senha</label>
+      <input id="conta-senha2" type="password" autocomplete="new-password" minlength="8" required>
+      <div class="conta-acoes"><button class="btn btn-primary" type="submit">Trocar senha</button><small class="conta-status" data-senha-status role="status"></small></div>
+    </form>
+    <div class="conta-linha">
+      <div><b>Outros aparelhos</b><small>Encerra a sessão em todos os outros navegadores e celulares. Este continua conectado.</small></div>
+      <button class="btn btn-ghost" type="button" data-sair-outros>Sair dos outros</button>
+    </div>
+    <div class="conta-linha">
+      <div><b>Excluir a conta</b><small>Para apagar a conta e todos os dados (LGPD), escreva para <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off--> a partir do e-mail da conta.</small></div>
+    </div>
+    <small class="conta-status" data-seg-status role="status"></small>
+  </section>
+</dialog>
 
 <div class="gate" data-gate hidden>
   <div class="gate-card">

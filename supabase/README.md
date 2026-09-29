@@ -9,7 +9,7 @@ GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toqu
 | --- | --- | --- |
 | Auth | `config.toml` `[auth]` | e-mail + senha, confirmação obrigatória, URLs de retorno para `/app/`, SMTP do domínio |
 | E-mails | `templates/*.html` | confirmação, recuperação de senha, link mágico, troca de e-mail, convite — no branding Trustio |
-| Banco | `migrations/*.sql` | `crm_leads`, `conversations`, `messages`, `app_settings`, `admins`, view `crm_overview`, RLS, RPCs |
+| Banco | `migrations/*.sql` | `crm_leads`, `conversations`, `messages`, `app_settings`, `admins`, `preferencias_usuario`, bucket `avatares`, view `crm_overview`, RLS, RPCs |
 | Chat | `functions/chat/index.ts` | recebe a mensagem, reserva a cota, chama o modelo em streaming, grava tudo |
 | CRM | `/crm/` (só `admins`) | leads, status, plano, uso, WhatsApp 3 dias, notas, CSV, cota gratuita |
 
@@ -87,3 +87,24 @@ supabase secrets set LLM_API_KEY=...  # segredos da função
 
 Para tirar o limite gratuito: no `/crm/` (campo "Perguntas grátis" = 0) ou
 `update public.app_settings set value = '0' where key = 'free_message_limit';`.
+
+### Minha conta (/app/)
+
+O cartão do usuário na barra lateral abre "Minha conta": foto de perfil (bucket privado
+`avatares`, pasta `<user_id>/`), nome e telefone, estilo das respostas, instruções pessoais,
+modelo, tema, tamanho do texto, Enter envia, exportar e apagar conversas, senha e sair dos
+outros aparelhos. As preferências ficam em `preferencias_usuario` (só a própria pessoa lê;
+a função `chat` lê estilo, instruções e modelo).
+
+Para oferecer mais de um modelo (todos atendidos pelo mesmo `LLM_BASE_URL`, por exemplo um
+llama-server com vários modelos ou um llama-swap):
+
+```sql
+insert into public.app_settings (key, value) values ('modelos_chat',
+  '[{"id": "trustio", "rotulo": "Trustio", "descricao": "equilibrado"},
+    {"id": "outro-modelo", "rotulo": "Trustio Rápido", "descricao": "respostas curtas"}]')
+on conflict (key) do update set value = excluded.value;
+```
+
+Sem essa lista, o seletor aparece travado em "Trustio (padrão)". Um modelo que sai da lista
+deixa de valer na hora: quem o tinha escolhido volta para o padrão.

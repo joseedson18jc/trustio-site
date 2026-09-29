@@ -51,44 +51,56 @@ if [ ! -s "$CONFIG" ]; then
 fi
 PORTA="$("$NODE" -p 'require(process.argv[1]).porta ?? 8080' "$CONFIG")"
 
-# Outro programa na porta (ex.: o container antigo da Evolution) impede o serviço de subir.
-if lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN 2>/dev/null | grep -qv "^COMMAND"; then
-  if ! launchctl print "gui/$(id -u)/$ROTULO" >/dev/null 2>&1; then
-    echo
-    echo "A porta $PORTA já está em uso:"
-    lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN
-    echo "Pare esse programa (ex.: docker stop <container da Evolution>) e rode de novo."
-    exit 1
-  fi
+# Para a versão anterior deste serviço (numa reinstalação) antes de olhar a porta: o que continuar
+# ouvindo nela é outro programa (ex.: o container antigo da Evolution) e impede o serviço de subir.
+launchctl bootout "gui/$(id -u)/$ROTULO" 2>/dev/null || true
+for _ in 1 2 3 4 5; do lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN >/dev/null 2>&1 || break; sleep 1; done
+if lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN >/dev/null 2>&1; then
+  echo
+  echo "A porta $PORTA já está em uso:"
+  lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN
+  echo "Pare esse programa (ex.: docker stop <container da Evolution>) e rode de novo."
+  exit 1
 fi
 
 echo "→ serviço $ROTULO"
 mkdir -p "$(dirname "$PLIST")" "$(dirname "$LOG")"
+# Caminhos entram no XML do plist: &, < e > precisam ser escapados.
+xml() { printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'; }
 cat > "$PLIST" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>Label</key><string>$ROTULO</string>
+  <key>Label</key><string>$(xml "$ROTULO")</string>
   <key>ProgramArguments</key>
   <array>
-    <string>$NODE</string>
-    <string>$PASTA/servidor.mjs</string>
+    <string>$(xml "$NODE")</string>
+    <string>$(xml "$PASTA/servidor.mjs")</string>
   </array>
-  <key>WorkingDirectory</key><string>$PASTA</string>
+  <key>WorkingDirectory</key><string>$(xml "$PASTA")</string>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
   <key>ThrottleInterval</key><integer>10</integer>
-  <key>StandardOutPath</key><string>$LOG</string>
-  <key>StandardErrorPath</key><string>$LOG</string>
+  <key>StandardOutPath</key><string>$(xml "$LOG")</string>
+  <key>StandardErrorPath</key><string>$(xml "$LOG")</string>
 </dict>
 </plist>
 PLIST
-launchctl bootout "gui/$(id -u)/$ROTULO" 2>/dev/null || true
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
 
+# Só diz "pronto" quando o serviço responde na porta (ele sai se não conseguir abri-la).
+no_ar() { local r; r="$(curl -fsS -m 2 "http://127.0.0.1:$PORTA/saude" 2>/dev/null)" || return 1; [[ "$r" == *'"conectado"'* ]]; }
+for _ in $(seq 1 15); do no_ar && break; sleep 1; done
+if ! no_ar; then
+  echo
+  echo "O serviço não respondeu em http://127.0.0.1:$PORTA. Últimas linhas do log:"
+  tail -n 20 "$LOG" 2>/dev/null || true
+  exit 1
+fi
+
 echo
-echo "Pronto. Próximos passos:"
+echo "Pronto: o serviço está no ar. Próximos passos:"
 echo "  1. Veja o QR e escaneie no celular (WhatsApp → Aparelhos conectados → Conectar um aparelho):"
 echo "       tail -f $LOG"
 echo "     Espere a linha \"conectado ao WhatsApp\" e saia do tail com Ctrl+C."

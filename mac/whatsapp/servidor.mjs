@@ -30,6 +30,8 @@ let tentativas = 0;
 let pedidoDeCodigo = false;
 
 async function conectar() {
+  // Cada socket novo pede o próprio código de pareamento (o anterior morre com a conexão).
+  pedidoDeCodigo = false;
   const { state, saveCreds } = await useMultiFileAuthState(SESSAO);
   sock = makeWASocket({
     auth: state,
@@ -50,7 +52,11 @@ async function conectar() {
         try {
           const codigo = await sock.requestPairingCode(numero);
           log(`código de pareamento: ${codigo}  (WhatsApp → Aparelhos conectados → Conectar com número de telefone)`);
-        } catch (e) { log(`falha ao pedir o código: ${e.message}`); }
+        } catch (e) {
+          // Sem código, o próximo QR tenta de novo.
+          pedidoDeCodigo = false;
+          log(`falha ao pedir o código: ${e.message}`);
+        }
       } else if (!numero) {
         log("escaneie o QR no WhatsApp → Aparelhos conectados → Conectar um aparelho:");
         qrcode.generate(qr, { small: true });
@@ -68,7 +74,6 @@ async function conectar() {
         // pedir um QR novo (no log) para parear de novo.
         log("sessão desconectada pelo celular; apagando a sessão para parear de novo");
         rmSync(SESSAO, { recursive: true, force: true });
-        pedidoDeCodigo = false;
       }
       tentativas += 1;
       const espera = Math.min(300, 2 ** Math.min(tentativas, 8)) * 1000;

@@ -46,7 +46,7 @@ function lerCorpo(req) {
 
 // whatsapp: { conectado(): boolean, existe(numero): Promise<string|null> (o jid, ou null se o
 // número não tem WhatsApp), enviar(jid, texto): Promise<string|undefined> (o id da mensagem) }.
-export function criarServidor({ chave, instancia, whatsapp, log = () => {} }) {
+export function criarServidor({ chave, instancia, whatsapp, log = () => {}, intervaloMs = 1500, prazoFilaMs = 7000, prazoConsultaMs = 4000 }) {
   if (!chave || chave.length < 16) throw new Error("chave ausente ou curta (mínimo 16 caracteres)");
   if (!instancia) throw new Error("instância ausente");
   const rota = `/message/sendText/${encodeURIComponent(instancia)}`;
@@ -54,12 +54,19 @@ export function criarServidor({ chave, instancia, whatsapp, log = () => {} }) {
   // Um envio por vez, com intervalo: rajadas de mensagens para números novos são o que mais faz o
   // WhatsApp bloquear um número.
   let fila = Promise.resolve();
-  const INTERVALO_MS = 1500;
   const naFila = (fn) => {
     const vez = fila.then(fn);
-    fila = vez.catch(() => {}).then(() => new Promise((r) => setTimeout(r, INTERVALO_MS)));
+    fila = vez.catch(() => {}).then(() => new Promise((r) => setTimeout(r, intervaloMs)));
     return vez;
   };
+  // A função aviso-agente desiste em 15 s e libera a reserva do aviso; um envio que saísse depois
+  // disso viraria mensagem repetida no "Reenviar avisos". Por isso o envio só começa se quem pediu
+  // ainda espera e se a vez chegou dentro de prazoFilaMs (senão 429, que a função tenta de novo
+  // sabendo que nada saiu), e a consulta do número tem prazo próprio. Sobram ~4 s para o envio.
+  const comPrazo = (promessa, ms) => Promise.race([
+    promessa,
+    new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error("consulta demorou"), { prazo: true })), ms).unref()),
+  ]);
 
   return createServer(async (req, res) => {
     try {
@@ -89,13 +96,26 @@ export function criarServidor({ chave, instancia, whatsapp, log = () => {} }) {
       if (texto.length > LIMITE_TEXTO) return responder(res, 400, { error: "texto_grande" });
       if (!whatsapp.conectado()) return responder(res, 503, { error: "whatsapp_desconectado" });
 
+      const chegada = Date.now();
+      let desistiu = false;
+      res.on("close", () => { if (!res.writableFinished) desistiu = true; });
       const resultado = await naFila(async () => {
-        const jid = await whatsapp.existe(numero);
+        if (desistiu) return { status: 0 };
+        if (Date.now() - chegada > prazoFilaMs) return { status: 429, corpo: { error: "fila_cheia" } };
+        if (!whatsapp.conectado()) return { status: 503, corpo: { error: "whatsapp_desconectado" } };
+        let jid;
+        try { jid = await comPrazo(whatsapp.existe(numero), prazoConsultaMs); } catch (e) {
+          if (e.prazo) return { status: 503, corpo: { error: "consulta_demorou" } };
+          throw e;
+        }
         if (!jid) return { status: 400, corpo: { error: "numero_sem_whatsapp" } };
+        if (desistiu) return { status: 0 };
         const id = await whatsapp.enviar(jid, texto);
         return { status: 201, corpo: { key: { remoteJid: jid, fromMe: true, id: id ?? null }, status: "PENDING" } };
       });
-      log(`envio ${resultado.status} ${numero.slice(0, 4)}…${numero.slice(-2)}`);
+      const destino = `${numero.slice(0, 4)}…${numero.slice(-2)}`;
+      if (resultado.status === 0) { log(`envio cancelado (quem pediu desistiu) ${destino}`); return; }
+      log(`envio ${resultado.status} ${destino}`);
       return responder(res, resultado.status, resultado.corpo);
     } catch (e) {
       log(`erro: ${e?.message ?? e}`);

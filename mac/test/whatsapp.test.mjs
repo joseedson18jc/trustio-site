@@ -86,6 +86,46 @@ falhaNoEnvio = false;
 conectado = false;
 await check((await status(enviar({ number: "11988887777", text: "oi" }))) === 503, "desconectado → 503");
 
+// Prazo da fila: quem esperou demais recebe 429 e nada sai (a função tenta de novo sabendo disso);
+// quem desistiu antes da vez não gera envio.
+{
+  const saidas = [];
+  let lento = 0;
+  const s2 = criarServidor({
+    chave: CHAVE, instancia: "trustio", intervaloMs: 300, prazoFilaMs: 400, prazoConsultaMs: 200,
+    whatsapp: {
+      conectado: () => true,
+      existe: async (n) => { if (lento) await new Promise((r) => setTimeout(r, lento)); return `${n}@s.whatsapp.net`; },
+      enviar: async (jid) => { saidas.push(jid); return "X"; },
+    },
+  });
+  await new Promise((r) => s2.listen(0, "127.0.0.1", r));
+  const b2 = `http://127.0.0.1:${s2.address().port}`;
+  const pedir = (n, sinal) => fetch(`${b2}/message/sendText/trustio`, {
+    method: "POST", signal: sinal, headers: { apikey: CHAVE, "Content-Type": "application/json" },
+    body: JSON.stringify({ number: n, text: "oi" }),
+  });
+  const rs = await Promise.all(["11922220001", "11922220002", "11922220003"].map((n) => pedir(n)));
+  const st = rs.map((x) => x.status);
+  await check(st[0] === 201 && st[1] === 201 && st[2] === 429 && saidas.length === 2, "vez que chega depois do prazo → 429, sem envio", st.join(","));
+
+  await new Promise((r) => setTimeout(r, 400));
+  saidas.length = 0;
+  const ac = new AbortController();
+  const primeiro = pedir("11933330001");
+  const desistente = pedir("11933330002", ac.signal).catch(() => "abortado");
+  setTimeout(() => ac.abort(), 100);
+  await primeiro; await desistente;
+  await new Promise((r) => setTimeout(r, 500));
+  await check(saidas.length === 1 && saidas[0].startsWith("5511933330001"), "pedido abandonado na fila não é enviado", saidas.join(","));
+
+  await new Promise((r) => setTimeout(r, 400));
+  lento = 500;
+  const r3 = await pedir("11944440001");
+  await check(r3.status === 503 && (await r3.json()).error === "consulta_demorou", "consulta do número demorada → 503, sem envio");
+  s2.close();
+}
+
 // A chave curta não sobe o servidor.
 let recusou = false;
 try { criarServidor({ chave: "curta", instancia: "x", whatsapp: {} }); } catch { recusou = true; }

@@ -226,7 +226,7 @@ button.me:hover .me-gear { stroke: var(--ice); }
 .conv-row:hover .conv-mais, .conv-mais:focus-visible, .conv-mais[aria-expanded="true"], .conv-row .conv-item[aria-current="true"] + .conv-mais { opacity: 1; }
 .conv-mais:hover, .conv-mais[aria-expanded="true"] { background: rgba(var(--on-surface-rgb), 0.08); color: var(--ice); }
 @media (hover: none) { .conv-mais { opacity: 1; } }
-.conv-menu { position: absolute; right: 4px; top: calc(100% + 2px); z-index: 5; min-width: 150px; padding: 5px; border: 1px solid var(--line-bright); border-radius: 11px; background: var(--surface-raised); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35); display: grid; }
+.conv-menu { position: fixed; z-index: 45; min-width: 150px; padding: 5px; border: 1px solid var(--line-bright); border-radius: 11px; background: var(--surface-raised); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35); display: grid; }
 .conv-menu button { padding: 8px 10px; border: 0; border-radius: 7px; background: transparent; color: var(--ice); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
 .conv-menu button:hover, .conv-menu button:focus-visible { background: rgba(var(--on-surface-rgb), 0.07); outline: none; }
 .conv-menu .is-perigo { color: var(--danger); }

@@ -421,12 +421,18 @@
       });
       menu.appendChild(item);
     });
-    row.appendChild(menu);
+    // No body, com posição fixa: dentro da lista (que rola) o menu seria cortado perto do fim.
+    document.body.appendChild(menu);
+    var r = botao.getBoundingClientRect(), h = menu.offsetHeight;
+    menu.style.left = Math.max(8, r.right - menu.offsetWidth) + "px";
+    menu.style.top = (r.bottom + 4 + h > window.innerHeight - 8 ? Math.max(8, r.top - 4 - h) : r.bottom + 4) + "px";
     botao.setAttribute("aria-expanded", "true");
     menuAberto = { menu: menu, botao: botao };
     menu.querySelector("button").focus();
   }
   document.addEventListener("click", function (e) { if (menuAberto && !e.target.closest(".conv-menu")) fecharMenuConversa(); });
+  convList.addEventListener("scroll", fecharMenuConversa);
+  window.addEventListener("resize", fecharMenuConversa);
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && menuAberto) { var b = menuAberto.botao; fecharMenuConversa(); b.focus(); } });
 
   function renomearConversa(row, c) {
@@ -1029,7 +1035,10 @@
     prepararFoto(f).then(function (blob) {
       return sb.storage.from("avatares").upload(CAMINHO_FOTO(), blob, { upsert: true, contentType: "image/jpeg", cacheControl: "60" }).then(function (r) {
         if (r.error) throw r.error;
-        return salvarPrefs({ avatar_em: new Date().toISOString() }).then(function () { trocarAvatarUrl(URL.createObjectURL(blob)); });
+        // Sem a marca da foto nas preferências, o arquivo enviado não fica para trás escondido.
+        return salvarPrefs({ avatar_em: new Date().toISOString() }).then(function () { trocarAvatarUrl(URL.createObjectURL(blob)); }, function (err) {
+          return sb.storage.from("avatares").remove([CAMINHO_FOTO()]).then(function () { throw err; }, function () { throw err; });
+        });
       });
     }).then(function () { fotoStatus.textContent = T("Foto atualizada.", "Photo updated."); })
       .catch(function (err) { console.error("foto", err); fotoStatus.textContent = T("Não foi possível enviar a foto. Tente de novo.", "We couldn't upload the photo. Try again."); });
@@ -1060,9 +1069,35 @@
     });
     return linhas.join("\n");
   }
+  // Busca em páginas de 500: a API do banco corta respostas grandes, e um arquivo exportado
+  // não pode sair faltando pedaço sem aviso.
+  var PAGINA = 500;
+  function emPaginas(consulta) {
+    var tudo = [];
+    function pagina(de) {
+      return consulta().range(de, de + PAGINA - 1).then(function (r) {
+        if (r.error) throw r.error;
+        var linhas = r.data || [];
+        tudo = tudo.concat(linhas);
+        return linhas.length < PAGINA ? tudo : pagina(de + PAGINA);
+      });
+    }
+    return pagina(0);
+  }
   function mensagensDe(id) {
-    return sb.from("messages").select("role,content,created_at").eq("conversation_id", id).order("created_at", { ascending: true })
-      .then(function (r) { if (r.error) throw r.error; return r.data || []; });
+    return emPaginas(function () {
+      return sb.from("messages").select("role,content,created_at").eq("conversation_id", id).order("created_at", { ascending: true }).order("id", { ascending: true });
+    });
+  }
+  // Todas as conversas da conta direto do banco (a barra lateral carrega só as 100 mais recentes).
+  function todasAsConversas() {
+    return emPaginas(function () {
+      return sb.from("conversations").select("id,title,created_at").eq("user_id", state.user.id).order("created_at", { ascending: true }).order("id", { ascending: true });
+    });
+  }
+  function totalDeConversas() {
+    return sb.from("conversations").select("id", { count: "exact", head: true }).eq("user_id", state.user.id)
+      .then(function (r) { if (r.error) throw r.error; return r.count || 0; });
   }
   function baixarConversas(lista, aoProgresso) {
     var partes = [], i = 0;
@@ -1078,7 +1113,8 @@
         ? "trustio-" + (normalizar(lista[0].title).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "conversa") + ".md"
         : "trustio-conversas-" + dia + ".md";
       baixarArquivo(nome, partes.join("\n\n"));
-    }).catch(function () { showNotice(T("Não foi possível baixar agora. Tente de novo.", "We couldn't download it right now. Try again.")); });
+      return true;
+    }).catch(function () { showNotice(T("Não foi possível baixar agora. Tente de novo.", "We couldn't download it right now. Try again.")); return false; });
   }
 
   // ---- o painel
@@ -1138,11 +1174,15 @@
     f.querySelectorAll("input[name=fonte]").forEach(function (r) { r.checked = r.value === (state.pref.fonte || "normal"); });
     f.enter_envia.checked = state.pref.enter_envia !== false;
     // Conversas
-    var n = state.conversations.length;
-    $("[data-conv-total]").textContent = n === 0 ? T("Nenhuma conversa salva ainda.", "No saved conversations yet.")
-      : EN ? n + (n === 1 ? " conversation" : " conversations") + " saved in your account" + (n >= 100 ? " (showing the 100 most recent)." : ".")
-      : n + (n === 1 ? " conversa salva" : " conversas salvas") + " na sua conta" + (n >= 100 ? " (as 100 mais recentes)." : ".");
-    $("[data-baixar-todas]").disabled = n === 0; $("[data-apagar-todas]").disabled = n === 0;
+    function mostrarTotal(n) {
+      $("[data-conv-total]").textContent = n === 0 ? T("Nenhuma conversa salva ainda.", "No saved conversations yet.")
+        : EN ? n + (n === 1 ? " conversation" : " conversations") + " saved in your account."
+        : n + (n === 1 ? " conversa salva" : " conversas salvas") + " na sua conta.";
+      $("[data-baixar-todas]").disabled = n === 0; $("[data-apagar-todas]").disabled = n === 0;
+    }
+    mostrarTotal(state.conversations.length);
+    // A barra lateral traz até 100; o número certo vem do banco.
+    if (state.conversations.length >= 100) totalDeConversas().then(mostrarTotal).catch(function () { /* fica o da lista */ });
     conta.querySelectorAll(".conta-status").forEach(function (x) { x.textContent = ""; });
     pintarTodosAvatares();
   }
@@ -1171,6 +1211,7 @@
       if (state.lead) Object.assign(state.lead, mudancas);
       return sb.auth.updateUser({ data: { nome: nome } });
     }).then(function (r) {
+      if (r && r.error) throw r.error;
       if (r && r.data && r.data.user) state.user = r.data.user;
       renderMe(); pintarTodosAvatares();
       st.textContent = T("Perfil salvo.", "Profile saved.");
@@ -1201,16 +1242,25 @@
   $("[data-baixar-todas]").addEventListener("click", function () {
     var st = $("[data-conv-status]"), b = this;
     b.disabled = true;
-    baixarConversas(state.conversations.slice(), function (i, n) { st.textContent = T("Preparando ", "Preparing ") + i + "/" + n + "…"; })
-      .then(function () { st.textContent = T("Arquivo pronto.", "File ready."); b.disabled = false; });
+    st.textContent = T("Preparando…", "Preparing…");
+    todasAsConversas().then(function (lista) {
+      return baixarConversas(lista, function (i, n) { st.textContent = T("Preparando ", "Preparing ") + i + "/" + n + "…"; });
+    }).then(function (ok) {
+      st.textContent = ok ? T("Arquivo pronto.", "File ready.") : T("Não foi possível baixar agora. Tente de novo.", "We couldn't download it right now. Try again.");
+    }).catch(function () { st.textContent = T("Não foi possível baixar agora. Tente de novo.", "We couldn't download it right now. Try again."); })
+      .then(function () { b.disabled = false; });
   });
   $("[data-apagar-todas]").addEventListener("click", function () {
     if (state.sending) return;
-    var n = state.conversations.length;
-    if (!confirm(EN ? "Delete all " + n + " conversations? This can't be undone." : "Apagar as " + n + " conversas? Isso não pode ser desfeito.")) return;
     var st = $("[data-conv-status]");
-    st.textContent = T("Apagando…", "Deleting…");
-    sb.from("conversations").delete().eq("user_id", state.user.id).then(function (r) {
+    // A contagem vem do banco, não da barra lateral: é o que a exclusão vai apagar de fato.
+    totalDeConversas().then(function (n) {
+      if (!n) { st.textContent = T("Nenhuma conversa para apagar.", "No conversations to delete."); return null; }
+      if (!confirm(EN ? "Delete all " + n + " conversations? This can't be undone." : "Apagar as " + n + " conversas? Isso não pode ser desfeito.")) return null;
+      st.textContent = T("Apagando…", "Deleting…");
+      return sb.from("conversations").delete().eq("user_id", state.user.id);
+    }).then(function (r) {
+      if (r === null) return;
       if (r.error) throw r.error;
       state.conversations = []; resetThread(); preencherConta();
       st.textContent = T("Todas as conversas foram apagadas.", "All conversations were deleted.");

@@ -40,6 +40,21 @@
 
 body.menu-open .wa-float { visibility: hidden; }
 
+/* No chat (/app/), o canto inferior é da caixa de mensagem: o botão fica logo acima
+   dela, à direita, só com o ícone, para não cobrir o botão de enviar. */
+.composer > .wa-float {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: calc(100% + 12px);
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  padding: 0;
+}
+.composer > .wa-float svg { width: 24px; height: 24px; }
+.composer > .wa-float .wa-float-texto { display: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .wa-float, .wa-float:hover { transition: none; transform: none; }
 }

@@ -372,9 +372,13 @@ function applyTheme(theme, persist) {
     themeToggle.setAttribute("aria-label", isLight ? T("Ativar tema escuro", "Switch to dark theme") : T("Ativar tema claro", "Switch to light theme"));
   }
   if (persist) {
-    try { localStorage.setItem(THEME_KEY, theme); } catch (error) { /* sem persistência */ }
+    // Escolha pelo botão: vale até a próxima troca de horário (assets/theme.js).
+    if (window.TrustioTema) window.TrustioTema.escolher(theme);
+    else try { localStorage.setItem(THEME_KEY, theme); } catch (error) { /* sem persistência */ }
   }
 }
 
 applyTheme(currentTheme(), false);
 themeToggle?.addEventListener("click", () => applyTheme(currentTheme() === "light" ? "dark" : "light", true));
+// Troca automática de horário (05:00 claro, 19:01 escuro) com a página aberta.
+document.addEventListener("trustio:tema", (e) => applyTheme(e.detail, false));

@@ -1,8 +1,8 @@
-// Tema da página "IA sem censura" antes da primeira pintura: a mesma escolha do resto do site
-// (localStorage "trustio-theme"); sem escolha salva, escuro, como no site.
+// Tema da página "IA sem censura" antes da primeira pintura: o mesmo do resto do site
+// (assets/theme.js: claro das 05:00 às 19:00, escuro à noite, ou a escolha de quem visita).
+// Esta página usa data-theme="dark" explícito (data-tema-explicito no <html>).
 (function () {
-  var t = null;
-  try { t = localStorage.getItem("trustio-theme"); } catch (e) { /* sem storage */ }
+  var t = window.TrustioTema ? window.TrustioTema.atual() : "dark";
   document.documentElement.setAttribute("data-theme", t === "light" ? "light" : "dark");
   document.documentElement.classList.add("js");
   // ".js" esconde as seções até o script da página revelá-las. Se esse script não carregar ou

@@ -1218,7 +1218,8 @@
     $("[data-modelo-dica]").textContent = state.modelos.length
       ? T("O modelo escolhido vale para as próximas mensagens, em todas as conversas.", "The model you pick applies to your next messages, in every conversation.")
       : T("Por enquanto há um modelo disponível. Quando houver outros, eles aparecem aqui.", "For now there is one model available. When there are others, they'll show up here.");
-    var tema = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+    // Automático, a não ser que a pessoa tenha fixado Claro ou Escuro aqui.
+    var tema = window.TrustioTema && window.TrustioTema.modo() === "fixo" ? window.TrustioTema.atual() : "auto";
     f.querySelectorAll("input[name=tema]").forEach(function (r) { r.checked = r.value === tema; });
     f.querySelectorAll("input[name=fonte]").forEach(function (r) { r.checked = r.value === (state.pref.fonte || "normal"); });
     f.enter_envia.checked = state.pref.enter_envia !== false;
@@ -1274,7 +1275,13 @@
   var prefForm = $("[data-pref-form]");
   prefForm.instrucoes.addEventListener("input", function () { $("[data-instr-conta]").textContent = prefForm.instrucoes.value.length; });
   // Tema e tamanho do texto mudam na hora; o resto vale ao salvar.
-  prefForm.querySelectorAll("input[name=tema]").forEach(function (r) { r.addEventListener("change", function () { if (r.checked) applyTheme(r.value); }); });
+  prefForm.querySelectorAll("input[name=tema]").forEach(function (r) {
+    r.addEventListener("change", function () {
+      if (!r.checked) return;
+      if (r.value === "auto") { if (window.TrustioTema) pintarTema(window.TrustioTema.automatico()); }
+      else applyTheme(r.value, true);
+    });
+  });
   prefForm.querySelectorAll("input[name=fonte]").forEach(function (r) { r.addEventListener("change", function () { if (r.checked) shell.dataset.fonte = r.value; }); });
   prefForm.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -1351,13 +1358,20 @@
   // Barra do navegador no celular na cor do fundo do chat (cinza-escuro ou claro).
   var themeColor = document.querySelector('meta[name="theme-color"]');
   function paintThemeColor(t) { if (themeColor) themeColor.setAttribute("content", t === "light" ? "#f4f6fa" : "#1e1f22"); }
-  function applyTheme(t) {
+  function pintarTema(t) {
     if (t === "light") document.documentElement.setAttribute("data-theme", "light"); else document.documentElement.removeAttribute("data-theme");
     paintThemeColor(t);
     toggle.setAttribute("aria-pressed", t === "light" ? "true" : "false");
-    try { localStorage.setItem("trustio-theme", t); } catch (e) { /* sem storage */ }
+  }
+  // Botão de tema: vale até a próxima troca de horário. fixo (Minha conta): vale sempre.
+  function applyTheme(t, fixo) {
+    pintarTema(t);
+    if (window.TrustioTema) window.TrustioTema.escolher(t, fixo);
+    else try { localStorage.setItem("trustio-theme", t); } catch (e) { /* sem storage */ }
   }
   toggle.addEventListener("click", function () { applyTheme(document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light"); });
+  // Troca automática de horário (05:00 claro, 19:01 escuro) com o chat aberto.
+  document.addEventListener("trustio:tema", function (e) { pintarTema(e.detail); });
   toggle.setAttribute("aria-pressed", document.documentElement.getAttribute("data-theme") === "light" ? "true" : "false");
   paintThemeColor(document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
 

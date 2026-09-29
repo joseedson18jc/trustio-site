@@ -40,20 +40,19 @@
 
 body.menu-open .wa-float { visibility: hidden; }
 
-/* No chat (/app/), o canto inferior é da caixa de mensagem: o botão fica logo acima
-   dela, à direita, só com o ícone, para não cobrir o botão de enviar. */
-.composer > .wa-float {
-  position: absolute;
-  z-index: 3;
-  right: 0;
-  bottom: calc(100% + 12px);
-  width: 48px;
-  min-width: 48px;
-  height: 48px;
+/* No chat (/app/), o botão fica no cabeçalho, ao lado da bandeira e do tema, e não
+   flutua: flutuando, cobriria o fim da última mensagem ou o botão de enviar. */
+.chat-top-right > .wa-float {
+  position: static;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
   padding: 0;
+  box-shadow: none;
 }
-.composer > .wa-float svg { width: 24px; height: 24px; }
-.composer > .wa-float .wa-float-texto { display: none; }
+.chat-top-right > .wa-float svg { width: 22px; height: 22px; }
+.chat-top-right > .wa-float .wa-float-texto { display: none; }
+.chat-top-right > .wa-float:hover { transform: none; box-shadow: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .wa-float, .wa-float:hover { transition: none; transform: none; }

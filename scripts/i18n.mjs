@@ -50,7 +50,7 @@ const MARCAS = new Set([
   "SLA", "CRM", "CSV", "PDF", "Starter", "Pro", "Dedicado", "Crédito Jus", "br-sao-1",
   "Gmail", "Outlook", "powered by xSpace", "Agentio", "Agentio · Nous", "Nous Research", "Hermes Agent", "by", "Agent Builder", "SAFE ROUTE", "TRUSTIO / SAFE ROUTE",
   // a própria bandeira: é reescrita depois da tradução
-  "EN", "PT", "English", "Português", "Switch to English", "Mudar para português",
+  "EN", "PT", "Idioma atual: português. Mudar para inglês", "Mudar para inglês (English)",
 ]);
 
 // ─────────────────────────────────────────────────────────────── entidades
@@ -129,10 +129,14 @@ function reescreverUrl(valor, paginaPt) {
 const BANDEIRA_BR = '<svg viewBox="0 0 20 14" aria-hidden="true" focusable="false"><rect width="20" height="14" fill="#009c3b"/><path d="M10 1.6 18.4 7 10 12.4 1.6 7z" fill="#ffdf00"/><circle cx="10" cy="7" r="3.1" fill="#002776"/></svg>';
 const BANDEIRA_US = '<svg viewBox="0 0 20 14" aria-hidden="true" focusable="false"><rect width="20" height="14" fill="#b22234"/><path d="M0 1.62h20M0 3.77h20M0 5.92h20M0 8.08h20M0 10.23h20M0 12.38h20" stroke="#fff" stroke-width="1.08"/><rect width="8.6" height="7.54" fill="#3c3b6e"/></svg>';
 
+// Mostra o idioma da página (bandeira e sigla do idioma atual) e leva ao outro; as setas
+// dizem que é uma troca. O aria-label diz as duas coisas.
+const SETAS_TROCA = '<svg class="lang-switch-troca" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 5.5h9.5M10 3l2.5 2.5L10 8M13 10.5H3.5M6 8l-2.5 2.5L6 13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
 function bandeira(pagina, idioma) {
   return idioma === "pt"
-    ? `<a class="lang-switch" href="/en/${bonito(pagina)}" hreflang="en" lang="en" aria-label="Switch to English" title="English">${BANDEIRA_US}<span>EN</span></a>`
-    : `<a class="lang-switch" href="/${bonito(pagina)}" hreflang="pt-BR" lang="pt-BR" aria-label="Mudar para português" title="Português">${BANDEIRA_BR}<span>PT</span></a>`;
+    ? `<a class="lang-switch" href="/en/${bonito(pagina)}" hreflang="en" aria-label="Idioma atual: português. Mudar para inglês" title="Mudar para inglês (English)">${BANDEIRA_BR}<span>PT</span>${SETAS_TROCA}</a>`
+    : `<a class="lang-switch" href="/${bonito(pagina)}" hreflang="pt-BR" aria-label="Current language: English. Switch to Portuguese" title="Switch to Portuguese (Português)">${BANDEIRA_US}<span>EN</span>${SETAS_TROCA}</a>`;
 }
 
 const alternativos = (pagina) =>

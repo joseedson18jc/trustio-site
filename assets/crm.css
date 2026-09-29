@@ -142,3 +142,63 @@ table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-
 .eu { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted-strong); padding: 0 6px; }
 .eu b { color: var(--ice); }
 .crm-shell:not([data-papel="admin"]) .so-admin { display: none; }
+
+/* ── Visão geral: funil e cadastros por dia ── */
+.visao { margin-bottom: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.visao > summary { cursor: pointer; padding: 12px 16px; font-family: var(--mono); font-size: var(--label); letter-spacing: 0.13em; text-transform: uppercase; color: var(--label-color); list-style-position: inside; }
+.visao > summary:hover { color: var(--muted-strong); }
+.visao > summary:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: -2px; border-radius: 14px; }
+.visao-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 12px; padding: 0 12px 12px; }
+.visao-card { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-raised); min-width: 0; }
+.visao-card h2 { margin: 0 0 12px; font-family: var(--body); font-size: 13.5px; font-weight: 600; letter-spacing: 0; }
+.visao-card h2 small { font-family: var(--mono); font-size: 11px; font-weight: 400; color: var(--label-color); }
+.funil { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.funil li { display: grid; grid-template-columns: 128px minmax(0, 1fr) 40px; grid-template-areas: "nome barra num" ". pct pct"; align-items: center; column-gap: 10px; row-gap: 2px; font-size: 13px; }
+.funil-nome { grid-area: nome; color: var(--muted-strong); }
+.funil-barra { grid-area: barra; height: 10px; border-radius: 5px; background: rgba(var(--on-surface-rgb), 0.06); overflow: hidden; }
+.funil-barra i { display: block; height: 100%; border-radius: 0 4px 4px 0; background: var(--blue-signal); }
+.funil b { grid-area: num; text-align: right; font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+.funil small { grid-area: pct; font-family: var(--mono); font-size: 10.5px; color: var(--label-color); }
+.barras { display: flex; align-items: flex-end; gap: 2px; height: 96px; padding-top: 4px; border-bottom: 1px solid var(--line); }
+.barra { flex: 1 1 0; height: 100%; display: flex; align-items: flex-end; min-width: 0; cursor: default; }
+.barra i { display: block; width: 100%; border-radius: 4px 4px 0 0; background: var(--blue-signal); }
+.barra:hover i { filter: brightness(1.25); }
+.barra.zero::after { content: ""; display: block; width: 100%; height: 1px; background: rgba(var(--on-surface-rgb), 0.12); }
+.barras-eixo { display: flex; justify-content: space-between; margin-top: 6px; font-family: var(--mono); font-size: 10.5px; color: var(--label-color); }
+
+/* ── Retorno e etiquetas na linha ── */
+.leads .who .retorno { display: inline-block; white-space: nowrap; margin: 4px 6px 0 0; padding: 2px 8px; border: 1px solid var(--line); border-radius: 20px; font-family: var(--mono); font-size: 10.5px; color: var(--muted-strong); }
+.leads .who .retorno.hoje { color: #ffb454; border-color: rgba(255, 180, 84, 0.45); background: rgba(255, 180, 84, 0.08); }
+.leads .who .retorno.atrasado { color: #ff8a8a; border-color: rgba(255, 107, 107, 0.5); background: rgba(255, 107, 107, 0.08); }
+.etiquetas { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; vertical-align: top; }
+.etiqueta { padding: 2px 8px; border: 1px solid rgba(94, 167, 255, 0.3); border-radius: 20px; background: rgba(94, 167, 255, 0.08); color: var(--blue-signal); font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; }
+.etiqueta:hover, .etiqueta.is-on { background: rgba(94, 167, 255, 0.2); color: var(--ice); }
+.etiqueta:focus-visible, .tag-ativa:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 2px; }
+.tag-ativa { padding: 6px 12px; border: 1px solid rgba(94, 167, 255, 0.45); border-radius: 20px; background: rgba(94, 167, 255, 0.14); color: var(--ice); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+
+/* ── Ficha: retorno, etiquetas e histórico ── */
+.detail { overflow: auto; }
+.detail-edit { display: grid; gap: 14px; padding: 14px 20px 16px; border-top: 1px solid var(--line); }
+.detail-campo label { display: block; margin-bottom: 6px; font-family: var(--mono); font-size: var(--label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--label-color); }
+.detail-linha { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.detail-linha input { flex: 1 1 180px; min-height: 36px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-raised); color: var(--ice); font: inherit; font-size: 13.5px; color-scheme: dark; }
+[data-theme="light"] .detail-linha input { color-scheme: light; }
+.detail-linha input[type=date] { flex: 0 1 170px; }
+.detail-linha input:focus { outline: none; border-color: var(--line-bright); }
+.detail-linha .btn { min-height: 34px; padding: 0 12px; font-size: 12.5px; }
+.detail-dica { display: block; margin-top: 6px; font-size: 11.5px; color: var(--label-color); }
+.historico { padding: 14px 20px 16px; border-top: 1px solid var(--line); }
+.historico h3 { margin: 0 0 10px; font-family: var(--mono); font-size: var(--label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--label-color); font-weight: 500; }
+.historico ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-height: 260px; overflow: auto; }
+.historico li { display: grid; grid-template-columns: 118px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; font-size: 13px; }
+.historico time { font-family: var(--mono); font-size: 11px; color: var(--label-color); white-space: nowrap; }
+.historico li > span { word-break: break-word; }
+.historico s { color: var(--label-color); }
+.historico small { font-family: var(--mono); font-size: 11px; color: var(--muted-strong); }
+.historico .hist-vazio { display: block; color: var(--label-color); }
+
+@media (max-width: 900px) { .visao-grid { grid-template-columns: 1fr; } }
+@media (max-width: 720px) {
+  .historico li { grid-template-columns: 1fr; gap: 0; }
+  .funil li { grid-template-columns: 110px minmax(0, 1fr) 34px; }
+}

@@ -40,6 +40,20 @@
 
 body.menu-open .wa-float { visibility: hidden; }
 
+/* No chat (/app/), o botão fica no cabeçalho, ao lado da bandeira e do tema, e não
+   flutua: flutuando, cobriria o fim da última mensagem ou o botão de enviar. */
+.chat-top-right > .wa-float {
+  position: static;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  box-shadow: none;
+}
+.chat-top-right > .wa-float svg { width: 22px; height: 22px; }
+.chat-top-right > .wa-float .wa-float-texto { display: none; }
+.chat-top-right > .wa-float:hover { transform: none; box-shadow: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .wa-float, .wa-float:hover { transition: none; transform: none; }
 }

@@ -17,11 +17,11 @@
   <link rel="preload" href="../assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="../assets/theme.js?v=673d4355"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=cda6d997">
-  <link rel="stylesheet" href="../assets/chat.css?v=5af1c027">
-  <link rel="stylesheet" href="../assets/crm.css?v=85d4ac08">
+  <link rel="stylesheet" href="../assets/chat.css?v=e0281232">
+  <link rel="stylesheet" href="../assets/crm.css?v=20592205">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=7ebbf495"></script>
-  <script defer src="../assets/crm.js?v=0b7df64e"></script>
+  <script defer src="../assets/crm.js?v=52c7c916"></script>
 </head>
 <body class="chat-page crm-page">
 <a class="skip-link" href="#leads">Ir para a lista de leads</a>
@@ -59,9 +59,25 @@
       <button type="button" class="stat" data-stat-filter="ativo"><b data-stat="ativos">0</b><small>ativos no chat</small></button>
       <button type="button" class="stat" data-stat-filter="trial_esgotado"><b data-stat="esgotados">0</b><small>teste esgotado</small></button>
       <button type="button" class="stat" data-stat-filter="assinante"><b data-stat="assinantes">0</b><small>assinantes</small></button>
+      <button type="button" class="stat stat-alert" data-stat-filter="fu"><b data-stat="retornos">0</b><small>retornos para hoje</small><i data-stat="atrasados"></i></button>
       <button type="button" class="stat stat-alert" data-stat-filter="wa:solicitado"><b data-stat="wa">0</b><small>WhatsApp para ativar</small></button>
       <div class="stat"><b data-stat="b2b">0</b><small>empresas</small></div>
     </div>
+
+    <details class="visao" data-visao open>
+      <summary>Visão geral</summary>
+      <div class="visao-grid">
+        <section class="visao-card" aria-labelledby="visao-funil">
+          <h2 id="visao-funil">Funil</h2>
+          <ol class="funil" data-funil></ol>
+        </section>
+        <section class="visao-card" aria-labelledby="visao-cadastros">
+          <h2 id="visao-cadastros">Cadastros por dia <small data-cad-resumo></small></h2>
+          <div class="barras" data-barras role="img"></div>
+          <div class="barras-eixo" aria-hidden="true"><span data-cad-ini></span><span>hoje</span></div>
+        </section>
+      </div>
+    </details>
 
     <div class="toolbar">
       <div class="filters" role="group" aria-label="Filtrar por status" data-filters>
@@ -72,6 +88,7 @@
         <button type="button" data-filter="trial_esgotado">Teste esgotado</button>
         <button type="button" data-filter="assinante">Assinantes</button>
         <button type="button" data-filter="cancelado">Cancelados</button>
+        <button type="button" data-filter="fu">Retornar</button>
         <button type="button" data-filter="wa:solicitado">WhatsApp pedido</button>
         <button type="button" data-filter="wa:ativo">WhatsApp ativo</button>
         <button type="button" data-filter="pa:admin">Admins</button>
@@ -82,6 +99,7 @@
     <div class="toolbar toolbar-2">
       <label class="search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg><input type="search" placeholder="Buscar nome, e-mail, telefone, plano, notas" data-search aria-label="Buscar"></label>
       <label class="check"><input type="checkbox" data-hide-tests> Ocultar testes <span data-tests-count></span></label>
+      <button type="button" class="tag-ativa" data-tag-ativa hidden title="Tirar o filtro de etiqueta"></button>
       <span class="meta"><span data-shown></span> · <span data-updated></span></span>
       <label class="setting so-admin">Perguntas grátis <input type="number" min="0" step="1" data-limit aria-label="Perguntas grátis por conta"> <small>0 = sem limite</small></label>
     </div>
@@ -110,7 +128,7 @@
       </table>
       <p class="empty" data-empty hidden>Nenhum lead com esse filtro.</p>
     </div>
-    <p class="foot-note">Status <code>assinante</code> libera o chat sem cota. Alterações são salvas ao sair do campo. O CSV exporta o que está na tela (filtro e busca). <b>Tipo de usuário:</b> admin tem acesso total e muda os tipos (só joseedson18@hotmail.com e matheuscastrocorrea@gmail.com); colaborador usa o CRM e o chat sem cota; teste grátis tem a cota de perguntas grátis; cliente usa o chat sem cota. Testes são os endereços <code>@resend.dev</code> e os que começam com <code>test-</code> ou <code>teste-</code>.</p>
+    <p class="foot-note">Status <code>assinante</code> libera o chat sem cota. Alterações são salvas ao sair do campo. O CSV exporta o que está na tela (filtro e busca). <b>Tipo de usuário:</b> admin tem acesso total e muda os tipos (só joseedson18@hotmail.com e matheuscastrocorrea@gmail.com); colaborador usa o CRM e o chat sem cota; teste grátis tem a cota de perguntas grátis; cliente usa o chat sem cota. Testes são os endereços <code>@resend.dev</code> e os que começam com <code>test-</code> ou <code>teste-</code>. <b>Retorno e etiquetas</b> ficam na ficha do lead (clique no nome), junto do histórico de quem mudou o quê; clique numa etiqueta para filtrar.</p>
   </main>
 
   <dialog class="detail" data-detail aria-labelledby="detail-title">
@@ -119,6 +137,30 @@
       <button type="button" class="detail-x" data-detail-close aria-label="Fechar">×</button>
     </div>
     <dl data-detail-body></dl>
+    <div class="detail-edit">
+      <div class="detail-campo">
+        <label for="d-retorno">Próximo contato</label>
+        <div class="detail-linha">
+          <input type="date" id="d-retorno" data-d-retorno>
+          <button type="button" class="btn btn-ghost" data-d-mais="1">+1 dia</button>
+          <button type="button" class="btn btn-ghost" data-d-mais="3">+3 dias</button>
+          <button type="button" class="btn btn-ghost" data-d-mais="7">+1 semana</button>
+          <button type="button" class="btn btn-ghost" data-d-mais="">Limpar</button>
+        </div>
+      </div>
+      <div class="detail-campo">
+        <label for="d-etiquetas">Etiquetas</label>
+        <div class="detail-linha">
+          <input type="text" id="d-etiquetas" data-d-etiquetas maxlength="340" placeholder="Ex.: vip, parceiro, retornar" autocomplete="off">
+          <button type="button" class="btn btn-ghost" data-d-etiquetas-salvar>Salvar</button>
+        </div>
+        <small class="detail-dica">Separadas por vírgula. Até 10, com até 30 caracteres cada.</small>
+      </div>
+    </div>
+    <section class="historico" aria-labelledby="historico-titulo">
+      <h3 id="historico-titulo">Histórico</h3>
+      <ol data-historico></ol>
+    </section>
     <div class="detail-actions">
       <a class="btn btn-primary" data-detail-mail href="#">Enviar e-mail</a>
       <a class="btn btn-ghost" data-detail-wa href="#" target="_blank" rel="noopener">Abrir no WhatsApp</a>

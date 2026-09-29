@@ -34,7 +34,7 @@
 
   var PREF = "trustio-crm-ocultar-testes";
   var eu = { id: null, papel: null };
-  var state = { leads: [], filter: "", q: "", sort: { key: "created_at", dir: -1 }, ocultarTestes: lerPref(), carregadoEm: null };
+  var state = { leads: [], filter: "", tag: "", q: "", sort: { key: "created_at", dir: -1 }, ocultarTestes: lerPref(), carregadoEm: null };
   // Gravações a caminho, por "id|campo": { valor, seq }. Só a mais recente de cada campo vale,
   // e um recarregamento da lista reaplica esses valores por cima do que veio do banco.
   var pendentes = {}, seqGravacao = 0;
@@ -43,6 +43,13 @@
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function fmt(d) { if (!d) return "—"; var x = new Date(d); return x.toLocaleDateString("pt-BR") + " " + x.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }); }
   function gateShow(t, p, actions) { gate.hidden = false; $("[data-gate-title]").textContent = t; $("[data-gate-text]").textContent = p; $("[data-gate-actions]").hidden = !actions; }
+
+  // Datas locais (AAAA-MM-DD), para o próximo contato: "hoje" é o dia no fuso de quem usa o CRM.
+  function diaLocal(d) { var p = function (n) { return (n < 10 ? "0" : "") + n; }; return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); }
+  function hoje() { return diaLocal(new Date()); }
+  function diaCurto(iso) { var x = String(iso || "").split("-"); return x.length === 3 ? x[2] + "/" + x[1] : ""; }
+  function retornoPendente(l) { return !!l.proximo_contato && l.proximo_contato <= hoje(); }
+  function etiquetasDe(l) { return Array.isArray(l.etiquetas) ? l.etiquetas : []; }
 
   // Endereços usados em testes automáticos e manuais: somem da lista (e dos números) por padrão.
   function ehTeste(l) {
@@ -135,12 +142,13 @@
     if (!f) return true;
     // Mesmo critério do card: quem confirmou o e-mail, em qualquer etapa depois disso.
     if (f === "conf") return !!l.confirmed_at;
+    if (f === "fu") return retornoPendente(l);
     if (f.indexOf("pa:") === 0) return !!l.user_id && (l.papel || "teste") === f.slice(3);
     if (f.indexOf("wa:") === 0) return (l.whatsapp_trial_status || "nao_solicitado") === f.slice(3);
     return l.status === f;
   }
 
-  function render() { renderStats(); renderFilters(); renderRows(); }
+  function render() { renderStats(); renderFilters(); renderRows(); renderVisao(); }
 
   function renderStats() {
     var L = base(), n = function (f) { return L.filter(f).length; };
@@ -154,6 +162,9 @@
     set("assinantes", n(function (l) { return l.status === "assinante"; }));
     set("wa", n(function (l) { return l.whatsapp_trial_status === "solicitado"; }));
     set("b2b", n(function (l) { return l.tipo === "b2b"; }));
+    var hj = hoje(), atrasados = n(function (l) { return !!l.proximo_contato && l.proximo_contato < hj; });
+    set("retornos", n(retornoPendente));
+    set("atrasados", atrasados ? atrasados + " atrasado" + (atrasados === 1 ? "" : "s") : "");
     var ocultos = state.leads.length - L.length;
     $("[data-tests-count]").textContent = ocultos ? "(" + ocultos + ")" : "";
   }
@@ -182,8 +193,9 @@
     var q = state.q.toLowerCase(), k = state.sort.key, dir = state.sort.dir;
     return base().filter(function (l) {
       if (!passaFiltro(l, state.filter)) return false;
+      if (state.tag && etiquetasDe(l).indexOf(state.tag) < 0) return false;
       if (!q) return true;
-      return [l.nome, l.email, l.empresa, l.telefone, l.whatsapp_numero, l.segmento, l.origem, l.plano, l.notas, PAPEL_LABEL[l.papel]].join(" ").toLowerCase().indexOf(q) >= 0;
+      return [l.nome, l.email, l.empresa, l.telefone, l.whatsapp_numero, l.segmento, l.origem, l.plano, l.notas, PAPEL_LABEL[l.papel], etiquetasDe(l).join(" ")].join(" ").toLowerCase().indexOf(q) >= 0;
     }).sort(function (a, b) {
       var x = valorOrdem(a, k), y = valorOrdem(b, k);
       return x < y ? -dir : x > y ? dir : 0;
@@ -208,6 +220,7 @@
       return "<tr data-id=\"" + esc(l.id) + "\">" +
         "<td class=\"who\"><button type=\"button\" class=\"lead-open\" data-open>" + esc(l.nome || "Sem nome") + "</button>" +
           "<span class=\"chip " + esc(l.tipo) + "\">" + (l.tipo === "b2b" ? "Empresa" : "Pessoa") + "</span>" + (ehTeste(l) ? "<span class=\"chip teste\">Teste</span>" : "") +
+          retornoHtml(l) + etiquetasHtml(l) +
           "<a class=\"mail\" href=\"mailto:" + esc(l.email) + "\">" + esc(l.email) + "</a>" +
           (tel ? tel : "") +
           (l.empresa || l.segmento ? "<small>" + esc([l.empresa, l.segmento].filter(Boolean).join(" · ")) + "</small>" : "") +
@@ -229,9 +242,24 @@
       if (d.focado) { foco = el; try { el.setSelectionRange(d.a, d.b); } catch (e) { /* campo sem seleção */ } }
     });
     if (foco) foco.focus();
+    var pill = $("[data-tag-ativa]");
+    pill.hidden = !state.tag; pill.textContent = state.tag ? "Etiqueta: " + state.tag + " ×" : "";
     document.querySelectorAll("th[data-sort]").forEach(function (th) {
       th.setAttribute("aria-sort", th.dataset.sort === state.sort.key ? (state.sort.dir > 0 ? "ascending" : "descending") : "none");
     });
+  }
+
+  function retornoHtml(l) {
+    if (!l.proximo_contato) return "";
+    var hj = hoje(), classe = l.proximo_contato < hj ? " atrasado" : l.proximo_contato === hj ? " hoje" : "";
+    var txt = l.proximo_contato < hj ? "Atrasado · " + diaCurto(l.proximo_contato) : l.proximo_contato === hj ? "Retornar hoje" : "Retornar " + diaCurto(l.proximo_contato);
+    return "<span class=\"retorno" + classe + "\" title=\"Próximo contato\">" + esc(txt) + "</span>";
+  }
+  function etiquetasHtml(l) {
+    var t = etiquetasDe(l); if (!t.length) return "";
+    return "<span class=\"etiquetas\">" + t.map(function (e) {
+      return "<button type=\"button\" class=\"etiqueta" + (e === state.tag ? " is-on" : "") + "\" data-tag=\"" + esc(e) + "\" title=\"Filtrar por " + esc(e) + "\">" + esc(e) + "</button>";
+    }).join("") + "</span>";
   }
 
   function papelCell(l) {
@@ -311,6 +339,7 @@
 
   rows.addEventListener("click", function (e) {
     var o = e.target.closest("[data-open]"); if (o) { abrirDetalhe(o.closest("tr").dataset.id); return; }
+    var tg = e.target.closest("[data-tag]"); if (tg) { state.tag = state.tag === tg.dataset.tag ? "" : tg.dataset.tag; renderRows(); return; }
     var rb = e.target.closest("[data-wa-reenviar]");
     if (rb) {
       rb.disabled = true; rb.textContent = "Reenviando…";
@@ -388,6 +417,7 @@
     });
   });
   $("[data-search]").addEventListener("input", function (e) { state.q = e.target.value.trim(); renderRows(); });
+  $("[data-tag-ativa]").addEventListener("click", function () { state.tag = ""; renderRows(); });
   $("[data-hide-tests]").addEventListener("change", function (e) {
     state.ocultarTestes = e.target.checked;
     try { localStorage.setItem(PREF, state.ocultarTestes ? "1" : "0"); } catch (err) { /* sem storage */ }
@@ -447,6 +477,10 @@
     zapBtn.hidden = !zap; if (zap) zapBtn.href = zap.wa;
     $("[data-detail-mail]").href = "mailto:" + l.email;
     $("[data-detail-copy]").dataset.email = l.email;
+    dlg.dataset.id = l.id;
+    $("[data-d-retorno]").value = l.proximo_contato || "";
+    $("[data-d-etiquetas]").value = etiquetasDe(l).join(", ");
+    carregarHistorico(l.id);
     if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
   }
   $("[data-detail-close]").addEventListener("click", function () { dlg.close(); });
@@ -456,8 +490,109 @@
     (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(function () { toast("E-mail copiado."); }, function () { toast("Não foi possível copiar.", "erro"); });
   });
 
+  // Grava um campo da ficha (próximo contato, etiquetas) e atualiza linha, números e histórico.
+  function gravarFicha(patch, ok) {
+    var id = dlg.dataset.id, l = lead(id); if (!l) return;
+    var cols = Object.keys(patch).join(",");
+    sb.from("crm_leads").update(patch).eq("id", id).select("id," + cols).single().then(function (r) {
+      if (r.error) { toast(erroLegivel(r.error), "erro"); abrirDetalhe(id); return; }
+      Object.keys(patch).forEach(function (k) { l[k] = r.data[k]; });
+      render(); abrirDetalhe(id);
+      toast(ok);
+    });
+  }
+  $("[data-d-retorno]").addEventListener("change", function (e) {
+    gravarFicha({ proximo_contato: e.target.value || null }, e.target.value ? "Retorno marcado para " + e.target.value.split("-").reverse().join("/") + "." : "Retorno removido.");
+  });
+  document.querySelectorAll("[data-d-mais]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var dias = b.dataset.dMais;
+      if (!dias) { gravarFicha({ proximo_contato: null }, "Retorno removido."); return; }
+      var d = new Date(); d.setDate(d.getDate() + Number(dias));
+      gravarFicha({ proximo_contato: diaLocal(d) }, "Retorno marcado para " + diaLocal(d).split("-").reverse().join("/") + ".");
+    });
+  });
+  function salvarEtiquetas() {
+    var vistas = {}, lista = $("[data-d-etiquetas]").value.split(",").map(function (x) { return x.trim().replace(/\s+/g, " "); })
+      .filter(function (x) { var k = x.toLowerCase(); if (!x || vistas[k]) return false; vistas[k] = true; return true; });
+    if (lista.length > 10) { toast("No máximo 10 etiquetas.", "erro"); return; }
+    if (lista.some(function (x) { return x.length > 30; })) { toast("Cada etiqueta pode ter até 30 caracteres.", "erro"); return; }
+    gravarFicha({ etiquetas: lista }, lista.length ? "Etiquetas salvas." : "Etiquetas removidas.");
+  }
+  $("[data-d-etiquetas-salvar]").addEventListener("click", salvarEtiquetas);
+  $("[data-d-etiquetas]").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); salvarEtiquetas(); } });
+
+  // Histórico do lead: quem mudou o quê e quando (gravado pelo banco, só a equipe lê).
+  var CAMPO_LABEL = { criado: "Cadastro", status: "Status", plano: "Plano", papel: "Tipo de usuário", whatsapp_trial_status: "WhatsApp", notas: "Notas", proximo_contato: "Próximo contato", etiquetas: "Etiquetas", telefone: "Telefone", confirmed_at: "E-mail confirmado" };
+  function valorEvento(campo, v) {
+    if (v == null || v === "") return "—";
+    if (campo === "status") return LABEL[v] || v;
+    if (campo === "papel") return PAPEL_LABEL[v] || v;
+    if (campo === "whatsapp_trial_status") return WA_LABEL[v] || v;
+    if (campo === "proximo_contato") return v.split("-").reverse().join("/");
+    if (campo === "confirmed_at") return fmt(v);
+    return v;
+  }
+  var historicoPedido = 0;
+  function carregarHistorico(id) {
+    var ol = $("[data-historico]"), pedido = ++historicoPedido;
+    ol.innerHTML = "<li class=\"hist-vazio\">Carregando…</li>";
+    sb.from("crm_eventos").select("em,autor_email,campo,de,para").eq("lead_id", id).order("em", { ascending: false }).order("id", { ascending: false }).limit(100).then(function (r) {
+      if (pedido !== historicoPedido) return;
+      if (r.error) { ol.innerHTML = "<li class=\"hist-vazio\">Não foi possível carregar o histórico: " + esc(r.error.message) + "</li>"; return; }
+      var ev = r.data || [];
+      if (!ev.length) { ol.innerHTML = "<li class=\"hist-vazio\">Sem registros ainda.</li>"; return; }
+      ol.innerHTML = ev.map(function (e) {
+        var quem = e.autor_email ? e.autor_email.split("@")[0] : "sistema";
+        var oque = e.campo === "criado" ? "Cadastro" + (e.para ? " por " + esc(e.para) : "")
+          : e.campo === "confirmed_at" ? "E-mail confirmado"
+          : esc(CAMPO_LABEL[e.campo] || e.campo) + ": <s>" + esc(valorEvento(e.campo, e.de)) + "</s> → <b>" + esc(valorEvento(e.campo, e.para)) + "</b>";
+        return "<li><time>" + fmt(e.em) + "</time><span>" + oque + "</span><small title=\"" + esc(e.autor_email || "mudança automática do sistema") + "\">" + esc(quem) + "</small></li>";
+      }).join("");
+    });
+  }
+
+  // ------------------------------------------------------------- visão geral
+  // Funil (mesma base da tabela: sem testes, se ocultos) e cadastros por dia nos últimos 30 dias.
+  function renderVisao() {
+    var L = base(), total = L.length;
+    var etapas = [
+      ["Cadastros", total],
+      ["E-mail confirmado", L.filter(function (l) { return !!l.confirmed_at; }).length],
+      ["Usaram o chat", L.filter(function (l) { return Number(l.mensagens_usadas || 0) > 0 || Number(l.conversas || 0) > 0; }).length],
+      ["Assinantes", L.filter(function (l) { return l.status === "assinante"; }).length]
+    ];
+    var funil = $("[data-funil]"); funil.textContent = "";
+    etapas.forEach(function (e, i) {
+      var li = document.createElement("li");
+      var pct = total ? Math.round(e[1] / total * 100) : 0;
+      var ant = i ? etapas[i - 1][1] : 0;
+      li.innerHTML = "<span class=\"funil-nome\">" + e[0] + "</span><span class=\"funil-barra\"><i></i></span><b>" + e[1] + "</b><small>" +
+        (i === 0 ? "100%" : pct + "% do total" + (ant ? " · " + Math.round(e[1] / ant * 100) + "% da etapa anterior" : "")) + "</small>";
+      li.querySelector("i").style.width = (total ? Math.max(e[1] ? 2 : 0, e[1] / total * 100) : 0) + "%";
+      funil.appendChild(li);
+    });
+
+    var dias = [], porDia = {}, d = new Date();
+    for (var k = 29; k >= 0; k--) { var x = new Date(d); x.setDate(d.getDate() - k); var iso = diaLocal(x); dias.push(iso); porDia[iso] = 0; }
+    L.forEach(function (l) { var iso = l.created_at ? diaLocal(new Date(l.created_at)) : ""; if (iso in porDia) porDia[iso]++; });
+    var max = Math.max.apply(null, dias.map(function (x) { return porDia[x]; }).concat([1]));
+    var soma7 = dias.slice(-7).reduce(function (a, x) { return a + porDia[x]; }, 0), soma30 = dias.reduce(function (a, x) { return a + porDia[x]; }, 0);
+    $("[data-cad-resumo]").textContent = "· " + soma7 + " em 7 dias · " + soma30 + " em 30 dias";
+    $("[data-cad-ini]").textContent = diaCurto(dias[0]);
+    var barras = $("[data-barras]"); barras.textContent = "";
+    barras.setAttribute("aria-label", "Cadastros por dia nos últimos 30 dias: " + soma30 + " no total, " + soma7 + " nos últimos 7 dias. Pico de " + max + " em um dia.");
+    dias.forEach(function (iso) {
+      var b = document.createElement("span"), v = porDia[iso];
+      b.className = "barra" + (v ? "" : " zero");
+      b.title = diaCurto(iso) + ": " + v + " cadastro" + (v === 1 ? "" : "s");
+      var i = document.createElement("i"); i.style.height = (v ? Math.max(4, v / max * 100) : 0) + "%";
+      b.appendChild(i); barras.appendChild(b);
+    });
+  }
+
   $("[data-export]").addEventListener("click", function () {
-    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "papel", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "whatsapp_aviso_email_em", "whatsapp_aviso_email_erro", "whatsapp_aviso_wa_em", "whatsapp_aviso_wa_erro", "created_at", "confirmed_at", "ultimo_acesso", "notas"];
+    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "papel", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "whatsapp_aviso_email_em", "whatsapp_aviso_email_erro", "whatsapp_aviso_wa_em", "whatsapp_aviso_wa_erro", "created_at", "confirmed_at", "ultimo_acesso", "proximo_contato", "etiquetas", "notas"];
     // Valores vindos do cadastro público: neutraliza prefixos que planilhas interpretam como fórmula.
     var cell = function (v) {
       v = v == null ? "" : String(v);
@@ -466,7 +601,7 @@
     };
     var lista = visible();
     var csv = [cols.join(";")].concat(lista.map(function (l) {
-      return cols.map(function (c) { return cell(c === "ultimo_acesso" ? ultimoAcesso(l) : l[c]); }).join(";");
+      return cols.map(function (c) { return cell(c === "ultimo_acesso" ? ultimoAcesso(l) : c === "etiquetas" ? etiquetasDe(l).join(", ") : l[c]); }).join(";");
     })).join("\r\n");
     var blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
     var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "trustio-leads-" + new Date().toISOString().slice(0, 10) + ".csv"; a.click();

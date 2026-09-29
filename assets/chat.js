@@ -949,6 +949,21 @@
   // Cada foto tem nome próprio (derivado de avatar_em): a nova é enviada ao lado da antiga, e a
   // antiga só sai depois que a nova ficou registrada. Uma falha no meio não apaga as duas.
   function caminhoDaFoto(em) { return state.user.id + "/avatar-" + Date.parse(em) + ".jpg"; }
+  // Depois de registrar a foto atual, tira da pasta da conta qualquer outro arquivo (a foto
+  // anterior, ou sobra de uma falha antiga). Se a limpeza falhar, sobra arquivo, nunca falta foto.
+  function limparOutrasFotos(atual) {
+    var pasta = state.user.id;
+    return sb.storage.from("avatares").list(pasta, { limit: 100 }).then(function (r) {
+      var sobras = (r.data || []).map(function (o) { return pasta + "/" + o.name; }).filter(function (c) { return c !== atual; });
+      return sobras.length ? sb.storage.from("avatares").remove(sobras) : null;
+    }).then(function () {}, function () {});
+  }
+  // Uma operação de foto por vez: duas trocas simultâneas partiriam da mesma foto anterior.
+  var fotoOcupada = false;
+  function ocuparFoto(sim) {
+    fotoOcupada = sim;
+    $("[data-foto-trocar]").disabled = sim; $("[data-foto-remover]").disabled = sim;
+  }
 
   function loadPrefs() {
     return sb.from("preferencias_usuario").select("estilo,instrucoes,modelo,enter_envia,fonte,avatar_em").eq("user_id", state.user.id).maybeSingle()
@@ -1029,41 +1044,45 @@
     });
   }
   var fotoFile = $("[data-foto-file]"), fotoStatus = $("[data-foto-status]");
-  $("[data-foto-trocar]").addEventListener("click", function () { fotoFile.click(); });
+  $("[data-foto-trocar]").addEventListener("click", function () { if (!fotoOcupada) fotoFile.click(); });
   fotoFile.addEventListener("change", function () {
     var f = fotoFile.files && fotoFile.files[0]; fotoFile.value = "";
     if (!f) return;
     if (!/^image\/(png|jpe?g|webp)$/i.test(f.type)) { fotoStatus.textContent = T("Use uma foto JPG, PNG ou WebP.", "Use a JPG, PNG or WebP photo."); return; }
     if (f.size > 15 * 1024 * 1024) { fotoStatus.textContent = T("Foto grande demais (máximo 15 MB).", "Photo too large (15 MB max)."); return; }
+    if (fotoOcupada) return;
+    ocuparFoto(true);
     fotoStatus.textContent = T("Enviando…", "Uploading…");
-    var anterior = state.pref.avatar_em, agora = new Date().toISOString(), novo;
+    var agora = new Date().toISOString(), novo;
     prepararFoto(f).then(function (blob) {
       novo = caminhoDaFoto(agora);
       return sb.storage.from("avatares").upload(novo, blob, { upsert: true, contentType: "image/jpeg", cacheControl: "3600" }).then(function (r) {
         if (r.error) throw r.error;
         return salvarPrefs({ avatar_em: agora }).then(function () {
           trocarAvatarUrl(URL.createObjectURL(blob));
-          // A antiga só sai agora; se esta limpeza falhar, sobra um arquivo, nunca falta a foto.
-          if (anterior) sb.storage.from("avatares").remove([caminhoDaFoto(anterior)]).then(function () {}, function () {});
+          // A anterior só sai agora, com a nova já registrada.
+          limparOutrasFotos(novo);
         }, function (err) {
           // A marca não gravou: sai só o arquivo novo, e a foto anterior continua valendo.
           return sb.storage.from("avatares").remove([novo]).then(function () { throw err; }, function () { throw err; });
         });
       });
     }).then(function () { fotoStatus.textContent = T("Foto atualizada.", "Photo updated."); })
-      .catch(function (err) { console.error("foto", err); fotoStatus.textContent = T("Não foi possível enviar a foto. Tente de novo.", "We couldn't upload the photo. Try again."); });
+      .catch(function (err) { console.error("foto", err); fotoStatus.textContent = T("Não foi possível enviar a foto. Tente de novo.", "We couldn't upload the photo. Try again."); })
+      .then(function () { ocuparFoto(false); });
   });
   $("[data-foto-remover]").addEventListener("click", function () {
-    if (!state.pref.avatar_em) return;
+    if (!state.pref.avatar_em || fotoOcupada) return;
+    ocuparFoto(true);
     fotoStatus.textContent = T("Removendo…", "Removing…");
-    sb.storage.from("avatares").remove([caminhoDaFoto(state.pref.avatar_em)]).then(function (r) {
-      if (r.error) throw r.error;
-      return salvarPrefs({ avatar_em: null });
-    }).then(function () {
+    // Primeiro sai o registro (a conta deixa de ter foto); depois, os arquivos da pasta.
+    salvarPrefs({ avatar_em: null }).then(function () {
       if (state.avatarUrl) URL.revokeObjectURL(state.avatarUrl);
       state.avatarUrl = null; pintarTodosAvatares();
       fotoStatus.textContent = T("Foto removida.", "Photo removed.");
-    }).catch(function () { fotoStatus.textContent = T("Não foi possível remover agora.", "We couldn't remove it right now."); });
+      return limparOutrasFotos(null);
+    }).catch(function () { fotoStatus.textContent = T("Não foi possível remover agora.", "We couldn't remove it right now."); })
+      .then(function () { ocuparFoto(false); });
   });
 
   // Exportar em Markdown: uma conversa (menu ⋯ ou botão do topo) ou todas (Minha conta).

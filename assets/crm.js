@@ -264,6 +264,9 @@
   var DOIS_MIN = 2 * 60 * 1000;
   function avisoFoi(em, l) { return !!em && (!l.whatsapp_trial_started_at || new Date(em) >= new Date(l.whatsapp_trial_started_at)); }
   function avisoCanal(l, p) {
+    // Ativação automática (na confirmação do e-mail): o número do cadastro não foi verificado,
+    // então o WhatsApp não sai, de propósito. Não é pendência nem falha.
+    if (p === "whatsapp_aviso_wa" && l.whatsapp_ativacao === "automatica") return "semwa";
     if (avisoFoi(l[p + "_em"], l)) return "ok";
     if (l[p + "_reserva"] && Date.now() - new Date(l[p + "_reserva"]) < DOIS_MIN) return "saindo";
     if (l[p + "_erro"]) return "erro";
@@ -277,19 +280,19 @@
     if (l.whatsapp_trial_status !== "ativo") return false;
     var email = avisoCanal(l, "whatsapp_aviso_email"), zap = avisoCanal(l, "whatsapp_aviso_wa");
     var recente = l.whatsapp_trial_started_at && Date.now() - new Date(l.whatsapp_trial_started_at) < DOIS_MIN;
-    return email === "saindo" || zap === "saindo" || (recente && email === "pendente" && zap === "pendente");
+    return email === "saindo" || zap === "saindo" || (recente && email === "pendente" && (zap === "pendente" || zap === "semwa"));
   }
   function avisoHtml(l) {
     var email = avisoCanal(l, "whatsapp_aviso_email"), zap = avisoCanal(l, "whatsapp_aviso_wa");
-    var sinal = { ok: "✓", saindo: "…", erro: "✕", pendente: "—" };
+    var sinal = { ok: "✓", saindo: "…", erro: "✕", pendente: "—", semwa: "não (número não verificado)" };
     var texto = "Aviso: e-mail " + sinal[email] + " · WhatsApp " + sinal[zap];
     var reenviar = "<button type=\"button\" class=\"wa-go\" data-wa-reenviar>Reenviar avisos</button>";
-    if (email === "ok" && zap === "ok") return "<small class=\"wa-aviso\">" + texto + "</small>";
+    if (email === "ok" && (zap === "ok" || zap === "semwa")) return "<small class=\"wa-aviso\">" + texto + "</small>";
     // Falha em um canal aparece na hora, mesmo com o outro ainda saindo; reenviar não atrapalha o
     // envio em andamento (a reserva impede aviso em dobro).
     if (email === "erro" || zap === "erro") return "<small class=\"wa-aviso wa-aviso-erro\" title=\"" + esc(avisoErros(l)) + "\">" + texto + " · falhou</small>" + reenviar;
-    if (avisoEmAndamento(l)) return "<small class=\"wa-aviso\">" + (email === "pendente" && zap === "pendente" ? "Enviando avisos…" : texto) + "</small>";
-    return "<small class=\"wa-aviso\">" + (email === "pendente" && zap === "pendente" ? "Sem aviso enviado" : texto) + "</small>" + reenviar;
+    if (avisoEmAndamento(l)) return "<small class=\"wa-aviso\">" + (email === "pendente" && (zap === "pendente" || zap === "semwa") ? "Enviando avisos…" : texto) + "</small>";
+    return "<small class=\"wa-aviso\">" + (email === "pendente" && (zap === "pendente" || zap === "semwa") ? "Sem aviso enviado" : texto) + "</small>" + reenviar;
   }
   // O aviso sai logo depois da ativação, fora do navegador: recarrega a cada 8 s enquanto algum
   // aviso ainda estiver saindo (no máximo 2 minutos, o prazo da reserva).
@@ -432,7 +435,7 @@
       ["Pedido do teste", fmt(l.whatsapp_trial_requested_at)],
       ["Teste até", fmt(l.whatsapp_trial_ends_at)],
       ["Aviso por e-mail", fmt(l.whatsapp_aviso_email_em)],
-      ["Aviso no WhatsApp", fmt(l.whatsapp_aviso_wa_em)],
+      ["Aviso no WhatsApp", l.whatsapp_ativacao === "automatica" ? "não enviado: ativação automática, número não verificado" : fmt(l.whatsapp_aviso_wa_em)],
       ["Falha no aviso", esc(avisoErros(l) || "—")],
       ["Conta no chat", l.user_id ? "sim" : "não (só lista de espera)"],
       ["Notas", esc(l.notas || "—")]

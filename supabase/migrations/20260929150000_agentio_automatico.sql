@@ -51,6 +51,23 @@ begin
   return new;
 end $$;
 
+-- O /crm/ lê a origem para mostrar o WhatsApp da ativação automática como "não enviado, de
+-- propósito" (e não como pendente, com "Reenviar avisos"). Mesma view de 25/09, com a coluna nova
+-- no fim.
+create or replace view public.crm_overview with (security_invoker = true) as
+  select l.id, l.user_id, l.nome, l.email, l.telefone, l.tipo, l.empresa, l.segmento, l.origem,
+         l.status, l.plano, l.mensagens_usadas, l.notas, l.confirmed_at, l.last_seen_at,
+         l.created_at, l.updated_at, l.onboarding_seen_at, l.whatsapp_numero,
+         l.whatsapp_trial_status, l.whatsapp_trial_requested_at, l.whatsapp_trial_started_at,
+         l.whatsapp_trial_ends_at,
+         public.conversas_de(l.user_id) as conversas,
+         public.ultima_mensagem_de(l.user_id) as ultima_mensagem,
+         l.papel,
+         l.whatsapp_aviso_email_em, l.whatsapp_aviso_email_reserva, l.whatsapp_aviso_email_erro,
+         l.whatsapp_aviso_wa_em, l.whatsapp_aviso_wa_reserva, l.whatsapp_aviso_wa_erro,
+         l.whatsapp_ativacao
+    from public.crm_leads l;
+
 -- A regra "número não verificado não recebe WhatsApp" vale no banco, não só na função: a
 -- reserva do canal WhatsApp é recusada para ativação automática. Qualquer versão da função
 -- aviso-agente passa por aqui antes de enviar (a anterior entende a recusa como "já saiu" e

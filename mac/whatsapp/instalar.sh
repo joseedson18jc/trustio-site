@@ -17,6 +17,12 @@ ROTULO="br.com.trustio.whatsapp"
 PLIST="$HOME/Library/LaunchAgents/$ROTULO.plist"
 LOG="$HOME/Library/Logs/trustio-whatsapp.log"
 PORTA="${WA_PORTA:-18080}"
+# Porta inválida não chega ao config.json (viraria 0 ou null, e o serviço subiria fora do túnel).
+if ! [[ "$PORTA" =~ ^[0-9]{1,5}$ ]] || [ "$((10#$PORTA))" -lt 1 ] || [ "$((10#$PORTA))" -gt 65535 ]; then
+  echo "WA_PORTA inválida: \"$PORTA\" (use um número de 1 a 65535)."; exit 1
+fi
+PORTA="$((10#$PORTA))"
+[ -z "${WA_PORTA:-}" ] || WA_PORTA="$PORTA"
 
 NODE="$(command -v node || true)"
 [ -n "$NODE" ] || { echo "Node.js não encontrado. Instale com: brew install node"; exit 1; }
@@ -50,21 +56,15 @@ if [ ! -s "$CONFIG" ]; then
   fi
 fi
 # Porta do config.json existente: WA_PORTA, se informada, vale e é gravada; a antiga 8080 (padrão
-# de antes, que o túnel não alcança) passa para a 18080.
+# de antes, que o túnel não alcança) ou uma porta ausente ou inválida passa para a 18080.
 PORTA_SALVA="$("$NODE" -p 'require(process.argv[1]).porta ?? ""' "$CONFIG")"
 PORTA_NOVA=""
 if [ -n "${WA_PORTA:-}" ] && [ "$PORTA_SALVA" != "$WA_PORTA" ]; then PORTA_NOVA="$WA_PORTA"
-elif [ -z "${WA_PORTA:-}" ] && { [ "$PORTA_SALVA" = "8080" ] || [ -z "$PORTA_SALVA" ]; }; then PORTA_NOVA=18080
+elif [ -z "${WA_PORTA:-}" ] && { [ "$PORTA_SALVA" = "8080" ] || ! [[ "$PORTA_SALVA" =~ ^[1-9][0-9]{0,4}$ ]]; }; then PORTA_NOVA=18080
 fi
-if [ -n "$PORTA_NOVA" ]; then
-  "$NODE" -e '
-    const fs = require("fs"), [arq, porta] = process.argv.slice(1);
-    const c = JSON.parse(fs.readFileSync(arq, "utf8")); c.porta = Number(porta);
-    fs.writeFileSync(arq, JSON.stringify(c, null, 2) + "\n", { mode: 0o600 }); fs.chmodSync(arq, 0o600);
-  ' "$CONFIG" "$PORTA_NOVA"
-  echo "→ porta ${PORTA_SALVA:-(sem porta)} → $PORTA_NOVA em $CONFIG"
-fi
-PORTA="$("$NODE" -p 'require(process.argv[1]).porta' "$CONFIG")"
+# A porta nova só é gravada depois de confirmada livre (mais abaixo): se estiver ocupada, o
+# config.json fica com a porta em que o serviço funcionava.
+PORTA="${PORTA_NOVA:-$PORTA_SALVA}"
 
 # Para a versão anterior deste serviço (numa reinstalação) antes de olhar a porta: o que continuar
 # ouvindo nela é outro programa (ex.: o container antigo da Evolution) e impede o serviço de subir.
@@ -84,6 +84,15 @@ if lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN >/dev/null 2>&1; then
     echo "  kill $(lsof -t -iTCP:"$PORTA" -sTCP:LISTEN 2>/dev/null | head -1)"
   fi
   exit 1
+fi
+
+if [ -n "$PORTA_NOVA" ]; then
+  "$NODE" -e '
+    const fs = require("fs"), [arq, porta] = process.argv.slice(1);
+    const c = JSON.parse(fs.readFileSync(arq, "utf8")); c.porta = Number(porta);
+    fs.writeFileSync(arq, JSON.stringify(c, null, 2) + "\n", { mode: 0o600 }); fs.chmodSync(arq, 0o600);
+  ' "$CONFIG" "$PORTA_NOVA"
+  echo "→ porta ${PORTA_SALVA:-(sem porta)} → $PORTA_NOVA em $CONFIG"
 fi
 
 echo "→ serviço $ROTULO"

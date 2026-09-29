@@ -17,6 +17,13 @@ ROTULO="br.com.trustio.whatsapp"
 PLIST="$HOME/Library/LaunchAgents/$ROTULO.plist"
 LOG="$HOME/Library/Logs/trustio-whatsapp.log"
 PORTA="${WA_PORTA:-18080}"
+porta_valida() { [[ "$1" =~ ^[0-9]{1,5}$ ]] && [ "$((10#$1))" -ge 1 ] && [ "$((10#$1))" -le 65535 ]; }
+# Porta inválida não chega ao config.json (viraria 0 ou null, e o serviço subiria fora do túnel).
+if ! porta_valida "$PORTA"; then
+  echo "WA_PORTA inválida: \"$PORTA\" (use um número de 1 a 65535)."; exit 1
+fi
+PORTA="$((10#$PORTA))"
+[ -z "${WA_PORTA:-}" ] || WA_PORTA="$PORTA"
 
 NODE="$(command -v node || true)"
 [ -n "$NODE" ] || { echo "Node.js não encontrado. Instale com: brew install node"; exit 1; }
@@ -50,24 +57,27 @@ if [ ! -s "$CONFIG" ]; then
   fi
 fi
 # Porta do config.json existente: WA_PORTA, se informada, vale e é gravada; a antiga 8080 (padrão
-# de antes, que o túnel não alcança) passa para a 18080.
+# de antes, que o túnel não alcança) ou uma porta ausente ou inválida passa para a 18080.
+PORTA_BRUTA="$("$NODE" -p 'JSON.stringify(require(process.argv[1]).porta ?? "")' "$CONFIG")"
 PORTA_SALVA="$("$NODE" -p 'require(process.argv[1]).porta ?? ""' "$CONFIG")"
+# Comparada já normalizada ("08080" é a 8080, como o servidor a lê); inválida fica vazia.
+if porta_valida "$PORTA_SALVA"; then PORTA_SALVA="$((10#$PORTA_SALVA))"; else PORTA_SALVA=""; fi
 PORTA_NOVA=""
 if [ -n "${WA_PORTA:-}" ] && [ "$PORTA_SALVA" != "$WA_PORTA" ]; then PORTA_NOVA="$WA_PORTA"
 elif [ -z "${WA_PORTA:-}" ] && { [ "$PORTA_SALVA" = "8080" ] || [ -z "$PORTA_SALVA" ]; }; then PORTA_NOVA=18080
+elif [ "$PORTA_BRUTA" != "$PORTA_SALVA" ]; then PORTA_NOVA="$PORTA_SALVA"  # "19000" → 19000 (número)
 fi
-if [ -n "$PORTA_NOVA" ]; then
-  "$NODE" -e '
-    const fs = require("fs"), [arq, porta] = process.argv.slice(1);
-    const c = JSON.parse(fs.readFileSync(arq, "utf8")); c.porta = Number(porta);
-    fs.writeFileSync(arq, JSON.stringify(c, null, 2) + "\n", { mode: 0o600 }); fs.chmodSync(arq, 0o600);
-  ' "$CONFIG" "$PORTA_NOVA"
-  echo "→ porta ${PORTA_SALVA:-(sem porta)} → $PORTA_NOVA em $CONFIG"
-fi
-PORTA="$("$NODE" -p 'require(process.argv[1]).porta' "$CONFIG")"
+# A porta nova só é gravada depois de confirmada livre (mais abaixo): se estiver ocupada, o
+# config.json fica com a porta em que o serviço funcionava.
+PORTA="${PORTA_NOVA:-$PORTA_SALVA}"
 
 # Para a versão anterior deste serviço (numa reinstalação) antes de olhar a porta: o que continuar
 # ouvindo nela é outro programa (ex.: o container antigo da Evolution) e impede o serviço de subir.
+# Se o instalador parar antes de registrar a versão nova, a anterior volta a rodar como estava.
+ANTERIOR=0
+if [ -f "$PLIST" ] && launchctl print "gui/$(id -u)/$ROTULO" >/dev/null 2>&1; then ANTERIOR=1; fi
+religar() { if [ "$ANTERIOR" = 1 ]; then launchctl bootstrap "gui/$(id -u)" "$PLIST" 2>/dev/null || true; fi; }
+trap religar EXIT
 launchctl bootout "gui/$(id -u)/$ROTULO" 2>/dev/null || true
 for _ in 1 2 3 4 5; do lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN >/dev/null 2>&1 || break; sleep 1; done
 if lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN >/dev/null 2>&1; then
@@ -90,7 +100,7 @@ echo "→ serviço $ROTULO"
 mkdir -p "$(dirname "$PLIST")" "$(dirname "$LOG")"
 # Caminhos entram no XML do plist: &, < e > precisam ser escapados.
 xml() { printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'; }
-cat > "$PLIST" <<PLIST
+cat > "$PLIST.novo" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -110,6 +120,18 @@ cat > "$PLIST" <<PLIST
 </dict>
 </plist>
 PLIST
+mv -f "$PLIST.novo" "$PLIST"
+if [ -n "$PORTA_NOVA" ]; then
+  "$NODE" -e '
+    const fs = require("fs"), [arq, porta] = process.argv.slice(1);
+    const c = JSON.parse(fs.readFileSync(arq, "utf8")); c.porta = Number(porta);
+    // Grava num arquivo ao lado e troca de uma vez: uma falha no meio não corrompe o config.json.
+    fs.writeFileSync(arq + ".novo", JSON.stringify(c, null, 2) + "\n", { mode: 0o600 });
+    fs.chmodSync(arq + ".novo", 0o600); fs.renameSync(arq + ".novo", arq);
+  ' "$CONFIG" "$PORTA_NOVA"
+  echo "→ porta ${PORTA_SALVA:-(ausente ou inválida)} → $PORTA_NOVA em $CONFIG"
+fi
+trap - EXIT
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
 
 # Só diz "pronto" quando o serviço responde na porta (ele sai se não conseguir abri-la).

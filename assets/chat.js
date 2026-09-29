@@ -3,6 +3,8 @@
    Nenhuma chave secreta aqui: a chave do modelo fica no servidor. */
 (function () {
   "use strict";
+  // /app/#conta abre "Minha conta" assim que a sessão carregar (o hash é limpo logo depois).
+  var abrirContaAoEntrar = location.hash === "#conta";
   // Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
   var EN = /^en\b/i.test(document.documentElement.lang);
   var T = function (pt, en) { return EN ? en : pt; };
@@ -141,6 +143,7 @@
         renderMe();
         renderOnboard(!(state.lead && state.lead.onboarding_seen_at));
         restaurarSessao();
+        if (abrirContaAoEntrar) { abrirContaAoEntrar = false; abrirConta(); }
         if (!state.user.email_confirmed_at) {
           showNotice(T("Seu e-mail ainda não foi confirmado. Abra o link que enviamos para começar a conversar. ", "Your email isn't confirmed yet. Open the link we sent to start chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>");
         } else {
@@ -1235,13 +1238,15 @@
     pintarTodosAvatares();
   }
 
-  $("[data-conta-open]").addEventListener("click", function () {
+  function abrirConta() {
     if (!state.user) return;
     preencherConta();
     mostrarAba("perfil");
     closeSide();
     conta.showModal();
-  });
+  }
+  // O cartão do usuário e o link "Minha conta" no rodapé da barra lateral.
+  document.querySelectorAll("[data-conta-open]").forEach(function (b) { b.addEventListener("click", abrirConta); });
   $("[data-conta-fechar]").addEventListener("click", function () { conta.close(); });
   // Clique fora do cartão (no fundo escurecido) fecha.
   conta.addEventListener("click", function (e) { if (e.target === conta) conta.close(); });

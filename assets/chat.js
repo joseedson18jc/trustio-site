@@ -370,6 +370,8 @@
   }
 
   function renderConversations() {
+    // A lista vai ser refeita: um menu ⋯ aberto apontaria para uma linha que deixa de existir.
+    fecharMenuConversa();
     convList.querySelectorAll(".conv-row").forEach(function (n) { n.remove(); });
     var busca = $("[data-conv-busca]");
     busca.hidden = state.conversations.length < 2;
@@ -944,7 +946,9 @@
   // exportar e apagar conversas, senha e sessões.
   var PH_ENTER = input.getAttribute("placeholder") || "";
   var PH_CTRL = T("Escreva sua mensagem… (Ctrl+Enter ou ⌘+Enter envia)", "Write your message… (Ctrl+Enter or ⌘+Enter sends)");
-  var CAMINHO_FOTO = function () { return state.user.id + "/avatar.jpg"; };
+  // Cada foto tem nome próprio (derivado de avatar_em): a nova é enviada ao lado da antiga, e a
+  // antiga só sai depois que a nova ficou registrada. Uma falha no meio não apaga as duas.
+  function caminhoDaFoto(em) { return state.user.id + "/avatar-" + Date.parse(em) + ".jpg"; }
 
   function loadPrefs() {
     return sb.from("preferencias_usuario").select("estilo,instrucoes,modelo,enter_envia,fonte,avatar_em").eq("user_id", state.user.id).maybeSingle()
@@ -972,7 +976,7 @@
 
   // Foto: baixada com a sessão (o bucket é privado) e mostrada por blob: URL, que a CSP aceita.
   function carregarAvatar() {
-    return sb.storage.from("avatares").download(CAMINHO_FOTO()).then(function (r) {
+    return sb.storage.from("avatares").download(caminhoDaFoto(state.pref.avatar_em)).then(function (r) {
       if (r.error || !r.data) return;
       trocarAvatarUrl(URL.createObjectURL(r.data));
     }).catch(function () { /* sem foto: ficam as iniciais */ });
@@ -1032,20 +1036,27 @@
     if (!/^image\/(png|jpe?g|webp)$/i.test(f.type)) { fotoStatus.textContent = T("Use uma foto JPG, PNG ou WebP.", "Use a JPG, PNG or WebP photo."); return; }
     if (f.size > 15 * 1024 * 1024) { fotoStatus.textContent = T("Foto grande demais (máximo 15 MB).", "Photo too large (15 MB max)."); return; }
     fotoStatus.textContent = T("Enviando…", "Uploading…");
+    var anterior = state.pref.avatar_em, agora = new Date().toISOString(), novo;
     prepararFoto(f).then(function (blob) {
-      return sb.storage.from("avatares").upload(CAMINHO_FOTO(), blob, { upsert: true, contentType: "image/jpeg", cacheControl: "60" }).then(function (r) {
+      novo = caminhoDaFoto(agora);
+      return sb.storage.from("avatares").upload(novo, blob, { upsert: true, contentType: "image/jpeg", cacheControl: "3600" }).then(function (r) {
         if (r.error) throw r.error;
-        // Sem a marca da foto nas preferências, o arquivo enviado não fica para trás escondido.
-        return salvarPrefs({ avatar_em: new Date().toISOString() }).then(function () { trocarAvatarUrl(URL.createObjectURL(blob)); }, function (err) {
-          return sb.storage.from("avatares").remove([CAMINHO_FOTO()]).then(function () { throw err; }, function () { throw err; });
+        return salvarPrefs({ avatar_em: agora }).then(function () {
+          trocarAvatarUrl(URL.createObjectURL(blob));
+          // A antiga só sai agora; se esta limpeza falhar, sobra um arquivo, nunca falta a foto.
+          if (anterior) sb.storage.from("avatares").remove([caminhoDaFoto(anterior)]).then(function () {}, function () {});
+        }, function (err) {
+          // A marca não gravou: sai só o arquivo novo, e a foto anterior continua valendo.
+          return sb.storage.from("avatares").remove([novo]).then(function () { throw err; }, function () { throw err; });
         });
       });
     }).then(function () { fotoStatus.textContent = T("Foto atualizada.", "Photo updated."); })
       .catch(function (err) { console.error("foto", err); fotoStatus.textContent = T("Não foi possível enviar a foto. Tente de novo.", "We couldn't upload the photo. Try again."); });
   });
   $("[data-foto-remover]").addEventListener("click", function () {
+    if (!state.pref.avatar_em) return;
     fotoStatus.textContent = T("Removendo…", "Removing…");
-    sb.storage.from("avatares").remove([CAMINHO_FOTO()]).then(function (r) {
+    sb.storage.from("avatares").remove([caminhoDaFoto(state.pref.avatar_em)]).then(function (r) {
       if (r.error) throw r.error;
       return salvarPrefs({ avatar_em: null });
     }).then(function () {
@@ -1182,7 +1193,9 @@
     }
     mostrarTotal(state.conversations.length);
     // A barra lateral traz até 100; o número certo vem do banco.
-    if (state.conversations.length >= 100) totalDeConversas().then(mostrarTotal).catch(function () { /* fica o da lista */ });
+    // Só vale se a lista ainda estiver cheia quando a contagem chegar (um "Apagar tudo" no meio
+    // não pode ser desfeito na tela por um número antigo).
+    if (state.conversations.length >= 100) totalDeConversas().then(function (n) { if (state.conversations.length >= 100) mostrarTotal(n); }).catch(function () { /* fica o da lista */ });
     conta.querySelectorAll(".conta-status").forEach(function (x) { x.textContent = ""; });
     pintarTodosAvatares();
   }

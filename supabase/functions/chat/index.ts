@@ -30,6 +30,42 @@ async function modeloDoBanco(admin: any): Promise<string | null> {
   const { data } = await admin.from("app_settings").select("value").eq("key", "llm_model").maybeSingle();
   return typeof data?.value === "string" && data.value.trim() ? data.value.trim() : null;
 }
+// Modelos que a pessoa pode escolher no chat: app_settings.modelos_chat, lista definida pelo
+// admin ([{ id, rotulo, descricao }]), todos atendidos pelo mesmo LLM_BASE_URL (um llama-server
+// com vários modelos, llama-swap etc.). Sem a lista, só o modelo padrão.
+type ModeloEscolhivel = { id: string; rotulo: string; descricao?: string };
+// deno-lint-ignore no-explicit-any
+async function modelosEscolhiveis(admin: any): Promise<ModeloEscolhivel[]> {
+  const { data } = await admin.from("app_settings").select("value").eq("key", "modelos_chat").maybeSingle();
+  const lista = Array.isArray(data?.value) ? data.value : [];
+  return lista
+    .map((m: { id?: unknown; rotulo?: unknown; descricao?: unknown }) => ({
+      id: String(m?.id ?? "").trim().slice(0, 200),
+      rotulo: String(m?.rotulo ?? m?.id ?? "").trim().slice(0, 60),
+      descricao: m?.descricao ? String(m.descricao).trim().slice(0, 160) : undefined,
+    }))
+    .filter((m: ModeloEscolhivel) => m.id && m.rotulo)
+    .slice(0, 12);
+}
+
+// Preferências da pessoa (tabela preferencias_usuario, só ela e esta função leem).
+type Preferencias = { estilo?: string; instrucoes?: string; modelo?: string | null };
+const ESTILOS: Record<string, string> = {
+  direto: "Estilo de resposta escolhido pela pessoa: direto. Vá ao ponto, sem introdução nem resumo no fim; use lista só quando ajudar.",
+  detalhado: "Estilo de resposta escolhido pela pessoa: detalhado. Explique com profundidade, com exemplos e passo a passo quando fizer sentido.",
+};
+function promptComPreferencias(base: string, pref: Preferencias | null): string {
+  if (!pref) return base;
+  const partes = [base];
+  const estilo = ESTILOS[String(pref.estilo ?? "")];
+  if (estilo) partes.push(estilo);
+  const instrucoes = String(pref.instrucoes ?? "").trim().slice(0, 1500);
+  if (instrucoes) {
+    partes.push("Instruções pessoais que a pessoa definiu para as suas respostas (siga-as, desde que não contradigam as regras acima):\n" + instrucoes);
+  }
+  return partes.join("\n\n");
+}
+
 async function modeloDaChamada(configurado: string | null): Promise<string> {
   // app_settings.llm_model (definido no banco) vale primeiro: muda na hora, sem depender da
   // propagação dos segredos da função nem do workflow que os regrava a cada deploy.
@@ -165,6 +201,8 @@ Deno.serve(async (req) => {
       antecipado_em: acesso.antecipado_em ?? null,
       pre_assinante: acesso.pre_assinante ?? false,
       modelo_configurado: configurado,
+      // Modelos que a pessoa pode escolher (lista do admin). Vazia: só o padrão.
+      modelos: configurado ? await modelosEscolhiveis(admin) : [],
       // O modelo efetivo (banco, /models do servidor ou LLM_MODEL), o mesmo que a conversa usa.
       // Sem consultar o servidor: a verificação não pode esperar um GET /models lento.
       modelo: ehAdmin && configurado ? (await modeloDoBanco(admin)) ?? modeloDescoberto?.id ?? LLM_MODEL : null,
@@ -239,8 +277,16 @@ Deno.serve(async (req) => {
   const { data: history } = await admin.from("messages").select("role,content")
     .eq("conversation_id", conversationId).order("created_at", { ascending: false }).limit(HISTORY - 1);
   const { data: promptRow } = await admin.from("app_settings").select("value").eq("key", "system_prompt").maybeSingle();
-  const modeloConfigurado = await modeloDoBanco(admin);
-  const systemPrompt = typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.";
+  const { data: prefRow } = await admin.from("preferencias_usuario").select("estilo,instrucoes,modelo")
+    .eq("user_id", user.id).maybeSingle();
+  const pref = (prefRow ?? null) as Preferencias | null;
+  // Modelo escolhido pela pessoa vale só se ainda estiver na lista do admin; senão, o padrão.
+  const escolhido = pref?.modelo ? (await modelosEscolhiveis(admin)).find((m) => m.id === pref.modelo)?.id ?? null : null;
+  const modeloConfigurado = escolhido ?? await modeloDoBanco(admin);
+  const systemPrompt = promptComPreferencias(
+    typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.",
+    pref,
+  );
 
   const anteriores = [
     { role: "system", content: systemPrompt },
@@ -287,7 +333,7 @@ Deno.serve(async (req) => {
     await tentar();
     // Nome vindo do GET /models guardado: se o servidor trocou de modelo nesse meio tempo, a
     // chamada falha. Descarta o nome guardado, pergunta de novo e, se mudou, tenta mais uma vez.
-    // (O nome definido no banco é escolha do administrador e não é trocado aqui.)
+    // (O nome definido no banco, ou o escolhido pela pessoa na lista do admin, não é trocado aqui.)
     // Só quando o erro aponta para o nome do modelo: limite de uso, servidor fora do ar ou
     // contexto cheio não passam por aqui (não adianta, e custaria mais uma espera).
     if ((!upstream.ok || !upstream.body) && !modeloConfigurado && modeloDescoberto) {

@@ -27,9 +27,13 @@
   var convEmpty = $("[data-conv-empty]");
   var convTitle = $("[data-conv-title]");
   var deleteBtn = $("[data-delete]");
+  var baixarBtn = $("[data-baixar]");
   var gate = $("[data-gate]");
 
-  var state = { user: null, lead: null, limit: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false, fechado: false, sessaoCheia: false, placeholderPadrao: "", escolhas: 0 };
+  var state = { user: null, lead: null, limit: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false, fechado: false, sessaoCheia: false, placeholderPadrao: "", escolhas: 0,
+    // Preferências da conta (tabela preferencias_usuario) e o que vem com elas.
+    pref: { estilo: "equilibrado", instrucoes: "", modelo: null, enter_envia: true, fonte: "normal", avatar_em: null },
+    modelos: [], avatarUrl: null, filtro: "" };
 
   // ---------------------------------------------------------------- utilidades
   // Sem cota de perguntas: assinante, ou tipo de usuário admin, colaborador ou cliente
@@ -131,7 +135,7 @@
       if (recoveryMode) { showRecovery(); return; }
       state.user = session.user;
       if (location.hash) history.replaceState(null, "", location.pathname);
-      return Promise.all([loadLead(), loadLimit(), loadConversations(), loadAdmin()]).then(function () {
+      return Promise.all([loadLead(), loadLimit(), loadConversations(), loadAdmin(), loadPrefs()]).then(function () {
         gateHide();
         shell.dataset.state = "ready";
         renderMe();
@@ -157,6 +161,7 @@
     fetch(CFG.chatEndpoint, { method: "GET", headers: { "Authorization": "Bearer " + token, "apikey": CFG.key } })
       .then(function (res) { return res.ok ? res.json() : null; })
       .then(function (d) {
+        if (d && Array.isArray(d.modelos)) state.modelos = d.modelos;
         if (!d || d.chat_aberto) { fechar(false); return; }
         fechar(true, d);
       })
@@ -200,6 +205,9 @@
           (d.pre_assinante ? "" : "<a href=\"../planos.html#pessoal\">" + T("Ver como entrar antes", "See how to get in sooner") + "</a>"));
   }
 
+  // Baixar e apagar só aparecem com uma conversa aberta.
+  function botoesDaConversa(visiveis) { deleteBtn.hidden = !visiveis; baixarBtn.hidden = !visiveis; }
+
   function loadLead() {
     return sb.from("crm_leads").select("nome,email,telefone,tipo,status,papel,plano,mensagens_usadas,onboarding_seen_at,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_requested_at,whatsapp_trial_started_at,whatsapp_trial_ends_at").eq("user_id", state.user.id).maybeSingle()
       .then(function (r) { state.lead = r.data || null; });
@@ -216,7 +224,7 @@
     var meta = state.user.user_metadata || {};
     var name = (state.lead && state.lead.nome) || meta.nome || state.user.email;
     $("[data-me-name]").textContent = name;
-    $("[data-me-av]").textContent = initials(name, state.user.email);
+    pintarAvatar($("[data-me-av]"), name);
     var status = state.lead ? state.lead.status : "novo";
     var plan = state.lead && state.lead.plano;
     var label = semCota() && status !== "assinante" ? ({ admin: "Admin", colaborador: T("Colaborador", "Team member"), cliente: T("Cliente", "Customer") })[state.lead.papel] + (plan ? " · " + plan : "") : status === "assinante" ? (T("Assinante", "Subscriber") + (plan ? " · " + plan : "")) : status === "trial_esgotado" ? T("Teste encerrado", "Trial ended") : T("Teste grátis", "Free trial");
@@ -362,15 +370,102 @@
   }
 
   function renderConversations() {
-    convList.querySelectorAll(".conv-item").forEach(function (n) { n.remove(); });
-    convEmpty.hidden = state.conversations.length > 0;
-    state.conversations.forEach(function (c) {
+    convList.querySelectorAll(".conv-row").forEach(function (n) { n.remove(); });
+    var busca = $("[data-conv-busca]");
+    busca.hidden = state.conversations.length < 2;
+    var termo = normalizar(state.filtro);
+    var visiveis = state.conversations.filter(function (c) { return !termo || normalizar(c.title || "").indexOf(termo) >= 0; });
+    convEmpty.hidden = visiveis.length > 0;
+    convEmpty.textContent = state.conversations.length ? T("Nenhuma conversa com esse termo.", "No conversation matches that.") : T("Nenhuma conversa ainda.", "No conversations yet.");
+    visiveis.forEach(function (c) {
+      var row = document.createElement("div");
+      row.className = "conv-row"; row.dataset.id = c.id;
       var b = document.createElement("button");
-      b.type = "button"; b.className = "conv-item"; b.textContent = c.title || "Conversa";
-      b.dataset.id = c.id;
+      b.type = "button"; b.className = "conv-item"; b.textContent = c.title || T("Conversa", "Conversation");
       if (c.id === state.conversationId) b.setAttribute("aria-current", "true");
       b.addEventListener("click", function () { openConversation(c.id); closeSide(); });
-      convList.appendChild(b);
+      var mais = document.createElement("button");
+      mais.type = "button"; mais.className = "conv-mais"; mais.textContent = "⋯";
+      mais.setAttribute("aria-label", T("Opções da conversa: ", "Conversation options: ") + (c.title || ""));
+      mais.setAttribute("aria-haspopup", "menu"); mais.setAttribute("aria-expanded", "false");
+      mais.addEventListener("click", function (e) { e.stopPropagation(); abrirMenuConversa(row, c, mais); });
+      row.appendChild(b); row.appendChild(mais);
+      convList.appendChild(row);
+    });
+  }
+  function normalizar(t) { return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim(); }
+
+  // Menu ⋯ de cada conversa: renomear, baixar, apagar.
+  var menuAberto = null;
+  function fecharMenuConversa() {
+    if (!menuAberto) return;
+    menuAberto.menu.remove();
+    menuAberto.botao.setAttribute("aria-expanded", "false");
+    menuAberto = null;
+  }
+  function abrirMenuConversa(row, c, botao) {
+    var eraEste = menuAberto && menuAberto.botao === botao;
+    fecharMenuConversa();
+    if (eraEste) return;
+    var menu = document.createElement("div");
+    menu.className = "conv-menu"; menu.setAttribute("role", "menu");
+    [["renomear", T("Renomear", "Rename")], ["baixar", T("Baixar (.md)", "Download (.md)")], ["apagar", T("Apagar", "Delete")]].forEach(function (op) {
+      var item = document.createElement("button");
+      item.type = "button"; item.setAttribute("role", "menuitem"); item.dataset.op = op[0]; item.textContent = op[1];
+      if (op[0] === "apagar") item.className = "is-perigo";
+      item.addEventListener("click", function () {
+        fecharMenuConversa();
+        if (op[0] === "renomear") renomearConversa(row, c);
+        else if (op[0] === "baixar") baixarConversas([c]);
+        else apagarConversa(c.id);
+      });
+      menu.appendChild(item);
+    });
+    row.appendChild(menu);
+    botao.setAttribute("aria-expanded", "true");
+    menuAberto = { menu: menu, botao: botao };
+    menu.querySelector("button").focus();
+  }
+  document.addEventListener("click", function (e) { if (menuAberto && !e.target.closest(".conv-menu")) fecharMenuConversa(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && menuAberto) { var b = menuAberto.botao; fecharMenuConversa(); b.focus(); } });
+
+  function renomearConversa(row, c) {
+    var campo = document.createElement("input");
+    campo.className = "conv-renomear"; campo.value = c.title || ""; campo.maxLength = 80;
+    campo.setAttribute("aria-label", T("Novo nome da conversa", "New conversation name"));
+    row.classList.add("is-editando");
+    row.insertBefore(campo, row.firstChild);
+    campo.focus(); campo.select();
+    var feito = false;
+    function concluir(salvar) {
+      if (feito) return; feito = true;
+      var titulo = campo.value.trim().slice(0, 80);
+      row.classList.remove("is-editando"); campo.remove();
+      if (!salvar || !titulo || titulo === c.title) return;
+      var antigo = c.title;
+      c.title = titulo; renderConversations();
+      if (c.id === state.conversationId) convTitle.textContent = titulo;
+      sb.from("conversations").update({ title: titulo }).eq("id", c.id).then(function (r) {
+        if (!r.error) return;
+        c.title = antigo; renderConversations();
+        if (c.id === state.conversationId) convTitle.textContent = antigo;
+        showNotice(T("Não foi possível renomear agora. Tente de novo.", "We couldn't rename it right now. Try again."));
+      });
+    }
+    campo.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); concluir(true); }
+      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); concluir(false); }
+    });
+    campo.addEventListener("blur", function () { concluir(true); });
+  }
+
+  function apagarConversa(id) {
+    if (state.sending) return;
+    if (!confirm(T("Apagar esta conversa? Isso não pode ser desfeito.", "Delete this conversation? This can't be undone."))) return;
+    sb.from("conversations").delete().eq("id", id).then(function (r) {
+      if (r.error) { showNotice(T("Não foi possível apagar agora. Tente de novo.", "We couldn't delete it right now. Try again.")); return; }
+      state.conversations = state.conversations.filter(function (c) { return c.id !== id; });
+      if (state.conversationId === id) resetThread(); else renderConversations();
     });
   }
 
@@ -400,7 +495,7 @@
     state.conversationId = null;
     lembrarConversa(null);
     convTitle.textContent = T("Nova conversa", "New conversation");
-    deleteBtn.hidden = true;
+    botoesDaConversa(false);
     renderConversations();
   }
 
@@ -412,7 +507,7 @@
     lembrarConversa(id);
     var c = state.conversations.filter(function (x) { return x.id === id; })[0];
     convTitle.textContent = c ? c.title : "Conversa";
-    deleteBtn.hidden = false;
+    botoesDaConversa(true);
     if (state.threadInner) { state.threadInner.remove(); state.threadInner = null; }
     var inner = ensureThreadInner();
     inner.innerHTML = "<p class=\"msg-meta\">" + T("Carregando…", "Loading…") + "</p>";
@@ -431,7 +526,8 @@
     var inner = ensureThreadInner();
     var el = document.createElement("article");
     el.className = "msg msg-" + role;
-    el.innerHTML = "<span class=\"msg-av\" aria-hidden=\"true\">" + (role === "user" ? "VC" : "T") + "</span><div class=\"msg-body\"></div>";
+    el.innerHTML = "<span class=\"msg-av\" aria-hidden=\"true\">" + (role === "user" ? "" : "T") + "</span><div class=\"msg-body\"></div>";
+    if (role === "user") pintarAvatarMensagem(el.querySelector(".msg-av"));
     var body = el.querySelector(".msg-body");
     if (role === "user") body.innerHTML = renderUsuario(content); else body.innerHTML = render(content);
     inner.appendChild(el);
@@ -662,7 +758,7 @@
     if (!known) loadConversations().then(function () {
       var c = state.conversations.filter(function (x) { return x.id === d.conversation_id; })[0];
       if (c) convTitle.textContent = c.title;
-      deleteBtn.hidden = false;
+      botoesDaConversa(true);
     }); else {
       state.conversations.sort(function (a, b) { return a.id === d.conversation_id ? -1 : b.id === d.conversation_id ? 1 : 0; });
       renderConversations();
@@ -798,7 +894,11 @@
   // ---------------------------------------------------------------- UI
   composer.addEventListener("submit", function (e) { e.preventDefault(); send(input.value); });
   input.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(input.value); }
+    if (e.key !== "Enter" || e.isComposing) return;
+    // Preferência "Enter envia": ligada, Enter envia e Shift+Enter quebra a linha; desligada,
+    // Enter quebra a linha e Ctrl+Enter (⌘+Enter no Mac) envia.
+    var envia = state.pref.enter_envia ? !e.shiftKey : (e.ctrlKey || e.metaKey);
+    if (envia) { e.preventDefault(); send(input.value); }
   });
   function autosize() { input.style.height = "auto"; input.style.height = Math.min(220, input.scrollHeight) + "px"; }
   input.addEventListener("input", autosize);
@@ -809,15 +909,12 @@
 
   $("[data-new]").addEventListener("click", function () { if (!state.sending) { resetThread(); input.focus(); closeSide(); } });
 
-  deleteBtn.addEventListener("click", function () {
-    if (!state.conversationId || state.sending) return;
-    if (!confirm(T("Apagar esta conversa? Isso não pode ser desfeito.", "Delete this conversation? This can't be undone."))) return;
-    var id = state.conversationId;
-    sb.from("conversations").delete().eq("id", id).then(function () {
-      state.conversations = state.conversations.filter(function (c) { return c.id !== id; });
-      resetThread();
-    });
+  deleteBtn.addEventListener("click", function () { if (state.conversationId) apagarConversa(state.conversationId); });
+  baixarBtn.addEventListener("click", function () {
+    var c = state.conversations.filter(function (x) { return x.id === state.conversationId; })[0];
+    if (c) baixarConversas([c]);
   });
+  $("[data-conv-busca]").addEventListener("input", function (e) { state.filtro = e.target.value; renderConversations(); });
 
   $("[data-logout]").addEventListener("click", function () { sb.auth.signOut(); });
 
@@ -834,6 +931,317 @@
   $("[data-side-open]").addEventListener("click", openSide);
   $("[data-side-close]").addEventListener("click", closeSide);
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSide(); });
+
+  // ---------------------------------------------------------------- minha conta
+  // Preferências (tabela preferencias_usuario: só a própria pessoa lê e grava; a função do chat
+  // lê estilo, instruções e modelo), foto de perfil (bucket privado "avatares", pasta da conta),
+  // exportar e apagar conversas, senha e sessões.
+  var PH_ENTER = input.getAttribute("placeholder") || "";
+  var PH_CTRL = T("Escreva sua mensagem… (Ctrl+Enter ou ⌘+Enter envia)", "Write your message… (Ctrl+Enter or ⌘+Enter sends)");
+  var CAMINHO_FOTO = function () { return state.user.id + "/avatar.jpg"; };
+
+  function loadPrefs() {
+    return sb.from("preferencias_usuario").select("estilo,instrucoes,modelo,enter_envia,fonte,avatar_em").eq("user_id", state.user.id).maybeSingle()
+      .then(function (r) {
+        if (r.data) Object.keys(r.data).forEach(function (k) { if (r.data[k] !== null || k === "modelo" || k === "avatar_em") state.pref[k] = r.data[k]; });
+        aplicarPrefsLocais();
+        if (state.pref.avatar_em) carregarAvatar();
+      })
+      // Sem a tabela (migração ainda não aplicada) o chat segue com o padrão.
+      .catch(function () { aplicarPrefsLocais(); });
+  }
+  function aplicarPrefsLocais() {
+    shell.dataset.fonte = state.pref.fonte === "grande" ? "grande" : "normal";
+    state.placeholderPadrao = state.pref.enter_envia ? PH_ENTER : PH_CTRL;
+    if (!state.fechado && !state.sessaoCheia) input.placeholder = state.placeholderPadrao;
+  }
+  function salvarPrefs(mudancas) {
+    var linha = Object.assign({ user_id: state.user.id }, mudancas);
+    return sb.from("preferencias_usuario").upsert(linha, { onConflict: "user_id" }).then(function (r) {
+      if (r.error) throw r.error;
+      Object.assign(state.pref, mudancas);
+      aplicarPrefsLocais();
+    });
+  }
+
+  // Foto: baixada com a sessão (o bucket é privado) e mostrada por blob: URL, que a CSP aceita.
+  function carregarAvatar() {
+    return sb.storage.from("avatares").download(CAMINHO_FOTO()).then(function (r) {
+      if (r.error || !r.data) return;
+      trocarAvatarUrl(URL.createObjectURL(r.data));
+    }).catch(function () { /* sem foto: ficam as iniciais */ });
+  }
+  function trocarAvatarUrl(url) {
+    if (state.avatarUrl) URL.revokeObjectURL(state.avatarUrl);
+    state.avatarUrl = url;
+    pintarTodosAvatares();
+  }
+  function nomeAtual() {
+    var meta = (state.user && state.user.user_metadata) || {};
+    return (state.lead && state.lead.nome) || meta.nome || (state.user && state.user.email) || "";
+  }
+  function pintarAvatar(el, nome) {
+    if (!el) return;
+    el.textContent = "";
+    if (state.avatarUrl) {
+      var img = document.createElement("img");
+      img.src = state.avatarUrl; img.alt = ""; img.decoding = "async";
+      el.appendChild(img); el.classList.add("tem-foto");
+    } else {
+      el.textContent = initials(nome || nomeAtual(), state.user && state.user.email);
+      el.classList.remove("tem-foto");
+    }
+  }
+  function pintarAvatarMensagem(el) {
+    if (state.avatarUrl) pintarAvatar(el); else { el.textContent = T("VC", "YOU"); el.classList.remove("tem-foto"); }
+  }
+  function pintarTodosAvatares() {
+    pintarAvatar($("[data-me-av]"));
+    pintarAvatar($("[data-conta-av]"));
+    document.querySelectorAll(".msg-user .msg-av").forEach(pintarAvatarMensagem);
+    $("[data-foto-remover]").hidden = !state.avatarUrl;
+  }
+
+  // Recorta no centro, reduz para 256 px e grava em JPEG (~20 KB), sem metadados da câmera.
+  function prepararFoto(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var lado = Math.min(img.naturalWidth, img.naturalHeight), alvo = 256;
+        var c = document.createElement("canvas"); c.width = alvo; c.height = alvo;
+        var ctx = c.getContext("2d");
+        ctx.drawImage(img, (img.naturalWidth - lado) / 2, (img.naturalHeight - lado) / 2, lado, lado, 0, 0, alvo, alvo);
+        URL.revokeObjectURL(url);
+        c.toBlob(function (b) { b ? resolve(b) : reject(new Error("canvas")); }, "image/jpeg", 0.86);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("imagem_invalida")); };
+      img.src = url;
+    });
+  }
+  var fotoFile = $("[data-foto-file]"), fotoStatus = $("[data-foto-status]");
+  $("[data-foto-trocar]").addEventListener("click", function () { fotoFile.click(); });
+  fotoFile.addEventListener("change", function () {
+    var f = fotoFile.files && fotoFile.files[0]; fotoFile.value = "";
+    if (!f) return;
+    if (!/^image\/(png|jpe?g|webp)$/i.test(f.type)) { fotoStatus.textContent = T("Use uma foto JPG, PNG ou WebP.", "Use a JPG, PNG or WebP photo."); return; }
+    if (f.size > 15 * 1024 * 1024) { fotoStatus.textContent = T("Foto grande demais (máximo 15 MB).", "Photo too large (15 MB max)."); return; }
+    fotoStatus.textContent = T("Enviando…", "Uploading…");
+    prepararFoto(f).then(function (blob) {
+      return sb.storage.from("avatares").upload(CAMINHO_FOTO(), blob, { upsert: true, contentType: "image/jpeg", cacheControl: "60" }).then(function (r) {
+        if (r.error) throw r.error;
+        return salvarPrefs({ avatar_em: new Date().toISOString() }).then(function () { trocarAvatarUrl(URL.createObjectURL(blob)); });
+      });
+    }).then(function () { fotoStatus.textContent = T("Foto atualizada.", "Photo updated."); })
+      .catch(function (err) { console.error("foto", err); fotoStatus.textContent = T("Não foi possível enviar a foto. Tente de novo.", "We couldn't upload the photo. Try again."); });
+  });
+  $("[data-foto-remover]").addEventListener("click", function () {
+    fotoStatus.textContent = T("Removendo…", "Removing…");
+    sb.storage.from("avatares").remove([CAMINHO_FOTO()]).then(function (r) {
+      if (r.error) throw r.error;
+      return salvarPrefs({ avatar_em: null });
+    }).then(function () {
+      if (state.avatarUrl) URL.revokeObjectURL(state.avatarUrl);
+      state.avatarUrl = null; pintarTodosAvatares();
+      fotoStatus.textContent = T("Foto removida.", "Photo removed.");
+    }).catch(function () { fotoStatus.textContent = T("Não foi possível remover agora.", "We couldn't remove it right now."); });
+  });
+
+  // Exportar em Markdown: uma conversa (menu ⋯ ou botão do topo) ou todas (Minha conta).
+  function baixarArquivo(nome, texto) {
+    var url = URL.createObjectURL(new Blob([texto], { type: "text/markdown;charset=utf-8" }));
+    var a = document.createElement("a"); a.href = url; a.download = nome;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+  function conversaEmMarkdown(c, msgs) {
+    var linhas = ["# " + (c.title || T("Conversa", "Conversation")), "", "_" + fmtDate(c.created_at) + "_", ""];
+    msgs.forEach(function (m) {
+      linhas.push("**" + (m.role === "user" ? T("Você", "You") : "Trustio") + "** · " + fmtDate(m.created_at), "", String(m.content || "").trim(), "", "---", "");
+    });
+    return linhas.join("\n");
+  }
+  function mensagensDe(id) {
+    return sb.from("messages").select("role,content,created_at").eq("conversation_id", id).order("created_at", { ascending: true })
+      .then(function (r) { if (r.error) throw r.error; return r.data || []; });
+  }
+  function baixarConversas(lista, aoProgresso) {
+    var partes = [], i = 0;
+    function proxima() {
+      if (i >= lista.length) return Promise.resolve();
+      var c = lista[i++];
+      if (aoProgresso) aoProgresso(i, lista.length);
+      return mensagensDe(c.id).then(function (msgs) { partes.push(conversaEmMarkdown(c, msgs)); return proxima(); });
+    }
+    return proxima().then(function () {
+      var dia = new Date().toISOString().slice(0, 10);
+      var nome = lista.length === 1
+        ? "trustio-" + (normalizar(lista[0].title).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "conversa") + ".md"
+        : "trustio-conversas-" + dia + ".md";
+      baixarArquivo(nome, partes.join("\n\n"));
+    }).catch(function () { showNotice(T("Não foi possível baixar agora. Tente de novo.", "We couldn't download it right now. Try again.")); });
+  }
+
+  // ---- o painel
+  var conta = $("[data-conta]");
+  var abas = Array.prototype.slice.call(conta.querySelectorAll("[data-tab]"));
+  function mostrarAba(nome, focar) {
+    abas.forEach(function (b) {
+      var ativa = b.dataset.tab === nome;
+      b.setAttribute("aria-selected", ativa ? "true" : "false");
+      b.tabIndex = ativa ? 0 : -1;
+      if (ativa && focar) b.focus();
+    });
+    conta.querySelectorAll("[data-painel]").forEach(function (p) { p.hidden = p.dataset.painel !== nome; });
+  }
+  abas.forEach(function (b, i) {
+    b.addEventListener("click", function () { mostrarAba(b.dataset.tab); });
+    b.addEventListener("keydown", function (e) {
+      var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      mostrarAba(abas[(i + d + abas.length) % abas.length].dataset.tab, true);
+    });
+  });
+
+  function preencherConta() {
+    var l = state.lead || {};
+    $("#conta-nome").value = nomeAtual() === state.user.email ? "" : nomeAtual();
+    $("#conta-tel").value = fmtPhone(l.telefone || "");
+    var telTravado = l.status === "assinante";
+    $("#conta-tel").disabled = telTravado; $("[data-tel-travado]").hidden = !telTravado;
+    $("#conta-email").value = state.user.email || "";
+    $("[data-conta-plano]").textContent = $("[data-me-plan]").textContent;
+    var usados = Number(l.mensagens_usadas || 0);
+    $("[data-conta-uso]").textContent = semCota() || !state.limit
+      ? T("Sem limite de perguntas.", "No question limit.")
+      : EN ? Math.max(0, state.limit - usados) + " of " + state.limit + " free questions left" : Math.max(0, state.limit - usados) + " de " + state.limit + " perguntas grátis restantes";
+    // Preferências
+    var f = $("[data-pref-form]");
+    f.querySelectorAll("input[name=estilo]").forEach(function (r) { r.checked = r.value === (state.pref.estilo || "equilibrado"); });
+    f.instrucoes.value = state.pref.instrucoes || "";
+    $("[data-instr-conta]").textContent = f.instrucoes.value.length;
+    var sel = $("[data-modelo-select]");
+    sel.innerHTML = "";
+    var padrao = document.createElement("option"); padrao.value = ""; padrao.textContent = T("Trustio (padrão)", "Trustio (default)");
+    sel.appendChild(padrao);
+    state.modelos.forEach(function (m) {
+      var o = document.createElement("option"); o.value = m.id; o.textContent = m.rotulo + (m.descricao ? " · " + m.descricao : "");
+      sel.appendChild(o);
+    });
+    sel.value = state.modelos.some(function (m) { return m.id === state.pref.modelo; }) ? state.pref.modelo : "";
+    sel.disabled = !state.modelos.length;
+    $("[data-modelo-dica]").textContent = state.modelos.length
+      ? T("O modelo escolhido vale para as próximas mensagens, em todas as conversas.", "The model you pick applies to your next messages, in every conversation.")
+      : T("Por enquanto há um modelo disponível. Quando houver outros, eles aparecem aqui.", "For now there is one model available. When there are others, they'll show up here.");
+    var tema = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+    f.querySelectorAll("input[name=tema]").forEach(function (r) { r.checked = r.value === tema; });
+    f.querySelectorAll("input[name=fonte]").forEach(function (r) { r.checked = r.value === (state.pref.fonte || "normal"); });
+    f.enter_envia.checked = state.pref.enter_envia !== false;
+    // Conversas
+    var n = state.conversations.length;
+    $("[data-conv-total]").textContent = n === 0 ? T("Nenhuma conversa salva ainda.", "No saved conversations yet.")
+      : EN ? n + (n === 1 ? " conversation" : " conversations") + " saved in your account" + (n >= 100 ? " (showing the 100 most recent)." : ".")
+      : n + (n === 1 ? " conversa salva" : " conversas salvas") + " na sua conta" + (n >= 100 ? " (as 100 mais recentes)." : ".");
+    $("[data-baixar-todas]").disabled = n === 0; $("[data-apagar-todas]").disabled = n === 0;
+    conta.querySelectorAll(".conta-status").forEach(function (x) { x.textContent = ""; });
+    pintarTodosAvatares();
+  }
+
+  $("[data-conta-open]").addEventListener("click", function () {
+    if (!state.user) return;
+    preencherConta();
+    mostrarAba("perfil");
+    closeSide();
+    conta.showModal();
+  });
+  $("[data-conta-fechar]").addEventListener("click", function () { conta.close(); });
+  // Clique fora do cartão (no fundo escurecido) fecha.
+  conta.addEventListener("click", function (e) { if (e.target === conta) conta.close(); });
+
+  $("[data-perfil-form]").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var st = $("[data-perfil-status]"), nome = $("#conta-nome").value.trim().slice(0, 80);
+    if (!nome) { st.textContent = T("Digite seu nome.", "Enter your name."); return; }
+    var mudancas = { nome: nome };
+    if (!$("#conta-tel").disabled) mudancas.telefone = $("#conta-tel").value.trim() || null;
+    st.textContent = T("Salvando…", "Saving…");
+    // Nome no cadastro (o que a equipe vê) e no perfil do login.
+    sb.from("crm_leads").update(mudancas).eq("user_id", state.user.id).then(function (r) {
+      if (r.error) throw r.error;
+      if (state.lead) Object.assign(state.lead, mudancas);
+      return sb.auth.updateUser({ data: { nome: nome } });
+    }).then(function (r) {
+      if (r && r.data && r.data.user) state.user = r.data.user;
+      renderMe(); pintarTodosAvatares();
+      st.textContent = T("Perfil salvo.", "Profile saved.");
+    }).catch(function () { st.textContent = T("Não foi possível salvar agora. Tente de novo.", "We couldn't save right now. Try again."); });
+  });
+
+  var prefForm = $("[data-pref-form]");
+  prefForm.instrucoes.addEventListener("input", function () { $("[data-instr-conta]").textContent = prefForm.instrucoes.value.length; });
+  // Tema e tamanho do texto mudam na hora; o resto vale ao salvar.
+  prefForm.querySelectorAll("input[name=tema]").forEach(function (r) { r.addEventListener("change", function () { if (r.checked) applyTheme(r.value); }); });
+  prefForm.querySelectorAll("input[name=fonte]").forEach(function (r) { r.addEventListener("change", function () { if (r.checked) shell.dataset.fonte = r.value; }); });
+  prefForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var st = $("[data-pref-status]");
+    var escolhido = prefForm.querySelector("input[name=estilo]:checked");
+    var fonte = prefForm.querySelector("input[name=fonte]:checked");
+    st.textContent = T("Salvando…", "Saving…");
+    salvarPrefs({
+      estilo: escolhido ? escolhido.value : "equilibrado",
+      instrucoes: prefForm.instrucoes.value.trim().slice(0, 1500),
+      modelo: prefForm.modelo.value || null,
+      fonte: fonte ? fonte.value : "normal",
+      enter_envia: prefForm.enter_envia.checked
+    }).then(function () { st.textContent = T("Preferências salvas. Valem a partir da próxima mensagem.", "Preferences saved. They apply from your next message."); })
+      .catch(function () { st.textContent = T("Não foi possível salvar agora. Tente de novo.", "We couldn't save right now. Try again."); });
+  });
+
+  $("[data-baixar-todas]").addEventListener("click", function () {
+    var st = $("[data-conv-status]"), b = this;
+    b.disabled = true;
+    baixarConversas(state.conversations.slice(), function (i, n) { st.textContent = T("Preparando ", "Preparing ") + i + "/" + n + "…"; })
+      .then(function () { st.textContent = T("Arquivo pronto.", "File ready."); b.disabled = false; });
+  });
+  $("[data-apagar-todas]").addEventListener("click", function () {
+    if (state.sending) return;
+    var n = state.conversations.length;
+    if (!confirm(EN ? "Delete all " + n + " conversations? This can't be undone." : "Apagar as " + n + " conversas? Isso não pode ser desfeito.")) return;
+    var st = $("[data-conv-status]");
+    st.textContent = T("Apagando…", "Deleting…");
+    sb.from("conversations").delete().eq("user_id", state.user.id).then(function (r) {
+      if (r.error) throw r.error;
+      state.conversations = []; resetThread(); preencherConta();
+      st.textContent = T("Todas as conversas foram apagadas.", "All conversations were deleted.");
+    }).catch(function () { st.textContent = T("Não foi possível apagar agora. Tente de novo.", "We couldn't delete them right now. Try again."); });
+  });
+
+  $("[data-senha-form]").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var st = $("[data-senha-status]"), a = $("#conta-senha").value, b = $("#conta-senha2").value;
+    if (a.length < 8) { st.textContent = T("A senha precisa de pelo menos 8 caracteres.", "The password needs at least 8 characters."); return; }
+    if (a !== b) { st.textContent = T("As duas senhas não são iguais.", "The two passwords don't match."); return; }
+    st.textContent = T("Salvando…", "Saving…");
+    sb.auth.updateUser({ password: a }).then(function (r) {
+      if (r.error) throw r.error;
+      $("#conta-senha").value = ""; $("#conta-senha2").value = "";
+      st.textContent = T("Senha trocada.", "Password changed.");
+    }).catch(function (err) {
+      var m = String((err && err.message) || "");
+      st.textContent = /different from the old|same/i.test(m) ? T("A nova senha precisa ser diferente da atual.", "The new password must differ from the current one.")
+        : /weak|short|characters/i.test(m) ? T("Senha fraca demais. Use letras, números e mais caracteres.", "Password too weak. Use letters, numbers and more characters.")
+        : T("Não foi possível trocar agora. Tente de novo.", "We couldn't change it right now. Try again.");
+    });
+  });
+  $("[data-sair-outros]").addEventListener("click", function () {
+    var st = $("[data-seg-status]");
+    st.textContent = T("Encerrando…", "Signing out…");
+    sb.auth.signOut({ scope: "others" }).then(function (r) {
+      if (r && r.error) throw r.error;
+      st.textContent = T("Pronto: os outros aparelhos foram desconectados.", "Done: your other devices were signed out.");
+    }).catch(function () { st.textContent = T("Não foi possível agora. Tente de novo.", "That didn't work right now. Try again."); });
+  });
 
   // Tema (mesma chave do site).
   var toggle = $(".theme-toggle");

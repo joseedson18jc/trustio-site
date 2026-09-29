@@ -1087,11 +1087,16 @@
     // Primeiro saem os arquivos; o registro só é limpo com a pasta vazia. Se algo falhar no
     // caminho, o registro fica e o botão Remover continua lá para tentar de novo.
     limparPastaDeFotos(null).then(function () {
-      return salvarPrefs({ avatar_em: null });
-    }).then(function () {
+      // Os arquivos já saíram (era o pedido): a tela deixa de mostrar a foto na hora.
       if (state.avatarUrl) URL.revokeObjectURL(state.avatarUrl);
       state.avatarUrl = null; pintarTodosAvatares();
-      fotoStatus.textContent = T("Foto removida.", "Photo removed.");
+      return salvarPrefs({ avatar_em: null }).then(function () {
+        pintarTodosAvatares();
+        fotoStatus.textContent = T("Foto removida.", "Photo removed.");
+      }, function () {
+        // Só o registro ficou para trás: o botão Remover continua para concluir.
+        fotoStatus.textContent = T("A foto foi apagada, mas o registro não atualizou. Clique em Remover de novo para concluir.", "The photo was deleted, but the record didn't update. Click Remove again to finish.");
+      });
     }).catch(function () { fotoStatus.textContent = T("Não foi possível remover agora. Tente de novo.", "We couldn't remove it right now. Try again."); })
       .then(function () { ocuparFoto(false); });
   });

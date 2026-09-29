@@ -19,6 +19,7 @@ export default defineConfig({
         fundador: resolve(import.meta.dirname, "fundador.html"),
         juridico: resolve(import.meta.dirname, "juridico/index.html"),
         voice: resolve(import.meta.dirname, "voice.html"),
+        iaSemCensura: resolve(import.meta.dirname, "ia-sem-censura.html"),
         planos: resolve(import.meta.dirname, "planos.html"),
         planosTeste: resolve(import.meta.dirname, "planos-teste.html"),
         obrigado: resolve(import.meta.dirname, "obrigado.html"),

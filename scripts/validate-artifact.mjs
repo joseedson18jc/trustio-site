@@ -20,6 +20,7 @@ for (const [path, expectedStatus, expectedType] of [
   ["/juridico/", 200, "text/html"],
   ["/voice.html", 200, "text/html"],
   ["/agentio.html", 200, "text/html"],
+  ["/ia-sem-censura.html", 200, "text/html"],
   ["/planos.html", 200, "text/html"],
   ["/console/", 200, "text/html"],
   ["/cadastro.html", 200, "text/html"],

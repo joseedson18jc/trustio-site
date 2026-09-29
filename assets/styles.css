@@ -1930,17 +1930,25 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
 }
 
 /* Responsive */
-/* Cabeçalho: sete itens (com os pares VoiceAI e Agentio) + Entrar + CTA + idioma + tema precisam
-   de ~1280px; a faixa do cabeçalho cresce até 1360px (mais larga que o container de conteúdo) e,
-   abaixo de 1301px, o menu hambúrguer assume (breakpoint espelhado em app.js). */
+/* Cabeçalho: oito itens (com os pares VoiceAI, Agentio e IA sem censura) + Entrar + CTA + idioma
+   + tema precisam de ~1470px. A faixa do cabeçalho cresce até 1520px (1600px em telas largas), mais
+   larga que o container de conteúdo; entre 1301px e 1539px o CTA do cabeçalho sai (o contato
+   continua na página) e o menu aperta um pouco; abaixo de 1301px, o menu hambúrguer assume
+   (breakpoint espelhado em app.js). */
 @media (min-width: 1301px) {
-  .header-inner { width: min(1360px, calc(100vw - 48px)); gap: var(--space-16); }
+  .header-inner { width: min(1520px, calc(100vw - 48px)); gap: var(--space-16); }
   .desktop-nav { gap: var(--space-20); }
   .desktop-nav a { font-size: 14.5px; }
 }
 
-@media (min-width: 1441px) {
-  .header-inner { gap: var(--space-20); }
+@media (min-width: 1301px) and (max-width: 1539px) {
+  .header-cta { display: none; }
+  .desktop-nav { gap: var(--space-16); }
+  .desktop-nav a { font-size: 14px; }
+}
+
+@media (min-width: 1700px) {
+  .header-inner { width: min(1600px, calc(100vw - 48px)); gap: var(--space-20); }
   .desktop-nav { gap: var(--space-28); }
   .desktop-nav a { font-size: 15px; }
 }
@@ -2294,6 +2302,8 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   -webkit-mask:url("nous-research.webp") center/contain no-repeat;mask:url("nous-research.webp") center/contain no-repeat}
 .mobile-nav .nav-agentio small{font-size:var(--label-lg)}
 .mobile-nav .nav-nous{width:30px;height:30px;margin-left:8px}
+.nav-ia small{display:inline-block;white-space:nowrap;font-family:var(--mono);font-size:var(--label);letter-spacing:.1em;text-transform:uppercase;color:var(--blue-signal);margin-left:6px;vertical-align:middle}
+.mobile-nav .nav-ia small{font-size:var(--label-lg)}
 
 
 /* ---------- Seats banner — segunda dobra da home ---------- */

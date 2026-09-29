@@ -45,6 +45,7 @@ const sourceFiles = [
   "juridico/index.html",
   "voice.html",
   "agentio.html",
+  "ia-sem-censura.html",
   "planos.html",
   "planos-teste.html",
   "obrigado.html",

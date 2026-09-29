@@ -49,7 +49,22 @@ if [ ! -s "$CONFIG" ]; then
     echo "  e rode o workflow Supabase (Actions → Supabase → Run workflow) para a função receber os valores."
   fi
 fi
-PORTA="$("$NODE" -p 'require(process.argv[1]).porta ?? 18080' "$CONFIG")"
+# Porta do config.json existente: WA_PORTA, se informada, vale e é gravada; a antiga 8080 (padrão
+# de antes, que o túnel não alcança) passa para a 18080.
+PORTA_SALVA="$("$NODE" -p 'require(process.argv[1]).porta ?? ""' "$CONFIG")"
+PORTA_NOVA=""
+if [ -n "${WA_PORTA:-}" ] && [ "$PORTA_SALVA" != "$WA_PORTA" ]; then PORTA_NOVA="$WA_PORTA"
+elif [ -z "${WA_PORTA:-}" ] && { [ "$PORTA_SALVA" = "8080" ] || [ -z "$PORTA_SALVA" ]; }; then PORTA_NOVA=18080
+fi
+if [ -n "$PORTA_NOVA" ]; then
+  "$NODE" -e '
+    const fs = require("fs"), [arq, porta] = process.argv.slice(1);
+    const c = JSON.parse(fs.readFileSync(arq, "utf8")); c.porta = Number(porta);
+    fs.writeFileSync(arq, JSON.stringify(c, null, 2) + "\n", { mode: 0o600 }); fs.chmodSync(arq, 0o600);
+  ' "$CONFIG" "$PORTA_NOVA"
+  echo "→ porta ${PORTA_SALVA:-(sem porta)} → $PORTA_NOVA em $CONFIG"
+fi
+PORTA="$("$NODE" -p 'require(process.argv[1]).porta' "$CONFIG")"
 
 # Para a versão anterior deste serviço (numa reinstalação) antes de olhar a porta: o que continuar
 # ouvindo nela é outro programa (ex.: o container antigo da Evolution) e impede o serviço de subir.
@@ -59,9 +74,15 @@ if lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN >/dev/null 2>&1; then
   echo
   echo "A porta $PORTA já está em uso:"
   lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN
-  echo "Na $PORTA costuma estar a Evolution API: este serviço é a alternativa a ela, e só um dos dois"
-  echo "pode ocupar a porta do túnel. Para trocar, pare o container dela (docker ps --filter publish=$PORTA)"
-  echo "e rode este instalador de novo."
+  echo
+  if lsof -nP -iTCP:"$PORTA" -sTCP:LISTEN 2>/dev/null | grep -qiE "docke|vpnkit"; then  # o lsof do macOS corta o nome em "com.docke"
+    echo "É um container do Docker (na 18080 costuma estar a Evolution API). Este serviço é a alternativa"
+    echo "a ela, e só um dos dois pode ocupar a porta do túnel. Para trocar, pare o container e rode de novo:"
+    echo "  docker stop \$(docker ps -q --filter publish=$PORTA)"
+  else
+    echo "Pare o programa listado acima e rode este instalador de novo:"
+    echo "  kill $(lsof -t -iTCP:"$PORTA" -sTCP:LISTEN 2>/dev/null | head -1)"
+  fi
   exit 1
 fi
 

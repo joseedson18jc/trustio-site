@@ -74,10 +74,10 @@ for (const [path, expectedLocation] of [
 // worker e a da própria página do chat) precisa liberar o script e o envio, senão o chat some
 // das estatísticas sem nenhum outro sinal.
 const ANALYTICS = [["script-src", "https://static.cloudflareinsights.com"], ["connect-src", "https://cloudflareinsights.com"]];
-// A abertura do chat (/app/) usa vídeo do CloudFront e fontes/ícones de CDN.
+// A abertura do chat (/app/) usa vídeo do CloudFront e fontes de CDN.
 const HERO = [
-  ["style-src", "https://fonts.googleapis.com"], ["style-src", "https://db.onlinewebfonts.com"], ["style-src", "https://cdnjs.cloudflare.com"],
-  ["font-src", "https://fonts.gstatic.com"], ["font-src", "https://db.onlinewebfonts.com"], ["font-src", "https://cdnjs.cloudflare.com"],
+  ["style-src", "https://fonts.googleapis.com"], ["style-src", "https://db.onlinewebfonts.com"],
+  ["font-src", "https://fonts.gstatic.com"], ["font-src", "https://db.onlinewebfonts.com"],
   ["media-src", "https://d8j0ntlcm91z4.cloudfront.net"]
 ];
 const diretiva = (csp, nome) => (csp.split(";").map((d) => d.trim()).find((d) => d.startsWith(nome + " ")) ?? "").split(/\s+/);

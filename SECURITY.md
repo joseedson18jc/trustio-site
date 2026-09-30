@@ -16,9 +16,9 @@ As partes com conta — cadastro, login, chat (`/app/`), CRM e painel — usam o
   `application/ld+json`, que não executam.
 - Fontes, ícones e bibliotecas servidos da própria origem (sem CDN de terceiros), com uma exceção:
   a abertura do chat (`/app/`, `/en/app/`) carrega o vídeo de fundo do CloudFront
-  (`d8j0ntlcm91z4.cloudfront.net`, só `media-src`), as fontes Inter (Google Fonts) e
-  BubbledotICG-FinePos (`db.onlinewebfonts.com`) e o Font Awesome 6.5.2 (cdnjs, com SRI). Só folhas
-  de estilo, fontes e mídia: nenhum script de terceiros. Se algum desses serviços cair, a abertura
+  (`d8j0ntlcm91z4.cloudfront.net`, só `media-src`) e as fontes Inter (Google Fonts) e
+  BubbledotICG-FinePos (`db.onlinewebfonts.com`). Só folhas de estilo, fontes e mídia: nenhum script
+  de terceiros. Se algum desses serviços cair, a abertura
   usa o pôster local e as fontes de reserva (Geist Pixel Circle local) e o chat segue funcionando.
 - A chave do Supabase no navegador é a *publishable*; a proteção dos dados é feita por RLS no banco.
 - O conteúdo das conversas e dos leads é renderizado com escape (sem HTML vindo do usuário ou do modelo).

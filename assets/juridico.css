@@ -1074,7 +1074,9 @@
 .evidence-metrics article { min-height: 0; }
 .evidence-metrics strong { margin-top: 22px; }
 
-/* Segurança: perímetro concêntrico */
+/* Segurança: perímetro concêntrico. As etiquetas saem um pouco do círculo: a seção corta o
+   excesso na horizontal para nunca criar rolagem lateral. */
+.legal-security { overflow-x: clip; }
 .legal-perimeter { position: relative; width: min(100%, 460px); aspect-ratio: 1; margin: 0 auto; }
 .perimeter-ring { position: absolute; border-radius: 50%; }
 .perimeter-ring span { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); white-space: nowrap; color: var(--muted-strong); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -1102,9 +1104,9 @@
 }
 .perimeter-tag::before { display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 50%; background: #3ddc97; vertical-align: middle; content: ""; }
 .perimeter-tag.t1 { top: 30%; left: -4%; }
-.perimeter-tag.t2 { top: 24%; right: -6%; }
+.perimeter-tag.t2 { top: 24%; right: -2%; }
 .perimeter-tag.t3 { bottom: 22%; left: -2%; }
-.perimeter-tag.t4 { bottom: 16%; right: -6%; }
+.perimeter-tag.t4 { bottom: 16%; right: -2%; }
 
 /* Implantação como linha do tempo */
 .legal-timeline { position: relative; border-top: 0; }
@@ -1134,6 +1136,10 @@
   .evidence-chart:last-child { border-bottom: 0; }
   .legal-compare-grid { grid-template-columns: 1fr; }
   .legal-compare-arrow { justify-self: center; transform: rotate(90deg); }
+  /* Em duas linhas a linha do tempo contínua perde o sentido: some a linha e os pontos. */
+  .legal-timeline::before,
+  .legal-timeline article::before { display: none; }
+  .legal-timeline article { padding-top: 34px; }
 }
 @media (max-width: 760px) {
   .legal-hero h1 { font-size: clamp(40px, 12vw, 58px); }

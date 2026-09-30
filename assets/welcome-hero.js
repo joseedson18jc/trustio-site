@@ -54,8 +54,8 @@
     if (lista) obs.observe(lista);
   });
 
-  // O vídeo só roda com a abertura visível (a conversa esconde a tela de boas-vindas; o modo
-  // "returning" esconde a abertura) e sem "reduzir movimento", inclusive se isso mudar depois.
+  // O vídeo só roda com a abertura visível (abrir uma conversa esconde a tela de boas-vindas) e
+  // sem "reduzir movimento", inclusive se isso mudar depois.
   var video = hero.querySelector("video"), visivel = false;
   function atualizaVideo() {
     if (!video) return;

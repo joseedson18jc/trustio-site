@@ -74,13 +74,19 @@ for (const [path, expectedLocation] of [
 // worker e a da própria página do chat) precisa liberar o script e o envio, senão o chat some
 // das estatísticas sem nenhum outro sinal.
 const ANALYTICS = [["script-src", "https://static.cloudflareinsights.com"], ["connect-src", "https://cloudflareinsights.com"]];
+// A abertura do chat (/app/) usa vídeo do CloudFront e fontes/ícones de CDN.
+const HERO = [
+  ["style-src", "https://fonts.googleapis.com"], ["style-src", "https://db.onlinewebfonts.com"], ["style-src", "https://cdnjs.cloudflare.com"],
+  ["font-src", "https://fonts.gstatic.com"], ["font-src", "https://db.onlinewebfonts.com"], ["font-src", "https://cdnjs.cloudflare.com"],
+  ["media-src", "https://d8j0ntlcm91z4.cloudfront.net"]
+];
 const diretiva = (csp, nome) => (csp.split(";").map((d) => d.trim()).find((d) => d.startsWith(nome + " ")) ?? "").split(/\s+/);
 for (const path of ["/app/", "/en/app/"]) {
   const response = await worker.fetch(new Request(`https://trustio.example${path}`));
   const header = response.headers.get("content-security-policy") ?? "";
   const meta = (await response.text()).match(/http-equiv="Content-Security-Policy" content="([^"]*)"/)?.[1] ?? "";
   for (const [onde, csp] of [["cabeçalho", header], ["meta", meta]]) {
-    for (const [nome, origem] of ANALYTICS) {
+    for (const [nome, origem] of [...ANALYTICS, ...HERO]) {
       if (!diretiva(csp, nome).includes(origem)) throw new Error(`${path}: CSP (${onde}) não libera ${origem} em ${nome}.`);
     }
   }

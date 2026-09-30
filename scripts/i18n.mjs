@@ -253,7 +253,7 @@ function traduzirTag(tag, pagina, traduz) {
       });
       return `${esp}${nome}="${r}"`;
     }
-    if (n === "href" || n === "src" || n === "action") {
+    if (n === "href" || n === "src" || n === "action" || n === "poster") {
       return `${esp}${nome}="${reescreverUrl(valor, pagina)}"`;
     }
     // content e value quase nunca são endereço (viewport, CSP, valor de rádio). Qualquer

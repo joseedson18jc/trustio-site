@@ -173,6 +173,9 @@
 .wh-d6 { --d: 0.66s; }
 .wh-d7 { --d: 0.74s; }
 
+/* Enquanto o chat carrega (invisível), as entradas esperam, para rodar quando ele aparece. */
+.chat-shell[data-state="loading"] :is(.wh-anim, .wh-anim-pulse, .wh-headline > span) { animation-play-state: paused; }
+
 @keyframes wh-reveal { to { opacity: 1; transform: none; filter: none; } }
 @keyframes wh-headline { to { opacity: 1; transform: none; } }
 @keyframes wh-reveal-pulse {

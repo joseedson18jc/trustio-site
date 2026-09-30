@@ -17,19 +17,32 @@
   });
 
   function conta(el, i) {
-    var alvo = Number(el.dataset.whCount), casas = Number(el.dataset.whDec), suf = el.dataset.whSuf;
+    var casas = Number(el.dataset.whDec), suf = el.dataset.whSuf;
     var dur = 1500 + i * 80, ini = null;
     el.textContent = formata(0, casas, suf);
     function passo(t) {
       if (ini === null) ini = t;
       var p = Math.min(1, (t - ini) / dur), e = 1 - Math.pow(1 - p, 3);
-      el.textContent = formata(alvo * e, casas, suf);
+      // Lê o alvo a cada quadro: o chat pode trocar o limite de perguntas grátis no meio da contagem.
+      el.textContent = formata(Number(el.dataset.whCount) * e, casas, suf);
       if (p < 1) requestAnimationFrame(passo);
     }
     setTimeout(function () { requestAnimationFrame(passo); }, 480 + i * 90);
   }
 
-  if (!reduz && "IntersectionObserver" in window) {
+  // O chat fica em data-state="loading" (invisível, atrás da tela de entrada) até a sessão
+  // carregar. Contagem e vídeo só começam quando ele fica "ready": antes disso ninguém os vê, e
+  // o vídeo nem é baixado para quem não entra.
+  function quandoPronto(fn) {
+    var shell = document.querySelector(".chat-shell");
+    if (!shell || shell.dataset.state === "ready") { fn(); return; }
+    var mo = new MutationObserver(function () {
+      if (shell.dataset.state === "ready") { mo.disconnect(); fn(); }
+    });
+    mo.observe(shell, { attributes: true, attributeFilter: ["data-state"] });
+  }
+
+  if (!reduz && "IntersectionObserver" in window) quandoPronto(function () {
     var obs = new IntersectionObserver(function (entradas) {
       entradas.forEach(function (en) {
         if (!en.isIntersecting) return;
@@ -39,7 +52,7 @@
     }, { threshold: 0.25 });
     var lista = hero.querySelector(".wh-stats");
     if (lista) obs.observe(lista);
-  }
+  });
 
   // O vídeo só roda com a abertura visível (a conversa esconde a tela de boas-vindas; o modo
   // "returning" esconde a abertura) e sem "reduzir movimento", inclusive se isso mudar depois.
@@ -51,12 +64,14 @@
   }
   if (video) {
     video.removeAttribute("autoplay");
-    if ("IntersectionObserver" in window) {
-      new IntersectionObserver(function (entradas) {
-        visivel = entradas[entradas.length - 1].isIntersecting;
-        atualizaVideo();
-      }).observe(hero);
-    } else { visivel = true; atualizaVideo(); }
+    quandoPronto(function () {
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(function (entradas) {
+          visivel = entradas[entradas.length - 1].isIntersecting;
+          atualizaVideo();
+        }).observe(hero);
+      } else { visivel = true; atualizaVideo(); }
+    });
     if (mq) {
       if (mq.addEventListener) mq.addEventListener("change", atualizaVideo);
       else if (mq.addListener) mq.addListener(atualizaVideo);

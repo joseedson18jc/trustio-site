@@ -268,6 +268,9 @@
   }
 
   function renderOnboardQuota() {
+    // A abertura (welcome-hero.js) mostra o mesmo limite de perguntas grátis do widget abaixo.
+    var whLimit = $("[data-wh-limit]");
+    if (whLimit && state.limit > 0) { whLimit.dataset.whCount = state.limit; whLimit.textContent = state.limit; }
     var status = state.lead ? state.lead.status : "novo";
     var used = state.lead ? Number(state.lead.mensagens_usadas || 0) : 0;
     var limitEl = $("[data-ob-limit]"), bar = $("[data-ob-bar]"), txt = $("[data-ob-quota]");

@@ -3,7 +3,8 @@
 (function () {
   var hero = document.querySelector("[data-wh]");
   if (!hero) return;
-  var reduz = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var mq = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+  var reduz = !!(mq && mq.matches);
   var local = document.documentElement.lang || "pt-BR";
 
   function formata(v, casas, suf) {
@@ -40,8 +41,27 @@
     if (lista) obs.observe(lista);
   }
 
-  var video = hero.querySelector("video");
-  if (video && reduz) { video.removeAttribute("autoplay"); video.pause(); }
+  // O vídeo só roda com a abertura visível (a conversa esconde a tela de boas-vindas; o modo
+  // "returning" esconde a abertura) e sem "reduzir movimento", inclusive se isso mudar depois.
+  var video = hero.querySelector("video"), visivel = false;
+  function atualizaVideo() {
+    if (!video) return;
+    if (visivel && !(mq && mq.matches)) { var p = video.play(); if (p && p.catch) p.catch(function () {}); }
+    else video.pause();
+  }
+  if (video) {
+    video.removeAttribute("autoplay");
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entradas) {
+        visivel = entradas[entradas.length - 1].isIntersecting;
+        atualizaVideo();
+      }).observe(hero);
+    } else { visivel = true; atualizaVideo(); }
+    if (mq) {
+      if (mq.addEventListener) mq.addEventListener("change", atualizaVideo);
+      else if (mq.addListener) mq.addListener(atualizaVideo);
+    }
+  }
 
   var cta = hero.querySelector("[data-wh-cta]");
   if (cta) cta.addEventListener("click", function () {

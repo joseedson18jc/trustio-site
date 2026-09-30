@@ -186,8 +186,8 @@
   100% { opacity: 1; transform: none; filter: none; }
 }
 
-/* A abertura só aparece para quem está começando; quem já conversou vai direto aos widgets. */
-.welcome[data-mode="returning"] .wh { min-height: 0; }
+/* A abertura só aparece para quem está começando; quem já passou do onboarding vai direto aos widgets. */
+.welcome[data-mode="returning"] .wh { display: none; }
 
 @media (max-width: 720px) {
   .wh { border-radius: 22px; min-height: min(600px, 80vh); }

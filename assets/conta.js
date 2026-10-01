@@ -90,6 +90,7 @@
         }
       }).then(function (r) {
         if (r.error) throw r.error;
+        if (window.TRUSTIO_FUNIL) window.TRUSTIO_FUNIL.inicio();
         if (r.data && r.data.session) { location.replace(appUrl); return; }
         // Mesma resposta para e-mail novo e para e-mail que já tem conta (o Supabase devolve
         // identities vazio nesse caso, sem erro): dizer "já tem conta" num formulário público

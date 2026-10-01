@@ -19,7 +19,11 @@ const ORIGEM = "https://trustio.com.br/";
 export function caminhoDaUrl(url) {
   if (!url.startsWith(ORIGEM)) return null;
   const caminho = url.slice(ORIGEM.length);
-  return caminho === "" || caminho.endsWith("/") ? `${caminho}index.html` : caminho;
+  const base = caminho === "" || caminho.endsWith("/") ? `${caminho}index.html` : caminho;
+  // URLs limpias (/cadastro) apontam para o arquivo real (cadastro.html)
+  if (existsSync(join(root, base))) return base;
+  const comHtml = `${base}.html`;
+  return existsSync(join(root, comHtml)) ? comHtml : base;
 }
 
 export function arquivoDaUrl(url) {

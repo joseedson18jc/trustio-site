@@ -18,6 +18,7 @@
   <link rel="preload" href="../assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="../assets/theme.js?v=62b52a16"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=cda6d997">
+  <link rel="stylesheet" href="../assets/chat-templates.css?v=e18f2981">
   <link rel="stylesheet" href="../assets/chat.css?v=e0281232">
   <link rel="stylesheet" href="../assets/whatsapp-suporte.css?v=bd7856f9">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +28,8 @@
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=7ebbf495"></script>
   <script defer src="../assets/ocr.js?v=333c1492"></script>
-  <script defer src="../assets/chat.js?v=271aa0d8"></script>
+  <script defer src="../assets/chat-templates.js?v=17c52a73"></script>
+  <script defer src="../assets/chat.js?v=b607d2bc"></script>
   <script defer src="../assets/welcome-hero.js?v=dad4d932"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
@@ -49,6 +51,8 @@
     <button class="btn btn-primary new-chat" type="button" data-new>
       <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg> Nova conversa
     </button>
+
+    <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Templates uncensored</button>
 
     <nav class="conv-list" aria-label="Conversas" data-conversations>
       <p class="side-k">Conversas</p>
@@ -168,6 +172,12 @@
           </div>
         </section>
 
+        <div class="templates-intro">
+          <h2>Um ponto de partida para perguntas difíceis.</h2>
+          <p>Ficção, debates e análise crítica. Escolha um template, ajuste o contexto e envie quando estiver pronto.</p>
+          <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Explorar templates uncensored</button>
+          <small>Escolher um template não envia mensagens nem consome perguntas.</small>
+        </div>
         <div class="starters">
           <button type="button" data-starter>Explique como funciona a LGPD para uma empresa pequena, sem juridiquês.</button>
           <button type="button" data-starter>Escreva um e-mail firme cobrando um pagamento atrasado.</button>
@@ -200,6 +210,20 @@
     </form>
   </main>
 </div>
+
+<dialog class="templates-dialog" data-templates aria-labelledby="templates-title">
+  <div class="templates-top">
+    <div><p class="templates-k">BIBLIOTECA · TRUSTIO</p><h2 id="templates-title">Templates uncensored</h2></div>
+    <button class="btn btn-ghost btn-icon" type="button" data-templates-close aria-label="Fechar templates">×</button>
+  </div>
+  <p class="templates-desc">Respostas diretas para temas complexos. Substitua os campos entre colchetes antes de enviar. O template entra como rascunho; sua mensagem atual é preservada.</p>
+  <label class="vh" for="template-search">Buscar templates</label>
+  <input id="template-search" type="search" placeholder="Buscar por tema ou tarefa" autocomplete="off" data-template-search>
+  <div class="templates-filters" role="group" aria-label="Categorias de templates" data-template-filters></div>
+  <p class="templates-count" role="status" aria-live="polite" data-template-count></p>
+  <div class="templates-grid" data-template-list></div>
+  <p class="templates-feedback" role="status" data-template-feedback></p>
+</dialog>
 
 <dialog class="conta" data-conta aria-labelledby="conta-titulo">
   <div class="conta-top">

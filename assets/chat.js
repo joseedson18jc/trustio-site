@@ -917,9 +917,7 @@
   function autosize() { input.style.height = "auto"; input.style.height = Math.min(220, input.scrollHeight) + "px"; }
   input.addEventListener("input", autosize);
 
-  document.querySelectorAll("[data-starter]").forEach(function (b) {
-    b.addEventListener("click", function () { input.value = b.textContent; autosize(); send(input.value); });
-  });
+  // Sugestões e templates são rascunhos editáveis, tratados em chat-templates.js.
 
   $("[data-new]").addEventListener("click", function () { if (!state.sending) { resetThread(); input.focus(); closeSide(); } });
 

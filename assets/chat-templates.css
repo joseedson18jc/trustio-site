@@ -1,0 +1,27 @@
+/* Local template library, using the chat's existing theme tokens. */
+.templates-intro { margin: 28px 0 18px; text-align: left; padding: 20px; border-left: 3px solid var(--blue-signal); background: var(--surface); border-radius: 0 12px 12px 0; }
+.templates-intro h2 { font-family: var(--display); font-size: 17px; line-height: 1.5; margin: 0 0 8px; }
+.templates-intro p { max-width: none; margin: 0 0 14px; font-size: 14px; }
+.templates-intro small { display: block; margin-top: 10px; color: var(--muted); font-size: 12px; }
+.templates-dialog { width: min(900px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 24px; border: 1px solid var(--line-bright); border-radius: 18px; background: var(--surface); color: var(--ice); overflow-y: auto; overscroll-behavior: contain; }
+.templates-dialog::backdrop { background: rgba(0, 0, 0, .65); }
+.templates-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.templates-k { font-family: var(--mono); font-size: 11px; color: var(--blue-signal); letter-spacing: .08em; margin: 0 0 8px; }
+.templates-top h2 { font-family: var(--display); font-size: clamp(20px, 4vw, 27px); margin: 0; letter-spacing: -.04em; }
+.templates-desc { color: var(--muted-strong); font-size: 14px; line-height: 1.65; margin: 16px 0; }
+.templates-dialog input { width: 100%; min-height: 44px; padding: 10px 14px; border: 1px solid var(--line-bright); border-radius: 10px; background: var(--abyss); color: var(--ice); font: inherit; }
+.templates-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.templates-filters [aria-pressed="true"] { border-color: var(--blue-signal); color: var(--ice); background: rgba(var(--on-surface-rgb), .1); }
+.templates-count, .templates-feedback { font-size: 12px; color: var(--muted-strong); margin: 14px 0; }
+.templates-feedback:empty { display: none; }
+.templates-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.template-card { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--card-gradient); min-width: 0; }
+.template-card small { font-family: var(--mono); color: var(--blue-signal); font-size: 10px; text-transform: uppercase; letter-spacing: .05em; }
+.template-card h3 { font-size: 16px; margin: 0; color: var(--ice); }
+.template-card p { font-size: 13px; color: var(--muted-strong); line-height: 1.6; margin: 0; overflow-wrap: anywhere; }
+.template-card details { width: 100%; margin: 2px 0 6px; }
+.template-card summary { cursor: pointer; font-size: 12px; color: var(--muted-strong); padding: 4px 0; }
+.template-card details p { margin-top: 10px; padding: 12px; border-left: 2px solid var(--blue-signal); background: var(--abyss); }
+.template-card > button { margin-top: auto; white-space: normal; text-align: left; }
+.templates-dialog :focus-visible, .templates-intro button:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 3px; }
+@media (max-width: 600px) { .templates-dialog { padding: 18px; } .templates-grid { grid-template-columns: 1fr; } .templates-filters { gap: 6px; } .templates-filters .btn { padding: 0 10px; font-size: 12px; } }

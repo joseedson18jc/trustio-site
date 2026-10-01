@@ -27,7 +27,7 @@ const LISTAR = args.has("--faltando");
 
 // Páginas espelhadas em en/. Ficam só em português, de propósito: admin/ e crm/
 // (ferramentas internas do operador), planos-teste.html (noindex, checkout de
-// teste) e voice-mvp/ (outra aplicação, publicada à parte).
+// teste).
 export const PAGINAS = [
   "index.html", "modelos.html", "voice.html", "agentio.html", "planos.html", "espera.html",
   "manifesto.html", "fundador.html", "privacidade.html", "seats.html",
@@ -47,7 +47,7 @@ const MARCAS = new Set([
   "Trustio", "Trust", "io", "VoiceAI", "Omnichannel", "Pix", "Stripe", "xSpace", "WhatsApp",
   "Telegram", "LGPD", "ANPD", "ISO 27001", "Hermes", "OpenAI", "Supabase", "Cloudflare",
   "Resend", "Apple Pay", "Google Pay", "RAG", "OCR", "API", "SSO", "SIEM", "VPC", "GPU",
-  "SLA", "CRM", "CSV", "PDF", "Starter", "Pro", "Dedicado", "Crédito Jus", "br-sao-1",
+  "SLA", "CRM", "CSV", "PDF", "Starter", "Pro", "Dedicado", "br-sao-1",
   "Gmail", "Outlook", "powered by xSpace", "Agentio", "Agentio · Nous", "Nous Research", "Hermes Agent", "by", "Agent Builder", "SAFE ROUTE", "TRUSTIO / SAFE ROUTE",
   // a própria bandeira: é reescrita depois da tradução
   "EN", "PT", "Idioma atual: português. Mudar para inglês", "Mudar para inglês (English)",

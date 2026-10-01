@@ -14,7 +14,7 @@ import { dirname, join, relative, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const check = process.argv.includes("--check");
-const SKIP_DIRS = new Set(["node_modules", "dist", ".git", ".vercel", "upload", "validation", "voice-mvp"]);
+const SKIP_DIRS = new Set(["node_modules", "dist", ".git", ".vercel", "upload", "validation"]);
 const ASSET_RE = /\.(?:css|js)$/i;
 
 async function walk(dir) {

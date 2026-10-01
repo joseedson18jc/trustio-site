@@ -1,176 +1,55 @@
-# Aplica automaticamente a configuração do Supabase (auth, e-mails, SMTP, migrações, função de chat,
-# segredos e administradores) a cada push na main que toque em supabase/. Também roda à mão.
-#
-# Secrets do repositório (Settings → Secrets and variables → Actions → New repository secret):
-#   SUPABASE_ACCESS_TOKEN  token pessoal (supabase.com/dashboard/account/tokens)    obrigatório
-#   SUPABASE_DB_PASSWORD   senha do banco do projeto (Project Settings → Database)  obrigatório
-#   SMTP_PASS              senha/API key do SMTP do domínio (ex.: Resend)           para e-mails pelo domínio
-#   SMTP_SENDER            remetente, se diferente do padrão do config.toml         opcional
-#   LLM_API_KEY            chave do provedor do modelo (xAI ou compatível)          para o chat responder
-#   LLM_BASE_URL, LLM_MODEL                                                         opcionais
-#   LLM_SERVIDOR           "llama.cpp" para a contagem exata de tokens               opcional
-#   LLM_CONTEXTO           contexto do modelo (llama-server -c), ex.: 8192           opcional (% da sessão)
-#   LLM_MAX_TOKENS         teto de tokens por resposta, ex.: 8192                    opcional (% da resposta)
-#   AVISOS_SEGREDO         segredo compartilhado entre o banco (Vault) e a função aviso-agente  para os avisos do teste
-#   RESEND_API_KEY         chave do Resend (e-mail do aviso do teste do Agentio)     para o aviso por e-mail
-#   EVOLUTION_URL, EVOLUTION_INSTANCE, EVOLUTION_API_KEY  Evolution API                para o aviso por WhatsApp
-#   EVOLUTION_NUMERO       número conectado à instância, se for o próprio Agentio    opcional
-#   HERMES_SEGREDO         segredo do sincronizador do Mac (~/.trustio-hermes-sync-key) para liberar números no Hermes
-#   ADMIN_EMAILS           e-mails dos administradores do CRM, separados por vírgula
-name: Supabase
-
+name: Trustio delivery audit
 on:
-  push:
-    branches: [main]
-    paths: ["supabase/**", ".github/workflows/supabase.yml"]
   workflow_dispatch:
-
-concurrency:
-  group: supabase-${{ github.ref }}
-  cancel-in-progress: false
-
-# O job só lê o repositório; o GITHUB_TOKEN não precisa de escrita.
 permissions:
   contents: read
-
 jobs:
-  apply:
+  audit:
     runs-on: ubuntu-latest
-    # Cada segredo entra só no passo que o usa: as actions de terceiros (checkout, setup-cli)
-    # rodam sem nenhum deles no ambiente.
-    env:
-      PROJECT_REF: mjdaluioyutnxlyomzyd
+    timeout-minutes: 8
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-
-      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1
-        with:
-          version: 2.118.0
-
-      - name: Verificar segredos
+      - name: Inspect notification configuration without customer data
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-        run: |
-          missing=""
-          [ -n "$SUPABASE_ACCESS_TOKEN" ] || missing="$missing SUPABASE_ACCESS_TOKEN"
-          [ -n "$SUPABASE_DB_PASSWORD" ] || missing="$missing SUPABASE_DB_PASSWORD"
-          if [ -n "$missing" ]; then echo "::error::Faltam secrets:$missing (veja o cabeçalho deste workflow)"; exit 1; fi
-
-          # O token pessoal do Supabase começa com sbp_. Colado pela interface, às vezes vem
-          # com espaço, quebra de linha ou aspas; tiramos. Se ainda não for sbp_, dizemos
-          # que tipo de chave chegou (sem mostrar nada dela), porque o erro da CLI não diz.
-          token="$(printf '%s' "$SUPABASE_ACCESS_TOKEN" | tr -d "[:space:]\"'")"
-          case "$token" in
-            sbp_*) ;;
-            sb_secret_*) tipo="a chave secreta do projeto (sb_secret_…)" ;;
-            sb_publishable_*) tipo="a chave publishable do projeto (sb_publishable_…)" ;;
-            eyJ*) tipo="uma chave JWT do projeto (anon ou service_role, eyJ…)" ;;
-            *) tipo="um valor que não é token do Supabase" ;;
-          esac
-          if [ -n "${tipo:-}" ]; then
-            echo "::error::SUPABASE_ACCESS_TOKEN recebeu $tipo. O workflow precisa do token pessoal da conta, que começa com sbp_: supabase.com/dashboard/account/tokens → Generate new token."
-            exit 1
-          fi
-          if [ "$token" != "$SUPABASE_ACCESS_TOKEN" ]; then
-            echo "::warning::SUPABASE_ACCESS_TOKEN tinha espaço, quebra de linha ou aspas; foram removidos nesta execução. Corrija também o secret, colando só o sbp_…"
-          fi
-          # Os passos seguintes (só `run:`, nenhuma action de terceiro) recebem o token limpo daqui.
-          echo "::add-mask::$token"
-          echo "SUPABASE_ACCESS_TOKEN=$token" >> "$GITHUB_ENV"
-
-          [ -n "$SMTP_PASS" ] || echo "::warning::SMTP_PASS ausente: e-mails seguem pelo remetente padrão do Supabase (limite de poucos por hora)."
-          [ -n "$LLM_API_KEY" ] || echo "::warning::LLM_API_KEY ausente: o chat responde 'modelo não ativado' até a chave existir."
-
-      - name: Vincular projeto
-        env:
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase link --project-ref "$PROJECT_REF"
-
-      - name: Aplicar migrações (banco)
-        env:
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase db push
-
-      - name: Aplicar configuração de Auth, e-mails e SMTP
-        env:
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
-        run: |
-          if [ -z "$SMTP_PASS" ]; then
-            # Sem senha de SMTP, mantém o remetente padrão para não quebrar o envio.
-            sed -i 's/^enabled = true$/enabled = false/' supabase/config.toml
-            sed -i 's|^pass = "env(SMTP_PASS)"$|pass = ""|' supabase/config.toml
-          elif [ -n "$SMTP_SENDER" ]; then
-            # O provedor só aceita enviar de domínio verificado na conta dele.
-            sed -i "s|^admin_email = .*|admin_email = \"$SMTP_SENDER\"|" supabase/config.toml
-          fi
-          echo "Remetente que será aplicado: $(grep '^admin_email' supabase/config.toml)"
-          echo "::notice::Se os e-mails não chegarem, confira se esse domínio está verificado no provedor de SMTP."
-          supabase config push --yes
-
-      - name: Publicar função de chat
-        run: supabase functions deploy chat --project-ref "$PROJECT_REF"
-
-      - name: Publicar função de aviso do teste do Agentio
-        run: supabase functions deploy aviso-agente --no-verify-jwt --project-ref "$PROJECT_REF"
-
-      - name: Publicar função de números autorizados do Hermes
-        run: supabase functions deploy hermes-autorizados --no-verify-jwt --project-ref "$PROJECT_REF"
-
-      - name: Definir segredos da função de aviso
-        env:
-          AVISOS_SEGREDO: ${{ secrets.AVISOS_SEGREDO }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          EVOLUTION_URL: ${{ secrets.EVOLUTION_URL }}
-          EVOLUTION_INSTANCE: ${{ secrets.EVOLUTION_INSTANCE }}
-          EVOLUTION_API_KEY: ${{ secrets.EVOLUTION_API_KEY }}
-          EVOLUTION_NUMERO: ${{ secrets.EVOLUTION_NUMERO }}
-          HERMES_SEGREDO: ${{ secrets.HERMES_SEGREDO }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          TEST_CONFIG: ${{ secrets.TRUSTIO_DELIVERY_TEST }}
+          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          PGHOST: aws-0-sa-east-1.pooler.supabase.com
+          PGPORT: '5432'
+          PGDATABASE: postgres
+          PGUSER: postgres.mjdaluioyutnxlyomzyd
+          PGSSLMODE: require
+          PGOPTIONS: '-c default_transaction_read_only=on -c statement_timeout=30000'
         run: |
-          # Os valores vão num arquivo 600, não na linha de comando (argv aparece em listagens de
-          # processo e quebra com espaço ou caractere especial).
-          f=$(mktemp); chmod 600 "$f"; trap 'rm -f "$f"' EXIT
-          for v in AVISOS_SEGREDO RESEND_API_KEY EVOLUTION_URL EVOLUTION_INSTANCE EVOLUTION_API_KEY EVOLUTION_NUMERO HERMES_SEGREDO; do
-            val="${!v}"; [ -n "$val" ] || continue
-            val="${val//\\/\\\\}"; val="${val//\"/\\\"}"
-            printf '%s="%s"\n' "$v" "$val" >> "$f"
-          done
-          [ -s "$f" ] || { echo "Nenhum segredo de aviso definido; pulando."; exit 0; }
-          supabase secrets set --env-file "$f" --project-ref "$PROJECT_REF"
-
-      - name: Definir segredos da função
-        env:
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
-          LLM_MODEL: ${{ secrets.LLM_MODEL }}
-          LLM_SERVIDOR: ${{ secrets.LLM_SERVIDOR }}
-          LLM_CONTEXTO: ${{ secrets.LLM_CONTEXTO }}
-          LLM_MAX_TOKENS: ${{ secrets.LLM_MAX_TOKENS }}
-        run: |
-          [ -n "$LLM_API_KEY" ] || { echo "LLM_API_KEY ausente; pulando."; exit 0; }
-          f=$(mktemp); chmod 600 "$f"; trap 'rm -f "$f"' EXIT
-          for v in LLM_API_KEY LLM_BASE_URL LLM_MODEL LLM_SERVIDOR LLM_CONTEXTO LLM_MAX_TOKENS; do
-            val="${!v}"; [ -n "$val" ] || continue
-            val="${val//\\/\\\\}"; val="${val//\"/\\\"}"
-            printf '%s="%s"\n' "$v" "$val" >> "$f"
-          done
-          supabase secrets set --env-file "$f" --project-ref "$PROJECT_REF"
-
-      - name: Administradores do CRM
-        env:
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-          ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
-        run: |
-          [ -n "$ADMIN_EMAILS" ] || { echo "ADMIN_EMAILS ausente; pulando."; exit 0; }
-          list=$(echo "$ADMIN_EMAILS" | tr ',' '\n' | sed "s/^ *//;s/ *$//;/^$/d;s/.*/'\\L&'/" | paste -sd, -)
-          # db.<ref>.supabase.co só responde por IPv6, que o runner do GitHub não tem: vai pelo
-          # pooler (IPv4, modo sessão), o mesmo que o `supabase db push` usa. A senha vai por
-          # PGPASSWORD para não quebrar a URL se tiver caractere especial.
-          PGPASSWORD="$SUPABASE_DB_PASSWORD" psql "host=aws-0-sa-east-1.pooler.supabase.com port=5432 dbname=postgres user=postgres.${PROJECT_REF} sslmode=require" \
-            -v ON_ERROR_STOP=1 \
-            -c "insert into public.admins (user_id) select id from auth.users where lower(email) in ($list) on conflict do nothing;" \
-            -c "select email from auth.users where lower(email) in ($list);"
-          echo "Contas que ainda não existem no Auth só viram admin depois de se cadastrarem; rode o workflow de novo."
+          set -euo pipefail
+          python3 <<'PYCODE'
+          import os,json,urllib.request,urllib.error,subprocess
+          cfg=json.loads(os.environ['TEST_CONFIG'])
+          def get(url,key):
+            try:
+              r=urllib.request.urlopen(urllib.request.Request(url,headers={'Authorization':'Bearer '+key.strip().strip(chr(34)).strip(chr(39))}),timeout=25)
+              return r.status,json.loads(r.read())
+            except urllib.error.HTTPError as e:return e.code,{}
+          ref='mjdaluioyutnxlyomzyd'
+          status,auth=get('https://api.supabase.com/v1/projects/'+ref+'/config/auth',os.environ['SUPABASE_ACCESS_TOKEN'])
+          print('AUTH_CONFIG '+json.dumps({'status':status,**{k:auth.get(k) for k in ['smtp_host','smtp_port','smtp_user','smtp_admin_email','smtp_sender_name','mailer_autoconfirm','site_url','rate_limit_email_sent']}}))
+          for name in ['RESEND_API_KEY','SMTP_PASS']:
+            key=os.environ.get(name,'')
+            if not key:print('RESEND '+json.dumps({'key_source':name,'configured':False}));continue
+            status,d=get('https://api.resend.com/emails?limit=100',key)
+            rows=[{'id':x.get('id'),'subject':x.get('subject'),'last_event':x.get('last_event'),'created_at':x.get('created_at')}for x in d.get('data',[])if cfg['email'] in x.get('to',[])]
+            print('RESEND '+json.dumps({'key_source':name,'status':status,'test_emails':rows}))
+          sql="""select json_build_object(
+          'target', (select row_to_json(t) from (select id, user_id, confirmed_at is not null as confirmed,whatsapp_trial_status,whatsapp_ativacao,whatsapp_aviso_email_em,whatsapp_aviso_email_erro,whatsapp_aviso_wa_em,whatsapp_aviso_wa_erro from public.crm_leads where user_id=:'test_user_id'::uuid) t),
+          'vault_config', (select json_agg(json_build_object('name',name,'configured',length(decrypted_secret)>0))from vault.decrypted_secrets where name in ('aviso_agente_url','aviso_agente_segredo')),
+          'notification_trigger',(select tgenabled from pg_trigger where tgname='crm_leads_whatsapp_aviso'),
+          'agent_number_configured',(select length(regexp_replace(value #>> '{}','[^0-9]','','g'))>=12 from public.app_settings where key='hermes_numero'));
+          """
+          subprocess.run(['docker','pull','postgres:17'],check=True,stdout=subprocess.DEVNULL)
+          command=['docker','run','--rm','-i']
+          for key in ['PGPASSWORD','PGHOST','PGPORT','PGDATABASE','PGUSER','PGSSLMODE','PGOPTIONS']:command+=['--env',key]
+          command+=['postgres:17','psql','--no-psqlrc','--tuples-only','--no-align','--set','ON_ERROR_STOP=1','--set','test_user_id='+cfg['user_id']]
+          r=subprocess.run(command,input=sql,text=True,capture_output=True,check=True)
+          print('NOTIFICATION_CONFIG '+r.stdout.strip())
+          PYCODE

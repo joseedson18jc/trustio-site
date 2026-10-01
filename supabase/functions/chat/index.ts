@@ -52,6 +52,7 @@ async function modelosEscolhiveis(admin: any): Promise<ModeloEscolhivel[]> {
 type Preferencias = { estilo?: string; instrucoes?: string; modelo?: string | null };
 const ESTILOS: Record<string, string> = {
   direto: "Estilo de resposta escolhido pela pessoa: direto. Vá ao ponto, sem introdução nem resumo no fim; use lista só quando ajudar.",
+  equilibrado: "Estilo de resposta escolhido pela pessoa: equilibrado. Resposta completa e bem estruturada, com os detalhes que importam e um exemplo quando ajudar; não resuma demais.",
   detalhado: "Estilo de resposta escolhido pela pessoa: detalhado. Explique com profundidade, com exemplos e passo a passo quando fizer sentido.",
 };
 function promptComPreferencias(base: string, pref: Preferencias | null): string {

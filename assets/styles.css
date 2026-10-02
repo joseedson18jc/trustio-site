@@ -3018,3 +3018,20 @@ h3 { letter-spacing: -0.018em; }
   .button > span[aria-hidden="true"],
   .arw { transition: none; }
 }
+
+/* ── Reavaliação de design 2026-10 (RA3/F04): padrões decorativos sob o texto ──
+   Camadas absolutas de pontos/grade (manifesto-preview, contact-pattern,
+   card-visual, finale-lines, error-dots) pintavam por cima de glifos e
+   parágrafos: elemento posicionado pinta acima de conteúdo estático. Com
+   isolation no hospedeiro + z-index:-1 na camada, o padrão fica entre o
+   fundo do bloco e o texto. */
+.manifesto-preview { isolation: isolate; }
+.manifesto-preview::before { z-index: -1; }
+.contact-card { isolation: isolate; }
+.contact-pattern { z-index: -1; }
+.capability-card { isolation: isolate; }
+.card-visual { z-index: -1; }
+.manifesto-finale { isolation: isolate; }
+.finale-lines { z-index: -1; }
+.error-shell { isolation: isolate; }
+.error-dots { z-index: -1; }

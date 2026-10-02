@@ -241,7 +241,6 @@
     "Sem formulários e sem cobrança: esta conversa é gratuita. O botão abre seu aplicativo de e-mail; se preferir, copie o endereço e escreva de onde quiser — pelo Gmail, Outlook ou qualquer webmail.": "No forms and no charge: this conversation is free. The button opens your email app; if you prefer, copy the address and write from wherever you like — Gmail, Outlook or any webmail.",
     "infraestrutura de IA, IA privada, LLM privado, soberania de dados, LGPD, inteligência artificial Brasil, RAG, agentes de IA, VoiceAI": "AI infrastructure, private AI, private LLM, data sovereignty, LGPD, artificial intelligence Brazil, RAG, AI agents, VoiceAI",
     "O chat abre para todos em 1º de outubro de 2026": "The chat opens for everyone on October 1, 2026",
-    ", sem fila. Quem assina um plano entra antes: o acesso antecipado já abriu, e a conta é liberada em até 1 dia útil após o pagamento.": ", with no queue. Subscribers get in earlier: early access is already open, and the account is activated within 1 business day of payment.",
     "VOICE AI · POWERED BY XAI": "VOICE AI · POWERED BY XAI",
     "IA pessoal e empresarial sob seu controle: chat privado, agentes de IA e infraestrutura privada, construída e hospedada no Brasil.": "Personal and business AI under your control: private chat, AI agents and private infrastructure, built and hosted in Brazil.",
     "Modelos de linguagem": "Language models",
@@ -273,10 +272,19 @@
     "2 h ao vivo, 1x1, com a IA ajustada ao seu uso": "2 h live, 1:1, with the AI tailored to how you use it",
     "VOICEAI · POWERED BY XAI": "VOICEAI · POWERED BY XAI",
     "O chat já está aberto para todos": "The chat is already open to everyone",
-    ", sem fila — com 5 perguntas grátis para testar. Quem assina um plano entra com acesso integral: a conta é liberada em até 1 dia útil após o pagamento.": ", no queue — with 5 free questions to try it. Subscribers get full access: the account is granted within 1 business day of payment.",
+    ", sem fila — com 5 perguntas grátis para testar. Quem assina um plano entra com acesso integral: a conta é liberada automaticamente após a confirmação do pagamento.": ", no queue — with 5 free questions to try it. Subscribers get full access: the account is granted automatically after payment confirmation of payment.",
     "Acesso antecipado desde 23/09 ·": "Early access since Sep 23 ·",
     "aberto para todos": "open to everyone",
-    "Os mesmos modelos abertos que rodamos para empresas, agora em acesso individual. Sem censura e sem filtro de conteúdo imposto pelo fornecedor, com a sua conta e as suas conversas guardadas no Brasil. Quem assina um plano entra com acesso integral em até 1 dia útil após o pagamento.": "The same open models we run for businesses, now with individual access. Uncensored, with no vendor-imposed content filter, and your account and conversations stored in Brazil. Subscribers get full access within 1 business day of payment."
+    "Os mesmos modelos abertos que rodamos para empresas, agora em acesso individual. Sem censura e sem filtro de conteúdo imposto pelo fornecedor, com a sua conta e as suas conversas guardadas no Brasil. Quem assina um plano entra com acesso integral automaticamente após a confirmação do pagamento.": "The same open models we run for businesses, now with individual access. Uncensored, with no vendor-imposed content filter, and your account and conversations stored in Brazil. Subscribers get full access automatically after payment confirmation of payment.",
+    "Falar com a Trustio": "Contact Trustio",
+    "Chat disponível · <b>crie sua conta grátis</b>": "Chat available · <b>create your free account</b>",
+    "Chat disponível ·": "Chat available ·",
+    "crie sua conta grátis": "create your free account",
+    "CHAT DISPONÍVEL": "CHAT AVAILABLE",
+    "Acesso individual disponível.": "Individual access available.",
+    "Preciso de ajuda para escolher": "Help me choose a plan",
+    "automaticamente após a confirmação do pagamento": "automatically after payment confirmation",
+    "após a confirmação do pagamento": "after payment confirmation"
   },
   "raw": [
     [

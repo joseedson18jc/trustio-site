@@ -129,6 +129,10 @@
     "Respostas diretas para temas complexos. Substitua os campos entre colchetes antes de enviar. O template entra como rascunho; sua mensagem atual é preservada.": "Straight answers for complex topics. Replace the bracketed fields before sending. Templates are added as drafts; your current message is preserved.",
     "Buscar templates": "Search templates",
     "Buscar por tema ou tarefa": "Search by topic or task",
-    "Categorias de templates": "Template categories"
+    "Categorias de templates": "Template categories",
+    "Seu chat privado.": "Your private chat.",
+    "Comece com uma pergunta.": "Start with a question.",
+    "Escreva, pesquise ou envie até 3 fotos ou PDFs por mensagem. Você tem 5 perguntas grátis para testar; depois, escolha um plano para continuar.": "Write, research or send up to 3 photos or PDFs per message. You have 5 free questions to try it; then choose a plan to continue.",
+    "Fazer minha primeira pergunta": "Ask my first question"
   }
 }

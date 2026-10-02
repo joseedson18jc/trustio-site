@@ -315,22 +315,22 @@ async function levarConfirmacaoAoSupabase(env, lead, agoraISO) {
 // ─────────────────────────────────────────────────────────────── e-mail
 const EMAIL = {
   pt: {
-    lang: "pt-BR", ola: "Olá", assunto: "Confirme sua inscrição na lista de espera — Trustio",
-    previa: "Confirme seu e-mail para garantir sua vaga na lista da Trustio.",
-    corpo: "Recebemos sua inscrição na lista de espera da Trustio. Confirme seu e-mail para garantir sua vaga:",
+    lang: "pt-BR", ola: "Olá", assunto: "Confirme sua solicitação de contato — Trustio",
+    previa: "Confirme seu e-mail para que a equipe responda à sua solicitação.",
+    corpo: "Recebemos sua solicitação de contato. Confirme seu e-mail para continuar:",
     botao: "Confirmar minha inscrição", copie: "Se o botão não funcionar, copie e cole este endereço:",
     prazo: "O link vale por 48 horas. Se não foi você quem se inscreveu, ignore este e-mail: nada acontece.",
     privacidade: "Privacidade", caminho: "",
-    texto: (link) => `Confirme sua inscrição na lista de espera da Trustio:\n${link}\n\nO link vale por 48 horas. Se não foi você, ignore este e-mail.`,
+    texto: (link) => `Confirme sua solicitação de contato com a Trustio:\n${link}\n\nO link vale por 48 horas. Se não foi você, ignore este e-mail.`,
   },
   en: {
-    lang: "en", ola: "Hi", assunto: "Confirm your spot on the waitlist — Trustio",
-    previa: "Confirm your email to secure your spot on the Trustio list.",
-    corpo: "We've received your sign-up for the Trustio waitlist. Confirm your email to secure your spot:",
+    lang: "en", ola: "Hi", assunto: "Confirm your contact request — Trustio",
+    previa: "Confirm your email so our team can respond to your request.",
+    corpo: "We've received your contact request. Confirm your email to continue:",
     botao: "Confirm my sign-up", copie: "If the button doesn't work, copy and paste this address:",
     prazo: "The link is valid for 48 hours. If you didn't sign up, ignore this email: nothing will happen.",
     privacidade: "Privacy", caminho: "/en",
-    texto: (link) => `Confirm your sign-up for the Trustio waitlist:\n${link}\n\nThe link is valid for 48 hours. If it wasn't you, ignore this email.`,
+    texto: (link) => `Confirm your contact request with Trustio:\n${link}\n\nThe link is valid for 48 hours. If it wasn't you, ignore this email.`,
   },
 };
 
@@ -418,8 +418,8 @@ const CONFIRMACAO = {
   pt: {
     incompleto: ["Link incompleto", "Este endereço não traz o código de confirmação. Abra o link direto do e-mail que enviamos."],
     instavel: ["Tente de novo em instantes", "Não conseguimos conferir o link agora. Abra de novo daqui a pouco; se ele já tiver sido usado, avisamos na hora."],
-    confirmado: ["Inscrição confirmada", "Pronto: sua vaga está garantida. Avisamos por e-mail no dia da abertura, <b>1º de outubro de 2026</b>. " +
-      'Quem assina um plano entra em até 1 dia útil após o pagamento — <a href="{site}/planos.html#pessoal" style="color:#5ea7ff">ver como</a>.'],
+    confirmado: ["Inscrição confirmada", "Seu contato foi confirmado. Para testar o chat com 5 perguntas grátis, <a href=\"{site}/cadastro.html\">crie uma conta</a> e confirme o e-mail. Este pedido de contato não cria conta no chat. " +
+      'O acesso pessoal pago é liberado automaticamente após a confirmação do pagamento — <a href="{site}/planos.html#pessoal" style="color:#5ea7ff">ver como</a>.'],
     expirado: ["Link expirado", "Este link valia por 48 horas. Faça a inscrição de novo e enviamos outro na hora."],
     invalido: ["Link inválido", "Este link não vale mais. Ele pode já ter sido usado, ou ter sido substituído por um mais " +
       "recente — se você se inscreveu mais de uma vez, <b>abra o último e-mail que recebeu</b>. " +
@@ -428,8 +428,8 @@ const CONFIRMACAO = {
   en: {
     incompleto: ["Incomplete link", "This address is missing the confirmation code. Open the link straight from the email we sent."],
     instavel: ["Try again in a moment", "We couldn't check the link right now. Open it again shortly; if it has already been used, we'll tell you right away."],
-    confirmado: ["Sign-up confirmed", "Done: your spot is secured. We'll email you on launch day, <b>October 1, 2026</b>. " +
-      'Subscribers get in within 1 business day of payment — <a href="{site}/planos.html#pessoal" style="color:#5ea7ff">see how</a>.'],
+    confirmado: ["Sign-up confirmed", "Your contact details are confirmed. To try the chat with 5 free questions, <a href=\"{site}/cadastro.html\">create an account</a> and confirm your email. This contact request does not create a chat account. " +
+      'Paid personal access is granted automatically after payment confirmation — <a href="{site}/planos.html#pessoal" style="color:#5ea7ff">see how</a>.'],
     expirado: ["Link expired", "This link was valid for 48 hours. Sign up again and we'll send a new one right away."],
     invalido: ["Invalid link", "This link is no longer valid. It may have been used already, or replaced by a newer one — " +
       "if you signed up more than once, <b>open the latest email you received</b>. " +
@@ -559,7 +559,7 @@ export default {
       const idioma = url.searchParams.get("lang") === "en" ? "en" : "pt";
       const t = CONFIRMACAO[idioma];
       const site = escapar((env.SITE_URL || "https://trustio.com.br") + (idioma === "en" ? "/en" : ""));
-      const responder = (chave, status = 200) => pagina(t[chave][0], t[chave][1].replace("{site}", site), env, status, idioma);
+      const responder = (chave, status = 200) => pagina(t[chave][0], t[chave][1].replaceAll("{site}", site), env, status, idioma);
       const token = url.searchParams.get("token");
       if (!token) return responder("incompleto", 400);
 

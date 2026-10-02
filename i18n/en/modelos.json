@@ -91,6 +91,9 @@
     "Qual desses modelos resolve o seu caso de uso?": "Which of these models solves your use case?",
     "Converse com a Trustio sobre qual modelo faz sentido para o seu processo — e como executá-lo dentro do seu perímetro.": "Talk to Trustio about which model makes sense for your process — and how to run it inside your perimeter.",
     "Os modelos de última geração disponíveis na Trustio: GPT-6 Astra da OpenAI, Claude Fable 5.1 (classe Mythos) e Claude Opus 5.1 da Anthropic e Kimi K3.1 da Moonshot AI — com a forma de execução definida no desenho da sua implantação.": "The latest-generation models available at Trustio: OpenAI's GPT-6 Astra, Anthropic's Claude Fable 5.1 (Mythos class) and Claude Opus 5.1, and Moonshot AI's Kimi K3.1 — with how each one runs defined in the design of your deployment.",
-    "O topo da geração atual, contratado via API e governado pela sua implantação.": "The top of the current generation, contracted via API and governed by your deployment."
+    "O topo da geração atual, contratado via API e governado pela sua implantação.": "The top of the current generation, contracted via API and governed by your deployment.",
+    "Falar com a Trustio": "Contact Trustio",
+    "A nova geração da OpenAI, apresentada como o modelo de IA mais poderoso do mundo — “o mais inteligente e alinhado” — com 99,9% no ARC-AGI-3 e desempenho de ponta em código, ciência e uso de computador.": "OpenAI’s new generation, presented as the world’s most powerful AI model — “the smartest and most aligned” — with 99.9% on ARC-AGI-3 and strong performance in coding, science and computer use.",
+    "Pesos abertos em escala massiva: 2,8 trilhões de parâmetros (104 bilhões ativos por token) e contexto de 1 milhão de tokens — um modelo aberto de grande escala, rivalizando com os sistemas fechados de fronteira.": "Open weights at massive scale: 2.8 trillion parameters (104 billion active per token) and a 1 million token context — a large-scale open model competing with closed frontier systems."
   }
 }

@@ -260,7 +260,9 @@
     "A maioria das IAs de voz troca inteligência por velocidade. O Grok Voice não: raciocina, chama ferramentas e responde com latência abaixo de 1 segundo, treinado nas ligações mais difíceis.": "Most voice AIs trade intelligence for speed. Grok Voice doesn't: it reasons, calls tools and responds in under a second, trained on the hardest calls.",
     "Áudio e contexto passam pela camada Trustio antes e depois do modelo. Só o necessário para cada resposta segue para o modelo; gravações, logs e ferramentas nunca deixam o seu ambiente.": "Audio and context pass through the Trustio layer before and after the model. Only what each response needs goes to the model; recordings, logs and tools never leave your environment.",
     "Contexto enviado ao modelo reduzido ao necessário": "Context sent to the model kept to the minimum",
-    "Conversas em tempo real com latência abaixo de 1 segundo.": "Real-time conversations with under one second of latency."
+    "Conversas em tempo real com latência abaixo de 1 segundo.": "Real-time conversations with under one second of latency.",
+    "Falar com a Trustio": "Contact Trustio",
+    "Solicitar implantação do VoiceAI": "Request VoiceAI deployment"
   },
   "raw": [
     [

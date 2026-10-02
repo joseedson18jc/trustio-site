@@ -48,20 +48,3 @@ document.querySelectorAll("[data-interesse]").forEach((a) => a.addEventListener(
   const f = document.getElementById("lista"); f?.scrollIntoView({ behavior: rm.matches ? "auto" : "smooth", block: "start" });
   setTimeout(() => document.getElementById("lead-email")?.focus({ preventScroll: true }), rm.matches ? 0 : 450);
 }));
-
-// --- pré-assinatura no formulário da aba Pessoal: troca destino/assunto/botão
-(() => {
-  const acesso = [...document.querySelectorAll('#pessoal input[name="acesso"]')];
-  if (!acesso.length) return;
-  const next = document.querySelector("#pessoal [data-next]"), subj = document.querySelector('#pessoal input[name="_subject"]'), btn = document.querySelector("#pessoal [data-submit]");
-  const apply = () => {
-    const pre = acesso.find((i) => i.checked)?.dataset.acesso === "pre";
-    const plano = document.querySelector('#pessoal input[name="plano"]:checked')?.value || "mensal";
-    if (next) next.value = pre ? `${OBRIGADO}?lista=pre&plano=${plano}` : `${OBRIGADO}?lista=espera`;
-    if (subj) subj.value = (pre ? "ASSINATURA B2C (acesso antecipado) — via planos" : "Lista de espera (B2C via planos) — trustio.com.br") + (EN ? " · EN" : "");
-    if (btn) btn.firstChild.textContent = pre ? T("Quero assinar e entrar em até 1 dia útil ", "Subscribe and get in within 1 business day ") : T("Quero acesso ", "I want access ");
-  };
-  acesso.forEach((i) => i.addEventListener("change", apply));
-  document.querySelectorAll('#pessoal input[name="plano"]').forEach((i) => i.addEventListener("change", apply));
-  apply();
-})();

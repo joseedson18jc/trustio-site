@@ -101,6 +101,15 @@
     ", a revogação do consentimento, oposição a um tratamento e revisão de decisões automatizadas. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).": ", withdrawal of consent, objection to a processing activity and review of automated decisions. You may also file a complaint with the National Data Protection Authority (ANPD).",
     "A Trustio não impõe filtro editorial às respostas do modelo. Em troca, quem envia as perguntas": "Trustio imposes no editorial filter on the model's answers. In return, whoever sends the questions",
     "responde pelo conteúdo delas e pelo uso que faz das respostas": "is responsible for their content and for how they use the answers",
-    ", nos termos da lei. Continuam valendo a lei brasileira e os direitos de terceiros: a ausência de filtro não é autorização para uso ilícito, e conteúdo ilegal pode ser apurado e a conta encerrada.": ", as provided by law. Brazilian law and the rights of others still apply: the absence of a filter is not permission for unlawful use, and illegal content may be investigated and the account closed."
+    ", nos termos da lei. Continuam valendo a lei brasileira e os direitos de terceiros: a ausência de filtro não é autorização para uso ilícito, e conteúdo ilegal pode ser apurado e a conta encerrada.": ", as provided by law. Brazilian law and the rights of others still apply: the absence of a filter is not permission for unlawful use, and illegal content may be investigated and the account closed.",
+    "Falar com a Trustio": "Contact Trustio",
+    "Solicitar orientação": "Request guidance",
+    "1. Quando você solicita contato": "1. When you request contact",
+    "— obrigatório. É por onde respondemos à sua solicitação.": "— required. We use it to respond to your request.",
+    ". Para responder à sua solicitação. Deixar em branco não impede o atendimento.": ". To respond to your request. Leaving it blank does not prevent support.",
+    "— orientação ou assinatura. Quem solicita assinatura recebe o link de pagamento; o acesso depende da confirmação do pagamento e do prazo do plano. Solicitar orientação não gera cobrança.": "— guidance or subscription. Subscription requests receive a payment link; access depends on payment confirmation and the plan’s activation timeline. Requesting guidance does not incur a charge.",
+    "— entrega o site e a API de solicitações de contato e mede o número de visitas de forma agregada (Web Analytics), sem cookies e sem identificar pessoas.": "— delivers the website and contact request API and counts visits in aggregate (Web Analytics), without cookies or identifying individuals.",
+    "— por até 12 meses após a solicitação, ou até você pedir a saída, o que vier primeiro.": "— for up to 12 months after your request, or until you ask to be removed, whichever comes first.",
+    "— entrega os e-mails de confirmação de conta, de recuperação de senha e as respostas às solicitações de contato.": "— delivers account confirmation and password recovery emails, and responses to contact requests."
   }
 }

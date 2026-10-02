@@ -335,26 +335,6 @@
     watch(svg, function (v) { visible = v; tick(); }, 0.3);
   })();
 
-  /* ---------- 08 · Linha do tempo ---------- */
-  (function () {
-    // Instantes absolutos (não a meia-noite do fuso de quem visita): o acesso antecipado abriu em
-    // 23/09 e o chat abriu para todos em 25/09/2026 (app_settings.acesso_abre_em). O HTML já vem no
-    // estado "aberto"; este bloco só mantém a linha do tempo coerente.
-    var start = new Date("2026-09-23T00:00:00-03:00"), launch = new Date("2026-09-25T01:17:05Z");
-    var today = new Date();
-    var DAY = 864e5, open = today >= launch;
-    var pct = open ? 1 : Math.max(0, Math.min(1, (today - start) / (launch - start)));
-    var n = $("#cd-n"), t = $("#cd-t"), fill = $("#tl-fill"), mk = $("#tl-today");
-    if (open) { n.textContent = "Aberto"; t.textContent = "o chat já está aberto para todos"; }
-    else {
-      var days = Math.ceil((launch - today) / DAY);
-      n.textContent = days; t.textContent = days > 1 ? "dias para o chat abrir para todos" : "dia para o chat abrir para todos";
-    }
-    mk.style.display = today < start || open ? "none" : "";
-    mk.style.left = (pct * 100).toFixed(2) + "%";
-    watch($("#tl"), function (v) { if (v) fill.style.width = (pct * 100).toFixed(2) + "%"; }, 0.4);
-  })();
-
   /* ---------- 09 · Planos ---------- */
   (function () {
     var wrap = $("#plans"); if (!wrap) return;

@@ -455,7 +455,7 @@ ok(r.status === 200, "supabase: link do próprio Supabase confirma sem passar pe
 enviados = []; rpcs = []; respostaRpc = { ok: true, token: "b".repeat(64) };
 r = await worker.fetch(req("POST", "/signup", JSON.stringify({ email: "en@exemplo.com", nome: "Ann", lang: "en" })), env);
 ok(r.status === 200, "en: POST /signup aceita");
-ok(enviados[0]?.subject === "Confirm your spot on the waitlist — Trustio", "en: assunto em inglês", enviados[0]?.subject);
+ok(enviados[0]?.subject === "Confirm your contact request — Trustio", "en: assunto em inglês", enviados[0]?.subject);
 ok(/lang="en"/.test(enviados[0]?.html || "") && /Hi, Ann!/.test(enviados[0]?.html || "") && /Hi, Ann!/.test(enviados[0]?.text || ""),
    "en: corpo e texto em inglês");
 ok((enviados[0]?.html || "").includes("https://api.trustio.com.br/confirm?token=" + "b".repeat(64) + "&amp;lang=en"),
@@ -472,7 +472,7 @@ r = await worker.fetch(req("POST", "/signup",
   "application/x-www-form-urlencoded"), env);
 ok(r.status === 303 && r.headers.get("location") === "https://trustio.com.br/en/obrigado.html?lista=espera",
    "en sem JavaScript: volta para o obrigado em inglês", r.headers.get("location"));
-ok(enviados[0]?.subject.startsWith("Confirm your spot"), "en sem JavaScript: idioma vem do _next");
+ok(enviados[0]?.subject.startsWith("Confirm your contact request"), "en sem JavaScript: idioma vem do _next");
 
 r = await worker.fetch(req("POST", "/signup",
   "email=sem-js.en2%40exemplo.com&lang=en&_next=" + encodeURIComponent("https://evil.example/x"),

@@ -1,21 +1,7 @@
 "use strict";
-// Lista de espera: contagem regressiva para o lançamento, campos condicionais B2C/B2B e pré-seleção por URL (?tipo=b2b&seg=juridico).
+// Atendimento: campos condicionais e pré-seleção por URL.
 const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
 const qs = new URLSearchParams(location.search);
-
-// --- countdown
-const cd = document.querySelector("[data-countdown]");
-if (cd) {
-  const target = new Date(cd.dataset.countdown).getTime();
-  const el = { d: cd.querySelector('[data-cd="d"]'), h: cd.querySelector('[data-cd="h"]'), m: cd.querySelector('[data-cd="m"]') };
-  const tick = () => {
-    const diff = Math.max(0, target - Date.now());
-    const d = Math.floor(diff / 864e5), h = Math.floor(diff % 864e5 / 36e5), m = Math.floor(diff % 36e5 / 6e4);
-    el.d.textContent = String(d); el.h.textContent = String(h).padStart(2, "0"); el.m.textContent = String(m).padStart(2, "0");
-    if (diff === 0) cd.querySelector("small").textContent = /^en\b/i.test(document.documentElement.lang) ? "launched" : "lançado";
-  };
-  tick(); setInterval(tick, 30_000);
-}
 
 // --- B2C / B2B conditional fields
 const form = document.getElementById("espera-form");
@@ -30,7 +16,7 @@ function applyTipo() {
 }
 tipoInputs.forEach((i) => i.addEventListener("change", applyTipo));
 
-// --- acesso: lista gratuita (1º/10) ou assinatura (acesso antecipado, em até 1 dia útil após o pagamento)
+// --- orientação ou assinatura após o pagamento
 const acessoInputs = [...document.querySelectorAll('input[name="acesso"]')];
 const nextInput = document.querySelector("[data-next]");
 // Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
@@ -46,10 +32,10 @@ function applyAcesso() {
   const pv = document.querySelector('input[name="plano"]:checked')?.value || "";
   const planoKey = t === "b2b" ? "empresa" : pv.startsWith("Passe") ? "semanal" : pv.startsWith("Anual") ? "anual" : "mensal";
   if (nextInput) nextInput.value = pre ? `${OBRIGADO}?lista=pre&plano=${planoKey}` : `${OBRIGADO}?lista=espera`;
-  if (subjInput) subjInput.value = (pre ? "ASSINATURA (acesso antecipado) — trustio.com.br" : "Lista de espera — trustio.com.br") + (EN ? " · EN" : "");
+  if (subjInput) subjInput.value = (pre ? "Pedido de assinatura — trustio.com.br" : "Solicitação de contato — trustio.com.br") + (EN ? " · EN" : "");
   // Empresa não entra em 1 dia útil: o arquiteto faz contato nesse prazo e a implantação segue o prazo do plano.
-  if (preNota) preNota.textContent = t === "b2b" ? T("arquiteto em até 1 dia útil · proposta e link de pagamento", "architect within 1 business day · proposal and payment link") : T("acesso em até 1 dia útil · enviamos o link de pagamento", "access within 1 business day · we send the payment link");
-  if (submitBtn) submitBtn.firstChild.textContent = !pre ? T("Entrar na lista de espera ", "Join the waitlist ") : t === "b2b" ? T("Quero assinar e falar com um arquiteto ", "Subscribe and talk to an architect ") : T("Quero assinar e entrar em até 1 dia útil ", "Subscribe and get in within 1 business day ");
+  if (preNota) preNota.textContent = t === "b2b" ? T("arquiteto em até 1 dia útil · proposta e link de pagamento", "architect within 1 business day · proposal and payment link") : T("acesso automático após a confirmação do pagamento · enviamos o link de pagamento", "automatic access after payment confirmation · we send the payment link");
+  if (submitBtn) submitBtn.firstChild.textContent = !pre ? T("Solicitar contato ", "Request contact ") : t === "b2b" ? T("Quero assinar e falar com um arquiteto ", "Subscribe and talk to an architect ") : T("Quero assinar com acesso automático ", "Subscribe with automatic access ");
 }
 acessoInputs.forEach((i) => i.addEventListener("change", applyAcesso));
 document.querySelectorAll('input[name="plano"], input[name="tipo"]').forEach((i) => i.addEventListener("change", applyAcesso));

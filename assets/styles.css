@@ -1430,7 +1430,7 @@ p {
 .footer-grid { display: grid; grid-template-columns: 1fr .85fr; gap: 80px; padding-bottom: 72px; }
 .footer-brand { margin-bottom: 22px; }
 .footer-grid > div:first-child > p { max-width: 350px; margin: 0; color: var(--muted); }
-.footer-links { display: grid; grid-template-columns: repeat(2,1fr); gap: 50px; }
+.footer-links { display: grid; grid-template-columns: repeat(3,1fr); gap: 50px; }
 .footer-links > div { display: grid; align-content: start; gap: var(--space-12); }
 .footer-links span { margin-bottom: 10px; color: var(--label-color); font-family: var(--mono); font-size: var(--label); letter-spacing: .13em; }
 .footer-links a { display: inline-flex; align-items: center; min-height: 24px; color: var(--muted-strong); font-size: 14px; transition: color 180ms ease; }
@@ -2711,7 +2711,8 @@ h3 { letter-spacing: -0.018em; }
 .home-page .mentoria { overflow: hidden; isolation: isolate; }
 .home-page .mentoria > .container { position: relative; z-index: 1; }
 .home-page .mentoria::before { content: ""; position: absolute; z-index: 0; pointer-events: none; inset: 0 0 0 50%; background: url("geo-plus.svg") repeat; background-size: 96px 96px; opacity: 0.25; -webkit-mask-image: radial-gradient(ellipse 70% 80% at 85% 20%, #000 15%, transparent 70%); mask-image: radial-gradient(ellipse 70% 80% at 85% 20%, #000 15%, transparent 70%); }
-@media (max-width: 900px) { .mentoria-grid { grid-template-columns: 1fr; } .home-page .mentoria::before { inset: 0; opacity: 0.18; } }
+@media (max-width: 767px) { .mentoria-grid { grid-template-columns: 1fr; } .home-page .mentoria::before { inset: 0; opacity: 0.18; } }
+@media (min-width: 768px) and (max-width: 1023px) { .mentoria-grid { grid-template-columns: 1fr; } .home-page .mentoria::before { inset: 0; opacity: 0.18; } }
 
 /* ── Auditoria UX (22/09/2026) ─────────────────────────────────────────────
    F4 aviso de privacidade · F6 rótulo do CTA de mentoria · F7 microcópia
@@ -2748,7 +2749,7 @@ h3 { letter-spacing: -0.018em; }
   background:rgba(94,167,255,.05)}
 .legal-cta p{margin:0 0 16px}
 .legal-cta-acoes{display:flex;flex-wrap:wrap;gap:12px}
-@media (max-width:700px){ .legal h2{margin-top:36px} .legal p{font-size:15.5px} }
+@media (max-width: 767px) { .legal h2 { margin-top: 36px; } .legal p { font-size: 15.5px; } }
 /* hero e corpo da página de privacidade: não dependem do CSS de planos */
 .legal-hero{padding:clamp(110px,13vh,150px) 0 6px}
 .legal-hero h1{margin:0;font-size:clamp(26.2px,4.1vw,45.9px);letter-spacing:-.04em;line-height:1.02;max-width:20ch}
@@ -2793,7 +2794,7 @@ h3 { letter-spacing: -0.018em; }
   padding-bottom: 2px;
 }
 .seats-page .seats-voltar a:hover{ color: var(--ice, #f4f6fa); }
-@media (max-width: 700px){
+@media (max-width: 767px) {
   .seats-page .seats-banner{ min-height: 0; padding-top: clamp(120px, 16vh, 160px); display: block; }
 }
 
@@ -2832,7 +2833,7 @@ h3 { letter-spacing: -0.018em; }
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
 }
 /* celular: só a bandeira, para caber ao lado do tema e do menu */
-@media (max-width: 560px) {
+@media (max-width: 767px) {
   .lang-switch { width: 44px; padding: 0; justify-content: center; }
   .lang-switch span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .lang-switch .lang-switch-troca { display: none; }
@@ -2851,7 +2852,7 @@ h3 { letter-spacing: -0.018em; }
 .footer-bottom > p > a { display: inline-flex; align-items: center; min-height: 24px; }
 .footer-social a:hover { color: var(--text-strong); }
 .footer-social svg { width: 15px; height: 15px; flex: none; fill: currentColor; }
-@media (max-width: 720px) {
+@media (max-width: 767px) {
   .footer-legal { flex-direction: column; align-items: flex-start; }
   .footer-legal address { text-align: left; }
 }
@@ -3004,12 +3005,12 @@ h3 { letter-spacing: -0.018em; }
 .text-link:hover { color: var(--text-strong); text-decoration-color: currentColor; }
 [data-theme="light"] .text-link { text-decoration-color: rgba(26, 73, 184, 0.4); }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
   .hero-actions > .button:not(.button-small) { width: 100%; }
 }
 
 /* Celular: Martian Mono é mais larga que a Geist Mono; o tracking cai para os rótulos caberem numa linha. */
-@media (max-width: 420px) {
+@media (max-width: 767px) {
   .eyebrow,
   .section-kicker,
   .capability-tag,
@@ -3042,3 +3043,13 @@ h3 { letter-spacing: -0.018em; }
 .finale-lines { z-index: -1; pointer-events: none; }
 .error-shell { isolation: isolate; }
 .error-dots { z-index: -1; pointer-events: none; }
+
+
+/* ── Separação B2C × B2B (2026-10): banda B2B discreta logo abaixo do hero da home ──
+   A dobra fica 100% B2C; empresas têm porta própria sem competir com o CTA principal. */
+.hero-b2b-band { padding: 26px 0 34px; }
+.hero-b2b-band p { margin: 0 auto; max-width: 74ch; color: var(--muted); font-size: 14.5px; line-height: 1.6; text-align: center; }
+.hero-b2b-band b { color: var(--muted-strong); font-weight: 600; }
+.hero-b2b-band a { color: var(--blue-signal); font-weight: 600; text-decoration: none; }
+.hero-b2b-band a:hover { text-decoration: underline; }
+@media (max-width: 700px) { .hero-b2b-band { padding: 18px 0 26px; } }

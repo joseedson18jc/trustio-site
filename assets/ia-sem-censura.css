@@ -21,7 +21,10 @@
   --shadow-cta: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(3,8,30,.35), 0 0 0 1px rgba(83,205,254,.28), 0 10px 28px -8px rgba(37,99,235,.75);
   --shadow-cta-hover: inset 0 1px 0 rgba(255,255,255,.34), inset 0 -1px 0 rgba(3,8,30,.3), 0 0 0 1px rgba(83,205,254,.55), 0 14px 36px -6px rgba(37,99,235,.95), 0 0 28px rgba(83,205,254,.22);
   --plasma: #53cdfe;
-  --display-gradient: linear-gradient(100deg, var(--plasma) 0%, var(--blue-signal) 45%, var(--blue) 100%);
+  /* Stop final em --blue-signal (não em --blue): com o sheen animado, o trecho
+     escuro #2563eb (~3,9:1) cobria os glifos inteiros em parte do ciclo e o
+     título "sumia" na fase escura (reavaliação 2026-10, RA6/F05). */
+  --display-gradient: linear-gradient(100deg, var(--plasma) 0%, var(--blue-signal) 45%, var(--blue-signal) 100%);
   --radius: 20px; --radius-large: 32px;
   --shadow: 0 40px 120px rgba(0,0,0,.42);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);

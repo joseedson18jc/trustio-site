@@ -167,7 +167,7 @@ textarea{font-family:var(--mono);font-size:12.5px;line-height:1.62;resize:vertic
 .log p.muted{background:none;border:0;color:#7d889b;padding:0}
 .events,.code{font-family:var(--mono);font-size:11px;line-height:1.65;color:#c3ccdb;background:#080b11;border:1px solid var(--line);border-radius:10px;padding:12px;margin:0;overflow-x:auto;max-height:170px;overflow-y:auto;white-space:pre-wrap}
 .events{color:#8d9ab0}
-.code .k{color:#5ea7ff}.code .s{color:#9ad0ff}.code .c{color:#66738a}
+.code .k{color:#5ea7ff}.code .s{color:#9ad0ff}.code .c{color:#8d9ab0}
 
 @media(max-width:1100px){.build-grid{grid-template-columns:minmax(0,1fr)}.test{position:static}.orb-wrap .orb{--size:220px}}
 @media(max-width:900px){

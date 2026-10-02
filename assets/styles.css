@@ -198,6 +198,7 @@
 /* Superfícies que permanecem escuras nos dois temas: redeclaram os tokens localmente. */
 [data-theme="light"] :is(.api-terminal, .server-panel, .contact-card, .manifesto-finale, .layer-control, .voice-cta) {
   --ice: #f4f6fa;
+  --layer-gradient: linear-gradient(135deg, #131f36, #0c1424);
   --text-strong: #ffffff;
   --muted: #99a4b5;
   --muted-strong: #bdc5d1;
@@ -3083,3 +3084,28 @@ h3 { letter-spacing: -0.018em; }
 .orb-home-link { display: block; border-radius: 50%; text-decoration: none; transition: transform .35s cubic-bezier(0.22, 1, 0.36, 1); }
 .orb-home-link:hover { transform: scale(1.035); }
 .orb-home-link:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 8px; }
+
+
+/* ── Contato enxuto da home (sem o cartão escuro): cores pelo tema ──
+   As classes contact-email/copy/brief nasceram para o cartão escuro do
+   /empresas; na home o strip é claro-escuro conforme o tema (fix 2026-10:
+   texto branco sumia no tema claro do dia). */
+.contact-lean .contact-email-row { border-color: var(--line); background: var(--surface-raised); }
+.contact-lean .contact-email { color: var(--text-strong); }
+.contact-lean .contact-email:hover { background: rgba(var(--on-surface-rgb), .05); }
+.contact-lean .copy-email { border-left-color: var(--line); background: rgba(var(--on-surface-rgb), .04); color: var(--muted-strong); }
+.contact-lean .copy-email:hover { background: rgba(var(--on-surface-rgb), .09); }
+.contact-lean .copy-email.is-copied { background: rgba(16, 138, 87, .14); }
+.contact-lean .copy-email.is-failed { background: rgba(180, 35, 60, .12); }
+.contact-lean .contact-brief { color: var(--muted); }
+.contact-lean .contact-brief b { color: var(--muted-strong); }
+
+/* Etiqueta do segmento B2B no tema claro (era #9cc4ff, ilegível no claro) */
+[data-theme="light"] .segment-b2b .segment-tag { color: #1d5fd6; }
+
+/* Contato enxuto da home: ganha da regra antiga do cartão (0,3,0) e
+   usa tokens — o texto branco sumia no tema claro do dia. */
+.home-page .contact-card-inner.contact-lean { padding-block: 0; }
+.home-page .contact-card-inner.contact-lean > p:not(.section-kicker) { color: var(--muted); max-width: 66ch; margin-bottom: 26px; font-size: 17px; }
+.home-page .contact-card-inner.contact-lean .contact-brief { color: var(--muted); }
+.home-page .contact-card-inner.contact-lean .contact-brief b { color: var(--muted-strong); }

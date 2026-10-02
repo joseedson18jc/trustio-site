@@ -2573,8 +2573,8 @@ h3 { letter-spacing: -0.018em; }
 }
 
 /* Link "Entrar" do cabeçalho (área do cliente). */
-.header-login { flex: 0 0 auto; margin-left: auto; padding: 8px 6px; font-size: 15px; font-weight: 600; color: var(--ice); white-space: nowrap; }
-.header-login:hover { color: var(--blue-signal); }
+.header-login { display: inline-flex; flex: 0 0 auto; align-items: center; margin-left: auto; padding: 9px 18px; border: 1px solid rgba(160,179,211,.28); border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--ice); white-space: nowrap; text-decoration: none; transition: border-color .18s, background-color .18s, color .18s; }
+.header-login:hover { border-color: rgba(94,167,255,.55); background: rgba(94,167,255,.12); color: #fff; }
 /* Botões do cabeçalho mais evidentes: CTA em azul cheio; idioma e tema com borda e ícone claros. */
 .site-header .header-cta { border-color: transparent; background: var(--cta-gradient); box-shadow: 0 10px 26px rgba(37, 99, 235, 0.3), inset 0 1px rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 14px; }
 .site-header .header-cta:hover { border-color: transparent; background: var(--cta-gradient); box-shadow: 0 16px 36px rgba(37, 99, 235, 0.42), inset 0 1px rgba(255, 255, 255, 0.35); color: #ffffff; }
@@ -2584,8 +2584,10 @@ h3 { letter-spacing: -0.018em; }
 .site-header .lang-switch:hover,
 .site-header .theme-toggle:hover { border-color: var(--line-bright); background: rgba(94, 167, 255, 0.12); color: var(--text-strong); }
 .header-login + .header-cta { margin-left: 0; }
-@media (max-width: 767px) { .header-login { display: none; } }
-@media (min-width: 768px) and (max-width: 1023px) { .header-login { display: none; } }
+/* Botão Entrar visível em todas as larguras (2026-10): antes, só desktop
+   via o link — celular e tablet precisavam abrir o menu. */
+@media (max-width: 767px) { .header-login { padding: 8px 14px; font-size: 13px; } }
+@media (min-width: 768px) and (max-width: 1023px) { .header-login { padding: 8px 16px; } }
 
 /* ---------- Para quem: B2C x B2B (home) ---------- */
 .segments { position: relative; padding-top: clamp(40px, 6vw, 72px); }

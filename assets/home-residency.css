@@ -1,0 +1,19 @@
+.home-residency { position: relative; overflow: hidden; padding: clamp(90px, 11vw, 140px) 0 clamp(120px, 14vw, 180px); background: linear-gradient(180deg, #050b1c 0%, #081739 60%, #0a1f4d 100%); color: #f4f6fa; isolation: isolate; }
+.home-residency .home-residency-stars { position: absolute; inset: 0; z-index: -1; }
+.home-residency .home-residency-stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #cfe3ff; opacity: .5; animation: home-residency-tw 4s ease-in-out infinite; }
+@keyframes home-residency-tw { 50% { opacity: .1; } }
+.home-residency .home-residency-horizon { position: absolute; left: 50%; bottom: -1120px; width: 2400px; height: 1300px; transform: translateX(-50%); border-radius: 50%; z-index: -1; background: radial-gradient(closest-side, #0c2a66 70%, #091c45); box-shadow: 0 -2px 0 rgba(94,167,255,.8), 0 -18px 60px rgba(83,205,254,.35), 0 -80px 160px rgba(37,99,235,.35); }
+.home-residency .home-residency-kicker { color: #9dc8ff; justify-content: center; }
+.home-residency h2 { font-family: var(--display); font-weight: 500; text-transform: uppercase; letter-spacing: .12em; font-size: clamp(22px, 3.6vw, 46px); line-height: 1.15; text-align: center; margin: 0; }
+.home-residency h2 span { display: block; background: linear-gradient(100deg, #53cdfe, #5ea7ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.home-residency p { text-align: center; color: #bdc5d1; max-width: 640px; margin: 22px auto 0; font-size: 18px; }
+.home-residency-stats { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 54px; border-top: 1px solid rgba(160,179,211,.18); border-bottom: 1px solid rgba(160,179,211,.18); }
+.home-residency-stats div { display: flex; align-items: center; gap: 12px; padding: 22px 18px; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #f4f6fa; line-height: 1.5; }
+.home-residency-stats div + div { border-left: 1px solid rgba(160,179,211,.18); }
+.home-residency-stats svg { width: 22px; height: 22px; flex: none; color: #5ea7ff; }
+@media (max-width: 860px) { .home-residency-stats { grid-template-columns: 1fr 1fr; } .home-residency-stats div:nth-child(3) { border-left: 0; } .home-residency-stats div:nth-child(n+3) { border-top: 1px solid rgba(160,179,211,.18); } }
+
+.home-residency p.home-residency-kicker { display:flex; align-items:center; gap:12px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; margin:0 auto 18px; color:#9dc8ff; max-width:none; }
+.home-residency-kicker::before { content:""; width:24px; height:1px; background:currentColor; opacity:.7; }
+@media (prefers-reduced-motion: reduce) { .home-residency-stars i { animation:none; } }
+@media (max-width:480px) { .home-residency-stats div { padding:18px 10px; font-size:10px; gap:8px; } }

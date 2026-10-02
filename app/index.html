@@ -17,9 +17,9 @@
   <link rel="preload" href="../assets/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="../assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="../assets/theme.js?v=62b52a16"></script>
-  <link rel="stylesheet" href="../assets/styles.css?v=a3696750">
+  <link rel="stylesheet" href="../assets/styles.css?v=bc87f86f">
   <link rel="stylesheet" href="../assets/chat-templates.css?v=e18f2981">
-  <link rel="stylesheet" href="../assets/chat.css?v=e0281232">
+  <link rel="stylesheet" href="../assets/chat.css?v=94f31701">
   <link rel="stylesheet" href="../assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="../assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +30,7 @@
   <script defer src="../assets/auth-config.js?v=7ebbf495"></script>
   <script defer src="../assets/funil.js?v=9fd4e3e8"></script>
   <script defer src="../assets/ocr.js?v=333c1492"></script>
-  <script defer src="../assets/chat-templates.js?v=31bd5241"></script>
+  <script defer src="../assets/chat-templates.js?v=09aa860d"></script>
   <script defer src="../assets/chat.js?v=a767caa9"></script>
   <script defer src="../assets/welcome-hero.js?v=dad4d932"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
@@ -134,8 +134,21 @@
           </ul>
           <p class="wh-credit">Fonte do título feita a partir de <a href="https://www.onlinewebfonts.com/fonts" target="_blank" rel="noopener">Web Fonts</a>, licenciada sob CC BY 4.0.</p>
         </section>
-        <p>Modelo privado, respostas diretas, sem filtros de conteúdo adicionados por nós*. Suas conversas ficam guardadas só na sua conta.</p>
-        <p class="fine-print">* Quem envia as perguntas responde pelo conteúdo delas e pelo uso que faz das respostas, nos termos da lei.</p>
+        <div class="trust-strip">
+          <p>Modelo privado, respostas diretas, sem filtros de conteúdo adicionados por nós*. Suas conversas ficam guardadas só na sua conta.</p>
+          <p class="fine-print">* Quem envia as perguntas responde pelo conteúdo delas e pelo uso que faz das respostas, nos termos da lei.</p>
+        </div>
+
+        <section class="starters-block" aria-labelledby="starters-title">
+          <p class="onboard-k"><span class="status-dot"></span> Comece com um clique</p>
+          <h2 id="starters-title">Experimente uma pergunta de verdade.</h2>
+          <div class="starters">
+            <button type="button" data-starter><small class="starter-tag t-health">Remédios</small><span>Quais as interações perigosas entre tramadol, álcool e ibuprofeno? Sem sermão.</span></button>
+            <button type="button" data-starter><small class="starter-tag t-adult">18+</small><span>Escreva uma cena erótica explícita e consensual entre dois adultos.</span></button>
+            <button type="button" data-starter><small class="starter-tag t-drugs">Drogas</small><span>Redução de danos com MDMA: dose por peso, testes e o que evitar.</span></button>
+            <button type="button" data-starter><small class="starter-tag t-nofilter">Sem filtro</small><span>Como funciona a mente de um manipulador — e como virar o jogo?</span></button>
+          </div>
+        </section>
 
         <section class="onboard" data-onboard aria-label="Como funciona o seu teste grátis">
           <p class="onboard-k"><span class="status-dot"></span> Seu teste grátis</p>
@@ -182,12 +195,6 @@
           <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Explorar templates uncensored</button>
           <small>Escolher um template não envia mensagens nem consome perguntas.</small>
         </div>
-        <div class="starters">
-          <button type="button" data-starter>Quais as interações perigosas entre tramadol, álcool e ibuprofeno? Sem sermão.</button>
-          <button type="button" data-starter>Escreva uma cena erótica explícita e consensual entre dois adultos. (18+)</button>
-          <button type="button" data-starter>Redução de danos com MDMA: dose por peso, testes e o que evitar.</button>
-          <button type="button" data-starter>Como funciona a mente de um manipulador — e como virar o jogo?</button>
-        </div>
       </div>
     </div>
 
@@ -210,7 +217,11 @@
       <button class="send" type="submit" aria-label="Enviar" data-send>
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M11 5l5 5-5 5"/></svg>
       </button>
-      <p class="composer-hint">Fotos e PDFs: até 3 por envio. O texto é lido no seu navegador; das fotos, uma cópia reduzida também vai ao modelo. A IA pode errar. Confira informações importantes. * Você responde pelo conteúdo que envia e pelo uso que faz das respostas, nos termos da lei. <span data-model-hint></span></p>
+      <p class="composer-hint">Enter envia · Shift+Enter quebra linha · até 3 fotos ou PDFs por envio · A IA pode errar — confira informações importantes. <span data-model-hint></span></p>
+      <details class="composer-legal">
+        <summary>Privacidade e termos</summary>
+        <p>Fotos e PDFs: o texto é lido no seu navegador; das fotos, uma cópia reduzida também vai ao modelo. Suas conversas ficam guardadas só na sua conta. * Você responde pelo conteúdo que envia e pelo uso que faz das respostas, nos termos da lei.</p>
+      </details>
     </form>
   </main>
 </div>

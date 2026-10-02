@@ -104,7 +104,7 @@
   dialog.querySelector('[data-templates-close]').addEventListener('click', function () { dialog.close(); });
   search.addEventListener('input', render);
   document.querySelectorAll('[data-starter]').forEach(function (button) {
-    button.addEventListener('click', function () { draft(button.textContent.trim()); });
+    button.addEventListener('click', function () { draft((button.querySelector('span') || button).textContent.trim()); });
   });
   render();
 })();

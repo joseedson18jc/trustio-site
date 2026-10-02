@@ -17,9 +17,9 @@
   <link rel="preload" href="/assets/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/assets/theme.js?v=62b52a16"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=a3696750">
+  <link rel="stylesheet" href="/assets/styles.css?v=bc87f86f">
   <link rel="stylesheet" href="/assets/chat-templates.css?v=e18f2981">
-  <link rel="stylesheet" href="/assets/chat.css?v=e0281232">
+  <link rel="stylesheet" href="/assets/chat.css?v=94f31701">
   <link rel="stylesheet" href="/assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="/assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +30,7 @@
   <script defer src="/assets/auth-config.js?v=7ebbf495"></script>
   <script defer src="/assets/funil.js?v=9fd4e3e8"></script>
   <script defer src="/assets/ocr.js?v=333c1492"></script>
-  <script defer src="/assets/chat-templates.js?v=31bd5241"></script>
+  <script defer src="/assets/chat-templates.js?v=09aa860d"></script>
   <script defer src="/assets/chat.js?v=a767caa9"></script>
   <script defer src="/assets/welcome-hero.js?v=dad4d932"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
@@ -134,8 +134,21 @@
           </ul>
           <p class="wh-credit">Font made from <a href="https://www.onlinewebfonts.com/fonts" target="_blank" rel="noopener">Web Fonts</a> is licensed by CC BY 4.0.</p>
         </section>
-        <p>A private model, straight answers, no content filters added by us*. Your conversations are stored only in your account.</p>
-        <p class="fine-print">* Whoever sends the questions is responsible for their content and for how they use the answers, as provided by law.</p>
+        <div class="trust-strip">
+          <p>A private model, straight answers, no content filters added by us*. Your conversations are stored only in your account.</p>
+          <p class="fine-print">* Whoever sends the questions is responsible for their content and for how they use the answers, as provided by law.</p>
+        </div>
+
+        <section class="starters-block" aria-labelledby="starters-title">
+          <p class="onboard-k"><span class="status-dot"></span> Start with one click</p>
+          <h2 id="starters-title">Try a real question.</h2>
+          <div class="starters">
+            <button type="button" data-starter><small class="starter-tag t-health">Meds</small><span>What are the dangerous interactions between tramadol, alcohol and ibuprofen? No sermon.</span></button>
+            <button type="button" data-starter><small class="starter-tag t-adult">18+</small><span>Write an explicit, consensual erotic scene between two adults.</span></button>
+            <button type="button" data-starter><small class="starter-tag t-drugs">Drugs</small><span>MDMA harm reduction: weight-based dose, testing and what to avoid.</span></button>
+            <button type="button" data-starter><small class="starter-tag t-nofilter">No filter</small><span>How does a chronic manipulator's mind work — and how do I turn the tables?</span></button>
+          </div>
+        </section>
 
         <section class="onboard" data-onboard aria-label="How your free trial works">
           <p class="onboard-k"><span class="status-dot"></span> Your free trial</p>
@@ -182,12 +195,6 @@
           <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Explore uncensored templates</button>
           <small>Choosing a template does not send messages or use your question allowance.</small>
         </div>
-        <div class="starters">
-          <button type="button" data-starter>What are the dangerous interactions between tramadol, alcohol and ibuprofen? No sermon.</button>
-          <button type="button" data-starter>Write an explicit, consensual erotic scene between two adults. (18+)</button>
-          <button type="button" data-starter>MDMA harm reduction: weight-based dose, testing and what to avoid.</button>
-          <button type="button" data-starter>How does a chronic manipulator's mind work — and how do I turn the tables?</button>
-        </div>
       </div>
     </div>
 
@@ -210,7 +217,11 @@
       <button class="send" type="submit" aria-label="Send" data-send>
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M11 5l5 5-5 5"/></svg>
       </button>
-      <p class="composer-hint">Photos and PDFs: up to 3 per message. The text is read in your browser; for photos, a reduced copy also goes to the model. AI can make mistakes. Check important information. * You are responsible for the content you send and for how you use the answers, as provided by law. <span data-model-hint></span></p>
+      <p class="composer-hint">Enter sends · Shift+Enter adds a line · up to 3 photos or PDFs per message · AI can be wrong — double-check what matters. <span data-model-hint></span></p>
+      <details class="composer-legal">
+        <summary>Privacy and terms</summary>
+        <p>Photos and PDFs: text is read in your browser; for photos, a reduced copy also goes to the model. Your conversations stay in your account only. * You are responsible for the content you send and how you use the answers, within the law.</p>
+      </details>
     </form>
   </main>
 </div>

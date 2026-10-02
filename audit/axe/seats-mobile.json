@@ -1,0 +1,1334 @@
+{
+ "url": "https://trustio.com.br/seats.html",
+ "timestamp": "2026-09-22T19:37:51.882Z",
+ "testEngine": {
+  "name": "axe-core",
+  "version": "4.13.0"
+ },
+ "violations": [],
+ "incomplete": [
+  {
+   "id": "aria-prohibited-attr",
+   "impact": "serious",
+   "tags": [
+    "cat.aria",
+    "wcag2a",
+    "wcag412",
+    "EN-301-549",
+    "EN-9.4.1.2",
+    "RGAAv4",
+    "RGAA-7.1.1"
+   ],
+   "description": "Ensure ARIA attributes are not prohibited for an element's role",
+   "help": "Elements must only use permitted ARIA attributes",
+   "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/aria-prohibited-attr?application=axeAPI",
+   "nodes": [
+    {
+     "any": [],
+     "all": [],
+     "none": [
+      {
+       "id": "aria-prohibited-attr",
+       "data": {
+        "role": null,
+        "nodeName": "div",
+        "messageKey": "noRoleSingular",
+        "prohibited": [
+         "aria-label"
+        ]
+       },
+       "relatedNodes": [],
+       "impact": "serious",
+       "message": "aria-label attribute is not well supported on a div with no valid role attribute."
+      }
+     ],
+     "impact": "serious",
+     "html": "<div class=\"hero-signals\" aria-label=\"Diferenciais do acesso individual\">",
+     "target": [
+      ".hero-signals"
+     ],
+     "failureSummary": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+    }
+   ]
+  },
+  {
+   "id": "color-contrast",
+   "impact": "serious",
+   "tags": [
+    "cat.color",
+    "wcag2aa",
+    "wcag143",
+    "TTv5",
+    "TT13.c",
+    "EN-301-549",
+    "EN-9.1.4.3",
+    "ACT",
+    "RGAAv4",
+    "RGAA-3.2.1"
+   ],
+   "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+   "help": "Elements must meet minimum color contrast ratio thresholds",
+   "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+   "nodes": [
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "16.5pt (22px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>Trust</span>",
+     "target": [
+      ".header-inner > .brand[aria-label=\"Trustio, página inicial\"][href=\"index.html\"] > .brand-word > span"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "16.5pt (22px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<strong>io</strong>",
+     "target": [
+      ".header-inner > .brand[aria-label=\"Trustio, página inicial\"][href=\"index.html\"] > .brand-word > strong"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"#plataforma\">Plataforma</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"#plataforma\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"modelos.html\">Modelos Poderosos</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"modelos.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<span>Seats individuais disponíveis.</span>",
+         "target": [
+          "#seats-title > span"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"voice.html\" class=\"nav-voice\">VoiceAI <small>powered by xSpace</small></a>",
+     "target": [
+      "#mobile-menu > .nav-voice[href$=\"voice.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "9.0pt (12px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<span>Seats individuais disponíveis.</span>",
+         "target": [
+          "#seats-title > span"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<small>powered by xSpace</small>",
+     "target": [
+      "#mobile-menu > .nav-voice[href$=\"voice.html\"] > small"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"#seguranca\">Segurança</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"#seguranca\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"#implantacao\">Implantação</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"#implantacao\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"/juridico/\">Jurídico</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"juridico/\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"planos.html\">Planos</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"planos.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"espera.html\">Lista de espera</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"espera.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "elmPartiallyObscured",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<span>SEM CENSURA</span>",
+         "target": [
+          ".hero-signals > span:nth-child(1)"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because it's partially obscured by another element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"manifesto.html\">Manifesto</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"manifesto.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "elmPartiallyObscured",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because it's partially obscured by another element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"#contato\">Falar com a Trustio</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"#contato\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"eyebrow\"><span class=\"status-dot\"></span> Lançamento em 1º de outubro de 2026 · <span data-count=\"1317\">23.493</span> pessoas na lista · pré-assinantes entram em 23/09</p>",
+     "target": [
+      ".eyebrow"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span data-count=\"1317\">23.493</span>",
+     "target": [
+      "span[data-count=\"1317\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "28.5pt (38px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<h1 id=\"seats-title\">IA Privada e sem censura*.<span>Seats individuais disponíveis.</span></h1>",
+     "target": [
+      "#seats-title"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "28.5pt (38px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<span>Seats individuais disponíveis.</span>",
+         "target": [
+          "#seats-title > span"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>Seats individuais disponíveis.</span>",
+     "target": [
+      "#seats-title > span"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "12.8pt (17px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"hero-lead\">Os mesmos modelos abertos que rodamos para empresas, agora em acesso individual. Sem censura e sem filtro de conteúdo imposto pelo fornecedor, com inferência e dados hospedados no Brasil. Quem pré-assina entra em 23 de setembro, uma semana antes de todo mundo.</p>",
+     "target": [
+      ".hero-lead"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "fontSize": "11.3pt (15px)",
+        "fontWeight": "normal",
+        "messageKey": "pseudoContent",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<a class=\"button button-primary\" href=\"espera.html\">Entrar na lista de espera <span aria-hidden=\"true\">↗</span></a>",
+         "target": [
+          ".button-primary"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a pseudo element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a class=\"button button-primary\" href=\"espera.html\">Entrar na lista de espera <span aria-hidden=\"true\">↗</span></a>",
+     "target": [
+      ".button-primary"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.5pt (14px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a class=\"text-link\" href=\"planos.html#pessoal\">Ver planos e preços <span aria-hidden=\"true\">↗</span></a>",
+     "target": [
+      ".text-link"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<span>SEM CENSURA</span>",
+         "target": [
+          ".hero-signals > span:nth-child(1)"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>SEM CENSURA</span>",
+     "target": [
+      ".hero-signals > span:nth-child(1)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<span>5 PERGUNTAS GRÁTIS</span>",
+         "target": [
+          "span:nth-child(3)"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>5 PERGUNTAS GRÁTIS</span>",
+     "target": [
+      "span:nth-child(3)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<span>PRÉ-ASSINANTES: 23/09</span>",
+         "target": [
+          "span:nth-child(5)"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>PRÉ-ASSINANTES: 23/09</span>",
+     "target": [
+      "span:nth-child(5)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgOverlap",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because it is overlapped by another element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>DADOS NO BRASIL</span>",
+     "target": [
+      "span:nth-child(7)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgOverlap",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because it is overlapped by another element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span class=\"signal-pix\">",
+     "target": [
+      ".signal-pix"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<p class=\"acesso-estado seats-acesso\">",
+         "target": [
+          ".acesso-estado"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"acesso-estado seats-acesso\">",
+     "target": [
+      ".acesso-estado"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<p class=\"acesso-estado seats-acesso\">",
+         "target": [
+          ".acesso-estado"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>Estado de hoje:</b>",
+     "target": [
+      "b:nth-child(1)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<p class=\"acesso-estado seats-acesso\">",
+         "target": [
+          ".acesso-estado"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>O chat abre em 1º de outubro de 2026</b>",
+     "target": [
+      "b:nth-child(2)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<p class=\"acesso-estado seats-acesso\">",
+         "target": [
+          ".acesso-estado"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>23 de setembro</b>",
+     "target": [
+      "b:nth-child(3)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<p class=\"acesso-estado seats-acesso\">",
+         "target": [
+          ".acesso-estado"
+         ]
+        },
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"cadastro.html\">Criar conta grátis</a>",
+     "target": [
+      "a[href$=\"cadastro.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "9.4pt (12.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"fine-print\">* A responsabilidade pelo conteúdo dos prompts enviados e pelo uso das respostas é inteiramente de quem os envia.</p>",
+     "target": [
+      ".fine-print"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"seats-field\" aria-hidden=\"true\"></div>",
+         "target": [
+          ".seats-field"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"index.html\">Conhecer a Trustio por inteiro <span aria-hidden=\"true\">→</span></a>",
+     "target": [
+      ".seats-voltar > a[href=\"index.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "messageKey": "nonBmp"
+       },
+       "relatedNodes": [],
+       "impact": "serious",
+       "message": "Element content contains only non-text characters"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span aria-hidden=\"true\">→</span>",
+     "target": [
+      "a[href=\"index.html\"] > span[aria-hidden=\"true\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element content contains only non-text characters"
+    }
+   ]
+  },
+  {
+   "id": "link-in-text-block",
+   "impact": "serious",
+   "tags": [
+    "cat.color",
+    "wcag2a",
+    "wcag141",
+    "TTv5",
+    "TT13.a",
+    "EN-301-549",
+    "EN-9.1.4.1",
+    "RGAAv4",
+    "RGAA-10.6.1"
+   ],
+   "description": "Ensure links are distinguished from surrounding text in a way that does not rely on color",
+   "help": "Links must be distinguishable without relying on color",
+   "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/link-in-text-block?application=axeAPI",
+   "nodes": [
+    {
+     "any": [
+      {
+       "id": "link-in-text-block",
+       "data": {
+        "messageKey": "bgGradient"
+       },
+       "relatedNodes": [
+        {
+         "html": "<p class=\"acesso-estado seats-acesso\">",
+         "target": [
+          ".acesso-estado"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's contrast ratio could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"cadastro.html\">Criar conta grátis</a>",
+     "target": [
+      "a[href$=\"cadastro.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's contrast ratio could not be determined due to a background gradient"
+    }
+   ]
+  }
+ ]
+}

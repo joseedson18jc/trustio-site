@@ -284,16 +284,14 @@
     "Acesso individual disponível.": "Individual access available.",
     "Preciso de ajuda para escolher": "Help me choose a plan",
     "automaticamente após a confirmação do pagamento": "automatically after payment confirmation",
-    "após a confirmação do pagamento": "after payment confirmation"
+    "após a confirmação do pagamento": "after payment confirmation",
+    "Conhecer a Trustio para empresas": "Explore Trustio for companies",
+    "Falar com a Trustio.": "Talk to Trustio.",
+    "Para você: crie sua conta grátis e teste o chat hoje — 5 perguntas por nossa conta. Para a sua empresa: uma conversa sobre infraestrutura, segurança e o primeiro caso de uso.": "For you: create your free account and try the chat today — 5 questions on us. For your company: a conversation about infrastructure, security and the first use case.",
+    "Falar sobre a sua empresa": "Talk about your company",
+    "Empresas: respondemos em até": "Companies: we reply within",
+    "— bastam três linhas na primeira mensagem:": "— three lines are enough for the first message:",
+    "Esfera de galáxia azul da Trustio sobre uma paisagem brasileira noturna": "Trustio's blue galaxy sphere over a nocturnal Brazilian landscape"
   },
-  "raw": [
-    [
-      "# mesma interface, seu perímetro",
-      "# same interface, your perimeter"
-    ],
-    [
-      "Resuma o contrato 4402.",
-      "Summarize contract 4402."
-    ]
-  ]
+  "raw": []
 }

@@ -1,0 +1,932 @@
+{
+ "url": "https://trustio.com.br/manifesto.html",
+ "timestamp": "2026-09-22T19:37:01.316Z",
+ "testEngine": {
+  "name": "axe-core",
+  "version": "4.13.0"
+ },
+ "violations": [],
+ "incomplete": [
+  {
+   "id": "color-contrast",
+   "impact": "serious",
+   "tags": [
+    "cat.color",
+    "wcag2aa",
+    "wcag143",
+    "TTv5",
+    "TT13.c",
+    "EN-301-549",
+    "EN-9.1.4.3",
+    "ACT",
+    "RGAAv4",
+    "RGAA-3.2.1"
+   ],
+   "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+   "help": "Elements must meet minimum color contrast ratio thresholds",
+   "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+   "nodes": [
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "16.5pt (22px)",
+        "fontWeight": "bold",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>Trust</span>",
+     "target": [
+      ".brand-word > span"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "16.5pt (22px)",
+        "fontWeight": "bold",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<strong>io</strong>",
+     "target": [
+      ".brand-word > strong"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"index.html#plataforma\">Plataforma</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"index.html#plataforma\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"modelos.html\">Modelos Poderosos</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"modelos.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"voice.html\" class=\"nav-voice\">VoiceAI <small>powered by xSpace</small></a>",
+     "target": [
+      "#mobile-menu > .nav-voice[href$=\"voice.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "9.0pt (12px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<small>powered by xSpace</small>",
+     "target": [
+      "#mobile-menu > .nav-voice[href$=\"voice.html\"] > small"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<h1>Manifesto</h1>",
+         "target": [
+          "h1"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"index.html#seguranca\">Segurança</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"index.html#seguranca\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"index.html#implantacao\">Implantação</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"index.html#implantacao\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"/juridico/\">Jurídico</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"juridico/\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"planos.html\">Planos</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"planos.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"espera.html\">Lista de espera</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"espera.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"manifesto.html\" aria-current=\"page\">Manifesto</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"manifesto.html\"][aria-current=\"page\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "elmPartiallyObscured",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because it's partially obscured by another element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"index.html#contato\">Falar com a Trustio</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"index.html#contato\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"eyebrow\"><span class=\"status-dot\"></span> Trustio / Documento 001</p>",
+     "target": [
+      ".eyebrow"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "57.0pt (76px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<h1>Manifesto</h1>",
+         "target": [
+          "h1"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<h1>Manifesto</h1>",
+     "target": [
+      "h1"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "14.3pt (19px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"manifesto-intro\">A confiança é a infraestrutura que transforma inteligência artificial em capacidade estratégica.</p>",
+     "target": [
+      ".manifesto-intro"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>CONFIANÇA</span>",
+     "target": [
+      ".manifesto-signals > span:nth-child(1)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>LIBERDADE</span>",
+     "target": [
+      ".manifesto-signals > span:nth-child(3)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>PROPÓSITO</span>",
+     "target": [
+      "span:nth-child(5)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "imgNode",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<canvas id=\"network-canvas\" width=\"683\" height=\"1540\" style=\"width: 390px; height: 880px;\"></canvas>",
+         "target": [
+          "#network-canvas"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because element contains an image node"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>Continue para ler</span>",
+     "target": [
+      ".manifesto-scroll-hint > span:nth-child(1)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<body class=\"manifesto-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>01</span>",
+     "target": [
+      "aside[aria-label=\"Capítulo 1, o que acreditamos\"] > span"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<body class=\"manifesto-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p>O que acreditamos</p>",
+     "target": [
+      "aside[aria-label=\"Capítulo 1, o que acreditamos\"] > p"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "29.3pt (39px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<body class=\"manifesto-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"lead-paragraph\">Acreditamos que a inteligência artificial será a infraestrutura mais importante desta geração.</p>",
+     "target": [
+      ".chapter-copy.is-visible.reveal-delay-1 > .lead-paragraph"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "14.3pt (19px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<body class=\"manifesto-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p>Mas nenhuma empresa deveria abrir mão do controle sobre seus dados para fazer parte desse futuro.</p>",
+     "target": [
+      ".chapter-copy.is-visible.reveal-delay-1 > p:nth-child(2)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    }
+   ]
+  }
+ ]
+}

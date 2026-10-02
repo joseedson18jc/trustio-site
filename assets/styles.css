@@ -64,6 +64,11 @@
   --line: rgba(160, 179, 211, 0.16);
   --line-bright: rgba(94, 167, 255, 0.35);
   --container: min(1180px, calc(100vw - 48px));
+  /* Breakpoints: matriz de 4 camadas alinhada a design-system/tokens.json */
+  --breakpoint-sm: 768px;
+  --breakpoint-md: 1024px;
+  --breakpoint-lg: 1440px;
+  --breakpoint-xl: 1440px;
   --display: "Unbounded", "Geist", "Segoe UI", system-ui, sans-serif;
   --body: "Geist", "Inter", "Segoe UI", system-ui, sans-serif;
   --mono: "Martian Mono", "Geist Mono", "SF Mono", ui-monospace, Menlo, monospace;
@@ -1918,51 +1923,40 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   font-size: 18px;
 }
 
-@media (max-width: 900px) {
-  .metric-grid { grid-template-columns: repeat(2, 1fr); }
-  .founder-areas-grid { grid-template-columns: 1fr; gap: var(--space-44); }
-}
-
-@media (max-width: 560px) {
-  .metric-grid { grid-template-columns: 1fr; }
-  .founder-hero h1 { font-size: clamp(36.1px, 10.66vw, 52.5px); }
-  .error-footer { align-items: flex-start; flex-direction: column; gap: 14px; }
-}
-
 /* Responsive */
-/* Cabeçalho: oito itens (com os pares VoiceAI, Agentio e IA sem censura) + Entrar + CTA + idioma
-   + tema precisam de ~1470px. A faixa do cabeçalho cresce até 1520px (1600px em telas largas), mais
-   larga que o container de conteúdo; entre 1301px e 1539px o CTA do cabeçalho sai (o contato
-   continua na página) e o menu aperta um pouco; abaixo de 1301px, o menu hambúrguer assume
-   (breakpoint espelhado em app.js). */
-@media (min-width: 1301px) {
-  .header-inner { width: min(1520px, calc(100vw - 48px)); gap: var(--space-16); }
-  .desktop-nav { gap: var(--space-20); }
-  .desktop-nav a { font-size: 14.5px; }
-}
+/* ==========================================================================
+   Trustio Responsive Matrix: 4 Tiers + Accessibility Features
+   Tier 1: Mobile  — @media (max-width: 767px)
+   Tier 2: Tablet  — @media (min-width: 768px) and (max-width: 1023px)
+   Tier 3: Desktop — @media (min-width: 1024px)
+   Tier 4: Wide    — @media (min-width: 1440px)
+   ========================================================================== */
 
-@media (min-width: 1301px) and (max-width: 1539px) {
-  .header-cta { display: none; }
-  .desktop-nav { gap: var(--space-16); }
-  .desktop-nav a { font-size: 14px; }
-}
-
-@media (min-width: 1700px) {
-  .header-inner { width: min(1600px, calc(100vw - 48px)); gap: var(--space-20); }
-  .desktop-nav { gap: var(--space-28); }
+/* ── Tier 4: Wide (>= 1440px) ────────────────────────────────────────────── */
+@media (min-width: 1440px) {
+  .header-inner { width: min(1440px, calc(100vw - 48px)); gap: var(--space-20); }
+  .desktop-nav { gap: var(--space-24); }
   .desktop-nav a { font-size: 15px; }
 }
 
-@media (max-width: 1300px) {
-  .desktop-nav { display: none; }
-  .menu-toggle { display: block; }
-  /* sem o menu completo, a marca fica à esquerda e os botões juntos à direita; a margem automática
-     sai do CTA porque ".header-login + .header-cta" a zerava mesmo com o Entrar escondido */
-  .header-inner { gap: var(--space-12); }
-  .brand { margin-right: auto; }
+/* ── Tier 3: Desktop (>= 1024px) ─────────────────────────────────────────── */
+@media (min-width: 1024px) {
+  .header-inner { width: min(1180px, calc(100vw - 48px)); gap: var(--space-16); }
+  .desktop-nav { display: flex; gap: var(--space-16); }
+  .desktop-nav a { font-size: 14px; }
+  .menu-toggle { display: none; }
 }
 
-@media (max-width: 1060px) {
+/* ── Tier 2: Tablet (768px - 1023px) ─────────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .desktop-nav { display: none; }
+  .menu-toggle { display: block; }
+  .header-inner { gap: var(--space-12); }
+  .brand { margin-right: auto; }
+
+  .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  .founder-areas-grid { grid-template-columns: 1fr; gap: var(--space-44); }
+
   .hero { min-height: auto; }
   .hero-grid { grid-template-columns: 1fr; }
   .hero-copy { max-width: 850px; }
@@ -1980,24 +1974,28 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   .security-grid { grid-template-columns: 1fr; }
   .security-copy { max-width: 780px; }
   .sovereignty-visual { width: min(100%, 650px); margin: var(--space-20) auto 0; }
-  .deployment-track { grid-template-columns: repeat(2,1fr); gap: 45px 0; }
+  .deployment-track { grid-template-columns: repeat(2, 1fr); gap: 45px 0; }
   .deployment-step:nth-child(3) { padding-left: 0; border-left: 0; }
   .manifesto-chapter-grid { grid-template-columns: .25fr 1fr; }
   .pillar-card { min-height: 440px; padding: var(--space-28); }
   .pillar-card h3 { margin-top: 210px; }
 }
 
-@media (max-width: 760px) {
+/* ── Tier 1: Mobile (< 768px) ────────────────────────────────────────────── */
+@media (max-width: 767px) {
   :root { --container: min(100% - 32px, 1180px); --radius-large: 22px; }
   .section-shell { padding-block: 88px; }
   /* celular: controles mais juntos para caber em 320 px */
+  .desktop-nav { display: none; }
+  .menu-toggle { display: block; }
+  .brand { margin-right: auto; }
   .header-inner { min-height: 72px; gap: var(--space-8); }
   .brand-mark { width: 29px; height: 29px; }
   .brand-word { font-size: 18.9px; font-weight: 500; }
   .header-cta { display: none; }
   .mobile-nav { height: calc(100svh - 72px); }
   .hero { padding-top: 122px; padding-bottom: var(--space-28); }
-  .hero h1 { margin-top: var(--space-20); font-size: clamp(38.5px, 11.48vw, 55.8px); }
+  .hero h1 { margin-top: var(--space-20); font-size: clamp(36.9px, 11.48vw, 55.8px); }
   .hero-lead { font-size: 17px; }
   .hero-actions { align-items: stretch; flex-direction: column; gap: var(--space-20); }
   .hero-actions .button { width: 100%; }
@@ -2012,7 +2010,7 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   .hero-foot { grid-template-columns: 1fr auto; }
   .hero-foot > p:first-child { display: none; }
   .home-page .hero { min-height: 880px; padding-top: var(--space-120); padding-bottom: var(--space-68); }
-  .home-page .hero h1 { margin-top: 30px; font-size: clamp(47.6px, 13.12vw, 67.2px); line-height: .9; }
+  .home-page .hero h1 { margin-top: 30px; font-size: clamp(44.3px, 12.4vw, 67.2px); line-height: .9; } /* 12.4vw: em 390px "IA pessoal e empresarial." cabe sem vazar 5px (RA7) */
   .home-page .hero-lead { margin-top: var(--space-36); font-size: 17px; }
   .hero-signals { gap: var(--space-8); margin-top: var(--space-36); }
   .home-scroll-hint { grid-template-columns: auto 1fr; }
@@ -2047,27 +2045,27 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   .deployment-step + .deployment-step { padding-top: var(--space-36); border-top: 1px solid var(--line); }
   .step-index { margin-bottom: var(--space-32); }
   .manifesto-preview { min-height: 710px; }
-  .manifesto-preview blockquote { margin: 75px 0 70px; font-size: 43px; }
+  .manifesto-preview blockquote { margin: 75px 0 70px; font-size: clamp(37px, 10vw, 43px); }
   .manifesto-preview-footer { align-items: stretch; flex-direction: column; }
   .manifesto-preview-footer .button { width: 100%; }
   .contact-card { min-height: 620px; padding: 40px var(--space-28); }
   .contact-pattern { width: 100%; opacity: .55; }
-  .contact-card h2 { font-size: 37.7px; }
+  .contact-card h2 { font-size: clamp(32.8px, 9vw, 37.7px); }
   .home-page .contact-card { min-height: 880px; }
-  .home-page .contact-card h2 { font-size: 47.6px; }
+  .home-page .contact-card h2 { font-size: clamp(36.9px, 11vw, 47.6px); }
   .footer-grid { grid-template-columns: 1fr; gap: 52px; }
   .footer-bottom { min-height: 96px; align-items: flex-start; justify-content: center; flex-direction: column; gap: 10px; }
   .manifesto-hero { min-height: 880px; padding-top: var(--space-120); }
-  .manifesto-hero h1 { font-size: clamp(64px, 19.68vw, 106.6px); }
+  .manifesto-hero h1 { font-size: clamp(62.3px, 19.68vw, 106.6px); }
   .manifesto-intro { margin-top: 38px; }
   .manifesto-signals { gap: 9px; }
   .manifesto-scroll-hint { grid-template-columns: auto 1fr; }
   .manifesto-scroll-hint > span:last-child { display: none; }
   .manifesto-chapter-grid { grid-template-columns: 1fr; gap: 52px; }
   .chapter-index { padding-bottom: var(--space-20); border-bottom: 1px solid var(--line); }
-  .chapter-copy .lead-paragraph { font-size: 45px; }
+  .chapter-copy .lead-paragraph { font-size: clamp(39px, 10vw, 45px); }
   .chapter-copy p { font-size: 19px; }
-  .declaration-inner h2 { font-size: 54.9px; }
+  .declaration-inner h2 { font-size: clamp(44.3px, 12vw, 54.9px); }
   .declaration-inner > p:last-child { font-size: 19px; }
   .pillar-cards { grid-template-columns: 1fr; }
   .pillar-card { min-height: 360px; }
@@ -2079,26 +2077,21 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   .brazil-commitment-inner { grid-template-columns: 1fr; gap: 50px; }
   .brazil-seal { width: min(100%, 330px); margin: auto; }
   .brazil-copy h2 { font-size: 43.5px; }
-  .finale-inner h2 { font-size: 47.6px; }
-}
+  .finale-inner h2 { font-size: clamp(40.2px, 11vw, 47.6px); }
 
-@media (max-width: 420px) {
-  .hero h1 { font-size: 36.9px; }
-  .home-page .hero h1 { font-size: 44.3px; }
+  .metric-grid { grid-template-columns: 1fr; }
+  .founder-areas-grid { grid-template-columns: 1fr; gap: var(--space-44); }
+  .founder-hero h1 { font-size: clamp(36.1px, 10.66vw, 52.5px); }
+  .error-footer { align-items: flex-start; flex-direction: column; gap: 14px; }
+
   .panel-label { display: none; }
   .panel-footer { grid-template-columns: 1fr 1fr; }
   .panel-footer strong { text-align: left; }
   .signal-flow { grid-template-columns: 1fr; gap: 6px; text-align: center; }
   .signal-flow i { display: none; }
-  .contact-card h2, .statement-content h2, .section-heading h2, .security-copy > h2 { font-size: 32.8px; }
+  .statement-content h2, .section-heading h2, .security-copy > h2 { font-size: 32.8px; }
   .home-page .statement-content h2 { font-size: 36.9px; }
-  .home-page .contact-card h2 { font-size: 40.2px; }
-  .manifesto-preview blockquote { font-size: 37px; }
   .pillar-list { flex-wrap: wrap; }
-  .manifesto-hero h1 { font-size: 62.3px; }
-  .chapter-copy .lead-paragraph { font-size: 39px; }
-  .declaration-inner h2 { font-size: 44.3px; }
-  .finale-inner h2 { font-size: 40.2px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2150,12 +2143,13 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
 .api-terminal-bar span { margin-left: 10px; color: rgba(148, 197, 255, 0.72); font-size: var(--label); letter-spacing: 0.14em; text-transform: uppercase; }
 .api-terminal pre { margin: 0; padding: var(--space-20) 22px var(--space-24); overflow-x: auto; color: rgba(226, 232, 244, 0.85); }
 /* celular: o exemplo quebra a linha em vez de rolar para o lado sem aviso */
-@media (max-width: 600px) { .api-terminal pre { white-space: pre-wrap; overflow-wrap: anywhere; } }
+@media (max-width: 767px) { .api-terminal pre { white-space: pre-wrap; overflow-wrap: anywhere; } }
 .api-terminal .tk-cmd { color: var(--ice); }
 .api-terminal .tk-flag { color: rgba(148, 167, 197, 0.75); }
 .api-terminal .tk-str { color: var(--blue-signal); }
 .api-terminal .tk-dim { color: rgba(148, 167, 197, 0.78); }
-@media (max-width: 960px) { .api-band { grid-template-columns: 1fr; } }
+@media (max-width: 767px) { .api-band { grid-template-columns: 1fr; } }
+@media (min-width: 768px) and (max-width: 1023px) { .api-band { grid-template-columns: 1fr; } }
 
 /* ---------- Server panel (hardware band) ---------- */
 .hardware-band { position: relative; padding-block: 0; }
@@ -2176,7 +2170,7 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
 @keyframes serverIoGlow { 0% { text-shadow: 0 0 6px rgba(94, 167, 255, 0.18); } 6% { text-shadow: 0 0 22px rgba(94, 167, 255, 0.95), 0 0 46px rgba(94, 167, 255, 0.5); } 22%, 100% { text-shadow: 0 0 6px rgba(94, 167, 255, 0.18); } }
 @keyframes serverSensorPulse { 0%, 100% { transform: scale(1); opacity: 0.55; box-shadow: 0 0 10px 3px rgba(94, 167, 255, 0.45); } 50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 24px 8px rgba(94, 167, 255, 0.9); } }
 /* Telas estreitas: o painel cresce em altura e o bloco central ocupa o espaço, sem sobrar vazio. */
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .server-panel { aspect-ratio: 1040 / 560; border-radius: 22px; }
   .server-inner { align-items: stretch; gap: 14px; padding: 22px 16px; }
   .server-grid { grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(20, 1fr); }
@@ -2284,8 +2278,8 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
 .model-note p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
 .model-note strong { color: var(--ice); }
 
-@media (max-width: 1040px) { .model-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 680px) {
+@media (min-width: 768px) and (max-width: 1023px) { .model-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 767px) {
   .model-grid { grid-template-columns: 1fr; }
   .models-hero h1 { font-size: clamp(32.8px, 10.66vw, 49.2px); }
 }
@@ -2368,7 +2362,7 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
 .seats-banner .hero-actions { justify-content: center; }
 .seats-banner .hero-signals { margin-top: 40px; }
 
-@media (max-width: 700px) {
+@media (max-width: 767px) {
   .seats-banner h2 { margin: 26px auto 22px; font-size: clamp(27.9px, 7.54vw, 42.6px); line-height: 1.02; }
   .seats-banner .hero-lead { margin: var(--space-28) auto 26px; }
   .seats-banner .hero-signals { margin-top: var(--space-32); }
@@ -2423,10 +2417,10 @@ h3 { letter-spacing: -0.018em; }
   display: grid;
   gap: var(--space-8);
   margin-top: var(--space-20);
-  /* visível em tom baixo: o espaço reservado não parece vazio, e o hover só realça */
-  opacity: .5;
-  transform: translateY(6px);
-  transition: opacity 240ms var(--ease), transform 240ms var(--ease);
+  /* Totalmente legível em repouso (>= 4.5:1 WCAG AA); hover realça sutilmente */
+  opacity: 1;
+  transform: translateY(4px);
+  transition: transform 240ms var(--ease);
 }
 
 .has-insight:hover .insight,
@@ -2573,7 +2567,7 @@ h3 { letter-spacing: -0.018em; }
 }
 .vc-src b { color: var(--muted-strong); font-weight: 600; }
 .vc-src a { color: var(--blue-signal); text-decoration: underline; text-underline-offset: 3px; }
-@media (max-width: 700px) {
+@media (max-width: 767px) {
   .voice-compare th, .voice-compare td { padding: var(--space-12) 13px; }
   .vc-note { padding: 15px var(--space-16); }
 }
@@ -2590,7 +2584,8 @@ h3 { letter-spacing: -0.018em; }
 .site-header .lang-switch:hover,
 .site-header .theme-toggle:hover { border-color: var(--line-bright); background: rgba(94, 167, 255, 0.12); color: var(--text-strong); }
 .header-login + .header-cta { margin-left: 0; }
-@media (max-width: 960px) { .header-login { display: none; } }
+@media (max-width: 767px) { .header-login { display: none; } }
+@media (min-width: 768px) and (max-width: 1023px) { .header-login { display: none; } }
 
 /* ---------- Para quem: B2C x B2B (home) ---------- */
 .segments { position: relative; padding-top: clamp(40px, 6vw, 72px); }
@@ -2618,7 +2613,10 @@ h3 { letter-spacing: -0.018em; }
 .segment li::before { position: absolute; left: 0; top: 0; color: var(--blue-signal); font-family: var(--mono); content: "→"; }
 .segment-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: auto; padding-top: 12px; }
 .segment-actions .button { min-height: 48px; }
-@media (max-width: 900px) {
+@media (min-width: 768px) and (max-width: 1023px) {
+  .segments-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 767px) {
   .segments-grid { grid-template-columns: 1fr; }
   .segment-actions { flex-direction: column; align-items: stretch; }
   .segment-actions .button { width: 100%; }
@@ -2638,7 +2636,8 @@ h3 { letter-spacing: -0.018em; }
 .segment-wide .segment-actions { margin-top: 6px; }
 .segments-b2b { padding-top: clamp(40px, 6vw, 72px); }
 .segments-b2b .segment-b2b::before { opacity: 1; }
-@media (max-width: 900px) { .segment-wide { grid-template-columns: 1fr; gap: 10px; } }
+@media (max-width: 767px) { .segment-wide { grid-template-columns: 1fr; gap: 10px; } }
+@media (min-width: 768px) and (max-width: 1023px) { .segment-wide { grid-template-columns: 1fr; gap: 10px; } }
 
 /* Faixa "O que é Omnichannel" (bloco B2B da home). */
 .omni-def { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 10px clamp(24px, 4vw, 56px); align-items: start; margin-top: clamp(16px, 2vw, 22px); padding: clamp(22px, 3vw, 32px); border: 1px solid var(--line); border-radius: var(--radius-large); background: linear-gradient(145deg, rgba(37, 99, 235, 0.10), rgba(8, 10, 15, 0.4)); }
@@ -2647,8 +2646,8 @@ h3 { letter-spacing: -0.018em; }
 .omni-def > p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.6; grid-column: 1; }
 .omni-def-points { grid-column: 2; grid-row: 2 / span 2; margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
 .omni-def-points li { display: grid; gap: 3px; padding-left: 16px; border-left: 2px solid var(--blue-signal); color: var(--muted); font-size: 14px; line-height: 1.5; }
-.omni-def-points b { color: var(--ice); font-weight: 600; font-size: 14.5px; }
-@media (max-width: 900px) { .omni-def { grid-template-columns: 1fr; } .omni-def > p, .omni-def-points { grid-column: 1; grid-row: auto; } }
+@media (max-width: 767px) { .omni-def { grid-template-columns: 1fr; } .omni-def > p, .omni-def-points { grid-column: 1; grid-row: auto; } }
+@media (min-width: 768px) and (max-width: 1023px) { .omni-def { grid-template-columns: 1fr; } .omni-def > p, .omni-def-points { grid-column: 1; grid-row: auto; } }
 
 /* ---------- Figuras geométricas de fundo (home): quebram a monotonia sem competir com o texto ---------- */
 .home-page .segments, .home-page .statement, .home-page .security, .home-page .deployment { position: relative; overflow: hidden; isolation: isolate; }
@@ -2676,7 +2675,13 @@ h3 { letter-spacing: -0.018em; }
 @keyframes geoSpin { to { transform: rotate(360deg); } }
 [data-theme="light"] .home-page .segments::before, [data-theme="light"] .home-page .segments-b2b::before, [data-theme="light"] .home-page .segments-b2b::after,
 [data-theme="light"] .home-page .statement::before, [data-theme="light"] .home-page .security::before, [data-theme="light"] .home-page .security::after, [data-theme="light"] .home-page .deployment::before { opacity: 0.22; }
-@media (max-width: 900px) {
+@media (max-width: 767px) {
+  .home-page .segments::before { inset: 0; opacity: 0.35; -webkit-mask-image: linear-gradient(180deg, #000, transparent 70%); mask-image: linear-gradient(180deg, #000, transparent 70%); }
+  .home-page .segments-b2b::before { top: -160px; right: -240px; width: 480px; height: 480px; }
+  .home-page .segments-b2b::after, .home-page .security::after { display: none; }
+  .home-page .statement::before, .home-page .deployment::before { inset: 0; opacity: 0.22; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
   .home-page .segments::before { inset: 0; opacity: 0.35; -webkit-mask-image: linear-gradient(180deg, #000, transparent 70%); mask-image: linear-gradient(180deg, #000, transparent 70%); }
   .home-page .segments-b2b::before { top: -160px; right: -240px; width: 480px; height: 480px; }
   .home-page .segments-b2b::after, .home-page .security::after { display: none; }
@@ -2955,7 +2960,7 @@ h3 { letter-spacing: -0.018em; }
   border-color: rgba(160, 179, 211, 0.12);
   background: rgba(148, 178, 230, 0.06);
   box-shadow: none;
-  color: #6e7888;
+  color: #8d98aa; /* WCAG AA >= 4.5:1 (5.79:1 a 6.48:1 em superfícies escuras) */
   cursor: not-allowed;
   transform: none;
 }
@@ -2964,7 +2969,7 @@ h3 { letter-spacing: -0.018em; }
 .button:disabled > span[aria-hidden="true"],
 .button[aria-disabled="true"] > span[aria-hidden="true"] { background: rgba(148, 178, 230, 0.06); box-shadow: none; }
 [data-theme="light"] .button:disabled,
-[data-theme="light"] .button[aria-disabled="true"] { border-color: rgba(10, 29, 61, 0.12); background: rgba(10, 29, 61, 0.05); color: #7b8699; }
+[data-theme="light"] .button[aria-disabled="true"] { border-color: rgba(10, 29, 61, 0.12); background: rgba(10, 29, 61, 0.05); color: #4f5c72; /* WCAG AA >= 4.5:1 (5.45:1 a 6.14:1 no tema claro) */ }
 .button[aria-busy="true"] { cursor: progress; }
 
 /* Cabeçalho: CTA pequeno em pílula com o brilho do primário */
@@ -3021,17 +3026,19 @@ h3 { letter-spacing: -0.018em; }
 
 /* ── Reavaliação de design 2026-10 (RA3/F04): padrões decorativos sob o texto ──
    Camadas absolutas de pontos/grade (manifesto-preview, contact-pattern,
-   card-visual, finale-lines, error-dots) pintavam por cima de glifos e
+   brazil-commitment, card-visual, finale-lines, error-dots) pintavam por cima de glifos e
    parágrafos: elemento posicionado pinta acima de conteúdo estático. Com
-   isolation no hospedeiro + z-index:-1 na camada, o padrão fica entre o
-   fundo do bloco e o texto. */
+   isolation no hospedeiro + z-index:-1 na camada, o padrão fica estritamente entre o
+   fundo do bloco e o texto, sem nunca perfurar glifos. pointer-events:none impede trapping de cliques. */
 .manifesto-preview { isolation: isolate; }
-.manifesto-preview::before { z-index: -1; }
+.manifesto-preview::before { z-index: -1; pointer-events: none; }
 .contact-card { isolation: isolate; }
-.contact-pattern { z-index: -1; }
+.contact-pattern { z-index: -1; pointer-events: none; }
+.brazil-commitment { isolation: isolate; }
+.brazil-commitment::before { z-index: -1; pointer-events: none; }
 .capability-card { isolation: isolate; }
-.card-visual { z-index: -1; }
+.card-visual { z-index: -1; pointer-events: none; }
 .manifesto-finale { isolation: isolate; }
-.finale-lines { z-index: -1; }
+.finale-lines { z-index: -1; pointer-events: none; }
 .error-shell { isolation: isolate; }
-.error-dots { z-index: -1; }
+.error-dots { z-index: -1; pointer-events: none; }

@@ -13,7 +13,10 @@
   <link rel="canonical" href="https://trustio.com.br/ia-sem-censura.html">
   <meta property="og:type" content="website"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="Trustio">
   <meta property="og:title" content="IA sem censura, explicada · Trustio"><meta property="og:description" content="Sem censura é tirar o filtro do fornecedor, não a responsabilidade. Modelos abertos, dados no Brasil.">
-  <meta property="og:url" content="https://trustio.com.br/ia-sem-censura.html"><meta property="og:image" content="https://trustio.com.br/assets/social-card.png">
+  <meta property="og:url" content="https://trustio.com.br/ia-sem-censura.html"><meta property="og:image" content="https://trustio.com.br/assets/og/og-ia-sem-censura.jpg">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="720">
+  <meta property="og:image:alt" content="Porta de luz abrindo no vazio escuro">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon-32.png" sizes="32x32">
@@ -34,7 +37,7 @@
 <div class="progress" id="progress" aria-hidden="true"></div>
 
 <!-- Símbolos reutilizados -->
-<svg width="0" height="0" data-style="position:absolute" aria-hidden="true">
+<svg class="svg-defs" width="0" height="0" aria-hidden="true">
   <defs>
     <linearGradient id="tLid" gradientUnits="userSpaceOnUse" x1="8" y1="8" x2="88" y2="40"><stop offset="0" stop-color="#5EA7FF"/><stop offset="1" stop-color="#2563EB"/></linearGradient>
     <linearGradient id="tBody" gradientUnits="userSpaceOnUse" x1="8" y1="42" x2="88" y2="88"><stop offset="0" stop-color="#2E6BF0"/><stop offset="1" stop-color="#0F2C6B"/></linearGradient>
@@ -55,12 +58,12 @@
       <span class="wm">Trust<span class="io">io</span></span>
     </a>
     <nav class="nav" aria-label="Navegação principal">
-      <a href="index.html#plataforma">Plataforma</a>
+      <a href="empresas.html#plataforma">Plataforma</a>
       <a href="voice.html">VoiceAI</a>
       <a href="agentio.html">Agentio</a>
       <a href="#topo" aria-current="page">IA sem censura <span class="new">novo</span></a>
-      <a href="index.html#seguranca">Segurança</a>
-      <a href="index.html#implantacao">Implantação</a>
+      <a href="empresas.html#seguranca">Segurança</a>
+      <a href="empresas.html#implantacao">Implantação</a>
       <a href="planos.html">Planos</a>
       <a href="manifesto.html">Manifesto</a>
     </nav>
@@ -78,12 +81,12 @@
   </div>
   <nav class="mnav" id="mnav" aria-label="Navegação principal" hidden>
     <div class="wrap">
-      <a href="index.html#plataforma">Plataforma</a>
+      <a href="empresas.html#plataforma">Plataforma</a>
       <a href="voice.html">VoiceAI</a>
       <a href="agentio.html">Agentio</a>
       <a href="#topo" aria-current="page">IA sem censura <span class="new">novo</span></a>
-      <a href="index.html#seguranca">Segurança</a>
-      <a href="index.html#implantacao">Implantação</a>
+      <a href="empresas.html#seguranca">Segurança</a>
+      <a href="empresas.html#implantacao">Implantação</a>
       <a href="planos.html">Planos</a>
       <a href="manifesto.html">Manifesto</a>
       <a href="entrar.html">Entrar</a>
@@ -113,8 +116,8 @@
 <section class="hero" id="topo">
   <canvas id="field" aria-hidden="true"></canvas>
   <div class="glow" aria-hidden="true"></div>
-  <svg class="x" data-style="left:8%;top:22%" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2v14M2 9h14" stroke="currentColor"/></svg>
-  <svg class="x" data-style="right:9%;top:64%" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2v14M2 9h14" stroke="currentColor"/></svg>
+  <svg class="x" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2v14M2 9h14" stroke="currentColor"/></svg>
+  <svg class="x" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2v14M2 9h14" stroke="currentColor"/></svg>
   <div class="wrap hero-in">
     <span class="eyebrow rv"><i class="dot"></i>IA sem censura* · explicada</span>
     <h1 class="rv d1"><span class="l">IA sem censura.</span><span class="l grad">Não é IA sem regras.</span></h1>
@@ -137,7 +140,7 @@
 
 <!-- ===== 01 · O QUE É ===== -->
 <section class="sec crosses" id="o-que-e">
-  <svg class="circuit rv" data-style="right:0;top:40px;width:420px;height:180px" viewBox="0 0 420 180" aria-hidden="true">
+  <svg class="circuit rv" viewBox="0 0 420 180" aria-hidden="true">
     <path pathLength="1" d="M420 30H300l-40 40H160"/><path pathLength="1" d="M420 120H340l-30-30h-80"/><circle cx="160" cy="70" r="3.5"/><circle cx="230" cy="90" r="3.5"/>
   </svg>
   <div class="wrap split">
@@ -164,7 +167,7 @@
         <div class="track">
           <span class="rail" aria-hidden="true"></span>
           <span class="packet" aria-hidden="true"></span>
-          <div class="pn q"><div><b>Sua pergunta</b><small>“Qual dose de paracetamol já é risco?”</small></div><span class="st" data-style="color:var(--accent-text)">enviada</span></div>
+          <div class="pn q"><div><b>Sua pergunta</b><small>“Qual dose de paracetamol já é risco?”</small></div><span class="st">enviada</span></div>
           <div class="pn gate"><div><b>Moderação do fornecedor</b><small>bloqueia por palavra-chave</small></div><span class="st"></span></div>
           <div class="pn gate"><div><b>Instruções ocultas</b><small>regras que você não vê</small></div><span class="st"></span></div>
           <div class="pn gate"><div><b>Treino de recusa</b><small>“não posso ajudar com isso”</small></div><span class="st"></span></div>
@@ -244,7 +247,7 @@
       <div class="stepper">
         <div class="st-ctrl">
           <button class="round" id="st-prev" type="button" aria-label="Passo anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
-          <button class="round" id="st-play" type="button" aria-label="Pausar"><svg class="p-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg><svg class="p-play" viewBox="0 0 24 24" fill="currentColor" data-style="display:none"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5z"/></svg></button>
+          <button class="round" id="st-play" type="button" aria-label="Pausar"><svg class="p-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg><svg class="p-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5z"/></svg></button>
           <button class="round" id="st-next" type="button" aria-label="Próximo passo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
           <div class="st-dots" id="st-dots" role="group" aria-label="Ir para o passo"></div>
         </div>
@@ -290,7 +293,7 @@
         <g data-ring="lei"><circle class="fillr" cx="220" cy="220" r="206"/><g class="spin"><circle class="ring" cx="220" cy="220" r="206"/><circle class="orb" cx="220" cy="14" r="4"/></g><text x="220" y="40" text-anchor="middle">Lei brasileira</text></g>
         <g data-ring="termos"><circle class="fillr" cx="220" cy="220" r="152"/><g class="spin r2"><circle class="ring" cx="220" cy="220" r="152"/><circle class="orb" cx="372" cy="220" r="3.5"/></g><text x="220" y="94" text-anchor="middle">Termos de uso</text></g>
         <g data-ring="modelo"><circle class="fillr" cx="220" cy="220" r="98"/><g class="spin r3"><circle class="ring" cx="220" cy="220" r="98"/><circle class="orb" cx="220" cy="318" r="3"/></g><text x="220" y="148" text-anchor="middle">Modelo sem filtro</text></g>
-        <g data-ring="voce"><circle class="core" cx="220" cy="220" r="46"/><circle class="ring" cx="220" cy="220" r="46" data-style="stroke-dasharray:none;opacity:.6"/><text class="core-t" x="220" y="216" text-anchor="middle">Sua</text><text class="core-t" x="220" y="232" text-anchor="middle">pergunta</text></g>
+        <g data-ring="voce"><circle class="core" cx="220" cy="220" r="46"/><circle class="ring" cx="220" cy="220" r="46"/><text class="core-t" x="220" y="216" text-anchor="middle">Sua</text><text class="core-t" x="220" y="232" text-anchor="middle">pergunta</text></g>
       </svg>
       <ul class="legend" id="legend">
         <li><button type="button" data-ring="lei" aria-pressed="true"><div><b>Lei brasileira</b><span>O limite de fora. Crime continua crime, com filtro ou sem filtro.</span></div></button></li>
@@ -301,7 +304,7 @@
     </div>
     <div class="cols2">
       <div class="card rv">
-        <span class="label" data-style="color:var(--ok)">O que muda</span>
+        <span class="label text-ok">O que muda</span>
         <ul class="checks ok">
           <li><svg><use href="#i-check"/></svg>Perguntas sobre saúde, direito e segurança recebem resposta, não sermão.</li>
           <li><svg><use href="#i-check"/></svg>Ficção pode tratar de violência e temas pesados quando a história pede.</li>
@@ -310,7 +313,7 @@
         </ul>
       </div>
       <div class="card rv d1">
-        <span class="label" data-style="color:var(--warn)">O que não muda</span>
+        <span class="label text-warn">O que não muda</span>
         <ul class="checks keep">
           <li><svg><use href="#i-scale"/></svg>Conteúdo ilegal continua ilegal, como qualquer material de abuso sexual infantil.</li>
           <li><svg><use href="#i-scale"/></svg>Você responde pelo que pergunta e pelo que faz com a resposta.</li>
@@ -336,7 +339,7 @@
           <div class="browser" aria-hidden="true">
             <div class="b-bar"><span class="dots"><i></i><i></i><i></i></span><span class="b-url"><svg><use href="#i-lock"/></svg>trustio.com.br/chat</span></div>
             <div class="b-main">
-              <div class="b-side"><i class="on"></i><i data-style="width:80%"></i><i data-style="width:65%"></i><i data-style="width:88%"></i><i data-style="width:55%"></i></div>
+              <div class="b-side"><i class="on"></i><i></i><i></i><i></i><i></i></div>
               <div class="b-chat loop">
                 <div class="bub u">Esse contrato cobra multa de 6 aluguéis em qualquer rescisão. É abusivo?</div>
                 <div class="bub a"><b>Do jeito que está, é contestável.</b> A Lei do Inquilinato manda a multa ser proporcional ao prazo que falta…</div>
@@ -348,7 +351,7 @@
         </div>
         <div class="txt">
           <span class="tag">Chat · só no trustio.com.br</span>
-          <h3 class="h3" data-style="margin-top:14px">IA privada e sem censura*</h3>
+          <h3 class="h3">IA privada e sem censura*</h3>
           <p>Modelos abertos em ambiente privado e local, com histórico, arquivos e busca. Para o chat bastam nome, e-mail e senha.</p>
           <a class="tlink" href="#planos">Planos do chat <svg><use href="#i-arrow"/></svg></a>
         </div>
@@ -369,7 +372,7 @@
         </div>
         <div class="txt">
           <span class="tag">Agentio · by Trustio &amp; Hermes</span>
-          <h3 class="h3" data-style="margin-top:14px">Um agente que faz por você</h3>
+          <h3 class="h3">Um agente que faz por você</h3>
           <p>Construído sobre o Hermes Agent, de código aberto da Nous Research. Pesquisa, escreve, resume e organiza rotinas. Atende só no número que você cadastrar e confirma antes de qualquer ação irreversível.</p>
           <a class="tlink" href="#planos">Planos do Agentio <svg><use href="#i-arrow"/></svg></a>
         </div>
@@ -507,7 +510,7 @@
 <section class="sec">
   <div class="wrap">
     <div class="card final rv">
-      <p class="kicker" data-style="justify-content:center">O próximo passo</p>
+      <p class="kicker">O próximo passo</p>
       <h2 class="h2">Pergunte sem filtro. <span class="soft">Com os dados no Brasil.</span></h2>
       <div class="hero-ctas">
         <a class="btn btn-primary" href="cadastro.html">Criar conta grátis <span class="ico"><svg><use href="#i-arrow"/></svg></span></a>

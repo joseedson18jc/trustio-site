@@ -1,0 +1,2305 @@
+{
+ "url": "https://trustio.com.br/cadastro.html",
+ "timestamp": "2026-09-22T19:37:33.831Z",
+ "testEngine": {
+  "name": "axe-core",
+  "version": "4.13.0"
+ },
+ "violations": [],
+ "incomplete": [
+  {
+   "id": "aria-prohibited-attr",
+   "impact": "serious",
+   "tags": [
+    "cat.aria",
+    "wcag2a",
+    "wcag412",
+    "EN-301-549",
+    "EN-9.4.1.2",
+    "RGAAv4",
+    "RGAA-7.1.1"
+   ],
+   "description": "Ensure ARIA attributes are not prohibited for an element's role",
+   "help": "Elements must only use permitted ARIA attributes",
+   "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/aria-prohibited-attr?application=axeAPI",
+   "nodes": [
+    {
+     "any": [],
+     "all": [],
+     "none": [
+      {
+       "id": "aria-prohibited-attr",
+       "data": {
+        "role": null,
+        "nodeName": "div",
+        "messageKey": "noRoleSingular",
+        "prohibited": [
+         "aria-label"
+        ]
+       },
+       "relatedNodes": [],
+       "impact": "serious",
+       "message": "aria-label attribute is not well supported on a div with no valid role attribute."
+      }
+     ],
+     "impact": "serious",
+     "html": "<div class=\"conta-tags\" aria-label=\"Garantias\">\n            <span>Dados no Brasil</span><span>Sem censura*</span><span>LGPD</span><span>Sem cartão</span>\n          </div>",
+     "target": [
+      ".conta-tags"
+     ],
+     "failureSummary": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+    }
+   ]
+  },
+  {
+   "id": "color-contrast",
+   "impact": "serious",
+   "tags": [
+    "cat.color",
+    "wcag2aa",
+    "wcag143",
+    "TTv5",
+    "TT13.c",
+    "EN-301-549",
+    "EN-9.1.4.3",
+    "ACT",
+    "RGAAv4",
+    "RGAA-3.2.1"
+   ],
+   "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+   "help": "Elements must meet minimum color contrast ratio thresholds",
+   "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+   "nodes": [
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "16.5pt (22px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<body class=\"planos-page conta-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>Trust</span>",
+     "target": [
+      ".header-inner > .brand[href=\"index.html\"][aria-label=\"Trustio, página inicial\"] > .brand-word > span"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "16.5pt (22px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<body class=\"planos-page conta-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<strong>io</strong>",
+     "target": [
+      ".header-inner > .brand[href=\"index.html\"][aria-label=\"Trustio, página inicial\"] > .brand-word > strong"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<body class=\"planos-page conta-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"index.html#plataforma\">Plataforma</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"index.html#plataforma\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<body class=\"planos-page conta-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"modelos.html\">Modelos Poderosos</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"modelos.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<body class=\"planos-page conta-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"voice.html\" class=\"nav-voice\">VoiceAI <small>powered by xSpace</small></a>",
+     "target": [
+      "#mobile-menu > .nav-voice[href$=\"voice.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "9.0pt (12px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<body class=\"planos-page conta-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<small>powered by xSpace</small>",
+     "target": [
+      "#mobile-menu > .nav-voice[href$=\"voice.html\"] > small"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<body class=\"planos-page conta-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"index.html#seguranca\">Segurança</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"index.html#seguranca\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<body class=\"planos-page conta-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"index.html#implantacao\">Implantação</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"index.html#implantacao\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<body class=\"planos-page conta-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"/juridico/\">Jurídico</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"juridico/\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<p class=\"acesso-estado\"><b>Estado de hoje:</b> cadastro aberto, chat ainda fechado. Não há fila nem aprovação manual: assim que a data chega, sua conta entra sozinha. <a href=\"planos.html#pessoal\">Ver como entrar em 23/09</a></p>",
+         "target": [
+          ".acesso-estado"
+         ]
+        },
+        {
+         "html": "<body class=\"planos-page conta-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"planos.html\">Planos</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"planos.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<body class=\"planos-page conta-page menu-open\">",
+         "target": [
+          "body"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"espera.html\">Lista de espera</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"espera.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        },
+        {
+         "html": "<header class=\"site-header menu-active\" data-header=\"\">",
+         "target": [
+          "header"
+         ]
+        },
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"manifesto.html\">Manifesto</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"manifesto.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.8pt (25px)",
+        "fontWeight": "normal",
+        "messageKey": "elmPartiallyObscured",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<nav class=\"mobile-nav\" id=\"mobile-menu\" aria-label=\"Navegação para dispositivos móveis\">",
+         "target": [
+          "#mobile-menu"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because it's partially obscured by another element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"entrar.html\">Entrar</a>",
+     "target": [
+      "#mobile-menu > a[href$=\"entrar.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "pseudoContent",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<section class=\"plans-hero section-shell conta-hero\" aria-labelledby=\"cadastro-title\">",
+         "target": [
+          ".plans-hero"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a pseudo element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"eyebrow\"><span class=\"status-dot\"></span> Conta Trustio</p>",
+     "target": [
+      ".eyebrow"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "fontSize": "30.0pt (40px)",
+        "fontWeight": "bold",
+        "messageKey": "pseudoContent",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<section class=\"plans-hero section-shell conta-hero\" aria-labelledby=\"cadastro-title\">",
+         "target": [
+          ".plans-hero"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a pseudo element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<h1 id=\"cadastro-title\">Crie sua conta agora.<span>O chat abre em 1º de outubro.</span></h1>",
+     "target": [
+      "#cadastro-title"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "fontSize": "30.0pt (40px)",
+        "fontWeight": "normal",
+        "messageKey": "pseudoContent",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<section class=\"plans-hero section-shell conta-hero\" aria-labelledby=\"cadastro-title\">",
+         "target": [
+          ".plans-hero"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a pseudo element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>O chat abre em 1º de outubro.</span>",
+     "target": [
+      "#cadastro-title > span"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "fontSize": "12.8pt (17px)",
+        "fontWeight": "normal",
+        "messageKey": "pseudoContent",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<section class=\"plans-hero section-shell conta-hero\" aria-labelledby=\"cadastro-title\">",
+         "target": [
+          ".plans-hero"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a pseudo element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"lead\">",
+     "target": [
+      ".lead"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "fontSize": "12.8pt (17px)",
+        "fontWeight": "bold",
+        "messageKey": "pseudoContent",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<section class=\"plans-hero section-shell conta-hero\" aria-labelledby=\"cadastro-title\">",
+         "target": [
+          ".plans-hero"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a pseudo element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>1º de outubro de 2026</b>",
+     "target": [
+      ".lead > b:nth-child(1)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "fontSize": "12.8pt (17px)",
+        "fontWeight": "bold",
+        "messageKey": "pseudoContent",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<section class=\"plans-hero section-shell conta-hero\" aria-labelledby=\"cadastro-title\">",
+         "target": [
+          ".plans-hero"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a pseudo element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>23 de setembro</b>",
+     "target": [
+      ".lead > b:nth-child(2)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "normal",
+        "messageKey": "pseudoContent",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<section class=\"plans-hero section-shell conta-hero\" aria-labelledby=\"cadastro-title\">",
+         "target": [
+          ".plans-hero"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a pseudo element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"acesso-estado\"><b>Estado de hoje:</b> cadastro aberto, chat ainda fechado. Não há fila nem aprovação manual: assim que a data chega, sua conta entra sozinha. <a href=\"planos.html#pessoal\">Ver como entrar em 23/09</a></p>",
+     "target": [
+      ".acesso-estado"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "bold",
+        "messageKey": "pseudoContent",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<section class=\"plans-hero section-shell conta-hero\" aria-labelledby=\"cadastro-title\">",
+         "target": [
+          ".plans-hero"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a pseudo element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>Estado de hoje:</b>",
+     "target": [
+      ".acesso-estado > b"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "normal",
+        "messageKey": "pseudoContent",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<section class=\"plans-hero section-shell conta-hero\" aria-labelledby=\"cadastro-title\">",
+         "target": [
+          ".plans-hero"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a pseudo element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"planos.html#pessoal\">Ver como entrar em 23/09</a>",
+     "target": [
+      "a[href$=\"planos.html#pessoal\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "11.6pt (15.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"section-kicker\">Como funciona</p>",
+     "target": [
+      ".section-kicker"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "18.0pt (24px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<h2>Três passos.<span>Nada é cobrado agora.</span></h2>",
+     "target": [
+      "div:nth-child(1) > h2"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.8pt (14.4px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>Nada é cobrado agora.</span>",
+     "target": [
+      "h2 > span"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "11.3pt (15px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<li><b>Você cria a conta</b>Nome, e-mail e uma senha. Para empresas, o segmento. O telefone é opcional.</li>",
+     "target": [
+      "li:nth-child(1)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "11.3pt (15px)",
+        "fontWeight": "normal",
+        "messageKey": "bgOverlap",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [],
+       "impact": "serious",
+       "message": "Element's background color could not be determined because it is overlapped by another element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>Você cria a conta</b>",
+     "target": [
+      "li:nth-child(1) > b"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "11.3pt (15px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<li><b>Confirma o e-mail</b>Enviamos um link. Ao clicar, você já entra autenticado, sem digitar senha de novo.</li>",
+     "target": [
+      "li:nth-child(2)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "11.3pt (15px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>Confirma o e-mail</b>",
+     "target": [
+      "li:nth-child(2) > b"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "11.3pt (15px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<li>",
+     "target": [
+      "li:nth-child(3)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "11.3pt (15px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>Conversa sem censura*</b>",
+     "target": [
+      "li:nth-child(3) > b"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "11.3pt (15px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span class=\"pix-tag\">",
+     "target": [
+      ".pix-tag"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-bonus\">",
+         "target": [
+          ".conta-bonus"
+         ]
+        },
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"conta-bonus-tag\">Bônus opcional</p>",
+     "target": [
+      ".conta-bonus-tag"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-bonus\">",
+         "target": [
+          ".conta-bonus"
+         ]
+        },
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p><b>3 dias de agente no WhatsApp.</b> Um agente de IA direto no seu WhatsApp, ajudando em praticamente qualquer tarefa. Não é um quarto passo: você ativa se quiser, no primeiro acesso, informando o número. Sem o número, o chat no site funciona igual.</p>",
+     "target": [
+      ".conta-bonus > p:nth-child(2)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-bonus\">",
+         "target": [
+          ".conta-bonus"
+         ]
+        },
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>3 dias de agente no WhatsApp.</b>",
+     "target": [
+      "p:nth-child(2) > b"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>Dados no Brasil</span>",
+     "target": [
+      ".conta-tags > span:nth-child(1)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>Sem censura*</span>",
+     "target": [
+      ".conta-tags > span:nth-child(2)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>LGPD</span>",
+     "target": [
+      "span:nth-child(3)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "8.3pt (11px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>Sem cartão</span>",
+     "target": [
+      "span:nth-child(4)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "11.6pt (15.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"fine-print\">* A responsabilidade pelo conteúdo dos prompts enviados e pelo uso das respostas é inteiramente de quem os envia.</p>",
+     "target": [
+      ".fine-print"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "11.6pt (15.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"conta-alt conta-alt-left\">Já tem conta? <a href=\"entrar.html\">Entrar</a></p>",
+     "target": [
+      ".conta-alt"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "11.6pt (15.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"lista conta-lista\">",
+         "target": [
+          ".lista"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"entrar.html\">Entrar</a>",
+     "target": [
+      ".conta-alt > a[href$=\"entrar.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "16.5pt (22px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "3:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<h2>Criar conta</h2>",
+     "target": [
+      ".conta-card > h2"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "11.6pt (15.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p>Leva menos de um minuto.</p>",
+     "target": [
+      ".conta-card > p"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "7.9pt (10.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<label for=\"c-nome\">Nome <span>obrigatório</span></label>",
+     "target": [
+      "label[for=\"c-nome\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "9.4pt (12.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>obrigatório</span>",
+     "target": [
+      "label[for=\"c-nome\"] > span"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "7.9pt (10.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<label for=\"c-email\">E-mail <span>obrigatório</span></label>",
+     "target": [
+      "label[for=\"c-email\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "9.4pt (12.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>obrigatório</span>",
+     "target": [
+      "label[for=\"c-email\"] > span"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "7.9pt (10.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<label for=\"c-tel\">Telefone / WhatsApp <span>opcional</span></label>",
+     "target": [
+      "label[for=\"c-tel\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "9.4pt (12.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>opcional</span>",
+     "target": [
+      "label[for=\"c-tel\"] > span"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "9.4pt (12.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<small class=\"campo-ajuda\" id=\"c-tel-ajuda\">Só usamos para ativar o bônus do agente no WhatsApp, no número que você informar. Deixe em branco se quiser apenas o chat no site.</small>",
+     "target": [
+      "#c-tel-ajuda"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "7.9pt (10.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<label for=\"c-senha\">Senha <span>mínimo 8 caracteres</span></label>",
+     "target": [
+      "label[for=\"c-senha\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "9.4pt (12.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<span>mínimo 8 caracteres</span>",
+     "target": [
+      "label[for=\"c-senha\"] > span"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "7.9pt (10.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<legend>Interesse</legend>",
+     "target": [
+      "legend"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.9pt (14.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<label><input type=\"radio\" name=\"tipo\" value=\"b2c\" data-tipo=\"b2c\" checked=\"\">Para mim <small>IA privada e sem censura</small></label>",
+         "target": [
+          "fieldset > label:nth-child(2)"
+         ]
+        },
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<label><input type=\"radio\" name=\"tipo\" value=\"b2c\" data-tipo=\"b2c\" checked=\"\">Para mim <small>IA privada e sem censura</small></label>",
+     "target": [
+      "fieldset > label:nth-child(2)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.1pt (13.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<p class=\"form-expectativa\">Ao enviar, você recebe <b>um e-mail de confirmação em poucos minutos</b>. Confirmado o e-mail, a conta fica pronta e o chat abre em <b>1º/10</b> — ou em <b>23/09</b>, se você pré-assinar um plano. Nenhuma cobrança acontece aqui.</p>",
+         "target": [
+          ".form-expectativa"
+         ]
+        },
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"form-expectativa\">Ao enviar, você recebe <b>um e-mail de confirmação em poucos minutos</b>. Confirmado o e-mail, a conta fica pronta e o chat abre em <b>1º/10</b> — ou em <b>23/09</b>, se você pré-assinar um plano. Nenhuma cobrança acontece aqui.</p>",
+     "target": [
+      ".form-expectativa"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.1pt (13.5px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<p class=\"form-expectativa\">Ao enviar, você recebe <b>um e-mail de confirmação em poucos minutos</b>. Confirmado o e-mail, a conta fica pronta e o chat abre em <b>1º/10</b> — ou em <b>23/09</b>, se você pré-assinar um plano. Nenhuma cobrança acontece aqui.</p>",
+         "target": [
+          ".form-expectativa"
+         ]
+        },
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>um e-mail de confirmação em poucos minutos</b>",
+     "target": [
+      ".form-expectativa > b:nth-child(1)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.1pt (13.5px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<p class=\"form-expectativa\">Ao enviar, você recebe <b>um e-mail de confirmação em poucos minutos</b>. Confirmado o e-mail, a conta fica pronta e o chat abre em <b>1º/10</b> — ou em <b>23/09</b>, se você pré-assinar um plano. Nenhuma cobrança acontece aqui.</p>",
+         "target": [
+          ".form-expectativa"
+         ]
+        },
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>1º/10</b>",
+     "target": [
+      ".form-expectativa > b:nth-child(2)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.1pt (13.5px)",
+        "fontWeight": "bold",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<p class=\"form-expectativa\">Ao enviar, você recebe <b>um e-mail de confirmação em poucos minutos</b>. Confirmado o e-mail, a conta fica pronta e o chat abre em <b>1º/10</b> — ou em <b>23/09</b>, se você pré-assinar um plano. Nenhuma cobrança acontece aqui.</p>",
+         "target": [
+          ".form-expectativa"
+         ]
+        },
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<b>23/09</b>",
+     "target": [
+      ".form-expectativa > b:nth-child(3)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "fontSize": "11.3pt (15px)",
+        "fontWeight": "normal",
+        "messageKey": "pseudoContent",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<button class=\"button button-primary\" type=\"submit\" data-submit=\"\">Criar conta e receber o link <span aria-hidden=\"true\">↗</span></button>",
+         "target": [
+          ".button-primary"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a pseudo element"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<button class=\"button button-primary\" type=\"submit\" data-submit=\"\">Criar conta e receber o link <span aria-hidden=\"true\">↗</span></button>",
+     "target": [
+      ".button-primary"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.1pt (13.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<p class=\"lead-legal\">Usamos seu nome e e-mail para criar a conta e liberar o acesso, e o telefone apenas se você pedir o agente no WhatsApp. Você pode pedir a exclusão a qualquer momento. Sem spam. <a href=\"privacidade.html\">Como tratamos seus dados</a></p>",
+     "target": [
+      ".lead-legal:nth-child(17)"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "color-contrast",
+       "data": {
+        "contrastRatio": 0,
+        "fontSize": "10.1pt (13.5px)",
+        "fontWeight": "normal",
+        "messageKey": "bgGradient",
+        "expectedContrastRatio": "4.5:1"
+       },
+       "relatedNodes": [
+        {
+         "html": "<div class=\"conta-card\">",
+         "target": [
+          ".conta-card"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's background color could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"privacidade.html\">Como tratamos seus dados</a>",
+     "target": [
+      ".lead-legal:nth-child(17) > a[href$=\"privacidade.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+    }
+   ]
+  },
+  {
+   "id": "link-in-text-block",
+   "impact": "serious",
+   "tags": [
+    "cat.color",
+    "wcag2a",
+    "wcag141",
+    "TTv5",
+    "TT13.a",
+    "EN-301-549",
+    "EN-9.1.4.1",
+    "RGAAv4",
+    "RGAA-10.6.1"
+   ],
+   "description": "Ensure links are distinguished from surrounding text in a way that does not rely on color",
+   "help": "Links must be distinguishable without relying on color",
+   "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/link-in-text-block?application=axeAPI",
+   "nodes": [
+    {
+     "any": [
+      {
+       "id": "link-in-text-block",
+       "data": {
+        "messageKey": "bgGradient"
+       },
+       "relatedNodes": [
+        {
+         "html": "<p class=\"acesso-estado\"><b>Estado de hoje:</b> cadastro aberto, chat ainda fechado. Não há fila nem aprovação manual: assim que a data chega, sua conta entra sozinha. <a href=\"planos.html#pessoal\">Ver como entrar em 23/09</a></p>",
+         "target": [
+          ".acesso-estado"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's contrast ratio could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"planos.html#pessoal\">Ver como entrar em 23/09</a>",
+     "target": [
+      "a[href$=\"planos.html#pessoal\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's contrast ratio could not be determined due to a background gradient"
+    },
+    {
+     "any": [
+      {
+       "id": "link-in-text-block",
+       "data": {
+        "messageKey": "bgGradient"
+       },
+       "relatedNodes": [
+        {
+         "html": "<p class=\"lead-legal\">Usamos seu nome e e-mail para criar a conta e liberar o acesso, e o telefone apenas se você pedir o agente no WhatsApp. Você pode pedir a exclusão a qualquer momento. Sem spam. <a href=\"privacidade.html\">Como tratamos seus dados</a></p>",
+         "target": [
+          ".lead-legal:nth-child(17)"
+         ]
+        }
+       ],
+       "impact": "serious",
+       "message": "Element's contrast ratio could not be determined due to a background gradient"
+      }
+     ],
+     "all": [],
+     "none": [],
+     "impact": "serious",
+     "html": "<a href=\"privacidade.html\">Como tratamos seus dados</a>",
+     "target": [
+      ".lead-legal:nth-child(17) > a[href$=\"privacidade.html\"]"
+     ],
+     "failureSummary": "Fix any of the following:\n  Element's contrast ratio could not be determined due to a background gradient"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,28 @@
+{
+  "sitemapHasSeats": true,
+  "expectedByBrief": [
+    "/",
+    "/juridico/",
+    "/modelos.html",
+    "/voice.html",
+    "/planos.html",
+    "/espera.html",
+    "/manifesto.html",
+    "/fundador.html",
+    "/seats.html"
+  ],
+  "sitemapPages": [
+    "/",
+    "/juridico/",
+    "/modelos.html",
+    "/manifesto.html",
+    "/fundador.html",
+    "/voice.html",
+    "/planos.html",
+    "/espera.html",
+    "/cadastro.html",
+    "/entrar.html",
+    "/privacidade.html",
+    "/seats.html"
+  ]
+}

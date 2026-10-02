@@ -1,0 +1,21 @@
+# supabase/functions/aviso-agente/index.ts
+
+- Lead · type · L32-L35 — type Lead = { id: string; nome: string | null; email: string | null; whatsapp_numero: string | null; whatsapp_trial_status: string; whatsapp_trial_started_at: string | null; whatsapp_trial_ends_at: string | null; };
+- responder · function · L37-L39 — function responder(status: number, corpo: unknown)
+- iguais · function · L42-L47 — function iguais(a: string, b: string)
+- escapar · function · L49-L51 — function escapar(s: string)
+- primeiroNome · function · L53-L55 — function primeiroNome(nome: string | null)
+- digitos · function · L58-L61 — function digitos(n: string | null)
+- telefoneLegivel · function · L63-L66 — function telefoneLegivel(d: string)
+- dataLegivel · function · L68-L73 — function dataLegivel(iso: string | null)
+- tel · function · L76-L76 — tel = (d: string)
+- corpoDoEmail · function · L78-L118 — function corpoDoEmail(nome: string, fim: string, agente: string, numeroCliente: string)
+- passo · function · L84-L86 — passo = (n: number, texto: string)
+- textoDoEmail · function · L120-L135 — function textoDoEmail(nome: string, fim: string, agente: string, numeroCliente: string)
+- textoDoWhatsapp · function · L137-L151 — function textoDoWhatsapp(nome: string, fim: string, agente: string)
+- Repetivel · class · L157-L157 — class Repetivel extends Error
+- comNovaTentativa · function · L158-L164 — async function comNovaTentativa(fn: () => Promise<void>)
+- enviarEmail · function · L167-L189 — async function enviarEmail(chave: string, para: string, nome: string, fim: string, agente: string, numeroCliente: string)
+- enviarWhatsapp · function · L191-L203 — async function enviarWhatsapp(numero: string, texto: string)
+- completo · function · L224-L224 — completo = (d: string)
+- canal · function · L236-L250 — async function canal(nomeCanal: "email" | "whatsapp", rotulo: string, falta: string | null, enviar: () => Promise<void>)

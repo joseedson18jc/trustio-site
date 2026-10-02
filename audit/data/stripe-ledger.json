@@ -1,0 +1,37 @@
+{
+  "https://buy.stripe.com/00wdR96Ia85pcmr6gL5wI05": {
+    "label": "Assinar Starter",
+    "vp": "desktop",
+    "at": "2026-09-22T20:10:56.295Z"
+  },
+  "https://buy.stripe.com/aFa4gz1nQ71lbin0Wr5wI06": {
+    "label": "Assinar Pro",
+    "vp": "desktop",
+    "at": "2026-09-22T20:11:45.546Z"
+  },
+  "https://buy.stripe.com/dRm3cvaYq2L59af34z5wI07": {
+    "label": "Assinar Dedicado",
+    "vp": "desktop",
+    "at": "2026-09-22T20:12:07.049Z"
+  },
+  "https://buy.stripe.com/3cI4gz8Qi0CXdqv5cH5wI04": {
+    "label": "Contratar diagnóstico",
+    "vp": "desktop",
+    "at": "2026-09-22T20:12:55.654Z"
+  },
+  "https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08": {
+    "label": "Pré-assinar · entrar em 23/09",
+    "vp": "mobile",
+    "at": "2026-09-22T20:14:50.343Z"
+  },
+  "https://buy.stripe.com/8x228rgiKetN2LRfRl5wI09": {
+    "label": "Comprar passe",
+    "vp": "mobile",
+    "at": "2026-09-22T20:15:44.905Z"
+  },
+  "https://buy.stripe.com/cNifZhd6yfxR9afgVp5wI0a": {
+    "label": "Pré-assinar · entrar em 23/09#2",
+    "vp": "mobile",
+    "at": "2026-09-22T20:16:40.076Z"
+  }
+}

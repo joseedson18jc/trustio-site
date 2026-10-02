@@ -1,0 +1,15 @@
+# assets/admin.js
+
+- $ · function · L10-L10 — $ = function (s, r)
+- $$ · function · L11-L11 — $$ = function (s, r)
+- esc · function · L15-L15 — function esc(s)
+- fmt · function · L16-L16 — function fmt(d)
+- aviso · function · L17-L21 — function aviso(chave, texto, tipo)
+- gateShow · function · L22-L22 — function gateShow(t, p, acoes)
+- carregarConfig · function · L43-L55 — function carregarConfig()
+- pintarHermes · function · L57-L63 — function pintarHermes()
+- salvar · function · L66-L84 — function salvar(chaves, rotulo)
+- carregarResumo · function · L90-L102 — function carregarResumo()
+- pintarFila · function · L104-L116 — function pintarFila(itens)
+- marcar · function · L146-L149 — function marcar(nome, estado, texto)
+- verificarSaude · function · L151-L173 — function verificarSaude()

@@ -1,0 +1,502 @@
+{
+ "tokens": {
+  "dark": [
+   {
+    "pair": "ice #F4F6FA on abyss #05070B",
+    "ratio": 18.63,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "muted #99A4B5 on abyss",
+    "ratio": 8.0,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "muted #99A4B5 on surface #0B0E14",
+    "ratio": 7.66,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "label #8D98AA on abyss (11–12 px mono kickers)",
+    "ratio": 6.92,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "label #8D98AA on surface-raised #10141C",
+    "ratio": 6.33,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "blue-signal #5EA7FF on abyss",
+    "ratio": 8.11,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "blue #2563EB on abyss (links/icons)",
+    "ratio": 3.9,
+    "AA_normal": false,
+    "AA_large": true
+   },
+   {
+    "pair": "white on blue #2563EB (primary CTA)",
+    "ratio": 5.17,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "white on cta-gradient end #1A49B8",
+    "ratio": 7.81,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "white on cta-gradient start #2F6DF0",
+    "ratio": 4.6,
+    "AA_normal": true,
+    "AA_large": true
+   }
+  ],
+  "light": [
+   {
+    "pair": "text-strong #05070B on abyss #F4F6FA",
+    "ratio": 18.63,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "muted #55637A on abyss #F4F6FA",
+    "ratio": 5.62,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "label #4F5C72 on abyss",
+    "ratio": 6.25,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "blue-signal #1D5FD6 on abyss",
+    "ratio": 5.3,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "muted #55637A on surface-footer #E9EEF6",
+    "ratio": 5.22,
+    "AA_normal": true,
+    "AA_large": true
+   },
+   {
+    "pair": "white on blue #2563EB (primary CTA)",
+    "ratio": 5.17,
+    "AA_normal": true,
+    "AA_large": true
+   }
+  ]
+ },
+ "rendered": [
+  {
+   "sample": "home-desktop-dark · kicker",
+   "text": "PARA VOCÊ",
+   "fg": "#5ea7ff",
+   "bg_rendered": "#05070b",
+   "font": "11px / 600",
+   "ratio": 8.11,
+   "required": 4.5,
+   "pass": true,
+   "file": "home-desktop-dark__kicker.png"
+  },
+  {
+   "sample": "home-desktop-light · hero-lead",
+   "text": "Para você: chat privado sem censura e um agente que executa ",
+   "fg": "#33405a",
+   "bg_rendered": "#f4f6fa",
+   "font": "25px / 400",
+   "ratio": 9.6,
+   "required": 3.0,
+   "pass": true,
+   "file": "home-desktop-light__hero-lead.png"
+  },
+  {
+   "sample": "home-desktop-light · kicker",
+   "text": "PARA VOCÊ",
+   "fg": "#1d5fd6",
+   "bg_rendered": "#f4f6fa",
+   "font": "11px / 600",
+   "ratio": 5.3,
+   "required": 4.5,
+   "pass": true,
+   "file": "home-desktop-light__kicker.png"
+  },
+  {
+   "sample": "home-desktop-light · footer-small",
+   "text": "Infraestrutura privada de inteligência artificial para empre",
+   "fg": "#55637a",
+   "bg_rendered": "#e8edf5",
+   "font": "16px / 400",
+   "ratio": 5.17,
+   "required": 4.5,
+   "pass": true,
+   "file": "home-desktop-light__footer-small.png"
+  },
+  {
+   "sample": "home-desktop-light · footer-link",
+   "text": "Trustio",
+   "fg": "#0a1d3d",
+   "bg_rendered": "#e2e7ee",
+   "font": "16px / 400",
+   "ratio": 13.45,
+   "required": 4.5,
+   "pass": true,
+   "file": "home-desktop-light__footer-link.png"
+  },
+  {
+   "sample": "home-mobile-dark · eyebrow",
+   "text": "INFRAESTRUTURA PRIVADA DE IA NO BRASIL",
+   "fg": "#5ea7ff",
+   "bg_rendered": "#05070b",
+   "font": "11px / 600",
+   "ratio": 8.11,
+   "required": 4.5,
+   "pass": true,
+   "file": "home-mobile-dark__eyebrow.png"
+  },
+  {
+   "sample": "home-mobile-dark · hero-lead",
+   "text": "Para você: chat privado sem censura e um agente que executa ",
+   "fg": "#bdc5d1",
+   "bg_rendered": "#05070b",
+   "font": "17px / 400",
+   "ratio": 11.59,
+   "required": 4.5,
+   "pass": true,
+   "file": "home-mobile-dark__hero-lead.png"
+  },
+  {
+   "sample": "home-mobile-dark · kicker",
+   "text": "PARA VOCÊ",
+   "fg": "#5ea7ff",
+   "bg_rendered": "#05070b",
+   "font": "11px / 600",
+   "ratio": 8.11,
+   "required": 4.5,
+   "pass": true,
+   "file": "home-mobile-dark__kicker.png"
+  },
+  {
+   "sample": "home-mobile-dark · muted-p",
+   "text": "INFRAESTRUTURA PRIVADA DE IA NO BRASIL",
+   "fg": "#5ea7ff",
+   "bg_rendered": "#05070b",
+   "font": "11px / 600",
+   "ratio": 8.11,
+   "required": 4.5,
+   "pass": true,
+   "file": "home-mobile-dark__muted-p.png"
+  },
+  {
+   "sample": "home-mobile-dark · footer-small",
+   "text": "Infraestrutura privada de inteligência artificial para empre",
+   "fg": "#99a4b5",
+   "bg_rendered": "#040609",
+   "font": "16px / 400",
+   "ratio": 8.05,
+   "required": 4.5,
+   "pass": true,
+   "file": "home-mobile-dark__footer-small.png"
+  },
+  {
+   "sample": "home-mobile-dark · footer-link",
+   "text": "Trustio",
+   "fg": "#f4f6fa",
+   "bg_rendered": "#040609",
+   "font": "16px / 400",
+   "ratio": 18.75,
+   "required": 4.5,
+   "pass": true,
+   "file": "home-mobile-dark__footer-link.png"
+  },
+  {
+   "sample": "espera-desktop-dark · label",
+   "text": "NOME obrigatório",
+   "fg": "#bdc5d1",
+   "bg_rendered": "#08101f",
+   "font": "10.5px / 400",
+   "ratio": 10.93,
+   "required": 4.5,
+   "pass": true,
+   "file": "espera-desktop-dark__label.png"
+  },
+  {
+   "sample": "espera-desktop-dark · hint-optional",
+   "text": "Só para avisar mais rápido no dia da abertura, pelo WhatsApp",
+   "fg": "#99a4b5",
+   "bg_rendered": "#090f1c",
+   "font": "12.5px / 400",
+   "ratio": 7.6,
+   "required": 4.5,
+   "pass": true,
+   "file": "espera-desktop-dark__hint-optional.png"
+  },
+  {
+   "sample": "espera-desktop-dark · legal-note",
+   "text": "Você recebe um e-mail para confirmar a inscrição. Usamos seu",
+   "fg": "#99a4b5",
+   "bg_rendered": "#0b0e15",
+   "font": "13.5px / 400",
+   "ratio": 7.66,
+   "required": 4.5,
+   "pass": true,
+   "file": "espera-desktop-dark__legal-note.png"
+  },
+  {
+   "sample": "espera-desktop-dark · label",
+   "text": "NOME obrigatório",
+   "fg": "#bdc5d1",
+   "bg_rendered": "#08101f",
+   "font": "10.5px / 400",
+   "ratio": 10.93,
+   "required": 4.5,
+   "pass": true,
+   "file": "espera-desktop-dark__label.png"
+  },
+  {
+   "sample": "espera-desktop-dark · hint-optional",
+   "text": "Só para avisar mais rápido no dia da abertura, pelo WhatsApp",
+   "fg": "#99a4b5",
+   "bg_rendered": "#090f1c",
+   "font": "12.5px / 400",
+   "ratio": 7.6,
+   "required": 4.5,
+   "pass": true,
+   "file": "espera-desktop-dark__hint-optional.png"
+  },
+  {
+   "sample": "espera-desktop-dark · legal-note",
+   "text": "Você recebe um e-mail para confirmar a inscrição. Usamos seu",
+   "fg": "#99a4b5",
+   "bg_rendered": "#0b0e15",
+   "font": "13.5px / 400",
+   "ratio": 7.66,
+   "required": 4.5,
+   "pass": true,
+   "file": "espera-desktop-dark__legal-note.png"
+  },
+  {
+   "sample": "espera-mobile-dark · label",
+   "text": "NOME obrigatório",
+   "fg": "#bdc5d1",
+   "bg_rendered": "#090f1b",
+   "font": "10.5px / 400",
+   "ratio": 11.02,
+   "required": 4.5,
+   "pass": true,
+   "file": "espera-mobile-dark__label.png"
+  },
+  {
+   "sample": "espera-mobile-dark · hint-optional",
+   "text": "Só para avisar mais rápido no dia da abertura, pelo WhatsApp",
+   "fg": "#99a4b5",
+   "bg_rendered": "#0a0e19",
+   "font": "12.5px / 400",
+   "ratio": 7.65,
+   "required": 4.5,
+   "pass": true,
+   "file": "espera-mobile-dark__hint-optional.png"
+  },
+  {
+   "sample": "espera-mobile-dark · legal-note",
+   "text": "Você recebe um e-mail para confirmar a inscrição. Usamos seu",
+   "fg": "#99a4b5",
+   "bg_rendered": "#0b0e14",
+   "font": "13.5px / 400",
+   "ratio": 7.66,
+   "required": 4.5,
+   "pass": true,
+   "file": "espera-mobile-dark__legal-note.png"
+  },
+  {
+   "sample": "planos-desktop-dark · price-note",
+   "text": "R$",
+   "fg": "#99a4b5",
+   "bg_rendered": "#070b14",
+   "font": "14px / 500",
+   "ratio": 7.81,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-desktop-dark__price-note.png"
+  },
+  {
+   "sample": "planos-desktop-dark · pay-methods",
+   "text": "CARTÃO · APPLE PAY · GOOGLE PAY",
+   "fg": "#99a4b5",
+   "bg_rendered": "#05070c",
+   "font": "11.5px / 400",
+   "ratio": 7.99,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-desktop-dark__pay-methods.png"
+  },
+  {
+   "sample": "planos-desktop-dark · table-cell",
+   "text": "Casos de uso em produção",
+   "fg": "#bdc5d1",
+   "bg_rendered": "#0b0e14",
+   "font": "14px / 400",
+   "ratio": 11.1,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-desktop-dark__table-cell.png"
+  },
+  {
+   "sample": "planos-desktop-dark · faq",
+   "text": "DÚVIDAS FREQUENTES · EMPRESAS",
+   "fg": "#5ea7ff",
+   "bg_rendered": "#05070b",
+   "font": "11px / 600",
+   "ratio": 8.11,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-desktop-dark__faq.png"
+  },
+  {
+   "sample": "planos-desktop-dark · price-note",
+   "text": "R$",
+   "fg": "#99a4b5",
+   "bg_rendered": "#070b14",
+   "font": "14px / 500",
+   "ratio": 7.81,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-desktop-dark__price-note.png"
+  },
+  {
+   "sample": "planos-desktop-dark · pay-methods",
+   "text": "CARTÃO · APPLE PAY · GOOGLE PAY",
+   "fg": "#99a4b5",
+   "bg_rendered": "#05070c",
+   "font": "11.5px / 400",
+   "ratio": 7.99,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-desktop-dark__pay-methods.png"
+  },
+  {
+   "sample": "planos-desktop-dark · table-cell",
+   "text": "Casos de uso em produção",
+   "fg": "#bdc5d1",
+   "bg_rendered": "#0b0e14",
+   "font": "14px / 400",
+   "ratio": 11.1,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-desktop-dark__table-cell.png"
+  },
+  {
+   "sample": "planos-desktop-dark · faq",
+   "text": "DÚVIDAS FREQUENTES · EMPRESAS",
+   "fg": "#5ea7ff",
+   "bg_rendered": "#05070b",
+   "font": "11px / 600",
+   "ratio": 8.11,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-desktop-dark__faq.png"
+  },
+  {
+   "sample": "planos-desktop-light · price-note",
+   "text": "R$",
+   "fg": "#55637a",
+   "bg_rendered": "#f0f4fa",
+   "font": "14px / 500",
+   "ratio": 5.51,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-desktop-light__price-note.png"
+  },
+  {
+   "sample": "planos-desktop-light · pay-methods",
+   "text": "CARTÃO · APPLE PAY · GOOGLE PAY",
+   "fg": "#55637a",
+   "bg_rendered": "#f3f6fa",
+   "font": "11.5px / 400",
+   "ratio": 5.61,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-desktop-light__pay-methods.png"
+  },
+  {
+   "sample": "planos-desktop-light · table-cell",
+   "text": "Casos de uso em produção",
+   "fg": "#33405a",
+   "bg_rendered": "#ffffff",
+   "font": "14px / 400",
+   "ratio": 10.39,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-desktop-light__table-cell.png"
+  },
+  {
+   "sample": "planos-desktop-light · faq",
+   "text": "DÚVIDAS FREQUENTES · EMPRESAS",
+   "fg": "#1d5fd6",
+   "bg_rendered": "#f4f6fa",
+   "font": "11px / 600",
+   "ratio": 5.3,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-desktop-light__faq.png"
+  },
+  {
+   "sample": "planos-mobile-dark · price-note",
+   "text": "R$",
+   "fg": "#99a4b5",
+   "bg_rendered": "#070b15",
+   "font": "14px / 500",
+   "ratio": 7.8,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-mobile-dark__price-note.png"
+  },
+  {
+   "sample": "planos-mobile-dark · pay-methods",
+   "text": "CARTÃO · APPLE PAY · GOOGLE PAY",
+   "fg": "#99a4b5",
+   "bg_rendered": "#05070c",
+   "font": "11.5px / 400",
+   "ratio": 7.99,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-mobile-dark__pay-methods.png"
+  },
+  {
+   "sample": "planos-mobile-dark · table-cell",
+   "text": "Casos de uso em produção",
+   "fg": "#bdc5d1",
+   "bg_rendered": "#0b0e14",
+   "font": "14px / 400",
+   "ratio": 11.1,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-mobile-dark__table-cell.png"
+  },
+  {
+   "sample": "planos-mobile-dark · faq",
+   "text": "DÚVIDAS FREQUENTES · EMPRESAS",
+   "fg": "#5ea7ff",
+   "bg_rendered": "#05070b",
+   "font": "11px / 600",
+   "ratio": 8.11,
+   "required": 4.5,
+   "pass": true,
+   "file": "planos-mobile-dark__faq.png"
+  }
+ ]
+}

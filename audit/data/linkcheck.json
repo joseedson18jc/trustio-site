@@ -1,0 +1,761 @@
+[
+  {
+    "href": "https://trustio.com.br/#conteudo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/index.html",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/",
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/#plataforma",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/",
+      "/juridico/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/modelos.html",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/",
+      "/juridico/",
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/voice.html",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/",
+      "/juridico/",
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/#seguranca",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/",
+      "/juridico/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/#implantacao",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/juridico/",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/",
+      "/juridico/",
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/planos.html",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/",
+      "/juridico/",
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/espera.html",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/",
+      "/juridico/",
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/manifesto.html",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/",
+      "/juridico/",
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/entrar.html",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/",
+      "/juridico/",
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/#contato",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/cadastro.html",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/#mentoria",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/#para-quem",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/planos.html#pessoal",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/",
+      "/espera.html",
+      "/cadastro.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "mailto:contato@trustio.com.br?subject=Mentoria%201x1%20%E2%80%94%20implanta%C3%A7%C3%A3o%20pessoal",
+    "status": "skipped (mailto/tel)",
+    "pages": [
+      "/"
+    ]
+  },
+  {
+    "href": "mailto:contato@trustio.com.br?subject=Mentoria%20de%20implanta%C3%A7%C3%A3o%20para%20empresa",
+    "status": "skipped (mailto/tel)",
+    "pages": [
+      "/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/#api",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/juridico/#capacidades",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/",
+      "/juridico/"
+    ]
+  },
+  {
+    "href": "mailto:contato@trustio.com.br?subject=Conversa%20sobre%20infraestrutura%20privada%20de%20IA",
+    "status": "skipped (mailto/tel)",
+    "pages": [
+      "/",
+      "/fundador.html"
+    ]
+  },
+  {
+    "href": "mailto:contato@trustio.com.br",
+    "status": "skipped (mailto/tel)",
+    "pages": [
+      "/",
+      "/juridico/",
+      "/modelos.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/fundador.html",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/",
+      "/juridico/",
+      "/modelos.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/privacidade.html",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/",
+      "/juridico/",
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://github.com/joseedson18jc/trustio-site/blob/main/SECURITY.md",
+    "status": 403,
+    "anchor": null,
+    "pages": [
+      "/",
+      "/juridico/",
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/privacidade.html",
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/juridico/#conteudo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/juridico/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/juridico/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/juridico/#contato",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/juridico/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/espera.html?tipo=b2b&seg=juridico",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/juridico/"
+    ]
+  },
+  {
+    "href": "mailto:contato@trustio.com.br?subject=Trustio%20Jur%C3%ADdico%20%E2%80%94%20planejar%20implanta%C3%A7%C3%A3o",
+    "status": "skipped (mailto/tel)",
+    "pages": [
+      "/juridico/"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/modelos.html#conteudo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/modelos.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/index.html#plataforma",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/index.html#seguranca",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/index.html#implantacao",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/modelos.html",
+      "/manifesto.html",
+      "/fundador.html",
+      "/voice.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/modelos.html#contato",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/modelos.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/modelos.html#fronteira",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/modelos.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/index.html#api",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/modelos.html"
+    ]
+  },
+  {
+    "href": "https://artificialanalysis.ai/text-to-speech/leaderboard/provider-voice",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/modelos.html"
+    ]
+  },
+  {
+    "href": "mailto:contato@trustio.com.br?subject=Modelos%20de%20fronteira%20na%20infraestrutura%20Trustio",
+    "status": "skipped (mailto/tel)",
+    "pages": [
+      "/modelos.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/manifesto.html#conteudo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/manifesto.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/index.html#contato",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/manifesto.html",
+      "/planos.html",
+      "/espera.html",
+      "/cadastro.html",
+      "/entrar.html",
+      "/privacidade.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/fundador.html#conteudo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/fundador.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/fundador.html#contato",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/fundador.html"
+    ]
+  },
+  {
+    "href": "https://www.linkedin.com/in/edsondacostajc/",
+    "status": 429,
+    "anchor": null,
+    "pages": [
+      "/fundador.html"
+    ]
+  },
+  {
+    "href": "https://josecombusdev.lovable.app/",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/fundador.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/voice.html#conteudo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/voice.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/voice.html#contato",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/voice.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/console/",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/voice.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/voice.html#demo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/voice.html"
+    ]
+  },
+  {
+    "href": "https://voice.trustio.com.br/credito-jus",
+    "status": 502,
+    "anchor": null,
+    "pages": [
+      "/voice.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/espera.html?tipo=b2b&seg=voiceai",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/voice.html"
+    ]
+  },
+  {
+    "href": "mailto:contato@trustio.com.br?subject=VoiceAI%20Trustio%20%E2%80%94%20planejar%20agente%20de%20voz",
+    "status": "skipped (mailto/tel)",
+    "pages": [
+      "/voice.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/planos.html#conteudo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/planos.html"
+    ]
+  },
+  {
+    "href": "https://buy.stripe.com/00wdR96Ia85pcmr6gL5wI05",
+    "status": "skipped by guardrail (Stripe live link — opened once in J3 only)",
+    "pages": [
+      "/planos.html"
+    ]
+  },
+  {
+    "href": "https://buy.stripe.com/aFa4gz1nQ71lbin0Wr5wI06",
+    "status": "skipped by guardrail (Stripe live link — opened once in J3 only)",
+    "pages": [
+      "/planos.html"
+    ]
+  },
+  {
+    "href": "https://buy.stripe.com/dRm3cvaYq2L59af34z5wI07",
+    "status": "skipped by guardrail (Stripe live link — opened once in J3 only)",
+    "pages": [
+      "/planos.html"
+    ]
+  },
+  {
+    "href": "https://buy.stripe.com/3cI4gz8Qi0CXdqv5cH5wI04",
+    "status": "skipped by guardrail (Stripe live link — opened once in J3 only)",
+    "pages": [
+      "/planos.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/espera.html?tipo=b2b",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/planos.html"
+    ]
+  },
+  {
+    "href": "https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08",
+    "status": "skipped by guardrail (Stripe live link — opened once in J3 only)",
+    "pages": [
+      "/planos.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/planos.html#lista",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/planos.html"
+    ]
+  },
+  {
+    "href": "https://buy.stripe.com/8x228rgiKetN2LRfRl5wI09",
+    "status": "skipped by guardrail (Stripe live link — opened once in J3 only)",
+    "pages": [
+      "/planos.html"
+    ]
+  },
+  {
+    "href": "https://buy.stripe.com/cNifZhd6yfxR9afgVp5wI0a",
+    "status": "skipped by guardrail (Stripe live link — opened once in J3 only)",
+    "pages": [
+      "/planos.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/espera.html#conteudo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/espera.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/planos.html#empresas",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/espera.html",
+      "/privacidade.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/cadastro.html#conteudo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/cadastro.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/entrar.html#conteudo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/entrar.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/entrar.html#",
+    "status": 200,
+    "anchor": null,
+    "pages": [
+      "/entrar.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/privacidade.html#conteudo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/privacidade.html"
+    ]
+  },
+  {
+    "href": "mailto:contato@trustio.com.br?subject=Provedor%20de%20modelo%20e%20local%20de%20processamento",
+    "status": "skipped (mailto/tel)",
+    "pages": [
+      "/privacidade.html"
+    ]
+  },
+  {
+    "href": "mailto:contato@trustio.com.br?subject=Solicita%C3%A7%C3%A3o%20LGPD",
+    "status": "skipped (mailto/tel)",
+    "pages": [
+      "/privacidade.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/seats.html#conteudo",
+    "status": 200,
+    "anchor": "ok",
+    "pages": [
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/seats.html#plataforma",
+    "status": 200,
+    "anchor": "MISSING",
+    "pages": [
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/seats.html#seguranca",
+    "status": 200,
+    "anchor": "MISSING",
+    "pages": [
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/seats.html#implantacao",
+    "status": 200,
+    "anchor": "MISSING",
+    "pages": [
+      "/seats.html"
+    ]
+  },
+  {
+    "href": "https://trustio.com.br/seats.html#contato",
+    "status": 200,
+    "anchor": "MISSING",
+    "pages": [
+      "/seats.html"
+    ]
+  }
+]

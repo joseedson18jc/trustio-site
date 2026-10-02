@@ -1,0 +1,197 @@
+[
+ {
+  "page": "cadastro",
+  "performance": 94,
+  "accessibility": 100,
+  "best-practices": 93,
+  "seo": 100,
+  "LCP": "2.6\u00a0s",
+  "CLS": "0",
+  "TBT": "0\u00a0ms",
+  "FCP": "1.7\u00a0s",
+  "SI": "4.1\u00a0s",
+  "weight": 165,
+  "bp_fail": [
+   "errors-in-console",
+   "inspector-issues"
+  ]
+ },
+ {
+  "page": "entrar",
+  "performance": 94,
+  "accessibility": 100,
+  "best-practices": 93,
+  "seo": 100,
+  "LCP": "2.7\u00a0s",
+  "CLS": "0",
+  "TBT": "0\u00a0ms",
+  "FCP": "1.7\u00a0s",
+  "SI": "4.2\u00a0s",
+  "weight": 163,
+  "bp_fail": [
+   "errors-in-console",
+   "inspector-issues"
+  ]
+ },
+ {
+  "page": "espera",
+  "performance": 92,
+  "accessibility": 100,
+  "best-practices": 93,
+  "seo": 100,
+  "LCP": "2.7\u00a0s",
+  "CLS": "0",
+  "TBT": "0\u00a0ms",
+  "FCP": "2.0\u00a0s",
+  "SI": "4.3\u00a0s",
+  "weight": 167,
+  "bp_fail": [
+   "errors-in-console",
+   "image-aspect-ratio"
+  ]
+ },
+ {
+  "page": "fundador",
+  "performance": 92,
+  "accessibility": 100,
+  "best-practices": 96,
+  "seo": 100,
+  "LCP": "2.7\u00a0s",
+  "CLS": "0",
+  "TBT": "80\u00a0ms",
+  "FCP": "1.8\u00a0s",
+  "SI": "4.6\u00a0s",
+  "weight": 176,
+  "bp_fail": [
+   "image-aspect-ratio"
+  ]
+ },
+ {
+  "page": "home",
+  "performance": 73,
+  "accessibility": 100,
+  "best-practices": 96,
+  "seo": 100,
+  "LCP": "3.0\u00a0s",
+  "CLS": "0",
+  "TBT": "690\u00a0ms",
+  "FCP": "2.0\u00a0s",
+  "SI": "4.7\u00a0s",
+  "weight": 194,
+  "bp_fail": [
+   "image-aspect-ratio"
+  ]
+ },
+ {
+  "page": "juridico",
+  "performance": 91,
+  "accessibility": 100,
+  "best-practices": 96,
+  "seo": 100,
+  "LCP": "2.7\u00a0s",
+  "CLS": "0",
+  "TBT": "140\u00a0ms",
+  "FCP": "1.9\u00a0s",
+  "SI": "4.5\u00a0s",
+  "weight": 154,
+  "bp_fail": [
+   "image-aspect-ratio"
+  ]
+ },
+ {
+  "page": "manifesto",
+  "performance": 92,
+  "accessibility": 100,
+  "best-practices": 96,
+  "seo": 100,
+  "LCP": "2.6\u00a0s",
+  "CLS": "0",
+  "TBT": "140\u00a0ms",
+  "FCP": "1.8\u00a0s",
+  "SI": "4.5\u00a0s",
+  "weight": 163,
+  "bp_fail": [
+   "image-aspect-ratio"
+  ]
+ },
+ {
+  "page": "modelos",
+  "performance": 92,
+  "accessibility": 100,
+  "best-practices": 96,
+  "seo": 100,
+  "LCP": "2.6\u00a0s",
+  "CLS": "0",
+  "TBT": "120\u00a0ms",
+  "FCP": "1.8\u00a0s",
+  "SI": "4.4\u00a0s",
+  "weight": 167,
+  "bp_fail": [
+   "image-aspect-ratio"
+  ]
+ },
+ {
+  "page": "planos",
+  "performance": 92,
+  "accessibility": 100,
+  "best-practices": 96,
+  "seo": 100,
+  "LCP": "2.8\u00a0s",
+  "CLS": "0",
+  "TBT": "0\u00a0ms",
+  "FCP": "2.0\u00a0s",
+  "SI": "4.2\u00a0s",
+  "weight": 171,
+  "bp_fail": [
+   "image-aspect-ratio"
+  ]
+ },
+ {
+  "page": "privacidade",
+  "performance": 94,
+  "accessibility": 100,
+  "best-practices": 96,
+  "seo": 100,
+  "LCP": "2.6\u00a0s",
+  "CLS": "0",
+  "TBT": "0\u00a0ms",
+  "FCP": "1.8\u00a0s",
+  "SI": "4.1\u00a0s",
+  "weight": 165,
+  "bp_fail": [
+   "image-aspect-ratio"
+  ]
+ },
+ {
+  "page": "seats",
+  "performance": 93,
+  "accessibility": 100,
+  "best-practices": 96,
+  "seo": 100,
+  "LCP": "2.7\u00a0s",
+  "CLS": "0",
+  "TBT": "0\u00a0ms",
+  "FCP": "1.9\u00a0s",
+  "SI": "4.3\u00a0s",
+  "weight": 180,
+  "bp_fail": [
+   "image-aspect-ratio"
+  ]
+ },
+ {
+  "page": "voice",
+  "performance": 38,
+  "accessibility": 100,
+  "best-practices": 96,
+  "seo": 100,
+  "LCP": "6.6\u00a0s",
+  "CLS": "0.066",
+  "TBT": "202,260\u00a0ms",
+  "FCP": "2.0\u00a0s",
+  "SI": "7.3\u00a0s",
+  "weight": 184,
+  "bp_fail": [
+   "image-aspect-ratio"
+  ]
+ }
+]

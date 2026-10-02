@@ -29,7 +29,7 @@ const LISTAR = args.has("--faltando");
 // (ferramentas internas do operador), planos-teste.html (noindex, checkout de
 // teste).
 export const PAGINAS = [
-  "index.html", "modelos.html", "voice.html", "agentio.html", "planos.html", "espera.html",
+  "index.html", "empresas.html", "modelos.html", "voice.html", "agentio.html", "planos.html", "espera.html",
   "manifesto.html", "fundador.html", "privacidade.html", "seats.html",
   "cadastro.html", "entrar.html", "obrigado.html", "404.html",
   "juridico/index.html", "app/index.html", "console/index.html",

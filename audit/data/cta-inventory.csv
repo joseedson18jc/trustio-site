@@ -1,0 +1,94 @@
+page,label,destination,destination_type,region,atf_desktop,atf_mobile
+/,Falar com a Trustio,#contato,Contact (mailto / #contato),header,False,False
+/,Criar conta grátis ↗,cadastro.html,Create account (cadastro),main,False,True
+/,Ver mentoria e implantação SERVIÇO PAGO ↓,#mentoria,In-page anchor,main,False,True
+/,Ver os dois caminhos ↓,#para-quem,In-page anchor,main,False,True
+/,Ver planos ↗,planos.html#pessoal,Plans,main#para-quem,False,False
+/,Entrar na lista de espera ↗,espera.html,Waitlist (espera),main#seats,False,False
+/,Ver planos e preços ↗,planos.html#pessoal,Plans,main#seats,False,False
+/,Falar com um arquiteto ↗,#contato,Contact (mailto / #contato),main#para-empresas,False,False
+/,Conhecer o VoiceAI ↗,voice.html,Content page,main#para-empresas,False,False
+/,Quero a mentoria 1x1 ↗,mailto:contato@trustio.com.br?subject=Mentoria%201x1%20%E2%80%94%20implanta%C3%A7%C3%A3o%20pessoal,Contact (mailto / #contato),main#mentoria,False,False
+/,Começar pelo teste grátis ↗,cadastro.html,Create account (cadastro),main#mentoria,False,False
+/,Planejar a implantação da empresa ↗,mailto:contato@trustio.com.br?subject=Mentoria%20de%20implanta%C3%A7%C3%A3o%20para%20empresa,Contact (mailto / #contato),main#mentoria,False,False
+/,Ler o Manifesto →,manifesto.html,Content page,main,False,False
+/,Iniciar uma conversa ↗,mailto:contato@trustio.com.br?subject=Conversa%20sobre%20infraestrutura%20privada%20de%20IA,Contact (mailto / #contato),main#contato,False,False
+/,Copiar,(button),Content page,main#contato,False,False
+/juridico/,Falar com a Trustio,#contato,Contact (mailto / #contato),header,True,False
+/juridico/,Planejar uma implantação jurídica ↗,#contato,Contact (mailto / #contato),main,True,True
+/juridico/,Lista de espera · lançamento 1º/10 ↗,/espera.html?tipo=b2b&seg=juridico,Waitlist (espera),main,True,True
+/juridico/,Explorar capacidades ↓,#capacidades,In-page anchor,main,True,True
+/juridico/,Planejar uma implantação jurídica ↗,mailto:contato@trustio.com.br?subject=Trustio%20Jur%C3%ADdico%20%E2%80%94%20planejar%20implanta%C3%A7%C3%A3o,Contact (mailto / #contato),main#contato,True,True
+/juridico/,Copiar,(button),Content page,main#contato,False,False
+/modelos.html,Falar com a Trustio,#contato,Contact (mailto / #contato),header,False,False
+/modelos.html,Ver os modelos ↓,#fronteira,In-page anchor,main,True,True
+/modelos.html,Como a API funciona →,index.html#api,In-page anchor,main,True,True
+/modelos.html,Iniciar uma conversa ↗,mailto:contato@trustio.com.br?subject=Modelos%20de%20fronteira%20na%20infraestrutura%20Trustio,Contact (mailto / #contato),main#contato,False,False
+/modelos.html,Copiar,(button),Content page,main#contato,False,False
+/manifesto.html,Falar com a Trustio,index.html#contato,Contact (mailto / #contato),header,True,False
+/manifesto.html,Construir o próximo capítulo ↗,index.html#contato,Contact (mailto / #contato),main,False,False
+/fundador.html,Falar com a Trustio,#contato,Contact (mailto / #contato),header,True,False
+/fundador.html,LinkedIn ↗,https://www.linkedin.com/in/edsondacostajc/,Content page,main,True,True
+/fundador.html,Portfólio ↗,https://josecombusdev.lovable.app,Content page,main,True,False
+/fundador.html,Iniciar uma conversa ↗,mailto:contato@trustio.com.br?subject=Conversa%20sobre%20infraestrutura%20privada%20de%20IA,Contact (mailto / #contato),main#contato,False,False
+/fundador.html,Copiar,(button),Content page,main#contato,False,False
+/voice.html,Falar com a Trustio,#contato,Contact (mailto / #contato),header,True,False
+/voice.html,Abrir o Agent Builder ↗,console/,Console demo,main,False,False
+/voice.html,Ouvir o agente ▶,#demo,In-page anchor,main,False,False
+/voice.html,Chamada real ↗,https://voice.trustio.com.br/credito-jus,Voice demo (external),main,False,False
+/voice.html,Lista de espera · 1º/10 ↗,espera.html?tipo=b2b&seg=voiceai,Waitlist (espera),main,False,False
+/voice.html,Bruna ENERGÉTICA,(button),Content page,main,True,True
+/voice.html,Matheus ENERGÉTICO,(button),Content page,main,True,True
+/voice.html,Calma ORIGINAL,(button),Content page,main,True,True
+/voice.html,Criar um agente assim ↗,console/,Console demo,main,False,True
+/voice.html,"Ligação de voz Números locais com o DDD da sua cidade. Recebe e faz chamadas, com transfer",(button),Content page,main#canais,False,False
+/voice.html,"WhatsApp O canal que o Brasil usa. Texto, áudio e documentos na API oficial de negócios. A",(button),Content page,main#canais,False,False
+/voice.html,"Telegram Bots e grupos atendidos pelo mesmo agente, com as mesmas permissões. Bots e grupo",(button),Content page,main#canais,False,False
+/voice.html,"Gmail Lê, responde e encaminha na caixa da empresa, com rascunho para aprovação quando voc",(button),Content page,main#canais,False,False
+/voice.html,"Outlook Microsoft 365 com as mesmas regras, filas e registros da operação. Microsoft 365 c",(button),Content page,main#canais,False,False
+/voice.html,"Agenda Google Calendar e Outlook: agenda, remarca, confirma e evita o no-show. Confirma, r",(button),Content page,main#canais,False,False
+/voice.html,iMessage Mensagens Apple com o nome da sua marca no lugar de um número desconhecido. Nome ,(button),Content page,main#canais,False,False
+/voice.html,"SMS Confirmações, códigos e avisos onde não há internet nem aplicativo. Chega onde não há ",(button),Content page,main#canais,False,False
+/voice.html,×,(button),Content page,main#canais,False,False
+/voice.html,Ativar este canal ↗,#contato,Contact (mailto / #contato),main#canais,False,False
+/voice.html,Testar no Agent Builder ↗,console/,Console demo,main#canais,False,False
+/voice.html,Atendimento,(button),Content page,main,False,False
+/voice.html,Vendas,(button),Content page,main,False,False
+/voice.html,Qualificação,(button),Content page,main,False,False
+/voice.html,Recepção,(button),Content page,main,False,False
+/voice.html,Agendamento,(button),Content page,main,False,False
+/voice.html,Construir meu agente ↗,console/,Console demo,main#contato,False,False
+/voice.html,Planejar meu agente,mailto:contato@trustio.com.br?subject=VoiceAI%20Trustio%20%E2%80%94%20planejar%20agente%20de%20voz,Contact (mailto / #contato),main#contato,False,False
+/voice.html,Ver planos,planos.html,Plans,main#contato,False,False
+/planos.html,Falar com a Trustio,index.html#contato,Contact (mailto / #contato),header,True,False
+/planos.html,Para empresas,(button),Content page,main,True,True
+/planos.html,Para você SEM CENSURA,(button),Content page,main,True,False
+/planos.html,Assinar Starter ↗,https://buy.stripe.com/00wdR96Ia85pcmr6gL5wI05,Stripe checkout,main,False,False
+/planos.html,Assinar Pro ↗,https://buy.stripe.com/aFa4gz1nQ71lbin0Wr5wI06,Stripe checkout,main,False,False
+/planos.html,Assinar Dedicado ↗,https://buy.stripe.com/dRm3cvaYq2L59af34z5wI07,Stripe checkout,main,False,False
+/planos.html,Contratar diagnóstico ↗,https://buy.stripe.com/3cI4gz8Qi0CXdqv5cH5wI04,Stripe checkout,main,False,False
+/planos.html,Pré-assinar · entrar em 23/09 ↗,https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08,Stripe checkout,main,False,False
+/planos.html,Ou entrar na lista grátis ↓,#lista,In-page anchor,main,False,False
+/planos.html,Comprar passe · acesso em 23/09 ↗,https://buy.stripe.com/8x228rgiKetN2LRfRl5wI09,Stripe checkout,main,False,False
+/planos.html,Pré-assinar · entrar em 23/09 ↗,https://buy.stripe.com/cNifZhd6yfxR9afgVp5wI0a,Stripe checkout,main,False,False
+/planos.html,Quero acesso ↗,(button),Content page,main,False,False
+/espera.html,Falar com a Trustio,index.html#contato,Contact (mailto / #contato),header,True,False
+/espera.html,Entrar na lista de espera ↗,(button),Content page,main,False,False
+/espera.html,Ver planos para você ↗,planos.html#pessoal,Plans,main,False,False
+/espera.html,Ver planos para empresas ↗,planos.html#empresas,Plans,main,False,False
+/espera.html,Conhecer o VoiceAI ↗,voice.html,Content page,main,False,False
+/espera.html,Trustio Jurídico ↗,juridico/,Content page,main,False,False
+/cadastro.html,Falar com a Trustio,index.html#contato,Contact (mailto / #contato),header,True,False
+/cadastro.html,Criar conta e receber o link ↗,(button),Content page,main,False,False
+/entrar.html,Criar conta,cadastro.html,Create account (cadastro),header,True,True
+/entrar.html,Entrar no chat ↗,(button),Content page,main,True,False
+/entrar.html,Reenviar link de confirmação,(button),Content page,main,False,False
+/entrar.html,Enviar link ↗,(button),Content page,main,False,False
+/privacidade.html,Falar com a Trustio,index.html#contato,Contact (mailto / #contato),header,True,False
+/privacidade.html,Criar conta ↗,cadastro.html,Create account (cadastro),main,False,False
+/privacidade.html,Ver planos ↗,planos.html,Plans,main,False,False
+/seats.html,Falar com a Trustio,#contato,Contact (mailto / #contato),header,True,False
+/seats.html,Entrar na lista de espera ↗,espera.html,Waitlist (espera),main#seats,True,True
+/seats.html,Ver planos e preços ↗,planos.html#pessoal,Plans,main#seats,True,True
+/seats.html,Conhecer a Trustio por inteiro →,index.html,Content page,main#seats,False,False
+/planos.html,Para você,(button),Content page,main,False,True

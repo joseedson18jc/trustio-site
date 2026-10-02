@@ -1,0 +1,16 @@
+# audit/scripts/lib.mjs
+
+- log · function · L27-L27 — function log(file, obj)
+- guard · function · L28-L28 — guard = (obj)
+- launch · function · L30-L35 — async function launch()
+- newContext · function · L38-L60 — async function newContext(browser, vp, { allowStripe = false, journey = '', bypassCSP = false } = {})
+- block · function · L43-L43 — block = (how, form)
+- instrument · function · L63-L68 — function instrument(page, meta)
+- warm · function · L71-L77 — async function warm(page)
+- shotName · function · L79-L79 — shotName = (j, step, slug, vp, theme)
+- shoot · function · L82-L92 — async function shoot(page, j, step, slug, vp, theme, { full = true } = {})
+- fullShot · function · L96-L101 — async function fullShot(page, name)
+- stripeLedger · function · L103-L103 — function stripeLedger()
+- stripeMark · function · L104-L104 — function stripeMark(url, info)
+- sleep · function · L106-L106 — sleep = (ms)
+- writeJSON · function · L107-L107 — writeJSON = (name, obj)

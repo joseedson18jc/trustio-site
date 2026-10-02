@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>probe</title>
+<body>
+<iframe id="f" width="390" height="844" style="border:0"></iframe>
+<pre id="out">aguardando…</pre>
+<script>
+const PAGES = ["index.html","voice.html","planos.html","agentio.html","ia-sem-censura.html","juridico/","modelos.html","manifesto.html","cadastro.html","entrar.html","espera.html","seats.html","fundador.html","privacidade.html"];
+(async () => {
+  const out = [];
+  for (const p of PAGES) {
+    const f = document.getElementById("f");
+    const base = location.pathname.includes("/audit/scripts/") ? "/" : "";
+    await new Promise(res => { f.onload = res; f.src = base + p + "?probe=" + Math.random(); setTimeout(res, 4000); });
+    await new Promise(r => setTimeout(r, 600));
+    try {
+      const d = f.contentDocument, de = d.documentElement;
+      const over = de.scrollWidth - de.clientWidth;
+      // piores elementos ofensores (mais largos que a viewport)
+      let piores = [];
+      d.querySelectorAll("body *").forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.width > 391 && r.right > 391) piores.push(el.tagName.toLowerCase() + (el.className && typeof el.className === "string" ? "." + el.className.split(" ")[0] : "") + "=" + Math.round(r.right));
+      });
+      piores = piores.slice(0, 4).join(" ");
+      const menu = d.querySelector(".menu-toggle, .menu-t, [data-menu], .menu-btn");
+      const menuVis = menu ? (menu.getBoundingClientRect().width > 0 ? "visível" : "escondido") : "ausente no DOM";
+      out.push(p + " | overflow=" + (over > 0 ? "SIM +" + over + "px" : "não") +
+        " | docW=" + de.scrollWidth + " | menu-mobile=" + menuVis +
+        (over > 0 ? " | piores: " + piores : ""));
+    } catch (e) { out.push(p + " | ERRO " + e.message); }
+  }
+  document.getElementById("out").textContent = "RESULTADO_PROBE\n" + out.join("\n");
+  document.title = "PROBE_DONE";
+})();
+</script>
+</body>
+</html>

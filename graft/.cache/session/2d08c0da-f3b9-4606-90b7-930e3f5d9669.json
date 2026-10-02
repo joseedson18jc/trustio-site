@@ -1,0 +1,13 @@
+{
+  "lastQuery": "<task-notification>\n<task-id>b386g4z8c</task-id>\n<tool-use-id>toolu_01VqojrsKB5Wpb46B19XBoaB</tool-use-id>\n<output-file>/private/tmp/claude-501/-Users-joseedson-github-trustio-site/2d08c0da-f3b9-4606-90b7-930e3f5d9669/tasks/b386g4z8c.output</output-file>\n<status>failed</status>\n<summary>Background command \"for i in $(seq 1 30); do out=\"\"; for b in pre71 71; do r=$(gh api \"repos/joseedson18jc/trustio-site/deployments?ref=claude/vercel-bisect-$b\" --jq '.[0].id // empty'); s=$([ -n \"$r\" ] &amp;&amp; gh api repos/joseedson18jc/trustio-site/deployments/$r/statuses --jq '.[0].state' || echo none); out=\"$out $b=$s\"; done; echo \"$out\"; echo \"$out\" | grep -q -E \"(pending|in_progress|queued|none)\" || break; sleep 20; done\" failed with exit code 144</summary>\n</task-notification>",
+  "perAgentQuery": {},
+  "graftReads": 0,
+  "sourceReads": 0,
+  "savedTokens": 0,
+  "injectedPointers": [],
+  "nudges": 2,
+  "inputCostMicros": 6020050,
+  "inputTokensBilled": 8962941,
+  "lastBillingUuid": "be533280-1b1b-428d-b053-fa018efdcb4c",
+  "summarized": true
+}

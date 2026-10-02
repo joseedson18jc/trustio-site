@@ -3053,3 +3053,31 @@ h3 { letter-spacing: -0.018em; }
 .hero-b2b-band a { color: var(--blue-signal); font-weight: 600; text-decoration: none; }
 .hero-b2b-band a:hover { text-decoration: underline; }
 @media (max-width: 700px) { .hero-b2b-band { padding: 18px 0 26px; } }
+
+/* ── VoiceAI spotlight na home (2026-10): vitrine com orb de exemplo ── */
+.voiceai-spotlight { border-top: 1px solid var(--line); }
+.voiceai-spotlight-grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: clamp(40px, 6vw, 90px); align-items: center; }
+.voiceai-spotlight h2 { margin: 14px 0 16px; font-size: clamp(30px, 3.3vw, 46px); letter-spacing: -.03em; line-height: 1.05; }
+.voiceai-spotlight h2 span { display: block; margin-top: 6px; color: var(--blue-signal); font-weight: 300; }
+.voiceai-spotlight p { max-width: 58ch; color: var(--muted); }
+.voiceai-facts { list-style: none; display: grid; gap: 12px; margin: 24px 0 28px; padding: 0; }
+.voiceai-facts li { display: flex; align-items: baseline; gap: 12px; color: var(--muted-strong); font-size: 15px; }
+.voiceai-facts b { flex: none; min-width: 96px; color: var(--blue-signal); font-family: var(--mono); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+.voiceai-actions { display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: center; }
+.voiceai-stage { display: grid; place-items: center; min-height: 320px; }
+
+/* Orb de vitrine (versão decorativa do .orb da /voice.html; sem áudio) */
+.orb-home { --lv: 0; position: relative; width: clamp(210px, 24vw, 320px); aspect-ratio: 1; border-radius: 50%; isolation: isolate;
+  box-shadow: 0 0 calc(38px + 60px * var(--lv, 0)) calc(-2px + 8px * var(--lv, 0)) var(--glow, #5ea7ff), 0 30px 80px rgba(var(--bg-rgb), .55);
+  transition: box-shadow .25s ease; }
+.orb-home .orb-gl { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; border-radius: 50%; clip-path: circle(50% at 50% 50%); pointer-events: none; display: block; background: var(--abyss); }
+.orb-home.orb-home-idle .orb-gl { display: none; }
+.orb-home.orb-home-idle { background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.9), rgba(255,255,255,0) 26%), radial-gradient(circle at 42% 52%, var(--glow, #5ea7ff), var(--surface-blue, #0f2038) 92%); }
+
+@media (max-width: 900px) {
+  .voiceai-spotlight-grid { grid-template-columns: 1fr; }
+  .voiceai-stage { order: -1; min-height: 260px; }
+}
+.orb-home-link { display: block; border-radius: 50%; text-decoration: none; transition: transform .35s cubic-bezier(0.22, 1, 0.36, 1); }
+.orb-home-link:hover { transform: scale(1.035); }
+.orb-home-link:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 8px; }

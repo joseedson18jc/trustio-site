@@ -61,3 +61,14 @@ body.menu-open .wa-float { visibility: hidden; }
 @media print {
   .wa-float { display: none; }
 }
+
+/* ── RA5 (reavaliação 2026-10): o FAB só entra depois do primeiro scroll ──
+   Estados aplicados pelo whatsapp-suporte.js. Sem JS, o botão permanece
+   sempre visível (comportamento anterior). */
+.wa-float.wa-esperando { opacity: 0; pointer-events: none; transform: translateY(14px); }
+.wa-float.wa-entrou { opacity: 1; pointer-events: auto; transform: none; }
+.wa-float { transition: opacity .3s ease, transform .3s ease, background-color 160ms ease, box-shadow 160ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .wa-float.wa-esperando { transform: none; }
+  .wa-float { transition: opacity .3s ease, background-color 160ms ease, box-shadow 160ms ease; }
+}

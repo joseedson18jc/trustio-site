@@ -7,18 +7,30 @@ const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
 const AUDIO = window.VOICE_AUDIO || {};
 const src = (key) => AUDIO[key] || `/assets/voice/${key}.mp3`;
 
-// --- orbs
+// --- orbs (lazy: cada orb só cria o contexto WebGL quando se aproxima da viewport) ---
+// Antes todos os orbs eram construídos na carga — 7 contextos + compilação de shader de uma vez,
+// travando a primeira renderização no celular. Agora cada orb nasce no estado estático (.orb-idle,
+// mesmo visual do fallback) e só ganha WebGL ~320px antes de entrar na tela.
 const orbs = new Map();
-document.querySelectorAll(".orb").forEach((el) => {
+function initOrb(el) {
+  if (orbs.has(el)) return;
   const [bright, mid] = (el.dataset.colors || "#bfe0ff,#2563eb,#081536").split(",");
   const glow = el.dataset.glow || "#5ea7ff";
   const hero = el.hasAttribute("data-hero-orb");
-  el.style.setProperty("--glow", glow);
   orbs.set(el, new TrustioOrb(el, {
     colors: [mid, bright, glow], anchor: glow, bg: el.dataset.bg || "#05070b",
     arch: el.dataset.arch !== undefined ? Number(el.dataset.arch) : -1,
     lens: hero ? 0.08 : 0, dual: hero, fps: Number(el.dataset.fps || (hero ? 60 : 30)), seed: Math.random() * 100
   }));
+  el.classList.remove("orb-idle");
+}
+const orbIO = "IntersectionObserver" in window ? new IntersectionObserver((entries, io) => {
+  for (const e of entries) if (e.isIntersecting) { io.unobserve(e.target); initOrb(e.target); }
+}, { rootMargin: "320px" }) : null;
+document.querySelectorAll(".orb").forEach((el) => {
+  el.style.setProperty("--glow", el.dataset.glow || "#5ea7ff"); // brilho já correto no estado estático
+  el.classList.add("orb-idle");
+  if (orbIO) orbIO.observe(el); else initOrb(el);
 });
 
 // --- audio engine: one <audio>, one AnalyserNode, RMS → orb level, spectrum → VoiceAI equalizer

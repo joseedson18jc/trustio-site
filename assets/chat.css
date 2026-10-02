@@ -314,3 +314,29 @@ button.me:hover .me-gear { stroke: var(--ice); }
   .conta-linha .btn { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .conv-mais, button.me { transition: none; } }
+
+/* ── Sessão organizada (2026-10): strip de confiança, starters com etiqueta, composer enxuto ── */
+.trust-strip { margin: 22px auto 8px; padding: 14px 18px; max-width: 62ch; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.trust-strip p { margin: 0 auto; font-size: 13.5px; line-height: 1.55; }
+.trust-strip .fine-print { margin-top: 6px; font-size: 11.5px; color: var(--muted); }
+
+.starters-block { margin: 10px 0 26px; text-align: left; }
+.starters-block h2 { font-family: var(--display); font-size: 17px; line-height: 1.4; margin: 0 0 12px; }
+.starters { margin-top: 0; }
+.starters button { display: flex; flex-direction: column; gap: 8px; }
+.starter-tag { align-self: flex-start; padding: 3px 9px; border-radius: 999px; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; line-height: 1.4; }
+.starter-tag.t-health { color: #7ee2a8; background: rgba(61, 220, 151, .12); border: 1px solid rgba(61, 220, 151, .35); }
+.starter-tag.t-adult { color: #ff9ab5; background: rgba(255, 122, 168, .12); border: 1px solid rgba(255, 122, 168, .35); }
+.starter-tag.t-drugs { color: #b454ff; background: rgba(180, 84, 255, .12); border: 1px solid rgba(180, 84, 255, .35); }
+.starter-tag.t-nofilter { color: #5ea7ff; background: rgba(94, 167, 255, .12); border: 1px solid rgba(94, 167, 255, .35); }
+.starters button:hover .starter-tag { filter: brightness(1.2); }
+
+.composer-legal { margin: 2px 4px 0; font-size: 12px; }
+.composer-legal summary { cursor: pointer; font-family: var(--mono); font-size: var(--label); letter-spacing: .06em; color: var(--label-color); text-transform: uppercase; user-select: none; }
+.composer-legal summary:hover { color: var(--muted-strong); }
+.composer-legal p { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; max-width: none; }
+
+@media (max-width: 640px) {
+  .trust-strip { margin-inline: 4px; }
+  .starters-block { margin-inline: 4px; }
+}

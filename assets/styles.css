@@ -2171,7 +2171,13 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
 @media (min-width: 768px) and (max-width: 1023px) { .api-band { grid-template-columns: 1fr; } }
 
 /* ---------- Server panel (hardware band) ---------- */
-.hardware-band { position: relative; padding-block: 0; }
+.hardware-band {
+  position: relative;
+  overflow: hidden;
+  max-width: 100%;
+  padding-block: clamp(28px, 4vw, 56px);
+  background: linear-gradient(180deg, #030918 0%, #040c22 50%, #050b1c 100%);
+}
 .server-panel { position: relative; width: 100%; aspect-ratio: 1040 / 330; overflow: hidden; border: 1px solid #191c23; border-radius: 28px; background: linear-gradient(155deg, #0b0c10 0%, #07080b 55%, #040507 100%); box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(var(--on-surface-rgb), 0.015), inset 0 1px 0 rgba(var(--on-surface-rgb), 0.04); }
 .server-panel::after { position: absolute; inset: 0; background: radial-gradient(ellipse at 62% 45%, rgba(94, 167, 255, 0.1), transparent 55%); content: ""; pointer-events: none; }
 .server-inner { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; height: 100%; gap: clamp(10px, 2.4vw, var(--space-32)); padding: clamp(var(--space-16), 3.4vw, 40px) clamp(var(--space-20), 4vw, var(--space-48)); }

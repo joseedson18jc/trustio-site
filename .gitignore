@@ -14,3 +14,6 @@ Trustio-Site-Final.zip
 # Pasta criada pelo app Claude ao entregar arquivos nesta pasta conectada — não faz parte do site
 Claude outputs/
 supabase/.temp/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/

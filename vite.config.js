@@ -11,6 +11,8 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
+        empresas: resolve(import.meta.dirname, "empresas.html"),
+        agentio: resolve(import.meta.dirname, "agentio.html"),
         home: resolve(import.meta.dirname, "index.html"),
         modelos: resolve(import.meta.dirname, "modelos.html"),
         manifesto: resolve(import.meta.dirname, "manifesto.html"),
@@ -31,6 +33,8 @@ export default defineConfig({
         crm: resolve(import.meta.dirname, "crm/index.html"),
         admin: resolve(import.meta.dirname, "admin/index.html"),
         notFound: resolve(import.meta.dirname, "404.html"),
+        enEmpresas: resolve(import.meta.dirname, "en/empresas.html"),
+        enAgentio: resolve(import.meta.dirname, "en/agentio.html"),
         enHome: resolve(import.meta.dirname, "en/index.html"),
         enModelos: resolve(import.meta.dirname, "en/modelos.html"),
         enManifesto: resolve(import.meta.dirname, "en/manifesto.html"),

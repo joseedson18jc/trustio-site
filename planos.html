@@ -21,12 +21,12 @@
   <link rel="preload" href="assets/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="assets/theme.js?v=62b52a16"></script>
-  <link rel="stylesheet" href="assets/styles.css?v=6477933b">
+  <link rel="stylesheet" href="assets/styles.css?v=9e7829a4">
   <link rel="stylesheet" href="assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="assets/whatsapp-suporte.js?v=19399fa4"></script>
-  <link rel="stylesheet" href="assets/planos.css?v=40aaec61">
+  <link rel="stylesheet" href="assets/planos.css?v=6f739253">
   <link rel="stylesheet" href="assets/voice.css?v=22c9b621">
-  <script type="module" src="assets/app.js?v=a8175ef7"></script>
+  <script type="module" src="assets/app.js?v=814b8c88"></script>
   <script defer src="assets/planos.js?v=9f53f353"></script>
   <script defer src="assets/optin.js?v=0c0020f4"></script>
   <script type="application/ld+json">
@@ -50,8 +50,6 @@
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/planos.html">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/planos.html">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/planos.html"><!--/i18n:alt-->
-<!-- SupaMaus AI agent for trustio.com.br -->
-<script src="https://supamaus.com/embed.js" data-site-id="trustio.com.br" defer></script>
 </head>
 <body class="planos-page">
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -70,7 +68,6 @@
         <a href="modelos.html">Modelos</a>
         <a href="voice.html" class="nav-voice" title="powered by xAI · para empresas">VoiceAI <small>para empresas</small></a>
         <a href="planos.html">Planos</a>
-        <a href="manifesto.html">Manifesto</a>
       </nav>
 
       <a class="header-login" href="entrar.html">Entrar</a>
@@ -86,7 +83,7 @@
       </button>
     </div>
 
-    <nav class="mobile-nav" id="mobile-menu" aria-label="Navegação para dispositivos móveis" hidden>
+    <nav class="mobile-nav" id="mobile-menu" role="dialog" aria-modal="true" aria-label="Navegação para dispositivos móveis" hidden>
         <a href="ia-sem-censura.html" class="nav-ia" hreflang="pt-BR" title="novo">IA sem censura</a>
         <a href="agentio.html" class="nav-agentio" title="by Nous Research">Agentio</a>
         <a href="modelos.html">Modelos</a>
@@ -167,7 +164,7 @@
       <div class="compare">
         <p class="section-kicker">Comparativo · empresas</p>
         <h2 id="compare-empresas">O que muda entre Starter, Pro e Dedicado.</h2>
-        <div class="tablewrap" tabindex="0" role="region" aria-labelledby="compare-empresas"><table>
+        <div class="tablewrap table-scroll-wrapper" tabindex="0" role="region" aria-labelledby="compare-empresas" aria-label="Comparativo de planos para empresas"><table>
           <thead><tr><th>Recurso</th><th>Starter</th><th>Pro</th><th>Dedicado</th></tr></thead>
           <tbody>
             <tr><td>Casos de uso em produção</td><td>1</td><td>Até 5</td><td>Ilimitados</td></tr>
@@ -200,7 +197,7 @@
           <p class="section-kicker">Para pessoas f&iacute;sicas</p>
           <h2>IA privada e sem censura. Para voc&ecirc;.</h2>
           <p>Os mesmos modelos abertos que rodamos para empresas, num acesso individual. Sem filtro de conte&uacute;do imposto pelo fornecedor, suas conversas n&atilde;o treinam ningu&eacute;m e tudo roda no Brasil. Cobrado em reais &mdash; sem IOF, sem surpresa de d&oacute;lar, sem cobran&ccedil;a por token.</p>
-          <p class="acesso-estado"><b>Estado de hoje:</b> o chat j&aacute; est&aacute; aberto para todos, com 5 perguntas gr&aacute;tis. Quem assina qualquer plano abaixo tem o acesso integral liberado <b>automaticamente após a confirmação do pagamento</b> ap&oacute;s a confirma&ccedil;&atilde;o do pagamento.</p>
+          <p class="acesso-estado"><b>Estado de hoje:</b> o chat j&aacute; est&aacute; aberto para todos, com 5 perguntas gr&aacute;tis. Quem assina qualquer plano abaixo tem o acesso integral liberado <b>automaticamente após a confirmação do pagamento</b>.</p>
         </div>
 
         <div class="seg seg-sub" role="tablist" aria-label="Produto para voc&ecirc;">
@@ -349,7 +346,7 @@
               <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
             </article>
           </div>
-          <div class="tablewrap sub-compare" tabindex="0" role="region" aria-labelledby="compare-pessoal"><table>
+          <div class="tablewrap sub-compare table-scroll-wrapper" tabindex="0" role="region" aria-labelledby="compare-pessoal" aria-label="Comparativo de planos individuais"><table>
             <caption id="compare-pessoal" class="visually-hidden">Comparativo: Chat sem censura, Agentio e Combo</caption>
             <thead><tr><th>O que est&aacute; incluso</th><th>Chat sem censura</th><th>Agentio</th><th>Combo</th></tr></thead>
             <tbody>
@@ -363,12 +360,12 @@
           </table></div>
         </div>
 
-        <div class="lista" id="lista"><div><p class="section-kicker">Comece pelo chat</p><h2>Crie sua conta. Confirme o e-mail. Converse.</h2><p>Você recebe 5 perguntas grátis, sem cartão. Para continuar, escolha Chat, Agentio ou o Combo e pague pelo link do plano. O acesso pago é ativado automaticamente após a confirmação do pagamento após a confirmação do pagamento.</p></div><div class="hero-actions"><a class="button button-primary" href="cadastro.html">Criar conta grátis</a><a class="button button-outline" href="entrar.html">Já tenho conta</a><a class="text-link" href="espera.html">Ajuda para escolher um plano</a></div></div>
+        <div class="lista" id="lista"><div><p class="section-kicker">Comece pelo chat</p><h2>Crie sua conta. Confirme o e-mail. Converse.</h2><p>Você recebe 5 perguntas grátis, sem cartão. Para continuar, escolha Chat, Agentio ou o Combo e pague pelo link do plano. O acesso pago é ativado automaticamente após a confirmação do pagamento.</p></div><div class="hero-actions"><a class="button button-primary" href="cadastro.html">Criar conta grátis</a><a class="button button-outline" href="entrar.html">Já tenho conta</a><a class="text-link" href="espera.html">Ajuda para escolher um plano</a></div></div>
 
         <div class="compare">
           <p class="section-kicker">Comparativo &middot; para voc&ecirc;</p>
           <h2 id="compare-chat">O que muda entre os tr&ecirc;s acessos ao chat.</h2>
-          <div class="tablewrap" tabindex="0" role="region" aria-labelledby="compare-chat"><table>
+          <div class="tablewrap table-scroll-wrapper" tabindex="0" role="region" aria-labelledby="compare-chat" aria-label="Comparativo de acessos ao chat"><table>
             <thead><tr><th>O que importa</th><th>Mensal &middot; R$ 79</th><th>Passe 7 dias &middot; R$ 24,90</th><th>Anual &middot; R$ 790</th></tr></thead>
             <tbody>
               <tr><td>Per&iacute;odo de acesso</td><td>1 m&ecirc;s</td><td>7 dias corridos</td><td>12 meses</td></tr>

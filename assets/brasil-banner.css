@@ -2,7 +2,7 @@
    "O ponto de partida". Tudo com prefixo tb- para não colidir com .hero, .brand etc. do site.
    As animações ficam paradas (.tb-wait, posto pelo assets/brasil-banner.js) até a faixa
    aparecer na tela; sem JavaScript, rodam direto no carregamento. */
-.tb-band { position: relative; padding: 0; }
+.tb-band { position: relative; padding: 0; overflow: hidden; max-width: 100%; }
 
 .tb-banner {
   --tb-blue-deep: #0f2c6b;
@@ -14,6 +14,8 @@
   --tb-muted: #c9d9ff;
   container-type: inline-size;
   width: 100%;
+  max-width: 100%;
+  overflow: hidden;
   font-family: var(--display);
   color: var(--tb-white);
   -webkit-font-smoothing: antialiased;
@@ -40,15 +42,17 @@
 /* ---------- Horizonte da Terra ---------- */
 .tb-earth {
   --tb-rise: 12cqw;
-  position: absolute; left: 50%; bottom: 0; transform: translateX(-50%) translateY(calc(100% - var(--tb-rise)));
-  width: 230cqw; aspect-ratio: 1; border-radius: 50%;
+  position: absolute; left: 0; right: 0; bottom: 0;
+  width: 100%; max-width: 100%; height: 26cqw; border-radius: 50% 50% 0 0 / 100% 100% 0 0;
   background: radial-gradient(60% 40% at 50% 8%, rgba(46, 107, 240, .4), transparent 60%), radial-gradient(100% 100% at 50% 50%, #08265e 0%, #04143a 40%, #020a20 70%);
   box-shadow: 0 -6px 24px rgba(120, 205, 255, .9), 0 -22px 70px rgba(94, 167, 255, .55), 0 -70px 190px rgba(46, 107, 240, .35), 0 -160px 320px rgba(46, 107, 240, .15);
   opacity: 0; animation: tb-earth 2.6s cubic-bezier(.2, .7, .2, 1) .2s forwards;
+  pointer-events: none;
+  contain: paint;
 }
 @keyframes tb-earth {
-  from { opacity: 0; transform: translateX(-50%) translateY(calc(100% - var(--tb-rise) + 60px)); }
-  to { opacity: 1; transform: translateX(-50%) translateY(calc(100% - var(--tb-rise))); }
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .tb-lights { position: absolute; left: 0; bottom: 0; width: 100%; height: 14cqw; pointer-events: none; opacity: 0; animation: tb-fade 2s ease 1.2s forwards; }
 .tb-horizon { position: absolute; left: 0; right: 0; bottom: 0; height: 22cqw; background: linear-gradient(to top, rgba(3, 9, 24, .9), transparent); pointer-events: none; }

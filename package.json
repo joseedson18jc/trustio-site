@@ -10,6 +10,7 @@
     "stamp": "node scripts/stamp-asset-versions.mjs",
     "stamp:check": "node scripts/stamp-asset-versions.mjs --check",
     "sitemap": "node scripts/sitemap.mjs",
+    "sitemap:gen": "node scripts/sitemap.mjs",
     "sitemap:check": "node scripts/sitemap.mjs --check",
     "indexnow": "node scripts/indexnow.mjs --all",
     "i18n": "node scripts/i18n.mjs",

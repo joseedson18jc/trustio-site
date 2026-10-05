@@ -590,3 +590,66 @@ h1 .l { display: block; }
 .foot-links a { color: var(--muted-strong); text-decoration: none; }
 .foot-links a:hover { color: var(--text-strong); }
 @media (max-width: 720px) { .foot-legal { flex-direction: column; align-items: flex-start; } .foot-legal address { text-align: left; } }
+
+/* ==========================================================================
+   CSP Compliance Rules (replacing runtime data-style in ia-sem-censura.html)
+   ========================================================================== */
+
+/* 1. SVG Definitions container */
+.svg-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* 2 & 3. Hero floating decorative crosses */
+.hero .x:first-of-type { left: 8%; top: 22%; }
+.hero .x:last-of-type  { right: 9%; top: 64%; }
+
+/* 4. Section 01 circuit diagram position & bounds */
+.sec .circuit {
+  right: 0;
+  top: 40px;
+  width: 420px;
+  height: 180px;
+}
+
+/* 5. Question node status label */
+.pn.q .st {
+  color: var(--accent-text);
+}
+
+/* 6. Stepper play/pause state toggle */
+#st-play .p-play { display: none; }
+#st-play.is-paused .p-play { display: block; }
+#st-play.is-paused .p-pause { display: none; }
+
+/* 7. Rings diagram inner core ring */
+.rings [data-ring="voce"] .ring {
+  stroke-dasharray: none;
+  opacity: .6;
+}
+
+/* 8 & 9. Standard Color Utilities */
+.text-ok   { color: var(--ok) !important; }
+.text-warn { color: var(--warn) !important; }
+.text-accent { color: var(--accent-text) !important; }
+
+/* 10. Browser mock sidebar conversation bars */
+.b-side i:nth-child(2) { width: 80%; }
+.b-side i:nth-child(3) { width: 65%; }
+.b-side i:nth-child(4) { width: 88%; }
+.b-side i:nth-child(5) { width: 55%; }
+
+/* 11 & 12. Duo card heading top margin */
+.duo .card .txt .h3 {
+  margin-top: 14px;
+}
+
+/* 13. Final CTA kicker alignment */
+.final .kicker {
+  justify-content: center;
+}
+

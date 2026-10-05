@@ -4,9 +4,6 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
-  // A CSP do site (style-src 'self') bloqueia o atributo style="…": os estilos pontuais da página
-  // vêm em data-style e são aplicados pelo CSSOM, que a CSP permite.
-  $$("[data-style]").forEach(function (el) { el.style.cssText = el.getAttribute("data-style"); });
   var root = document.documentElement;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -291,8 +288,7 @@
     function go(k) { i = k; paint(); }
     function setPlaying(p) {
       playing = p;
-      $(".p-pause", play).style.display = p ? "" : "none";
-      $(".p-play", play).style.display = p ? "none" : "";
+      play.classList.toggle("is-paused", !p);
       play.setAttribute("aria-label", p ? "Pausar" : "Reproduzir");
       txt.setAttribute("aria-live", p ? "off" : "polite");
       schedule();

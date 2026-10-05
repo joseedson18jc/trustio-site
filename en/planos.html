@@ -21,12 +21,12 @@
   <link rel="preload" href="/assets/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/assets/theme.js?v=62b52a16"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=6477933b">
+  <link rel="stylesheet" href="/assets/styles.css?v=9e7829a4">
   <link rel="stylesheet" href="/assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="/assets/whatsapp-suporte.js?v=19399fa4"></script>
-  <link rel="stylesheet" href="/assets/planos.css?v=40aaec61">
+  <link rel="stylesheet" href="/assets/planos.css?v=6f739253">
   <link rel="stylesheet" href="/assets/voice.css?v=22c9b621">
-  <script type="module" src="/assets/app.js?v=a8175ef7"></script>
+  <script type="module" src="/assets/app.js?v=814b8c88"></script>
   <script defer src="/assets/planos.js?v=9f53f353"></script>
   <script defer src="/assets/optin.js?v=0c0020f4"></script>
   <script type="application/ld+json">
@@ -220,8 +220,6 @@
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/planos.html">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/planos.html">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/planos.html"><!--/i18n:alt-->
-<!-- SupaMaus AI agent for trustio.com.br -->
-<script src="https://supamaus.com/embed.js" data-site-id="trustio.com.br" defer></script>
 </head>
 <body class="planos-page">
   <a class="skip-link" href="#conteudo">Skip to content</a>
@@ -240,7 +238,6 @@
         <a href="modelos.html">Models</a>
         <a href="voice.html" class="nav-voice" title="powered by xAI · for businesses">VoiceAI <small>for businesses</small></a>
         <a href="planos.html">Plans</a>
-        <a href="manifesto.html">Manifesto</a>
       </nav>
 
       <a class="header-login" href="entrar.html">Sign in</a>
@@ -256,7 +253,7 @@
       </button>
     </div>
 
-    <nav class="mobile-nav" id="mobile-menu" aria-label="Mobile navigation" hidden>
+    <nav class="mobile-nav" id="mobile-menu" role="dialog" aria-modal="true" aria-label="Mobile navigation" hidden>
         <a href="/ia-sem-censura.html" class="nav-ia" hreflang="pt-BR" title="in PT">Uncensored AI</a>
         <a href="agentio.html" class="nav-agentio" title="by Nous Research">Agentio</a>
         <a href="modelos.html">Models</a>
@@ -337,7 +334,7 @@
       <div class="compare">
         <p class="section-kicker">Comparison · businesses</p>
         <h2 id="compare-empresas">What changes between Starter, Pro and Dedicated.</h2>
-        <div class="tablewrap" tabindex="0" role="region" aria-labelledby="compare-empresas"><table>
+        <div class="tablewrap table-scroll-wrapper" tabindex="0" role="region" aria-labelledby="compare-empresas" aria-label="Enterprise plans comparison"><table>
           <thead><tr><th>Feature</th><th>Starter</th><th>Pro</th><th>Dedicated</th></tr></thead>
           <tbody>
             <tr><td>Use cases in production</td><td>1</td><td>Up to 5</td><td>Unlimited</td></tr>
@@ -370,7 +367,7 @@
           <p class="section-kicker">For individuals</p>
           <h2>Private, uncensored AI. For you.</h2>
           <p>The same open models we run for businesses, with individual access. No content filter imposed by the vendor, your conversations train no one, and everything runs in Brazil. Billed in Brazilian reais — no foreign-transaction tax (IOF), no dollar surprises, no per-token charges.</p>
-          <p class="acesso-estado"><b>Status today:</b> the chat is already open to everyone, with 5 free questions. Subscribing to any plan below gets you full access granted <b>automatically after payment confirmation</b> after payment confirmation.</p>
+          <p class="acesso-estado"><b>Status today:</b> the chat is already open to everyone, with 5 free questions. Subscribing to any plan below gets you full access granted <b>automatically after payment confirmation</b>.</p>
         </div>
 
         <div class="seg seg-sub" role="tablist" aria-label="Product for you">
@@ -519,7 +516,7 @@
               <p class="methods">Card · Apple Pay · Google Pay</p>
             </article>
           </div>
-          <div class="tablewrap sub-compare" tabindex="0" role="region" aria-labelledby="compare-pessoal"><table>
+          <div class="tablewrap sub-compare table-scroll-wrapper" tabindex="0" role="region" aria-labelledby="compare-pessoal" aria-label="Individual plans comparison"><table>
             <caption id="compare-pessoal" class="visually-hidden">Comparison: Uncensored chat, Agentio and Combo</caption>
             <thead><tr><th>What's included</th><th>Uncensored chat</th><th>Agentio</th><th>Combo</th></tr></thead>
             <tbody>
@@ -538,7 +535,7 @@
         <div class="compare">
           <p class="section-kicker">Comparison · for you</p>
           <h2 id="compare-chat">What changes between the three chat plans.</h2>
-          <div class="tablewrap" tabindex="0" role="region" aria-labelledby="compare-chat"><table>
+          <div class="tablewrap table-scroll-wrapper" tabindex="0" role="region" aria-labelledby="compare-chat" aria-label="Chat access comparison"><table>
             <thead><tr><th>What matters</th><th>Monthly · R$ 79</th><th>7-day pass · R$ 24.90</th><th>Annual · R$ 790</th></tr></thead>
             <tbody>
               <tr><td>Access period</td><td>1 month</td><td>7 consecutive days</td><td>12 months</td></tr>

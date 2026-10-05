@@ -37,6 +37,7 @@ async function walk(directory) {
 
 const sourceFiles = [
   "index.html",
+  "empresas.html",
   "modelos.html",
   "manifesto.html",
   "privacidade.html",
@@ -139,6 +140,12 @@ export default {
     if (path === "/seats" || path === "/seats/") path = "/seats.html";
     if (path === "/juridico" || path === "/juridico/") path = "/juridico/index.html";
     if (path === "/voice" || path === "/voice/") path = "/voice.html";
+    if (path === "/empresas" || path === "/empresas/") path = "/empresas.html";
+    if (path === "/modelos" || path === "/modelos/") path = "/modelos.html";
+    if (path === "/fundador" || path === "/fundador/") path = "/fundador.html";
+    if (path === "/espera" || path === "/espera/") path = "/espera.html";
+    if (path === "/obrigado" || path === "/obrigado/") path = "/obrigado.html";
+    if (path === "/ia-sem-censura" || path === "/ia-sem-censura/") path = "/ia-sem-censura.html";
     // /agentio e /agentio/ redirecionam (não servem o HTML no lugar): a página usa caminhos
     // relativos (assets/…, app/, planos.html), que sob /agentio/ apontariam para lugar nenhum.
     if (path === "/agentio" || path === "/agentio/") {

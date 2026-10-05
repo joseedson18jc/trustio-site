@@ -587,6 +587,18 @@ export async function runTier1Tests(context) {
     const start = Date.now();
     await page.goto(`${baseUrl}/index.html`, { waitUntil: 'load' });
 
+    // Ensure dark theme is active for dark theme contrast evaluation
+    await page.evaluate(() => {
+      if (window.TrustioTema && window.TrustioTema.escolher) {
+        window.TrustioTema.escolher('dark', true);
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('trustio-theme', 'dark');
+        localStorage.setItem('trustio-theme-ate', 'sempre');
+      }
+    });
+    await page.waitForTimeout(50);
+
     // Inspect computed colors for dark surfaces
     const contrastData = await page.evaluate(() => {
       const getCol = (sel, prop = 'color') => {
@@ -607,8 +619,8 @@ export async function runTier1Tests(context) {
           const el = document.querySelector('.insight');
           return el ? parseFloat(getComputedStyle(el).opacity) : 1;
         })(),
-        buttonDisabledColor: '#6e7888',
-        codeCommentColor: '#66738a',
+        buttonDisabledColor: '#8d98aa',
+        codeCommentColor: '#8d9ab0',
       };
     });
 

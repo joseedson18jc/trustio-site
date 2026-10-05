@@ -101,7 +101,14 @@ const urlEn = (pagina) => `${SITE}/en/${bonito(pagina)}`;
 
 function paginaDoCaminho(pathname) {
   let p = decodeURIComponent(pathname).replace(/^\//, "");
+  if (p.startsWith("en/")) p = p.slice(3);
+  else if (p === "en") p = "";
+  const semBarra = p.replace(/\/$/, "");
   if (p === "" || p.endsWith("/")) p += "index.html";
+  if (ESPELHADAS.has(p)) return p;
+  if (ESPELHADAS.has(semBarra)) return semBarra;
+  if (ESPELHADAS.has(`${semBarra}.html`)) return `${semBarra}.html`;
+  if (ESPELHADAS.has(`${semBarra}/index.html`)) return `${semBarra}/index.html`;
   return p;
 }
 
@@ -114,6 +121,7 @@ function reescreverUrl(valor, paginaPt) {
   let alvo;
   try { alvo = new URL(v, `${SITE}/${paginaPt}`); } catch { return valor; }
   if (alvo.origin !== SITE) return valor;
+  if (alvo.pathname === "/en" || alvo.pathname.startsWith("/en/")) return valor;
   const pagina = paginaDoCaminho(alvo.pathname);
   const absoluto = /^https?:\/\//i.test(v);
   if (ESPELHADAS.has(pagina)) {

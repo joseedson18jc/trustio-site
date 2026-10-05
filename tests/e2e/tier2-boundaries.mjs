@@ -551,7 +551,7 @@ export async function runTier2Tests(context) {
     const start = Date.now();
     await page.goto(`${baseUrl}/juridico/index.html`, { waitUntil: 'load' });
 
-    const commentCr = getContrastRatio('#66738a', '#080b11');
+    const commentCr = getContrastRatio('#8d9ab0', '#080b11');
     const pass = commentCr >= 4.5;
 
     record({

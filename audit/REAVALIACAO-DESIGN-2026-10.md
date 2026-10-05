@@ -87,10 +87,10 @@ Fontes de identidade 49,7 KB + 23,0 KB (woff2, subset latin) ✅ · selos webp 5
 | RA2 | Nav: tirar badges da linha, ≤7 itens, Manifesto→rodapé | F01 | 4 | S |
 | RA3 | Camadas de pontos sob o texto (z-index) | F04+F07 | 3 | S |
 | RA4 | Merge PR #88 + re-medir Lighthouse voice/home | F08 | 4 | S |
-| RA5 | FAB só após primeiro scroll | F06 | 2 | S |
+| RA5 | ~~FAB só após primeiro scroll~~ **✅ feito — PR #90, merged** | F06 | 2 | S |
 | RA6 | Verificar h1 gradiente da ia-sem-censura em 1440 | F05 | 2 | S |
-| RA7 | Home enxuta + `/empresas` (R07 original) | F09 | 3 | L |
-| RA8 | Kickers mono 11→12px + badge única | F10 | 2 | S |
+| RA7 | ~~Home enxuta + `/empresas`~~ **✅ feito — PR #91, merged** | F09 | 3 | L |
+| RA8 | Kickers mono 11→12px + badge única (badge já saiu no PR #89) | F10 | 2 | S |
 
 ---
 
@@ -106,3 +106,55 @@ Stripe = "TRUSTIO IA" no checkout (era "JUICYSCORE") · CNPJ/razão social no ro
 - `scripts/overflow-probe.html` — sonda de overflow reutilizável (`python3 -m http.server` na raiz + abrir com Chrome headless `--dump-dom`)
 
 Custo da análise grok-4.7: ~US$ 2,10 (≈49k tokens de imagem + 4,4k de saída).
+
+
+---
+
+## 6. Execução (01/10, noite) — o que saiu da matriz e foi ao ar
+
+| Item | PR | Estado |
+|---|---|---|
+| RA2 · badges fora da nav | #89 | **no ar** |
+| RA3 · padrões sob o texto | #89 | **no ar** |
+| RA6 · gradiente do h1 estável | #89 | **no ar** |
+| Orbs WebGL lazy (R20/PR88) | #88 | **no ar — Lighthouse voice 38 → 90** (LCP 6,6s → 2,9s; TBT 160ms; CLS 0) |
+| RA5 · FAB só após scroll | #90 | **no ar** |
+| RA7 · home enxuta + /empresas | #91 | **no ar** (home 13→6 seções; /empresas PT+EN; ids preservados; sitemap 27 URLs) |
+| og:image por página (grok-imagine-image-2.0) | #91 | **no ar** (6 artes 1280×720; custo US$ 2,40) |
+
+Notas de execução: F03 retificado (menu mobile existia — falso positivo da sonda);
+clamp do h1 mobile ajustado 13.12vw→12.4vw após sonda de clip interno acusar
+vazamento de 5px em 390px; custos grok-4.7 na análise ≈ US$ 2,10.
+
+
+## 7. Separação B2C × B2B — conclusão do arco (PR #92, merged)
+
+Com o RA7 faltava o último passo: **voz e navegação** separadas.
+- Home 100% B2C na dobra: "Sua IA privada e sem censura*. Sob seu controle." + CTAs criar conta/ver planos; B2B vira banda discreta abaixo da dobra
+- Navs por público: B2C (5 itens + Criar conta grátis) × B2B em /empresas, voice e jurídico (Plataforma · VoiceAI · Segurança · Implantação · Planos + Falar com um arquiteto)
+- Rodapé por audiência: PARA VOCÊ · PARA EMPRESAS · INSTITUCIONAL
+- grok-4.7 sobre o /empresas pós-separação: **8/10** — "um mundo B2B coerente"
+- Placar visual estimado do arco completo: 55 (véspera do lançamento) → **~72**
+
+
+## 8. LEDs do hero reativos (PR #93, merged)
+
+Upgrade do campo de LEDs da home (TrustioDotField): halo persistente no
+cursor (~230px), energia de scroll (cada pixel rolado carrega o campo,
+fade ~1s — no celular é o scroll que acende o fundo), constelação de
+linhas junto ao cursor, grade ~2,4× mais densa e blend aditivo neon.
+Verificação funcional por sonda (pixels do canvas): halo 3,4× mais
+brilhante no ponteiro; energia do scroll 2,3× no campo. Grok-4.7:
+nova 8/10 vs 7,5 ("mais moderna e premium"). Trade-off registrado:
+brilho compete um pouco com o título; mitigação de 1 linha se pesar.
+
+
+## 9. Vitrine VoiceAI na home (PR #94, merged)
+
+VoiceAI volta ao menu B2C ("VoiceAI · para empresas") e ganha bloco na
+home com orb de exemplo — mesmo shader do /voice.html, decorativo,
+lazy (contexto WebGL só a ~320px da viewport) e clicável (→ /voice).
+Verificação por CDP com scroll real: orb nasce no scroll (canvas 1);
+bug de overflow mobile pego e corrigido no caminho (replace de nav
+vazando para o rodapé: nowrap 168px → docW 484 → corrigido para 390).
+grok-4.7: 7/10 ("presença premium").

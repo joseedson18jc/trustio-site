@@ -18,10 +18,24 @@ function updateHeader() {
 // Com o menu aberto, o resto da página fica inerte (o Tab não cai no conteúdo coberto).
 const contentBehindMenu = () => document.querySelectorAll("main, footer");
 
+let menuIntervalId = null;
+function checkMenuDesktop() {
+  if (window.innerWidth >= 1024) {
+    closeMenu();
+  }
+}
+
 function closeMenu(returnFocus = false) {
   if (!menuButton || !mobileMenu || !header) return;
+  if (menuIntervalId) {
+    clearInterval(menuIntervalId);
+    menuIntervalId = null;
+  }
   const wasOpen = menuButton.getAttribute("aria-expanded") === "true";
-  contentBehindMenu().forEach((el) => { el.inert = false; });
+  contentBehindMenu().forEach((el) => {
+    el.inert = false;
+    el.removeAttribute("inert");
+  });
   menuButton.setAttribute("aria-expanded", "false");
   menuButton.setAttribute("aria-label", T("Abrir menu", "Open menu"));
   mobileMenu.hidden = true;
@@ -45,6 +59,9 @@ function toggleMenu() {
   document.body.classList.add("menu-open");
   contentBehindMenu().forEach((el) => { el.inert = true; });
   mobileMenu.querySelector("a, button")?.focus();
+  if (!menuIntervalId) {
+    menuIntervalId = setInterval(checkMenuDesktop, 40);
+  }
 }
 
 updateHeader();
@@ -52,7 +69,19 @@ window.addEventListener("scroll", updateHeader, { passive: true });
 menuButton?.addEventListener("click", toggleMenu);
 mobileMenu?.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => closeMenu()));
 window.addEventListener("resize", () => {
-  if (window.innerWidth > 1300) closeMenu();
+  if (window.innerWidth >= 1024) closeMenu();
+});
+window.visualViewport?.addEventListener("resize", () => {
+  if (window.innerWidth >= 1024) closeMenu();
+});
+document.addEventListener("focusin", () => {
+  if (window.innerWidth >= 1024 && menuButton?.getAttribute("aria-expanded") === "true") {
+    closeMenu();
+  }
+});
+const desktopQuery = window.matchMedia("(min-width: 1024px)");
+desktopQuery.addEventListener("change", (e) => {
+  if (e.matches) closeMenu();
 });
 
 const inPageLinks = Array.from(document.querySelectorAll('.desktop-nav a[href^="#"], .mobile-nav a[href^="#"]'));
@@ -203,6 +232,8 @@ class TrustioDotField {
         });
       }, { threshold: 0.02 }).observe(this.parent);
     }
+
+    window.addEventListener("resize", () => this.resize(), { passive: true });
   }
 
   // Um evento novo (mouse/scroll) religa o loop mesmo que ele estivesse parado.
@@ -222,13 +253,15 @@ class TrustioDotField {
 
   resize() {
     const rect = this.parent.getBoundingClientRect();
-    this.width = Math.max(1, Math.round(rect.width));
+    const availableWidth = Math.min(rect.width, window.innerWidth);
+    this.width = Math.max(1, Math.round(availableWidth));
     this.height = Math.max(1, Math.round(rect.height));
     this.dpr = Math.min(window.devicePixelRatio || 1, 1.75);
     this.canvas.width = Math.round(this.width * this.dpr);
     this.canvas.height = Math.round(this.height * this.dpr);
-    this.canvas.style.width = `${this.width}px`;
-    this.canvas.style.height = `${this.height}px`;
+    this.canvas.style.width = "100%";
+    this.canvas.style.maxWidth = "100%";
+    this.canvas.style.height = "100%";
     this.context.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
   }
 

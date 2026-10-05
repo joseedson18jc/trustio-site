@@ -2,7 +2,7 @@
 .home-residency .home-residency-stars { position: absolute; inset: 0; z-index: -1; }
 .home-residency .home-residency-stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #cfe3ff; opacity: .5; animation: home-residency-tw 4s ease-in-out infinite; }
 @keyframes home-residency-tw { 50% { opacity: .1; } }
-.home-residency .home-residency-horizon { position: absolute; left: 50%; bottom: -1120px; width: 2400px; height: 1300px; transform: translateX(-50%); border-radius: 50%; z-index: -1; background: radial-gradient(closest-side, #0c2a66 70%, #091c45); box-shadow: 0 -2px 0 rgba(94,167,255,.8), 0 -18px 60px rgba(83,205,254,.35), 0 -80px 160px rgba(37,99,235,.35); }
+.home-residency .home-residency-horizon { position: absolute; left: 0; right: 0; width: 100%; max-width: 100%; bottom: 0; height: 180px; border-radius: 50% 50% 0 0 / 100% 100% 0 0; z-index: -1; background: radial-gradient(closest-side, #0c2a66 70%, #091c45); box-shadow: 0 -2px 0 rgba(94,167,255,.8), 0 -18px 60px rgba(83,205,254,.35), 0 -80px 160px rgba(37,99,235,.35); }
 .home-residency .home-residency-kicker { color: #9dc8ff; justify-content: center; }
 .home-residency h2 { font-family: var(--display); font-weight: 500; text-transform: uppercase; letter-spacing: .12em; font-size: clamp(22px, 3.6vw, 46px); line-height: 1.15; text-align: center; margin: 0; }
 .home-residency h2 span { display: block; background: linear-gradient(100deg, #53cdfe, #5ea7ff); -webkit-background-clip: text; background-clip: text; color: transparent; }

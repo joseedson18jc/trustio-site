@@ -3198,7 +3198,7 @@ h3 { letter-spacing: -0.018em; }
 .footer-bottom p:has([data-year]) { display: block; }
 .footer-bottom [data-year] { flex: none; white-space: nowrap; }
 
-/* 4) Rodapé no celular: links em duas colunas (rodapé ~40% mais curto) e área de toque de 44 px. */
+/* 4) Rodapé no celular: links em duas colunas (rodapé mais curto) e área de toque de 44 px. */
 @media (max-width: 767px) {
   .footer-links { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 20px; }
   .footer-links > div { gap: 0; }

@@ -3165,3 +3165,56 @@ h3 { letter-spacing: -0.018em; }
 .home-page .contact-card-inner.contact-lean > p:not(.section-kicker) { color: var(--muted); max-width: 66ch; margin-bottom: 26px; font-size: 17px; }
 .home-page .contact-card-inner.contact-lean .contact-brief { color: var(--muted); }
 .home-page .contact-card-inner.contact-lean .contact-brief b { color: var(--muted-strong); }
+
+/* ---------- Ajustes de responsividade (out/2026) ----------
+   Correções encontradas na auditoria de 06/10/2026 (12 páginas × 5 larguras, tema claro e escuro). */
+
+/* 1) Cabeçalho entre 1024 e 1179 px: a navegação + botões passavam ~30 px da borda e cortavam o
+      botão de tema. Nessa faixa o selo "para empresas" sai (continua no title) e os botões ficam mais justos. */
+@media (min-width: 1024px) and (max-width: 1179px) {
+  .desktop-nav .nav-voice small { display: none; }
+  .site-header .header-cta { padding-inline: 16px; }
+  .site-header .lang-switch { padding-inline: 10px; }
+}
+
+/* 2) Selo "para empresas" do menu: vira etiqueta (pill), lida como selo e não como outro item. */
+.desktop-nav .nav-voice small {
+  margin-left: 7px;
+  padding: 3px 7px 2px;
+  border: 1px solid rgba(94, 167, 255, 0.32);
+  border-radius: 999px;
+  background: rgba(94, 167, 255, 0.08);
+  font-size: 9.5px;
+  line-height: 1;
+  letter-spacing: 0.12em;
+}
+[data-theme="light"] .desktop-nav .nav-voice small {
+  border-color: rgba(37, 99, 235, 0.28);
+  background: rgba(37, 99, 235, 0.06);
+  color: var(--blue, #2563eb);
+}
+
+/* 3) Rodapé: o ano quebrava em "202 / 6" no celular (o <p> é flex e o número encolhia). */
+.footer-bottom p:has([data-year]) { display: block; }
+.footer-bottom [data-year] { flex: none; white-space: nowrap; }
+
+/* 4) Rodapé no celular: links em duas colunas (rodapé ~40% mais curto) e área de toque de 44 px. */
+@media (max-width: 767px) {
+  .footer-links { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 20px; }
+  .footer-links > div { gap: 0; }
+  .footer-links span { margin-bottom: 6px; }
+  .footer-links a { min-height: 44px; }
+}
+
+/* 5) Home/empresas no celular: a linha "Continue para explorar" encostava na borda da tela
+      (é absoluta dentro do hero e ignorava o recuo de 16 px). */
+@media (max-width: 767px) {
+  .hero > .home-scroll-hint { left: 16px; right: 16px; width: auto; }
+}
+
+/* 6) Kicker centralizado com bolinha de status: quando o texto quebrava em duas linhas, a bolinha
+      ficava sozinha na borda esquerda. No celular ela passa a andar junto com o texto. */
+@media (max-width: 767px) {
+  .eyebrow:has(> .status-dot) { display: block; }
+  .eyebrow > .status-dot { display: inline-block; margin-right: 9px; vertical-align: 0.12em; }
+}

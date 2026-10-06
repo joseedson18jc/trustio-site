@@ -227,3 +227,20 @@
 .tech-proof dd small{display:block;margin-top:2px;font-family:var(--body,sans-serif);font-weight:400;font-size:11.5px;color:var(--muted);letter-spacing:0;line-height:1.35}
 @media(max-width:960px){.tech-proof{max-width:none}}
 @media(max-width:520px){.tech-proof dl{grid-template-columns:repeat(2,minmax(0,1fr))}.tech-proof dl div:nth-child(3n){border-right:1px solid var(--line,rgba(160,179,211,.16))}.tech-proof dl div:nth-child(2n){border-right:0}.tech-proof dl div:nth-last-child(-n+3){border-bottom:1px solid var(--line,rgba(160,179,211,.16))}.tech-proof dl div:nth-last-child(-n+2){border-bottom:0}}
+
+/* ── Ajustes de responsividade (out/2026) ──
+   a) Em telas de toque não há hover e a camada .ch-more ficava oculta: os cards abrem o painel de
+      detalhes ao toque, mas nada indicava isso. Lá aparece só o "Ver detalhes ↗" (sem as etiquetas,
+      que repetiam a linha de insight).
+   b) Vozes (Ara, Eve, Leo…) em duas colunas no celular, em vez de cinco cards empilhados.
+   c) Marca da xAI é branca: no tema claro ficava invisível sobre o card claro. */
+@media (hover:none){.ch-more{display:block;height:auto;margin-top:4px;opacity:1;transform:none}.ch-more .ch-facts{display:none}}
+@media(max-width:520px){
+  .voices{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .voice{padding:18px 10px 14px;gap:10px}
+  .voice .orb{--size:84px}
+  .voice b{font-size:16px}
+  .voice small{font-size:12px}
+  .voice:last-child:nth-child(odd){grid-column:1/-1;justify-self:center;width:calc(50% - 5px)}
+}
+:root[data-theme="light"] .tech-proof img[src*="xai-mark"]{filter:invert(1)}

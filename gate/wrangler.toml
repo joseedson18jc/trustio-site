@@ -1,0 +1,24 @@
+name = "trustio-porteiro"
+main = "src/index.js"
+compatibility_date = "2026-10-07"
+
+# Nada secreto aqui: a URL do projeto e a chave publishable já são públicas (assets/auth-config.js).
+[vars]
+SUPABASE_URL = "https://mjdaluioyutnxlyomzyd.supabase.co"
+SUPABASE_PUBLISHABLE_KEY = "sb_publishable_mmbbWAm8vvNMsvSle89ITg_DkVcmDHW"
+
+[observability]
+enabled = true
+
+# Só as páginas privadas passam pelo worker; o resto do site vai direto ao GitHub Pages.
+# /console fica de fora: é a demonstração pública.
+routes = [
+  { pattern = "trustio.com.br/app*", zone_name = "trustio.com.br" },
+  { pattern = "trustio.com.br/en/app*", zone_name = "trustio.com.br" },
+  { pattern = "trustio.com.br/admin*", zone_name = "trustio.com.br" },
+  { pattern = "trustio.com.br/crm*", zone_name = "trustio.com.br" },
+  { pattern = "www.trustio.com.br/app*", zone_name = "trustio.com.br" },
+  { pattern = "www.trustio.com.br/en/app*", zone_name = "trustio.com.br" },
+  { pattern = "www.trustio.com.br/admin*", zone_name = "trustio.com.br" },
+  { pattern = "www.trustio.com.br/crm*", zone_name = "trustio.com.br" },
+]

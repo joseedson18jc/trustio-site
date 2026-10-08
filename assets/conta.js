@@ -130,24 +130,6 @@
     });
   });
 
-  // Código do afiliado que trouxe esta pessoa, se ela chegou por um link `?ref=`. A fonte
-  // é o cookie `trustio_ref` que o assets/app.js grava (90 dias, último clique vence, como
-  // afiliados.html promete) — e o `?ref=` desta visita ganha dele, por ser o clique mais
-  // recente. Aqui o código entra nos metadados da conta, que é onde a equipe consegue vê-lo
-  // para creditar a comissão. Sem isto, a conta nasce sem vínculo com quem a trouxe.
-  // Nunca lança: um cadastro não pode cair por causa de leitura de cookie.
-  function indicacaoDeOrigem() {
-    try {
-      var daUrl = new URLSearchParams(location.search).get("ref");
-      if (daUrl && /^[A-Z]{1,8}\d{3}$/.test(daUrl.trim().toUpperCase())) return daUrl.trim().toUpperCase();
-      var m = /(?:^|;\s*)trustio_ref=([^;]*)/.exec(document.cookie || "");
-      var doCookie = m && decodeURIComponent(m[1]).trim().toUpperCase();
-      return doCookie && /^[A-Z]{1,8}\d{3}$/.test(doCookie) ? doCookie : "";
-    } catch (e) {
-      return "";
-    }
-  }
-
   // ---------------------------------------------------------------- cadastro
   var signup = document.getElementById("cadastro-form");
   if (signup) {
@@ -183,8 +165,7 @@
             tipo: tipoEl ? tipoEl.dataset.tipo : "b2c",
             empresa: String(f.get("empresa") || "").trim(),
             segmento: String(f.get("segmento") || "").trim(),
-            origem: EN ? "en/cadastro.html" : "cadastro.html",
-            indicacao: indicacaoDeOrigem()
+            origem: EN ? "en/cadastro.html" : "cadastro.html"
           }
         }
       }).then(function (r) {

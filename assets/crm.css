@@ -202,3 +202,9 @@ table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-
   .historico li { grid-template-columns: 1fr; gap: 0; }
   .funil li { grid-template-columns: 110px minmax(0, 1fr) 34px; }
 }
+
+/* Aba Afiliados: seção de comissões */
+.af-comissoes { margin-top: 36px; }
+.af-h2 { margin: 0; font-size: clamp(18px, 2vw, 22px); font-weight: 500; letter-spacing: -0.02em; }
+.af-sub { color: var(--muted); font-size: 14px; margin: 8px 0 14px; max-width: 80ch; line-height: 1.55; }
+.af-alerta { color: #ffb454 !important; }

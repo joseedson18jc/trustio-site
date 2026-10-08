@@ -7,8 +7,14 @@
  *   POST /afiliados/aprovar  só a equipe: o CRM manda { id } com o token de quem está logado
  *                            (Authorization: Bearer). aprovar_afiliado roda com esse token,
  *                            então is_staff() e o teto de vagas valem no banco; depois o
- *                            afiliado recebe por e-mail o link https://trustio.com.br/?ref=CODIGO.
+ *                            afiliado recebe por e-mail e WhatsApp o link https://trustio.com.br/?ref=CUPOM
+ *                            e o cupom (ex.: LUISC10), criado na Stripe nessa hora.
+ *   POST /stripe/webhook     checkout.session.completed → registrar_comissao (cupom vence link,
+ *                            tetos no banco) → avisa o afiliado por e-mail e WhatsApp.
  */
+
+import { assinaturaValida, criarCupomAfiliado, lerSessao, promoDaSessao } from "./stripe.js";
+import { brl, enviarWhatsapp, MENSAGENS, whatsappConfigurado } from "./whatsapp.js";
 
 const CANAIS = new Set([
   "YouTube", "Instagram / TikTok", "Newsletter", "Podcast",
@@ -97,7 +103,7 @@ export function emailRecebido(nome, escapar) {
   };
 }
 
-export function emailAprovado(nome, codigo, link, escapar) {
+export function emailAprovado(nome, codigo, link, escapar, cupom = null) {
   return {
     subject: "Aprovado! Seu link de afiliado Trustio",
     html: moldura("Seu cadastro foi aprovado. Seu link de afiliado está aqui.", `
@@ -105,11 +111,11 @@ export function emailAprovado(nome, codigo, link, escapar) {
       <p ${P}>Seu cadastro no programa de afiliados da Trustio foi aprovado. Cada venda pelo seu link gera comissão fixa, liberada na hora via a chave Pix que você cadastrou.</p>
       <p ${ROTULO}>Seu link</p>
       <p style="margin:0 0 22px;font-size:15px;line-height:1.6;word-break:break-all;"><a href="${escapar(link)}" style="color:#5ea7ff;">${escapar(link)}</a></p>
-      <p ${ROTULO}>Seu código</p>
-      <p style="margin:0 0 26px;font-size:22px;font-weight:700;color:#53cdfe;font-family:ui-monospace,Menlo,monospace;">${escapar(codigo)}</p>
+      <p ${ROTULO}>${cupom ? "Seu cupom (10% na 1ª cobrança de quem comprar)" : "Seu código"}</p>
+      <p style="margin:0 0 26px;font-size:22px;font-weight:700;color:#53cdfe;font-family:ui-monospace,Menlo,monospace;">${escapar(cupom || codigo)}</p>
       <p style="margin:0 0 26px;"><a href="${escapar(link)}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:13px 24px;border-radius:10px;">Abrir meu link</a></p>
       <p style="margin:0 0 30px;font-size:13px;line-height:1.6;color:#8b96a7;">Guarde este e-mail.</p>`),
-    text: `Parabéns, ${nome}!\n\nSeu cadastro no programa de afiliados da Trustio foi aprovado.\n\nSeu link: ${link}\nSeu código: ${codigo}\n\nCada venda pelo link gera comissão fixa, liberada na hora via a chave Pix cadastrada.\n\nTrustio · https://trustio.com.br/afiliados.html`,
+    text: `Parabéns, ${nome}!\n\nSeu cadastro no programa de afiliados da Trustio foi aprovado.\n\nSeu link: ${link}\n${cupom ? `Seu cupom: ${cupom} (10% na 1ª cobrança de quem comprar)` : `Seu código: ${codigo}`}\n\nCada venda pelo link gera comissão fixa, liberada na hora via a chave Pix cadastrada.\n\nTrustio · https://trustio.com.br/afiliados.html`,
   };
 }
 
@@ -158,6 +164,7 @@ export async function cadastrarAfiliado(req, env, origin, { rpc, json, escapar }
   if (registro.enviar) {
     try {
       await enviar(env, afiliado.email, emailRecebido(registro.nome || afiliado.nome, escapar));
+      await enviarWhatsapp(env, afiliado.whatsapp, MENSAGENS.recebido(registro.nome || afiliado.nome));
     } catch (err) {
       console.error("envio_afiliado_falhou", err.message);
       try { await rpc(env, "desfazer_recebido_afiliado", { p_email: afiliado.email }); }
@@ -181,7 +188,7 @@ async function rpcComoUsuario(env, token, nome, args) {
   try { return JSON.parse(texto); } catch { return null; }
 }
 
-export async function aprovarAfiliado(req, env, origin, { json, escapar }) {
+export async function aprovarAfiliado(req, env, origin, { rpc, json, escapar }) {
   const token = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
   if (!token) return json(401, { ok: false, error: "sessao_invalida" }, origin);
   let dados;
@@ -203,10 +210,95 @@ export async function aprovarAfiliado(req, env, origin, { json, escapar }) {
     return json(status, { ok: false, error: r?.error || "erro", vagas: r?.vagas }, origin);
   }
 
-  const link = linkDeIndicacao(env, r.codigo);
+  // Cupom na Stripe na primeira aprovação (ou no reenvio, se a Stripe ainda não estava ligada).
+  let cupom = r.cupom || null;
+  let cupomErro = null;
+  if (!cupom && env.STRIPE_SECRET_KEY && env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const criado = await criarCupomAfiliado(env, r.id, r.candidatos || [], (c) => rpc(env, "cupom_livre", { p_cupom: c }));
+      const salvo = await rpc(env, "definir_cupom_afiliado", { p_id: r.id, p_cupom: criado.cupom, p_promo_id: criado.promoId });
+      if (salvo?.ok) cupom = criado.cupom; else cupomErro = salvo?.error || "nao_salvo";
+    } catch (err) { cupomErro = err.message; console.error("cupom_afiliado_falhou", err.message); }
+  } else if (!cupom) {
+    cupomErro = "stripe_nao_configurada";
+  }
+
+  const link = linkDeIndicacao(env, cupom || r.codigo);
   // Aprovado no banco mesmo se o e-mail falhar: o CRM avisa e o botão reenvia.
   let emailEnviado = true;
-  try { await enviar(env, r.email, emailAprovado(r.nome, r.codigo, link, escapar)); }
+  try { await enviar(env, r.email, emailAprovado(r.nome, r.codigo, link, escapar, cupom)); }
   catch (err) { emailEnviado = false; console.error("envio_aprovacao_falhou", err.message); }
-  return json(200, { ok: true, email_enviado: emailEnviado, codigo: r.codigo, link, whatsapp: r.whatsapp, nome: r.nome }, origin);
+  const wa = await enviarWhatsapp(env, r.whatsapp, MENSAGENS.aprovado(r.nome, link, cupom));
+  return json(200, {
+    ok: true, email_enviado: emailEnviado, whatsapp_enviado: wa.enviado, codigo: r.codigo, cupom, cupom_erro: cupomErro,
+    link, whatsapp: r.whatsapp, nome: r.nome, mensagem_whatsapp: MENSAGENS.aprovado(r.nome, link, cupom),
+  }, origin);
 }
+
+export function emailComissao(nome, valorComissao, valorVenda, escapar) {
+  return {
+    subject: `Você fez uma venda! Comissão de ${brl(valorComissao)} — Trustio`,
+    html: moldura(`Comissão de ${brl(valorComissao)} registrada.`, `
+      <p style="margin:0 0 14px;font-size:20px;font-weight:600;color:#f4f6fa;">${escapar(nome)}, você fez uma venda!</p>
+      <p ${P}>Uma venda de <b style="color:#f4f6fa;">${brl(valorVenda)}</b> entrou pelo seu link ou cupom Trustio.</p>
+      <p ${ROTULO}>Sua comissão</p>
+      <p style="margin:0 0 26px;font-size:26px;font-weight:700;color:#53cdfe;">${brl(valorComissao)}</p>
+      <p style="margin:0 0 30px;font-size:13px;line-height:1.6;color:#8b96a7;">O valor vai para a chave Pix cadastrada.</p>`),
+    text: `${nome}, você fez uma venda!\n\nVenda: ${brl(valorVenda)}\nSua comissão: ${brl(valorComissao)}\n\nO valor vai para a chave Pix cadastrada.\n\nTrustio · https://trustio.com.br/afiliados.html`,
+  };
+}
+
+/**
+ * POST /stripe/webhook. Só checkout.session.completed gera comissão (é a primeira compra;
+ * renovações chegam como invoice.* e não pagam comissão de novo). Responde 2xx a todo evento
+ * que não gera comissão, para a Stripe não reenviar; 5xx só em falha real, e a Stripe tenta
+ * de novo por até 3 dias.
+ */
+export async function webhookStripe(req, env, { rpc, json, escapar }) {
+  const corpo = await req.text();
+  if (!env.STRIPE_WEBHOOK_SECRET) return json(503, { ok: false, error: "nao_configurado" });
+  if (!(await assinaturaValida(corpo, req.headers.get("stripe-signature"), env.STRIPE_WEBHOOK_SECRET))) {
+    return json(400, { ok: false, error: "assinatura_invalida" });
+  }
+  let evento;
+  try { evento = JSON.parse(corpo); } catch { return json(400, { ok: false, error: "corpo_invalido" }); }
+  if (evento.type !== "checkout.session.completed") return json(200, { ok: true, ignorado: evento.type });
+
+  const resumo = evento.data?.object || {};
+  if (resumo.payment_status && resumo.payment_status !== "paid" && resumo.payment_status !== "no_payment_required") {
+    return json(200, { ok: true, ignorado: "nao_pago" });
+  }
+
+  let registro;
+  try {
+    const sessao = env.STRIPE_SECRET_KEY ? await lerSessao(env, resumo.id) : resumo;
+    const preco = sessao.line_items?.data?.[0]?.price?.id || null;
+    registro = await rpc(env, "registrar_comissao", {
+      p_evento: evento.id,
+      p_sessao: sessao.id,
+      p_ref: sessao.client_reference_id || null,
+      p_promo_id: promoDaSessao(sessao),
+      p_email_comprador: sessao.customer_details?.email || sessao.customer_email || null,
+      p_valor_venda: Number(sessao.amount_subtotal ?? 0),
+      p_price_id: preco,
+      p_payment_intent: typeof sessao.payment_intent === "string" ? sessao.payment_intent : null,
+    });
+  } catch (err) {
+    console.error("comissao_falhou", err.message);
+    return json(500, { ok: false, error: "tente_de_novo" });
+  }
+
+  if (registro?.registrada && registro.valor_comissao > 0) {
+    const a = registro.afiliado;
+    try { await enviar(env, a.email, emailComissao(a.nome, registro.valor_comissao, registro.valor_venda, escapar)); }
+    catch (err) { console.error("email_comissao_falhou", err.message); }
+    await enviarWhatsapp(env, a.whatsapp, MENSAGENS.comissao(a.nome, registro.valor_comissao, registro.valor_venda));
+  }
+  return json(200, { ok: true, registrada: Boolean(registro?.registrada), motivo: registro?.motivo || null });
+}
+
+export const statusIntegracoes = (env) => ({
+  stripe: Boolean(env.STRIPE_SECRET_KEY),
+  stripe_webhook: Boolean(env.STRIPE_WEBHOOK_SECRET),
+  whatsapp: whatsappConfigurado(env),
+});

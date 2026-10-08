@@ -35,11 +35,10 @@
   <link rel="stylesheet" href="/assets/styles.css?v=77b62ce3">
   <link rel="stylesheet" href="/assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="/assets/whatsapp-suporte.js?v=19399fa4"></script>
-  <script type="module" src="/assets/app.js?v=1e260e3e"></script>
+  <script type="module" src="/assets/app.js?v=3ecff583"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/privacidade.html">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/privacidade.html">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/privacidade.html"><!--/i18n:alt-->
-  <script type="module" src="/assets/origem.js?v=4c949450"></script>
 </head>
 <body class="legal-page">
   <a class="skip-link" href="#conteudo">Skip to content</a>
@@ -123,13 +122,13 @@
         <li>Trustio administrators can access conversations for support and to investigate abuse. It's not routine, and it's stated here so you know before you write, not after.</li>
       </ul>
 
-      <h3>4. When you arrive through an affiliate or campaign link</h3>
+      <h3>4. When you arrive through an affiliate link</h3>
       <ul class="legal-lista">
-        <li><b>Affiliate code</b> — if the address you opened carried <code>?ref=</code>, the site stores that code in a <b>first-party cookie</b> (<code>trustio_ref</code>), for 90 days. It holds the code of whoever referred you, not who you are. The most recent click always wins: a new link replaces the previous one.</li>
-        <li><b>Campaign parameters</b> — if the address carried <code>utm_</code>parameters, those values and the date of the visit stay in your <b>browser’s local storage</b>, and there the opposite applies: only the first one counts, and coming back later by another route doesn’t change the record. They tell us which channel brought each person; they don’t pay anyone.</li>
-        <li><b>When it leaves your device</b> — when you open a payment, the code travels with it to <b>Stripe</b>, in the purchase reference field, so the sale arrives linked to whoever referred you; without it there is no way to pay the commission. When you create an account, it is saved with your registration, for the same reason. Outside those two cases, it stays only in your browser.</li>
-        <li><b>How long it stays in the browser, and how to erase it</b> — the cookie expires on its own after 90 days; the campaign data stays until you erase it. Clearing cookies and site data removes both (in your browser settings, clearing those for <code>trustio.com.br</code>). In a private window everything is stored just the same, except that the browser itself discards it when you close the window. Erasing it costs you nothing: it undoes the link to whoever referred you from then on.</li>
-        <li><b>What clearing the browser does not reach</b> — if you have already created an account or paid, the code is <b>also</b> saved with your registration and in that purchase's reference at Stripe, and those copies stay where they are. Clearing the browser does not remove them. To erase them, the route is the same as for any other data of yours: <a href="#direitos">request erasure</a>, with an answer within 15 days.</li>
+        <li><b>What is stored</b> — if the address you opened carried <code>?ref=</code>, the site stores that code in a <b>first-party cookie</b> (<code>trustio_ref</code>), for 90 days. It says who referred you, not who you are. The most recent click always wins: a new link replaces the previous one.</li>
+        <li><b>What it is for</b> — so the sale is credited to whoever referred you, and so that person’s discount coupon arrives already filled in at checkout. Without it there is no way to pay the commission of whoever brought you here.</li>
+        <li><b>When it leaves your device</b> — when you click to pay, the code travels with it to <b>Stripe</b>, in the purchase reference field and in the coupon field. Beyond that it stays only in your browser: it is sent to no one else and is not used for advertising.</li>
+        <li><b>How long, and how to erase it</b> — the cookie expires on its own after 90 days. Clearing the site’s cookies removes it sooner (in your browser settings, clearing the data for <code>trustio.com.br</code>). In a private window it is stored just the same, and the browser itself discards it when you close the window. Erasing it costs you nothing: it only undoes the link to whoever referred you, from then on.</li>
+        <li><b>What clearing the browser does not reach</b> — if you have already paid through one of those links, the code <b>also</b> is also in that purchase’s reference at Stripe and in our commission record, and those copies stay where they are. To erase them, the route is the same as for any other data of yours: <a href="#direitos">request erasure</a>, with an answer within 15 days.</li>
       </ul>
 
       <h2 id="processamento">Where your conversations are processed</h2>
@@ -140,7 +139,7 @@
       <h2 id="terceiros">Who we share with</h2>
       <ul class="legal-lista">
         <li><b>Supabase</b> — hosts your account's database and authentication, in the São Paulo region (<code>sa-east-1</code>).</li>
-        <li><b>Stripe</b> — processes payments. Your card details go straight to Stripe and <b>never pass through Trustio's servers</b>. We only get back the confirmation and the contact details needed to release access. When you arrive through a referral link, the referrer's code travels with the purchase, in the reference field (see item 4 above).</li>
+        <li><b>Stripe</b> — processes payments. Your card details go straight to Stripe and <b>never pass through Trustio's servers</b>. We only get back the confirmation and the contact details needed to release access. When you arrive through an affiliate link, that person's code travels with the purchase, in the reference field and in the coupon field (see item 4 above).</li>
         <li><b>Resend</b> — delivers account confirmation and password recovery emails, and responses to contact requests.</li>
         <li><b>Cloudflare</b> — delivers the website and contact request API and counts visits in aggregate (Web Analytics), without cookies or identifying individuals.</li>
         <li><b>GitHub Pages</b> — hosts the website files and, like any server, logs technical access data such as the IP address.</li>

@@ -11,7 +11,8 @@
  *   GET  /confirm?token=   confirma a inscrição
  *   GET  /saude            diz se as variáveis estão configuradas (sem revelá-las)
  *   POST /afiliados        cadastra o afiliado (pendente) e avisa que está em análise
- *   POST /afiliados/aprovar  a equipe aprova no CRM; o afiliado recebe o link (afiliados.js)
+ *   POST /afiliados/aprovar  a equipe aprova no CRM; o afiliado recebe link e cupom (afiliados.js)
+ *   POST /stripe/webhook   venda confirmada → comissão do afiliado (afiliados.js, stripe.js)
  *
  * Variáveis (wrangler secret put NOME)
  *   SUPABASE_URL                https://mjdaluioyutnxlyomzyd.supabase.co
@@ -29,7 +30,7 @@
  * SIGNUPS continuam confirmando. Na troca, ver worker/README.md.
  */
 
-import { aprovarAfiliado, cadastrarAfiliado } from "./afiliados.js";
+import { aprovarAfiliado, cadastrarAfiliado, statusIntegracoes, webhookStripe } from "./afiliados.js";
 
 const ORIGENS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$|^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
 
@@ -457,6 +458,7 @@ export default {
         supabase: Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY),
         resend: Boolean(env.RESEND_API_KEY),
         remetente: env.EMAIL_FROM || null,
+        afiliados: statusIntegracoes(env),
         exemplo_de_link: linkDeConfirmacao(env, "TOKEN_DE_EXEMPLO"),
       }, origin);
     }
@@ -563,7 +565,10 @@ export default {
       return cadastrarAfiliado(req, env, origin, { rpc, json, escapar });
     }
     if (url.pathname === "/afiliados/aprovar" && req.method === "POST") {
-      return aprovarAfiliado(req, env, origin, { json, escapar });
+      return aprovarAfiliado(req, env, origin, { rpc, json, escapar });
+    }
+    if (url.pathname === "/stripe/webhook" && req.method === "POST") {
+      return webhookStripe(req, env, { rpc, json, escapar });
     }
 
     // ---- confirmação

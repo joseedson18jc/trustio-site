@@ -408,6 +408,11 @@
     "Pagamento único · ativação automática após a confirmação do pagamento": "One-time payment · automatic activation after payment confirmation",
     "Quando posso usar o plano pago?": "When can I use my paid plan?",
     "O acesso pessoal é liberado automaticamente após a confirmação do pagamento pelo Stripe. Use no pagamento o mesmo e-mail da sua conta Trustio. O passe de 7 dias começa na ativação. Para testar antes de pagar, crie sua conta, confirme o e-mail e use as 5 perguntas grátis.": "Personal access is granted automatically after Stripe confirms payment. Use the same email address as your Trustio account at checkout. The 7-day pass starts at activation. To try it before paying, create your account, confirm your email and use your 5 free questions.",
-    "no chat, uma única vez, após confirmar o e-mail. Nenhum plano cobra por token: o limite é uso justo, não contagem.": "in the chat, once per account, after confirming your email. No plan charges by token: fair use applies."
+    "no chat, uma única vez, após confirmar o e-mail. Nenhum plano cobra por token: o limite é uso justo, não contagem.": "in the chat, once per account, after confirming your email. No plan charges by token: fair use applies.",
+    "Sem querer deixar cartão preso?": "Don’t want to leave a card on file?",
+    "O passe de 7 dias": "The 7-day pass",
+    "é pagamento único: não renova sozinho e não guarda nada para cobrar depois. E quem chega por um": "is a one-off payment: it doesn’t renew by itself and keeps nothing on file to charge later. And anyone arriving through a",
+    "link de indicação": "referral link",
+    "começa com 7 dias de acesso completo, de graça.": "starts with 7 days of full access, free of charge."
   }
 }

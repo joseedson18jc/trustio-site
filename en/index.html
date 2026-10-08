@@ -112,6 +112,9 @@
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/"><!--/i18n:alt-->
   <link rel="stylesheet" href="/assets/home-residency.css?v=9e8f8d9c">
   <script defer src="/assets/home-residency.js?v=26b70027"></script>
+  <link rel="stylesheet" href="/assets/home-conversao.css?v=e48070a1">
+
+  <script type="module" src="/assets/origem.js?v=926ae4b2"></script>
 </head>
 <body class="home-page">
   <a class="skip-link" href="#conteudo">Skip to content</a>
@@ -151,6 +154,7 @@
         <a href="modelos.html">Models</a>
         <a href="voice.html" class="nav-voice" title="powered by xAI · for businesses">VoiceAI <small>for businesses</small></a>
         <a href="planos.html#pessoal">Plans</a>
+        <a href="/indicacao.html">Referrals</a>
         <a href="manifesto.html">Manifesto</a>
       </nav>
   </header>
@@ -179,7 +183,7 @@
 
     <section class="hero-b2b-band" aria-label="Trustio for businesses">
       <div class="container">
-        <p><b>For businesses:</b> private AI infrastructure inside your perimeter — models, VoiceAI, OCR and Omnichannel, hosted in Brazil. <a href="empresas.html">Explore Trustio for companies</a></p>
+        <p><b>For businesses:</b> an AI environment that belongs to your company alone — models, VoiceAI, OCR and Omnichannel, on servers in Brazil. <a href="empresas.html">Explore Trustio for companies</a></p>
       </div>
     </section>
 
@@ -201,6 +205,59 @@
         <p class="fine-print">* Whoever sends the questions is responsible for their content and for how they use the answers, as provided by law.</p>
       </div>
     </section>
+
+    <section class="home-personas section-shell" id="para-quem" aria-labelledby="home-personas-title">
+      <div class="container">
+        <div class="home-personas-head reveal">
+          <p class="section-kicker">Who it is for</p>
+          <h2 id="home-personas-title">The people the filter costs most <span>are the ones working on serious matters.</span></h2>
+          <p class="home-personas-lead">When your question is work, “I can’t help with that” isn’t caution: it’s wasted time. See what changes in each profession.</p>
+        </div>
+        <div class="home-personas-grid">
+          <a class="home-persona reveal" href="/ia-sem-censura.html#para-quem">
+            <span class="home-persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M6 21h12M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></svg></span>
+            <b>Lawyers</b>
+            <p>Criminal charges, defence arguments and contract clauses analysed all the way through, with no “I can’t give an opinion” halfway into the brief.</p>
+            <span class="home-persona-ask">Law</span>
+          </a>
+          <a class="home-persona reveal" href="/ia-sem-censura.html#para-quem">
+            <span class="home-persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg></span>
+            <b>Journalists and researchers</b>
+            <p>Sensitive stories investigated in depth, without the conversation stalling exactly where the story is.</p>
+            <span class="home-persona-ask">Investigation</span>
+          </a>
+          <a class="home-persona reveal" href="/ia-sem-censura.html#para-quem">
+            <span class="home-persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v3a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="12" r="2"/></svg></span>
+            <b>Health professionals</b>
+            <p>Dosages, interactions and protocols explained without hedging, for study and double-checking. The decision stays yours.</p>
+            <span class="home-persona-ask">Study and checking</span>
+          </a>
+          <a class="home-persona reveal" href="/ia-sem-censura.html#para-quem">
+            <span class="home-persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+            <b>Security and IT</b>
+            <p>How the scam and the attack actually work — which is what you need in order to train your team and close the gap.</p>
+            <span class="home-persona-ask">Defence</span>
+          </a>
+          <a class="home-persona reveal" href="/ia-sem-censura.html#para-quem">
+            <span class="home-persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg></span>
+            <b>Writers and screenwriters</b>
+            <p>Conflict, violence and hard subjects when the story calls for them. Adult fiction doesn’t need permission.</p>
+            <span class="home-persona-ask">Creative work</span>
+          </a>
+          <a class="home-persona reveal" href="/ia-sem-censura.html#para-quem">
+            <span class="home-persona-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+            <b>People who refuse to be the product</b>
+            <p>Conversations kept in Brazil and never used to train a model. Not ours, not anyone’s.</p>
+            <span class="home-persona-ask">Privacy</span>
+          </a>
+        </div>
+        <div class="home-personas-foot reveal">
+          <a class="button button-outline" href="/ia-sem-censura.html">See all six cases in detail <span aria-hidden="true"><svg class="arw arw-right" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+          <p class="home-personas-note">Uncensored means removing the filter, not removing responsibility: Brazilian law still applies, and whoever asks answers for how they use the answer.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="voiceai-spotlight section-shell" id="voiceai" aria-labelledby="voiceai-title">
       <div class="container voiceai-spotlight-grid">
         <div>
@@ -314,7 +371,7 @@
             <div class="server-center">
               <span class="server-sensor" aria-hidden="true"></span>
               <div class="server-wordmark">Trust<span>io</span></div>
-              <span class="server-tag">node active · secure perimeter</span>
+              <span class="server-tag">node active · isolated environment</span>
             </div>
             <div class="server-grid" data-server-grid="right" aria-hidden="true"></div>
           </div>
@@ -337,6 +394,58 @@
     </div>
   </div>
 </section>
+
+    <section class="home-prova section-shell" id="prova" aria-labelledby="home-prova-title">
+      <div class="container">
+        <div class="home-prova-head reveal">
+          <p class="section-kicker">Before you trust us</p>
+          <h2 id="home-prova-title">Trustio is new. <span>So here is what you can check for yourself.</span></h2>
+          <p class="home-prova-lead">We won’t show made-up testimonials or a user counter to look bigger than we are. <b>We would rather give you what you can verify right now</b>, on your own, without talking to a salesperson.</p>
+        </div>
+        <div class="home-prova-grid">
+          <div class="home-prova-item reveal">
+            <span class="n">01</span>
+            <b>There are people here, with names and faces</b>
+            <p>Trustio isn’t an anonymous brand. The person who answers for the product shows up, with a professional record you can verify.</p>
+            <a href="fundador.html">Who is behind it</a>
+          </div>
+          <div class="home-prova-item reveal">
+            <span class="n">02</span>
+            <b>A company registered in Brazil</b>
+            <p>Active company number, legal name and address, in the footer of every page. Check them with the Brazilian tax authority before you pay.</p>
+            <code>58.451.617/0001-03</code>
+          </div>
+          <div class="home-prova-item reveal">
+            <span class="n">03</span>
+            <b>The models have names</b>
+            <p>We don’t say “cutting-edge AI”. We say which open models we run, and you judge whether they fit.</p>
+            <a href="modelos.html">See the models</a>
+          </div>
+          <div class="home-prova-item reveal">
+            <span class="n">04</span>
+            <b>The code of this site is public</b>
+            <p>You can read what this page loads, where it sends data and what it keeps in your browser.</p>
+            <a href="https://github.com/joseedson18jc/trustio-site" target="_blank" rel="noopener">Open the repository</a>
+          </div>
+          <div class="home-prova-item reveal">
+            <span class="n">05</span>
+            <b>The promise is in writing</b>
+            <p>“Conversations don’t train models” isn’t just an ad line: it’s in the privacy policy, which is a document, not a slogan.</p>
+            <a href="privacidade.html">Read the policy</a>
+          </div>
+          <div class="home-prova-item reveal">
+            <span class="n">06</span>
+            <b>You try it before you pay</b>
+            <p>Create an account and ask your first questions free, with no card. If you don’t like it, don’t subscribe — and we charge you nothing.</p>
+            <a href="cadastro.html">Create a free account</a>
+          </div>
+        </div>
+        <div class="home-prova-ressalva reveal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+          <p><b>What we don’t have yet:</b> a customer case to show and a user count to display. When we have them, they will appear here with a name, a date and the permission of whoever authorised it — the same way as everything else in this section.</p>
+        </div>
+      </div>
+    </section>
 
     <section class="manifesto-preview section-shell" aria-labelledby="manifesto-preview-title">
       <div class="manifesto-glow" aria-hidden="true"></div>
@@ -377,7 +486,7 @@
         <p>Personal and business AI, private and under your control.</p>
       </div>
       <div class="footer-links">
-        <div><span>FOR YOU</span><a href="/ia-sem-censura.html">Uncensored AI</a><a href="agentio.html">Agentio</a><a href="modelos.html">Models</a><a href="planos.html#pessoal">Plans</a><a href="entrar.html">Sign in</a></div>
+        <div><span>FOR YOU</span><a href="/ia-sem-censura.html">Uncensored AI</a><a href="agentio.html">Agentio</a><a href="modelos.html">Models</a><a href="planos.html#pessoal">Plans</a><a href="/indicacao.html">Referrals</a><a href="entrar.html">Sign in</a></div>
         <div><span>FOR BUSINESSES</span><a href="empresas.html">Home</a><a href="voice.html">VoiceAI · xAI</a><a href="/en/juridico/">Legal</a><a href="empresas.html#seguranca">Security</a><a href="empresas.html#implantacao">Deployment</a></div>
         <div><span>COMPANY</span><a href="manifesto.html">Manifesto</a><a href="fundador.html">Founder</a><a href="privacidade.html">Privacy</a><!--email_off--><a href="mailto:contato@trustio.com.br">Contact</a><!--/email_off--></div>
       </div>

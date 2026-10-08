@@ -18,10 +18,10 @@
   <script src="../assets/theme.js?v=62b52a16"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=77b62ce3">
   <link rel="stylesheet" href="../assets/chat.css?v=94f31701">
-  <link rel="stylesheet" href="../assets/crm.css?v=20592205">
+  <link rel="stylesheet" href="../assets/crm.css?v=6bd1f7a0">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=c3461a69"></script>
-  <script defer src="../assets/crm-afiliados.js?v=6947a0b2"></script>
+  <script defer src="../assets/crm-afiliados.js?v=e9cb0806"></script>
 </head>
 <body class="chat-page crm-page">
 <a class="skip-link" href="#afiliados">Ir para a lista de afiliados</a>
@@ -58,6 +58,7 @@
       <div class="stat stat-alert"><b data-af-stat="pendentes">0</b><small>esperando análise</small></div>
       <div class="stat"><b data-af-stat="vagas">0/100</b><small>vagas ocupadas</small></div>
       <div class="stat"><b data-af-stat="total">0</b><small>cadastros</small></div>
+      <div class="stat stat-alert"><b data-af-stat="apagar">R$ 0</b><small>comissões a pagar</small></div>
       <div class="stat"><b data-af-stat="semana">0</b><small>nos últimos 7 dias</small></div>
       <div class="stat"><b data-af-stat="b2b">0</b><small>consultoria / B2B</small></div>
     </div>
@@ -77,7 +78,7 @@
         <thead>
           <tr>
             <th>Afiliado</th>
-            <th>Código e link</th>
+            <th>Cupom e link</th>
             <th>Canal</th>
             <th>CPF</th>
             <th>Chave Pix</th>
@@ -91,6 +92,24 @@
       </table>
       <p class="empty" data-empty hidden>Nenhum afiliado ainda.</p>
     </div>
+    <section class="af-comissoes" aria-labelledby="af-com-titulo">
+      <h2 id="af-com-titulo" class="af-h2">Comissões</h2>
+      <p class="af-sub">Cada venda paga pela Stripe com o link ou o cupom de um afiliado entra aqui sozinha, já com o valor da tabela e os tetos (R$ 25.000/mês e R$ 300.000/ano por afiliado). Pague o Pix e marque como pago.</p>
+      <div class="toolbar toolbar-2">
+        <div class="filters" role="group" aria-label="Filtrar comissões" data-com-filtros>
+          <button type="button" data-com-filtro="a_pagar" aria-pressed="true">A pagar</button>
+          <button type="button" data-com-filtro="pago" aria-pressed="false">Pagas</button>
+          <button type="button" data-com-filtro="" aria-pressed="false">Todas</button>
+        </div>
+      </div>
+      <div class="tablewrap">
+        <table class="leads">
+          <thead><tr><th>Data</th><th>Afiliado</th><th>Chave Pix</th><th>Venda</th><th>Comissão</th><th>Origem</th><th>Status</th></tr></thead>
+          <tbody data-com-rows></tbody>
+        </table>
+        <p class="empty" data-com-empty hidden>Nenhuma comissão aqui.</p>
+      </div>
+    </section>
     <p class="foot-note"><b>Aprovar</b> só por este botão (ele confere as vagas e registra quem aprovou); em afiliado ativo ele vira <b>Reenviar link</b>. Status <code>pausado</code>, <code>recusado</code> ou <code>removido</code> libera a vaga e serve de registro: o link continua abrindo o site. Alterações são salvas ao sair do campo. CPF e chave Pix são dados pessoais (LGPD): use só para pagar comissões.</p>
   </main>
   <div class="toast" data-toast role="status" aria-live="polite"></div>

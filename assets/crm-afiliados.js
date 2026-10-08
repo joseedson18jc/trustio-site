@@ -26,7 +26,7 @@
 
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var shell = $(".crm-shell"), rows = $("[data-rows]"), empty = $("[data-empty]"), gate = $("[data-gate]");
-  var state = { afiliados: [], q: "", vagas: null };
+  var state = { afiliados: [], q: "", vagas: null, comissoes: [], comFiltro: "a_pagar" };
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function gateShow(t, p, actions) { gate.hidden = false; $("[data-gate-title]").textContent = t; $("[data-gate-text]").textContent = p; $("[data-gate-actions]").hidden = !actions; }
@@ -54,7 +54,7 @@
       shell.dataset.papel = papel;
       $("[data-eu]").textContent = PAPEL_LABEL[papel];
       gate.hidden = true;
-      return Promise.all([load(), loadVagas()]).then(function () { shell.dataset.state = "ready"; });
+      return load().then(function () { return Promise.all([loadVagas(), loadComissoes()]); }).then(function () { shell.dataset.state = "ready"; });
     });
   });
 
@@ -70,24 +70,60 @@
     });
   }
 
+  function brl(c) { return "R$ " + (Number(c || 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+  function loadComissoes() {
+    return sb.from("comissoes").select("*").order("created_at", { ascending: false }).limit(2000).then(function (r) {
+      if (r.error) { toast("Comissões: " + r.error.message, "erro"); return; }
+      state.comissoes = r.data || [];
+      renderComissoes();
+      stats();
+    });
+  }
+
+  function afiliadoPorId(id) { return state.afiliados.filter(function (a) { return a.id === id; })[0] || {}; }
+
+  function renderComissoes() {
+    var L = state.comissoes.filter(function (c) { return !state.comFiltro || c.status === state.comFiltro; });
+    $("[data-com-rows]").innerHTML = L.map(function (c) {
+      var a = afiliadoPorId(c.afiliado_id);
+      var alerta = (c.auto_indicacao ? "<small class=\"af-alerta\">Comprador = afiliado (auto-indicação)</small>" : "") +
+        (c.teto_aplicado ? "<small class=\"af-alerta\">Teto aplicado (tabela " + esc(brl(c.valor_tabela)) + ")</small>" : "");
+      var acao = c.status === "a_pagar"
+        ? "<button type=\"button\" class=\"btn btn-primary\" data-pagar=\"" + esc(c.id) + "\">Marcar como pago</button>"
+        : c.status === "pago" ? "Pago " + esc(data(c.pago_em)) + " <button type=\"button\" class=\"btn btn-ghost\" data-desfazer=\"" + esc(c.id) + "\">Desfazer</button>" : "Cancelada";
+      return "<tr><td>" + esc(data(c.created_at)) + "</td>" +
+        "<td class=\"who\"><b>" + esc(a.nome || "—") + "</b><small>" + esc(a.cupom || a.codigo || "") + "</small></td>" +
+        "<td><small>" + esc(PIX_LABEL[a.pix_tipo] || "") + "</small><span class=\"mono\">" + esc(a.pix_chave || "") + "</span>" +
+          (a.pix_chave ? "<small><button type=\"button\" class=\"btn btn-ghost\" data-copy=\"" + esc(a.pix_chave) + "\">Copiar Pix</button></small>" : "") + "</td>" +
+        "<td>" + esc(brl(c.valor_venda)) + "<small>" + esc(c.comprador_email || "") + "</small></td>" +
+        "<td><b>" + esc(brl(c.valor_comissao)) + "</b>" + alerta + "</td>" +
+        "<td>" + (c.atribuicao === "cupom" ? "Cupom" : "Link") + "</td>" +
+        "<td>" + acao + "</td></tr>";
+    }).join("");
+    $("[data-com-empty]").hidden = L.length > 0;
+  }
+
+  function mudarComissao(id, status) {
+    sb.from("comissoes").update({ status: status }).eq("id", id).select("*").single().then(function (r) {
+      if (r.error) { toast("Não foi possível salvar: " + r.error.message, "erro"); return; }
+      state.comissoes = state.comissoes.map(function (c) { return c.id === id ? r.data : c; });
+      renderComissoes(); stats();
+      toast(status === "pago" ? "Comissão marcada como paga." : "Comissão voltou para a pagar.");
+    });
+  }
+
   function loadVagas() {
     return sb.rpc("vagas_afiliados").then(function (r) { if (!r.error && r.data) { state.vagas = r.data; stats(); } });
   }
 
-  function whatsappLink(numero, nome, link) {
-    var d = String(numero || "").replace(/\D/g, "");
-    if (d.length <= 11) d = "55" + d;
-    var texto = "Olá, " + nome + "! Seu cadastro no programa de afiliados da Trustio foi aprovado. 🎉\n\nSeu link de afiliado: " + link +
-      "\n\nCada venda pelo link gera comissão fixa, liberada na hora via a chave Pix cadastrada. Também enviamos tudo no seu e-mail.";
-    return "https://wa.me/" + d + "?text=" + encodeURIComponent(texto);
-  }
+  function numeroWa(n) { var d = String(n || "").replace(/\D/g, ""); return d.length <= 11 ? "55" + d : d; }
 
   function aprovar(btn) {
     var id = btn.closest("tr").dataset.id;
     var a = state.afiliados.filter(function (x) { return x.id === id; })[0];
     if (!a) return;
     // Abre a aba já no clique (pop-up liberado); o endereço do WhatsApp entra quando o servidor responde.
-    var aba = window.open("", "_blank");
     btn.disabled = true;
     sb.auth.getSession().then(function (r) {
       var token = r.data && r.data.session && r.data.session.access_token;
@@ -96,12 +132,14 @@
       return res.json().catch(function () { return {}; });
     }).then(function (d) {
       btn.disabled = false;
-      if (!d.ok) { if (aba) aba.close(); toast(ERROS_APROVAR[d.error] || "Não foi possível aprovar: " + (d.error || "erro"), "erro"); return; }
-      var wa = whatsappLink(d.whatsapp, d.nome, d.link);
-      if (aba) aba.location.href = wa; else window.open(wa, "_blank");
-      toast(d.email_enviado ? "Aprovado. Link enviado por e-mail; confirme o envio no WhatsApp." : "Aprovado, mas o e-mail não saiu. Clique em Reenviar link.", d.email_enviado ? "" : "erro");
+      if (!d.ok) { toast(ERROS_APROVAR[d.error] || "Não foi possível aprovar: " + (d.error || "erro"), "erro"); return; }
+      // WhatsApp automático (Evolution API). Se não saiu, abre a conversa com a mensagem pronta.
+      if (!d.whatsapp_enviado) window.open("https://wa.me/" + numeroWa(d.whatsapp) + "?text=" + encodeURIComponent(d.mensagem_whatsapp || ""), "_blank");
+      var partes = [d.email_enviado ? "e-mail enviado" : "e-mail NÃO saiu", d.whatsapp_enviado ? "WhatsApp enviado" : "confirme o WhatsApp na aba aberta"];
+      if (d.cupom_erro) partes.push("cupom não criado na Stripe (" + d.cupom_erro + ")");
+      toast("Aprovado: " + partes.join(" · ") + ".", d.email_enviado && !d.cupom_erro ? "" : "erro");
       return Promise.all([load(), loadVagas()]);
-    }).catch(function () { btn.disabled = false; if (aba) aba.close(); toast("Sem conexão com o servidor. Tente de novo.", "erro"); });
+    }).catch(function () { btn.disabled = false; toast("Sem conexão com o servidor. Tente de novo.", "erro"); });
   }
 
   function filtrados() {
@@ -121,6 +159,7 @@
     $("[data-af-stat=pendentes]").textContent = L.filter(function (a) { return a.status === "pendente"; }).length;
     $("[data-af-stat=vagas]").textContent = (state.vagas ? state.vagas.ativos : ativos) + "/" + (state.vagas ? state.vagas.vagas : 100);
     $("[data-af-stat=semana]").textContent = L.filter(function (a) { return agora - new Date(a.created_at).getTime() < SEMANA_MS; }).length;
+    $("[data-af-stat=apagar]").textContent = brl(state.comissoes.filter(function (c) { return c.status === "a_pagar"; }).reduce(function (s, c) { return s + c.valor_comissao; }, 0));
     $("[data-af-stat=b2b]").textContent = L.filter(function (a) { return a.canal === "Consultoria / B2B"; }).length;
   }
 
@@ -131,7 +170,8 @@
     return "<tr data-id=\"" + esc(a.id) + "\">" +
       "<td class=\"who\"><b>" + esc(a.nome) + "</b><a class=\"mail\" href=\"mailto:" + esc(a.email) + "\">" + esc(a.email) + "</a>" +
         (a.audiencia ? "<small>" + esc(a.audiencia) + "</small>" : "") + "</td>" +
-      "<td><b class=\"mono\">" + esc(a.codigo) + "</b><small><button type=\"button\" class=\"btn btn-ghost\" data-copy=\"" + esc(link(a.codigo)) + "\">Copiar link</button></small>" +
+      "<td><b class=\"mono\">" + esc(a.cupom || a.codigo) + "</b>" + (a.cupom ? "" : "<small>Sem cupom na Stripe ainda</small>") +
+        "<small><button type=\"button\" class=\"btn btn-ghost\" data-copy=\"" + esc(link(a.cupom || a.codigo)) + "\">Copiar link</button></small>" +
         "<small>" + (a.link_enviado_em ? "Link enviado " + esc(data(a.link_enviado_em)) : "Link não enviado") + "</small></td>" +
       "<td>" + esc(a.canal) + "</td>" +
       "<td class=\"mono\">" + esc(cpfFmt(a.cpf)) + "</td>" +
@@ -176,7 +216,18 @@
     var b = e.target.closest("[data-copy]"); if (!b) return;
     navigator.clipboard.writeText(b.dataset.copy).then(function () { toast("Link copiado."); }, function () { toast(b.dataset.copy); });
   });
+  $("[data-com-rows]").addEventListener("click", function (e) {
+    var pg = e.target.closest("[data-pagar]"); if (pg) { mudarComissao(pg.dataset.pagar, "pago"); return; }
+    var df = e.target.closest("[data-desfazer]"); if (df) { mudarComissao(df.dataset.desfazer, "a_pagar"); return; }
+    var b = e.target.closest("[data-copy]"); if (b) navigator.clipboard.writeText(b.dataset.copy).then(function () { toast("Copiado."); });
+  });
+  $("[data-com-filtros]").addEventListener("click", function (e) {
+    var f = e.target.closest("[data-com-filtro]"); if (!f) return;
+    state.comFiltro = f.dataset.comFiltro;
+    [].forEach.call(document.querySelectorAll("[data-com-filtro]"), function (b) { b.setAttribute("aria-pressed", String(b === f)); });
+    renderComissoes();
+  });
   $("[data-af-search]").addEventListener("input", function (e) { state.q = e.target.value; render(); });
-  $("[data-refresh]").addEventListener("click", function () { load(); loadVagas(); });
+  $("[data-refresh]").addEventListener("click", function () { load().then(loadComissoes); loadVagas(); });
   $("[data-retry]").addEventListener("click", load);
 })();

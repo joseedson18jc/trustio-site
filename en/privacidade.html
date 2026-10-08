@@ -87,7 +87,7 @@
       <p class="eyebrow"><span class="status-dot"></span> Privacy</p>
       <h1 id="priv-title">How we handle your data.<span>In plain English, no runaround.</span></h1>
       <p class="lead">This page says exactly what Trustio collects, why, who we share it with, how long we keep it and how you delete it all. If any line here doesn't match what you see in the product, write to us — the line is wrong, not you.</p>
-      <p class="legal-data">Last updated: September 26, 2026 · Controller: JCSC BRAZIL MANAGEMENT LTDA (Trustio), CNPJ 58.451.617/0001-03 · Channel for data subjects and the data protection officer: <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off--></p>
+      <p class="legal-data">Last updated: 8 October 2026 · Controller: JCSC BRAZIL MANAGEMENT LTDA (Trustio), company number 58.451.617/0001-03 · Channel for data subjects and the data protection officer: <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off--></p>
     </div>
   </section>
 
@@ -123,6 +123,14 @@
         <li>Trustio administrators can access conversations for support and to investigate abuse. It's not routine, and it's stated here so you know before you write, not after.</li>
       </ul>
 
+      <h3>4. When you arrive through a referral or campaign link</h3>
+      <ul class="legal-lista">
+        <li><b>What is stored</b> — if the address you opened carried <code>?ref=</code> (a referral link) or <code>utm_</code> parameters (a campaign), the site stores those values and the date of the visit <b>in your own browser</b>, in local storage. It isn't a cookie, it doesn't leave your device on its own and it doesn't identify you: it holds the code of whoever referred you, not who you are.</li>
+        <li><b>What it is for</b> — to credit whoever referred you and to know which channel brought each person. Without it there is no way to pay a referral. Only the first link counts; coming back later by another route doesn't change the record.</li>
+        <li><b>When it leaves your device</b> — when you open a payment, that code travels with it to <b>Stripe</b>, in the purchase reference field, so the sale arrives linked to whoever referred you. When you create an account, it is saved with your registration, for the same reason. Outside those two cases, it stays only in your browser.</li>
+        <li><b>How long, and how to erase it</b> — it stays until you erase it. Clearing the site's data in your browser removes everything (in settings, under site data, clearing those for <code>trustio.com.br</code>); in a private window nothing is stored. Erasing it costs you nothing: it only undoes the link to whoever referred you.</li>
+      </ul>
+
       <h2 id="processamento">Where your conversations are processed</h2>
       <p>Your account, your sign-up details and the text of your conversations are stored in a Trustio database hosted in <b>São Paulo, Brazil</b> (region <code>sa-east-1</code>), with access restricted by policies in the database itself: each person can see only their own conversations.</p>
       <p>To generate the answer, the text of your question and the recent conversation history are processed by the <b>language model Trustio operates on infrastructure in Brazil</b>. The content of your conversations is not sent to model providers abroad. If that changes, this notice will be updated beforehand, naming the provider, the country and the safeguard covering the international transfer.</p>
@@ -131,7 +139,7 @@
       <h2 id="terceiros">Who we share with</h2>
       <ul class="legal-lista">
         <li><b>Supabase</b> — hosts your account's database and authentication, in the São Paulo region (<code>sa-east-1</code>).</li>
-        <li><b>Stripe</b> — processes payments. Your card details go straight to Stripe and <b>never pass through Trustio's servers</b>. We only get back the confirmation and the contact details needed to grant access.</li>
+        <li><b>Stripe</b> — processes payments. Your card details go straight to Stripe and <b>never pass through Trustio's servers</b>. We only get back the confirmation and the contact details needed to release access. When you arrive through a referral link, the referrer's code travels with the purchase, in the reference field (see item 4 above).</li>
         <li><b>Resend</b> — delivers account confirmation and password recovery emails, and responses to contact requests.</li>
         <li><b>Cloudflare</b> — delivers the website and contact request API and counts visits in aggregate (Web Analytics), without cookies or identifying individuals.</li>
         <li><b>GitHub Pages</b> — hosts the website files and, like any server, logs technical access data such as the IP address.</li>

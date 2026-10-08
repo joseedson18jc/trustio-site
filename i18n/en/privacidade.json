@@ -110,6 +110,23 @@
     "— orientação ou assinatura. Quem solicita assinatura recebe o link de pagamento; o acesso depende da confirmação do pagamento e do prazo do plano. Solicitar orientação não gera cobrança.": "— guidance or subscription. Subscription requests receive a payment link; access depends on payment confirmation and the plan’s activation timeline. Requesting guidance does not incur a charge.",
     "— entrega o site e a API de solicitações de contato e mede o número de visitas de forma agregada (Web Analytics), sem cookies e sem identificar pessoas.": "— delivers the website and contact request API and counts visits in aggregate (Web Analytics), without cookies or identifying individuals.",
     "— por até 12 meses após a solicitação, ou até você pedir a saída, o que vier primeiro.": "— for up to 12 months after your request, or until you ask to be removed, whichever comes first.",
-    "— entrega os e-mails de confirmação de conta, de recuperação de senha e as respostas às solicitações de contato.": "— delivers account confirmation and password recovery emails, and responses to contact requests."
+    "— entrega os e-mails de confirmação de conta, de recuperação de senha e as respostas às solicitações de contato.": "— delivers account confirmation and password recovery emails, and responses to contact requests.",
+    "Última atualização: 8 de outubro de 2026 · Controladora: JCSC BRAZIL MANAGEMENT LTDA (Trustio), CNPJ 58.451.617/0001-03 · Canal do titular e do encarregado:": "Last updated: 8 October 2026 · Controller: JCSC BRAZIL MANAGEMENT LTDA (Trustio), company number 58.451.617/0001-03 · Channel for data subjects and the data protection officer:",
+    "4. Quando você chega por um link de indicação ou campanha": "4. When you arrive through a referral or campaign link",
+    "O que é guardado": "What is stored",
+    "— se o endereço que você abriu tinha": "— if the address you opened carried",
+    "(link de indicação) ou parâmetros": "(a referral link) or",
+    "(campanha), o site guarda esses valores e a data da visita": "parameters (a campaign), the site stores those values and the date of the visit",
+    "no seu próprio navegador": "in your own browser",
+    ", em armazenamento local. Não é cookie, não sai do seu aparelho sozinho e não identifica você: guarda o código de quem indicou, não quem você é.": ", in local storage. It isn't a cookie, it doesn't leave your device on its own and it doesn't identify you: it holds the code of whoever referred you, not who you are.",
+    "Para que serve": "What it is for",
+    "— para creditar quem indicou você e para saber qual canal trouxe cada pessoa. Sem isso não há como pagar uma indicação. Só o primeiro link conta; voltar depois por outro caminho não troca o registro.": "— to credit whoever referred you and to know which channel brought each person. Without it there is no way to pay a referral. Only the first link counts; coming back later by another route doesn't change the record.",
+    "Quando sai do seu aparelho": "When it leaves your device",
+    "— ao abrir um pagamento, esse código vai junto para a": "— when you open a payment, that code travels with it to",
+    ", no campo de referência da compra, para a venda chegar ligada a quem indicou. Ao criar uma conta, ele é gravado junto do seu cadastro, pelo mesmo motivo. Fora essas duas situações, ele fica só no seu navegador.": ", in the purchase reference field, so the sale arrives linked to whoever referred you. When you create an account, it is saved with your registration, for the same reason. Outside those two cases, it stays only in your browser.",
+    "Por quanto tempo, e como apagar": "How long, and how to erase it",
+    "— fica até você apagar. Limpar os dados do site no seu navegador remove tudo (nas configurações, em dados de sites, apagando os de": "— it stays until you erase it. Clearing the site's data in your browser removes everything (in settings, under site data, clearing those for",
+    "); em janela anônima nada é guardado. Apagar não prejudica você: só desfaz o vínculo com quem indicou.": "); in a private window nothing is stored. Erasing it costs you nothing: it only undoes the link to whoever referred you.",
+    ". Recebemos de volta só a confirmação e os dados de contato necessários para liberar o acesso. Quando você chega por um link de indicação, o código de quem indicou vai junto da compra, no campo de referência (ver o item 4 acima).": ". We only get back the confirmation and the contact details needed to release access. When you arrive through a referral link, the referrer's code travels with the purchase, in the reference field (see item 4 above)."
   }
 }

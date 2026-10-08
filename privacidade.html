@@ -87,7 +87,7 @@
       <p class="eyebrow"><span class="status-dot"></span> Privacidade</p>
       <h1 id="priv-title">Como tratamos os seus dados.<span>Em português, sem rodeio.</span></h1>
       <p class="lead">Esta página diz exatamente o que a Trustio coleta, por que coleta, com quem compartilha, por quanto tempo guarda e como você apaga tudo. Se alguma linha aqui não bater com o que você vê no produto, escreva para nós — a linha está errada, não você.</p>
-      <p class="legal-data">Última atualização: 26 de setembro de 2026 · Controladora: JCSC BRAZIL MANAGEMENT LTDA (Trustio), CNPJ 58.451.617/0001-03 · Canal do titular e do encarregado: <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off--></p>
+      <p class="legal-data">Última atualização: 8 de outubro de 2026 · Controladora: JCSC BRAZIL MANAGEMENT LTDA (Trustio), CNPJ 58.451.617/0001-03 · Canal do titular e do encarregado: <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off--></p>
     </div>
   </section>
 
@@ -123,6 +123,14 @@
         <li>Administradores da Trustio conseguem acessar conversas para suporte e para investigar abuso. Não é rotina, e está dito aqui para você saber antes de escrever, não depois.</li>
       </ul>
 
+      <h3>4. Quando você chega por um link de indicação ou campanha</h3>
+      <ul class="legal-lista">
+        <li><b>O que é guardado</b> — se o endereço que você abriu tinha <code>?ref=</code> (link de indicação) ou parâmetros <code>utm_</code> (campanha), o site guarda esses valores e a data da visita <b>no seu próprio navegador</b>, em armazenamento local. Não é cookie, não sai do seu aparelho sozinho e não identifica você: guarda o código de quem indicou, não quem você é.</li>
+        <li><b>Para que serve</b> — para creditar quem indicou você e para saber qual canal trouxe cada pessoa. Sem isso não há como pagar uma indicação. Só o primeiro link conta; voltar depois por outro caminho não troca o registro.</li>
+        <li><b>Quando sai do seu aparelho</b> — ao abrir um pagamento, esse código vai junto para a <b>Stripe</b>, no campo de referência da compra, para a venda chegar ligada a quem indicou. Ao criar uma conta, ele é gravado junto do seu cadastro, pelo mesmo motivo. Fora essas duas situações, ele fica só no seu navegador.</li>
+        <li><b>Por quanto tempo, e como apagar</b> — fica até você apagar. Limpar os dados do site no seu navegador remove tudo (nas configurações, em dados de sites, apagando os de <code>trustio.com.br</code>); em janela anônima nada é guardado. Apagar não prejudica você: só desfaz o vínculo com quem indicou.</li>
+      </ul>
+
       <h2 id="processamento">Onde as suas conversas são processadas</h2>
       <p>Sua conta, seus dados de cadastro e o texto das suas conversas ficam armazenados em banco de dados da Trustio hospedado em <b>São Paulo, no Brasil</b> (região <code>sa-east-1</code>), com acesso restrito por políticas no próprio banco: cada pessoa só enxerga as próprias conversas.</p>
       <p>Para gerar a resposta, o texto da sua pergunta e o histórico recente da conversa são processados pelo <b>modelo de linguagem que a Trustio opera em infraestrutura no Brasil</b>. O conteúdo das suas conversas não é enviado a provedores de modelo no exterior. Se isso mudar, este aviso será atualizado antes, informando o provedor, o país e a garantia que ampara a transferência internacional.</p>
@@ -131,7 +139,7 @@
       <h2 id="terceiros">Com quem compartilhamos</h2>
       <ul class="legal-lista">
         <li><b>Supabase</b> — hospeda o banco de dados e a autenticação da sua conta, na região de São Paulo (<code>sa-east-1</code>).</li>
-        <li><b>Stripe</b> — processa os pagamentos. Os dados do seu cartão vão direto para a Stripe e <b>nunca passam pelos servidores da Trustio</b>. Recebemos de volta só a confirmação e os dados de contato necessários para liberar o acesso.</li>
+        <li><b>Stripe</b> — processa os pagamentos. Os dados do seu cartão vão direto para a Stripe e <b>nunca passam pelos servidores da Trustio</b>. Recebemos de volta só a confirmação e os dados de contato necessários para liberar o acesso. Quando você chega por um link de indicação, o código de quem indicou vai junto da compra, no campo de referência (ver o item 4 acima).</li>
         <li><b>Resend</b> — entrega os e-mails de confirmação de conta, de recuperação de senha e as respostas às solicitações de contato.</li>
         <li><b>Cloudflare</b> — entrega o site e a API de solicitações de contato e mede o número de visitas de forma agregada (Web Analytics), sem cookies e sem identificar pessoas.</li>
         <li><b>GitHub Pages</b> — hospeda os arquivos do site e, como qualquer servidor, registra dados técnicos de acesso, como o endereço IP.</li>

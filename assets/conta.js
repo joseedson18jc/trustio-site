@@ -50,6 +50,22 @@
     }
   });
 
+  // Quem indicou esta pessoa, se ela chegou por um link `?ref=`. Quem grava é
+  // assets/origem.js, na primeira visita; aqui a informação entra nos metadados da conta,
+  // que é o único lugar onde a equipe consegue vê-la para liberar os 7 dias e creditar o
+  // mês de quem indicou. Sem isto, a conta nasce sem nenhum vínculo com a indicação.
+  // Nunca lança: localStorage falha em janela privada, e um cadastro não pode cair por isso.
+  function indicacaoDeOrigem() {
+    try {
+      var bruto = window.localStorage.getItem("trustio.origem");
+      if (!bruto) return "";
+      var dado = JSON.parse(bruto);
+      return dado && typeof dado.ref === "string" ? dado.ref.slice(0, 120) : "";
+    } catch (e) {
+      return "";
+    }
+  }
+
   // ---------------------------------------------------------------- cadastro
   var signup = document.getElementById("cadastro-form");
   if (signup) {
@@ -85,7 +101,8 @@
             tipo: tipoEl ? tipoEl.dataset.tipo : "b2c",
             empresa: String(f.get("empresa") || "").trim(),
             segmento: String(f.get("segmento") || "").trim(),
-            origem: EN ? "en/cadastro.html" : "cadastro.html"
+            origem: EN ? "en/cadastro.html" : "cadastro.html",
+            indicacao: indicacaoDeOrigem()
           }
         }
       }).then(function (r) {

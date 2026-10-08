@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark light">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.trustio.com.br https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self' https://api.trustio.com.br">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Programa de indica&ccedil;&atilde;o | Trustio</title>
   <meta name="description" content="Indique a Trustio e ganhe um m&ecirc;s de acesso por assinatura confirmada. Quem entra pelo seu link ganha 7 dias de acesso completo. Regras escritas, sem letra mi&uacute;da.">
   <link rel="canonical" href="https://trustio.com.br/indicacao.html">
@@ -33,12 +33,10 @@
   <link rel="preload" href="assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="assets/theme.js?v=62b52a16"></script>
   <link rel="stylesheet" href="assets/styles.css?v=77b62ce3">
-  <link rel="stylesheet" href="assets/planos.css?v=c23f6c31">
-  <link rel="stylesheet" href="assets/indicacao.css?v=ad62e60b">
+  <link rel="stylesheet" href="assets/indicacao.css?v=93eb9db0">
   <link rel="stylesheet" href="assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="assets/whatsapp-suporte.js?v=19399fa4"></script>
   <script type="module" src="assets/app.js?v=814b8c88"></script>
-  <script defer src="assets/optin.js?v=72b20937"></script>
   <script type="module" src="assets/origem.js?v=926ae4b2"></script>
 </head>
 <body class="indicacao-page">
@@ -172,43 +170,29 @@
       <div class="container ind-pedir-grid">
         <div class="reveal">
           <p class="section-kicker">Pedir o link</p>
-          <h2 id="ind-pedir-title">Preencha e o link chega em 1 dia &uacute;til.</h2>
+          <h2 id="ind-pedir-title">Peça por e-mail. O link chega em 1 dia &uacute;til.</h2>
           <p class="ind-pedir-lead">Voc&ecirc; recebe o endere&ccedil;o pronto, um texto curto que pode copiar e colar, e a confirma&ccedil;&atilde;o de qual c&oacute;digo ficou com voc&ecirc;.</p>
           <ul class="ind-pedir-bullets">
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Enviamos um e-mail de confirma&ccedil;&atilde;o antes de qualquer coisa: s&oacute; seguimos depois que voc&ecirc; clicar.</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Se o c&oacute;digo que voc&ecirc; pediu j&aacute; estiver em uso, sugerimos outro antes de criar.</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Vale tanto para quem j&aacute; &eacute; cliente quanto para quem ainda n&atilde;o tem conta.</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Seus dados seguem a <a href="privacidade.html">pol&iacute;tica de privacidade</a> e servem s&oacute; para isto.</li>
           </ul>
         </div>
 
-        <form class="lead-form reveal" id="espera-form" action="https://api.trustio.com.br/signup" method="POST"
-              data-sucesso="Pedido recebido! Enviamos um e-mail de confirma&ccedil;&atilde;o &mdash; clique nele e o seu link de indica&ccedil;&atilde;o chega em at&eacute; 1 dia &uacute;til."
-              data-botao-pronto="Pedido enviado &#10003;">
-          <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <input type="hidden" name="origem" value="indicacao.html">
-          <input type="hidden" name="tipo" value="B2C — indicação">
-          <input type="hidden" name="_next" value="https://trustio.com.br/obrigado.html?lista=indicacao">
-
-          <label for="i-nome">Nome <span>obrigat&oacute;rio</span></label>
-          <input id="i-nome" name="nome" type="text" autocomplete="name" placeholder="Seu nome" required>
-
-          <label for="i-email">E-mail <span>obrigat&oacute;rio</span></label>
-          <input id="i-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com" required>
-
-          <label for="i-tel">Telefone / WhatsApp <span>opcional</span></label>
-          <input id="i-tel" name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 9 9999-9999" aria-describedby="i-tel-ajuda">
-          <small class="campo-ajuda" id="i-tel-ajuda">S&oacute; para avisar quando o cr&eacute;dito entrar, se voc&ecirc; preferir WhatsApp.</small>
-
-          <label for="i-codigo">C&oacute;digo que voc&ecirc; quer <span>obrigat&oacute;rio</span></label>
-          <input id="i-codigo" name="observacao" type="text" placeholder="seunome" required maxlength="40" aria-describedby="i-codigo-ajuda">
-          <small class="campo-ajuda" id="i-codigo-ajuda">Letras, n&uacute;meros e h&iacute;fen. Vira <code>trustio.com.br/?ref=</code> + o que voc&ecirc; escrever aqui.</small>
-
-          <label for="i-onde">Onde voc&ecirc; pretende divulgar <span>opcional</span></label>
-          <input id="i-onde" name="uso" type="text" placeholder="Instagram, grupo do escrit&oacute;rio, newsletter&hellip;" maxlength="120">
-
-          <button class="button button-primary" type="submit" data-submit>Pedir o meu link <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
-          <p class="lead-legal">Voc&ecirc; recebe um e-mail para confirmar o pedido. Usamos seu contato s&oacute; para criar e gerenciar o seu link de indica&ccedil;&atilde;o, e voc&ecirc; pode pedir a exclus&atilde;o quando quiser. Sem spam. <a href="privacidade.html">Como tratamos seus dados</a><br>Prefere falar antes? <!--email_off--><a href="mailto:contato@trustio.com.br?subject=Programa%20de%20indica%C3%A7%C3%A3o">contato@trustio.com.br</a><!--/email_off--></p>
-        </form>
+        <div class="ind-pedido reveal">
+          <p class="ind-pedido-k">O que mandar</p>
+          <ol class="ind-pedido-lista">
+            <li><b>Seu nome</b></li>
+            <li><b>O c&oacute;digo que voc&ecirc; quer</b> &mdash; letras, n&uacute;meros e h&iacute;fen. Vira <code>trustio.com.br/?ref=</code> + o que voc&ecirc; escolher.</li>
+            <li><b>Onde pretende divulgar</b> &mdash; opcional, mas ajuda a gente a te mandar o texto certo.</li>
+          </ol>
+          <div class="ind-pedido-acoes">
+            <!--email_off--><a class="button button-primary" href="mailto:contato@trustio.com.br?subject=Quero%20meu%20link%20de%20indica%C3%A7%C3%A3o&amp;body=Nome%3A%20%0AC%C3%B3digo%20que%20eu%20quero%3A%20%0AOnde%20pretendo%20divulgar%3A%20%0A">Pedir por e-mail <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a><!--/email_off-->
+            <a class="button button-outline" href="https://wa.me/5511918750333?text=Quero%20meu%20link%20de%20indica%C3%A7%C3%A3o%20da%20Trustio" target="_blank" rel="noopener">Pedir pelo WhatsApp <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+          </div>
+          <p class="ind-pedido-nota"><b>Por que e-mail e n&atilde;o um formul&aacute;rio:</b> o formul&aacute;rio p&uacute;blico do site &eacute; o da lista de espera, e ele <b>ignora de prop&oacute;sito</b> quem j&aacute; tem conta &mdash; justamente para um formul&aacute;rio aberto n&atilde;o reescrever o cadastro de um cliente. Como o programa &eacute; feito para quem j&aacute; usa a Trustio, usar aquele formul&aacute;rio aqui faria o pedido de cliente sumir em sil&ecirc;ncio. Um e-mail chega sempre, de qualquer pessoa.</p>
+          <p class="ind-pedido-nota">Usamos o seu contato s&oacute; para criar e cuidar do seu link, e voc&ecirc; pode pedir a exclus&atilde;o quando quiser. <a href="privacidade.html">Como tratamos seus dados</a></p>
+        </div>
       </div>
     </section>
   </main>

@@ -134,11 +134,8 @@
           return;
         }
         form.reset();
-        // Formulários que não são a lista de espera (ex.: pedido de link de indicação) dizem
-        // na própria marcação o que mostrar aqui — senão o aviso falaria de "vaga na lista".
-        if (btn) btn.textContent = form.dataset.botaoPronto || T("Inscrição enviada ✓", "You're signed up ✓");
-        note.textContent = form.dataset.sucesso
-          || T("Tudo certo! Enviamos um link de confirmação para o seu e-mail. Confirme para garantir sua vaga na lista.", "All set! We sent a confirmation link to your email. Confirm it to secure your spot on the list.");
+        if (btn) btn.textContent = T("Inscrição enviada ✓", "You're signed up ✓");
+        note.textContent = T("Tudo certo! Enviamos um link de confirmação para o seu e-mail. Confirme para garantir sua vaga na lista.", "All set! We sent a confirmation link to your email. Confirm it to secure your spot on the list.");
       })
       .catch(function () {
         if (btn) { btn.disabled = false; btn.innerHTML = original; }

@@ -10,6 +10,8 @@
  *   POST /signup           inscreve e dispara o e-mail de confirmação
  *   GET  /confirm?token=   confirma a inscrição
  *   GET  /saude            diz se as variáveis estão configuradas (sem revelá-las)
+ *   POST /afiliados        cadastra o afiliado (pendente) e avisa que está em análise
+ *   POST /afiliados/aprovar  a equipe aprova no CRM; o afiliado recebe o link (afiliados.js)
  *
  * Variáveis (wrangler secret put NOME)
  *   SUPABASE_URL                https://mjdaluioyutnxlyomzyd.supabase.co
@@ -27,12 +29,14 @@
  * SIGNUPS continuam confirmando. Na troca, ver worker/README.md.
  */
 
+import { aprovarAfiliado, cadastrarAfiliado } from "./afiliados.js";
+
 const ORIGENS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$|^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
 
 function cors(origin) {
   return {
     "Access-Control-Allow-Origin": origin && ORIGENS.test(origin) ? origin : "https://trustio.com.br",
-    "Access-Control-Allow-Headers": "content-type",
+    "Access-Control-Allow-Headers": "content-type, authorization",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
     Vary: "Origin",
   };
@@ -552,6 +556,14 @@ export default {
         return Response.redirect(destinoSeguro(dados._next, env, idioma), 303);
       }
       return json(200, { ok: true }, origin);
+    }
+
+    // ---- afiliados: cadastro público e aprovação pela equipe (worker/src/afiliados.js)
+    if (url.pathname === "/afiliados" && req.method === "POST") {
+      return cadastrarAfiliado(req, env, origin, { rpc, json, escapar });
+    }
+    if (url.pathname === "/afiliados/aprovar" && req.method === "POST") {
+      return aprovarAfiliado(req, env, origin, { json, escapar });
     }
 
     // ---- confirmação

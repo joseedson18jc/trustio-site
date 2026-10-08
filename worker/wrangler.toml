@@ -8,6 +8,9 @@ SITE_URL = "https://trustio.com.br"
 API_URL = "https://api.trustio.com.br"
 EMAIL_FROM = "Trustio <no-reply@send.trustio.com.br>"
 SUPABASE_URL = "https://mjdaluioyutnxlyomzyd.supabase.co"
+# Chave pública (a mesma de assets/auth-config.js): a aprovação de afiliados chama o banco
+# com o token de quem está no CRM, e o PostgREST pede a chave pública junto.
+SUPABASE_ANON_KEY = "sb_publishable_mmbbWAm8vvNMsvSle89ITg_DkVcmDHW"
 # "supabase" grava as inscrições no crm_leads do projeto Supabase. O D1 e o KV abaixo
 # ficam ligados só para links enviados antes da troca e para a importação.
 ARMAZENAMENTO = "supabase"

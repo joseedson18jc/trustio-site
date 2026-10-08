@@ -121,17 +121,19 @@
     });
   });
 
-  // Quem indicou esta pessoa, se ela chegou por um link `?ref=`. Quem grava é
-  // assets/origem.js, na primeira visita; aqui a informação entra nos metadados da conta,
-  // que é o único lugar onde a equipe consegue vê-la para liberar os 7 dias e creditar o
-  // mês de quem indicou. Sem isto, a conta nasce sem nenhum vínculo com a indicação.
-  // Nunca lança: localStorage falha em janela privada, e um cadastro não pode cair por isso.
+  // Código do afiliado que trouxe esta pessoa, se ela chegou por um link `?ref=`. A fonte
+  // é o cookie `trustio_ref` que o assets/app.js grava (90 dias, último clique vence, como
+  // afiliados.html promete) — e o `?ref=` desta visita ganha dele, por ser o clique mais
+  // recente. Aqui o código entra nos metadados da conta, que é onde a equipe consegue vê-lo
+  // para creditar a comissão. Sem isto, a conta nasce sem vínculo com quem a trouxe.
+  // Nunca lança: um cadastro não pode cair por causa de leitura de cookie.
   function indicacaoDeOrigem() {
     try {
-      var bruto = window.localStorage.getItem("trustio.origem");
-      if (!bruto) return "";
-      var dado = JSON.parse(bruto);
-      return dado && typeof dado.ref === "string" ? dado.ref.slice(0, 120) : "";
+      var daUrl = new URLSearchParams(location.search).get("ref");
+      if (daUrl && /^[A-Z]{1,8}\d{3}$/.test(daUrl.trim().toUpperCase())) return daUrl.trim().toUpperCase();
+      var m = /(?:^|;\s*)trustio_ref=([^;]*)/.exec(document.cookie || "");
+      var doCookie = m && decodeURIComponent(m[1]).trim().toUpperCase();
+      return doCookie && /^[A-Z]{1,8}\d{3}$/.test(doCookie) ? doCookie : "";
     } catch (e) {
       return "";
     }

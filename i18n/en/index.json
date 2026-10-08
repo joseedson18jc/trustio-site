@@ -352,7 +352,6 @@
     "Empresa registrada no Brasil": "A company registered in Brazil",
     "CNPJ ativo, razão social e endereço abertos no rodapé de todas as páginas. Confira na Receita Federal antes de pagar.": "Active company number, legal name and address, in the footer of every page. Check them with the Brazilian tax authority before you pay.",
     "Os modelos têm nome": "The models have names",
-    "Não dizemos “IA de última geração”. Dizemos quais modelos abertos rodamos, e você julga se servem.": "We don’t say “cutting-edge AI”. We say which open models we run, and you judge whether they fit.",
     "Ver os modelos": "See the models",
     "O código deste site é público": "The code of this site is public",
     "Dá para ler o que esta página carrega, para onde ela manda dados e o que ela guarda no seu navegador.": "You can read what this page loads, where it sends data and what it keeps in your browser.",
@@ -363,7 +362,8 @@
     "Você testa antes de pagar": "You try it before you pay",
     "Crie a conta e faça as primeiras perguntas de graça, sem cartão. Se não gostar, não assine — e não cobramos nada.": "Create an account and ask your first questions free, with no card. If you don’t like it, don’t subscribe — and we charge you nothing.",
     "O que ainda não temos:": "What we don’t have yet:",
-    "caso de cliente para mostrar e número de usuários para exibir. Quando tivermos, vão aparecer aqui com nome, data e permissão de quem autorizou — do mesmo jeito que o resto desta seção.": "a customer case to show and a user count to display. When we have them, they will appear here with a name, a date and the permission of whoever authorised it — the same way as everything else in this section."
+    "caso de cliente para mostrar e número de usuários para exibir. Quando tivermos, vão aparecer aqui com nome, data e permissão de quem autorizou — do mesmo jeito que o resto desta seção.": "a customer case to show and a user count to display. When we have them, they will appear here with a name, a date and the permission of whoever authorised it — the same way as everything else in this section.",
+    "Não dizemos “IA de última geração”. A página de modelos diz quais rodamos e de quem são, com nome e fabricante, e você julga se servem.": "We don’t say “cutting-edge AI”. The models page says which ones we run and who makes them, by name, and you judge whether they fit."
   },
   "raw": []
 }

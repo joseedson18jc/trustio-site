@@ -1,12 +1,15 @@
-// Atribuição de origem (assets/origem.js) sem navegador: só as funções puras e
-// um localStorage de mentira. Nada sai para a rede.
+// Atribuição de origem (assets/origem.js) sem navegador: só as funções puras, um
+// localStorage de mentira e uma string de cookie. Nada sai para a rede.
 //
-// O que estes casos protegem, na prática: um token que a Stripe recusa derruba
-// o checkout — ou seja, um erro aqui custa venda, não relatório. Por isso o
-// foco está em caracteres aceitos, limite de 200 e no "não sobrescrever".
+// O que estes casos protegem, na prática: um token que a Stripe recusa derruba o
+// checkout, e um código de afiliado errado paga a pessoa errada. Erro aqui custa venda e
+// comissão, não relatório. Daí o foco em caracteres aceitos, teto de 200, e sobretudo na
+// precedência entre o `?ref=` da visita e o cookie que `app.js` deixou.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CHAVE, decorarUrl, lerParametros, montarToken, origemGuardada, registrarOrigem } from "../assets/origem.js";
+import {
+  CHAVE, campanhaGuardada, codigoDeAfiliado, decorarUrl, lerParametros, montarToken, registrarCampanha,
+} from "../assets/origem.js";
 
 /** localStorage de mentira; `quebrado` simula janela privada (lança em tudo). */
 function armazemFalso({ quebrado = false, inicial = null } = {}) {
@@ -18,83 +21,97 @@ function armazemFalso({ quebrado = false, inicial = null } = {}) {
   };
 }
 
-test("lê ref e utm_*, ignora o resto e apara espaço", () => {
-  assert.deepEqual(lerParametros("?ref=joao&utm_source=instagram&nada=1"), { ref: "joao", utm_source: "instagram" });
-  assert.deepEqual(lerParametros("?ref=%20maria%20"), { ref: "maria" });
+test("campanha: lê utm_*, apara espaço e ignora o resto", () => {
+  assert.deepEqual(lerParametros("?utm_source=instagram&nada=1"), { utm_source: "instagram" });
+  assert.deepEqual(lerParametros("?utm_source=%20ig%20"), { utm_source: "ig" });
   assert.equal(lerParametros("?nada=1"), null);
   assert.equal(lerParametros(""), null);
   assert.equal(lerParametros(undefined), null);
-  // Valor vazio não conta como origem.
-  assert.equal(lerParametros("?ref="), null);
+  assert.equal(lerParametros("?utm_source="), null);
+  // `ref` é do cookie, não da campanha: não pode entrar no registro de primeiro toque.
+  assert.equal(lerParametros("?ref=JOSE042"), null);
 });
 
-test("token: ref ganha de utm, e o resultado só tem o que a Stripe aceita", () => {
-  assert.equal(montarToken({ ref: "joao", utm_source: "instagram" }), "ref-joao");
-  assert.equal(montarToken({ utm_source: "instagram", utm_campaign: "lancamento" }), "utm-instagram-lancamento");
-  assert.equal(montarToken({ utm_source: "instagram" }), "utm-instagram");
-  // Acento, espaço e pontuação viram "-"; nada fora de [A-Za-z0-9_-] sobrevive.
-  assert.equal(montarToken({ ref: "José Eçá!" }), "ref-Jose-Eca");
-  assert.match(montarToken({ ref: "a b/c?d=e#f" }), /^[A-Za-z0-9_-]+$/);
-  // 200 caracteres é o teto da Stripe, e o token nunca termina em "-".
-  const token = montarToken({ ref: "x".repeat(400) });
-  assert.equal(token.length, 200);
-  assert.doesNotMatch(token, /-$/);
+test("afiliado: último clique vence, como os termos publicados prometem", () => {
+  // A visita atual é o clique mais recente, então ganha do cookie.
+  assert.equal(codigoDeAfiliado("?ref=BIA456", "trustio_ref=ANA123"), "BIA456");
+  // Sem ?ref= nesta visita, vale o que o app.js guardou.
+  assert.equal(codigoDeAfiliado("", "trustio_ref=ANA123"), "ANA123");
+  assert.equal(codigoDeAfiliado("?utm_source=x", "a=1; trustio_ref=ANA123; b=2"), "ANA123");
+  // Minúsculas são normalizadas, como o app.js faz ao gravar.
+  assert.equal(codigoDeAfiliado("?ref=jose042", ""), "JOSE042");
+});
+
+test("afiliado: código fora do formato é ignorado, nunca adivinhado", () => {
+  // Melhor nenhuma atribuição que pagar a pessoa errada.
+  assert.equal(codigoDeAfiliado("?ref=naoexiste", ""), null);
+  assert.equal(codigoDeAfiliado("?ref=TOOLONGNAME123", ""), null);
+  assert.equal(codigoDeAfiliado("?ref=JOSE42", ""), null);
+  assert.equal(codigoDeAfiliado("", "trustio_ref=lixo"), null);
+  assert.equal(codigoDeAfiliado("", ""), null);
+  assert.equal(codigoDeAfiliado(undefined, undefined), null);
+  // Um ?ref= inválido não apaga o cookie válido: o clique ruim é que é ignorado.
+  assert.equal(codigoDeAfiliado("?ref=lixo", "trustio_ref=ANA123"), "ANA123");
+  // Cookie de nome parecido não vale pelo prefixo.
+  assert.equal(codigoDeAfiliado("", "outro_trustio_ref=ANA123"), null);
+});
+
+test("token: afiliado ganha de campanha, e o resultado só tem o que a Stripe aceita", () => {
+  assert.equal(montarToken("JOSE042", { utm_source: "instagram" }), "ref-JOSE042");
+  assert.equal(montarToken(null, { utm_source: "instagram", utm_campaign: "lancamento" }), "utm-instagram-lancamento");
+  assert.equal(montarToken(null, { utm_source: "instagram" }), "utm-instagram");
+  assert.match(montarToken(null, { utm_source: "a b/c?d=e#f" }), /^[A-Za-z0-9_-]+$/);
+  assert.equal(montarToken(null, { utm_source: "Eçã" }), "utm-Eca");
+  // 200 é o teto da Stripe, e o token nunca termina em "-".
+  const t = montarToken(null, { utm_source: "x".repeat(400) });
+  assert.equal(t.length, 200);
+  assert.doesNotMatch(t, /-$/);
 });
 
 test("token nulo quando não identifica ninguém", () => {
-  assert.equal(montarToken(null), null);
-  assert.equal(montarToken({}), null);
-  // Só pontuação: sobraria o prefixo solto, que não atribui nada a ninguém.
-  assert.equal(montarToken({ ref: "!!!" }), null);
-  assert.equal(montarToken({ utm_source: "###" }), null);
+  assert.equal(montarToken(null, null), null);
+  assert.equal(montarToken(null, {}), null);
+  assert.equal(montarToken(null, { utm_source: "###" }), null);
 });
 
 test("decora o link da Stripe sem mexer no que já estava lá", () => {
   const base = "https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08";
-  assert.equal(decorarUrl(base, "ref-joao"), `${base}?client_reference_id=ref-joao`);
-  // Já tinha um valor: respeita o que o dono fixou à mão.
+  assert.equal(decorarUrl(base, "ref-JOSE042"), `${base}?client_reference_id=ref-JOSE042`);
   const comValor = `${base}?client_reference_id=fixo`;
-  assert.equal(decorarUrl(comValor, "ref-joao"), comValor);
-  // Sem token, a URL volta idêntica — nenhum "?" sobrando no link.
+  assert.equal(decorarUrl(comValor, "ref-JOSE042"), comValor);
   assert.equal(decorarUrl(base, null), base);
-  // Parâmetro alternativo, usado nos links internos de cadastro.
-  assert.equal(decorarUrl("https://trustio.com.br/cadastro.html", "joao", "ref"), "https://trustio.com.br/cadastro.html?ref=joao");
+  assert.equal(decorarUrl("https://trustio.com.br/cadastro.html", "JOSE042", "ref"), "https://trustio.com.br/cadastro.html?ref=JOSE042");
 });
 
-test("primeiro toque ganha: origem registrada não é sobrescrita", () => {
+test("campanha: primeiro toque ganha e não é sobrescrito", () => {
   const armazem = armazemFalso();
-  const primeira = registrarOrigem(armazem, { ref: "joao" }, new Date("2026-10-08T12:00:00Z"));
-  assert.equal(primeira.ref, "joao");
+  const primeira = registrarCampanha(armazem, { utm_source: "instagram" }, new Date("2026-10-08T12:00:00Z"));
+  assert.equal(primeira.utm_source, "instagram");
   assert.equal(primeira.em, "2026-10-08T12:00:00.000Z");
-
-  // A pessoa volta uma semana depois por outro canal: o crédito continua do João.
-  const segunda = registrarOrigem(armazem, { utm_source: "google" }, new Date("2026-10-15T12:00:00Z"));
-  assert.equal(segunda.ref, "joao");
-  assert.equal(segunda.utm_source, undefined);
+  const segunda = registrarCampanha(armazem, { utm_source: "google" }, new Date("2026-10-15T12:00:00Z"));
+  assert.equal(segunda.utm_source, "instagram");
   assert.equal(armazem.tamanho, 1);
 });
 
-test("sem parâmetro e sem histórico, não inventa origem", () => {
+test("sem parâmetro e sem histórico, não inventa campanha", () => {
   const armazem = armazemFalso();
-  assert.equal(registrarOrigem(armazem, null), null);
+  assert.equal(registrarCampanha(armazem, null), null);
   assert.equal(armazem.tamanho, 0);
 });
 
 test("armazenamento bloqueado não derruba nada", () => {
   const armazem = armazemFalso({ quebrado: true });
-  // Em janela privada perde-se a atribuição, nunca o checkout: a função
-  // devolve a origem desta visita para o link ainda sair decorado.
-  const origem = registrarOrigem(armazem, { ref: "joao" });
-  assert.equal(origem.ref, "joao");
-  assert.equal(montarToken(origem), "ref-joao");
-  assert.equal(origemGuardada(armazem), null);
-  assert.equal(origemGuardada(undefined), null);
+  const c = registrarCampanha(armazem, { utm_source: "instagram" });
+  assert.equal(c.utm_source, "instagram");
+  assert.equal(campanhaGuardada(armazem), null);
+  assert.equal(campanhaGuardada(undefined), null);
+  // E o afiliado não depende de localStorage nenhum: vem do cookie.
+  assert.equal(codigoDeAfiliado("", "trustio_ref=ANA123"), "ANA123");
 });
 
 test("lixo gravado no localStorage é tratado como ausência", () => {
-  assert.equal(origemGuardada(armazemFalso({ inicial: "{isto não é json" })), null);
-  assert.equal(origemGuardada(armazemFalso({ inicial: "\"texto\"" })), null);
-  // E, nesse caso, a visita de agora pode registrar a origem no lugar do lixo.
+  assert.equal(campanhaGuardada(armazemFalso({ inicial: "{isto não é json" })), null);
+  assert.equal(campanhaGuardada(armazemFalso({ inicial: "\"texto\"" })), null);
   const armazem = armazemFalso({ inicial: "quebrado" });
-  assert.equal(registrarOrigem(armazem, { ref: "maria" }).ref, "maria");
+  assert.equal(registrarCampanha(armazem, { utm_source: "ig" }).utm_source, "ig");
 });

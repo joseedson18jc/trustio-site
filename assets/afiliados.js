@@ -14,7 +14,7 @@
     cpf_em_uso: "Este CPF já está cadastrado com outro e-mail. Fale com contato@trustio.com.br.",
     email_invalido: "E-mail inválido.",
     email_nao_enviado: "Cadastro salvo, mas o e-mail de confirmação não saiu. Tente de novo em instantes.",
-    whatsapp_invalido: "WhatsApp inválido. Use DDD + número.",
+    whatsapp_invalido: "WhatsApp inválido. Use +55, DDD e número, ex.: +55 (11) 98765-4321.",
     padrao: "Não foi possível concluir agora. Tente de novo em instantes ou escreva para contato@trustio.com.br.",
   };
   const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -78,6 +78,14 @@
     return digit(9) === Number(cpf[9]) && digit(10) === Number(cpf[10]);
   }
 
+  // Sempre 55 + DDD + número; mesma regra do worker (worker/src/whatsapp.js) e do banco.
+  function normalizeWhatsapp(raw) {
+    const d = String(raw || "").replace(/\D/g, "").replace(/^0+/, "");
+    if (d.startsWith("55") && (d.length === 12 || d.length === 13)) return d;
+    if (d.length === 10 || d.length === 11) return "55" + d;
+    return null;
+  }
+
   function maskCpf(value) {
     const d = value.replace(/\D/g, "").slice(0, 11);
     return d.replace(/^(\d{3})(\d)/, "$1.$2").replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2");
@@ -110,7 +118,7 @@
       const errors = [
         [name, "m-nome", name.value.trim() ? "" : "Informe seu nome."],
         [email, "m-email", EMAIL_PATTERN.test(email.value.trim()) ? "" : "E-mail inválido."],
-        [whatsapp, "m-wa", /^\d{10,13}$/.test(whatsapp.value.replace(/\D/g, "")) ? "" : "WhatsApp com DDD."],
+        [whatsapp, "m-wa", normalizeWhatsapp(whatsapp.value) ? "" : "WhatsApp com DDD, ex.: +55 (11) 98765-4321."],
         [channel, "m-canal", channel.value ? "" : "Selecione um canal."],
         [cpf, "m-cpf", cpfValido(cpf.value) ? "" : "CPF inválido."],
         [pixType, "m-pix-tipo", pixType.value ? "" : "Selecione o tipo da chave."],
@@ -133,7 +141,7 @@
             email: email.value.trim(),
             nome: name.value.trim(),
             canal: channel.value,
-            whatsapp: whatsapp.value,
+            whatsapp: normalizeWhatsapp(whatsapp.value),
             audiencia: field("f-aud").value.trim(),
             cpf: cpf.value,
             pix_tipo: pixType.value,

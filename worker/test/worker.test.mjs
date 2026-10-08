@@ -514,8 +514,8 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
   let d = await r.json();
   ok(r.status === 200 && d.ok && !("codigo" in d), "afiliados: 200 sem devolver o código");
   ok(chamadas[0]?.nome === "registrar_afiliado" && chamadas[0].args.p_email === "maria@exemplo.com"
-     && chamadas[0].args.p_cpf === "52998224725" && chamadas[0].args.p_whatsapp === "11987654321",
-     "afiliados: RPC recebe e-mail minúsculo, CPF e WhatsApp só dígitos", JSON.stringify(chamadas[0]?.args));
+     && chamadas[0].args.p_cpf === "52998224725" && chamadas[0].args.p_whatsapp === "5511987654321",
+     "afiliados: RPC recebe e-mail minúsculo, CPF só dígitos e WhatsApp com 55", JSON.stringify(chamadas[0]?.args));
   ok(emails.length === 1 && /análise/.test(emails[0].subject + emails[0].html) && /30 minutos/.test(emails[0].html)
      && /100 vagas/.test(emails[0].html) && !/\?ref=/.test(emails[0].html),
      "afiliados: cadastro só avisa a análise (30 min, 100 vagas), sem link");
@@ -533,6 +533,13 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
     ok(r.status === 400 && d.error === erro, "afiliados: recusa " + erro, JSON.stringify(extra));
   }
   ok(chamadas.length === 0, "afiliados: dados inválidos não chegam ao banco");
+  for (const [entrada, esperado] of [["+55 (11) 98765-4321", "5511987654321"], ["011 98765-4321", "5511987654321"], ["(11) 3265-4321", "551132654321"]]) {
+    chamadas = [];
+    await cadastrar(corpo({ whatsapp: entrada }));
+    ok(chamadas[0]?.args.p_whatsapp === esperado, "afiliados: WhatsApp " + entrada + " vira " + esperado, chamadas[0]?.args.p_whatsapp);
+  }
+  r = await cadastrar(corpo({ whatsapp: "119876543210" }));
+  ok(r.status === 400 && (await r.json()).error === "whatsapp_invalido", "afiliados: 12 dígitos sem 55 é recusado");
 
   chamadas = []; emails = []; resposta = { ok: true, nome: "Maria", status: "pendente", enviar: true }; resendStatus = 500;
   r = await cadastrar(corpo());

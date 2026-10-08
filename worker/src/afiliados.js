@@ -14,7 +14,7 @@
  */
 
 import { assinaturaValida, criarCupomAfiliado, lerSessao, promoDaSessao } from "./stripe.js";
-import { brl, enviarWhatsapp, MENSAGENS, whatsappConfigurado } from "./whatsapp.js";
+import { brl, enviarWhatsapp, MENSAGENS, normalizarWhatsapp, whatsappConfigurado } from "./whatsapp.js";
 
 const CANAIS = new Set([
   "YouTube", "Instagram / TikTok", "Newsletter", "Podcast",
@@ -55,12 +55,12 @@ function validar(dados) {
     pix: campo(dados.pix, 140),
     pixTipo: campo(dados.pix_tipo, 20).toLowerCase(),
     cpf: campo(dados.cpf, 20).replace(/\D/g, ""),
-    whatsapp: campo(dados.whatsapp, 30).replace(/\D/g, ""),
+    whatsapp: normalizarWhatsapp(campo(dados.whatsapp, 30)),
   };
   if (!EMAIL_VALIDO.test(email)) return { erro: "email_invalido" };
   if (!afiliado.nome) return { erro: "nome_ausente" };
   if (!CANAIS.has(afiliado.canal)) return { erro: "canal_invalido" };
-  if (!/^\d{10,13}$/.test(afiliado.whatsapp)) return { erro: "whatsapp_invalido" };
+  if (!afiliado.whatsapp) return { erro: "whatsapp_invalido" };
   if (!cpfValido(afiliado.cpf)) return { erro: "cpf_invalido" };
   if (!TIPOS_PIX.has(afiliado.pixTipo)) return { erro: "pix_tipo_invalido" };
   if (!afiliado.pix) return { erro: "pix_ausente" };

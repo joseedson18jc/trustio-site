@@ -117,7 +117,12 @@
     return sb.rpc("vagas_afiliados").then(function (r) { if (!r.error && r.data) { state.vagas = r.data; stats(); } });
   }
 
-  function numeroWa(n) { var d = String(n || "").replace(/\D/g, ""); return d.length <= 11 ? "55" + d : d; }
+  // Sempre 55 + DDD + número (mesma regra do worker e do banco).
+  function numeroWa(n) {
+    var d = String(n || "").replace(/\D/g, "").replace(/^0+/, "");
+    if (d.indexOf("55") === 0 && (d.length === 12 || d.length === 13)) return d;
+    return d.length === 10 || d.length === 11 ? "55" + d : d;
+  }
 
   function aprovar(btn) {
     var id = btn.closest("tr").dataset.id;
@@ -179,7 +184,8 @@
       "<td><select data-field=\"status\" aria-label=\"Status de " + esc(a.nome) + "\">" + opcoes + "</select></td>" +
       "<td><button type=\"button\" class=\"btn " + (a.status === "ativo" ? "btn-ghost" : "btn-primary") + "\" data-aprovar>" + botao + "</button>" +
         (a.aprovado_em ? "<small>Aprovado " + esc(data(a.aprovado_em)) + "</small>" : "") +
-        "<small><a href=\"https://wa.me/" + esc(String(a.whatsapp || "").length <= 11 ? "55" + a.whatsapp : a.whatsapp) + "\" target=\"_blank\" rel=\"noopener\">WhatsApp " + esc(a.whatsapp) + "</a></small></td>" +
+        "<small><a href=\"https://wa.me/" + esc(numeroWa(a.whatsapp)) + "\" target=\"_blank\" rel=\"noopener\">WhatsApp +" + esc(numeroWa(a.whatsapp)) + "</a></small>" +
+        "<small><input type=\"text\" data-field=\"whatsapp\" value=\"" + esc(a.whatsapp) + "\" aria-label=\"WhatsApp de " + esc(a.nome) + "\" maxlength=\"20\"></small></td>" +
       "<td>" + esc(data(a.created_at)) + "</td>" +
       "<td><textarea data-field=\"notas\" rows=\"1\" aria-label=\"Notas de " + esc(a.nome) + "\">" + esc(a.notas) + "</textarea></td>" +
       "</tr>";
@@ -199,6 +205,11 @@
     var a = state.afiliados.filter(function (x) { return x.id === id; })[0];
     if (!a) return;
     var valor = campo === "notas" ? el.value : el.value.trim();
+    if (campo === "whatsapp") {
+      var w = numeroWa(valor);
+      if (!/^55\d{10,11}$/.test(w)) { el.value = a.whatsapp; toast("WhatsApp inválido: use DDD + número.", "erro"); return; }
+      valor = w; el.value = w;
+    }
     if (campo === "pix_chave" && !valor) { el.value = a.pix_chave; toast("A chave Pix não pode ficar vazia.", "erro"); return; }
     if ((a[campo] || "") === valor) return;
     var patch = {}; patch[campo] = valor || null;

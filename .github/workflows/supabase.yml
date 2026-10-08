@@ -98,7 +98,17 @@ jobs:
         env:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: |
+          if [ -z "$GOOGLE_CLIENT_ID" ] || [ -z "$GOOGLE_CLIENT_SECRET" ]; then
+            # Sem o cliente OAuth do Google, o provedor fica desligado (o botão responde com erro amigável).
+            # Como o SMTP: env() sem valor faz o `config push` falhar, então os campos vão vazios.
+            sed -i 's/^enabled = true # login com Google$/enabled = false/' supabase/config.toml
+            sed -i 's|^client_id = "env(GOOGLE_CLIENT_ID)"$|client_id = ""|' supabase/config.toml
+            sed -i 's|^secret = "env(GOOGLE_CLIENT_SECRET)"$|secret = ""|' supabase/config.toml
+            echo "::warning::GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET ausentes: login com Google desligado."
+          fi
           if [ -z "$SMTP_PASS" ]; then
             # Sem senha de SMTP, mantém o remetente padrão para não quebrar o envio.
             sed -i 's/^enabled = true$/enabled = false/' supabase/config.toml

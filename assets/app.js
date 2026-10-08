@@ -488,3 +488,13 @@ applyTheme(currentTheme(), false);
 themeToggle?.addEventListener("click", () => applyTheme(currentTheme() === "light" ? "dark" : "light", true));
 // Troca automática de horário (05:00 claro, 19:01 escuro) com a página aberta.
 document.addEventListener("trustio:tema", (e) => applyTheme(e.detail, false));
+
+// Indicação de afiliado: trustio.com.br/?ref=CODIGO guarda o código por 90 dias (cookie
+// de primeira parte), para a venda ser atribuída ao afiliado. Último clique vence.
+const REF_DIAS = 90;
+try {
+  const ref = new URLSearchParams(location.search).get("ref");
+  if (ref && /^[A-Z]{1,8}\d{3}$/.test(ref.toUpperCase())) {
+    document.cookie = `trustio_ref=${ref.toUpperCase()}; Max-Age=${REF_DIAS * 24 * 60 * 60}; Path=/; SameSite=Lax; Secure`;
+  }
+} catch { /* sem cookie, sem atribuição: o site segue normal */ }

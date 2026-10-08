@@ -108,6 +108,15 @@
     oauthStatus.classList.add("is-error");
     history.replaceState(null, "", location.pathname + location.search);
   }
+  // O bloco do Google chega escondido (hidden) e só aparece se o provedor estiver ligado no
+  // Supabase: com ele desligado, o /authorize devolve um JSON cru em vez de voltar para cá.
+  var blocoOauth = document.querySelector(".conta-oauth");
+  if (blocoOauth) {
+    fetch(CFG.url + "/auth/v1/settings", { headers: { apikey: CFG.key } })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (cfg) { blocoOauth.hidden = !(cfg && cfg.external && cfg.external.google); })
+      .catch(function (err) { console.warn("conta: não foi possível ler os provedores de login", err); });
+  }
   document.querySelectorAll("[data-oauth='google']").forEach(function (btn) {
     btn.addEventListener("click", function () {
       btn.disabled = true;

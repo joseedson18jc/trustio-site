@@ -6,6 +6,8 @@
   const COMMISSION_MONTHLY = 79;
   const COMMISSION_B2B = 500;
   const MONTHS_PER_YEAR = 12;
+  const MONTHLY_CAP = 25000;
+  const ANNUAL_CAP = 300000;
   const CONTACT_EMAIL = "contato@trustio.com.br";
   const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -37,12 +39,12 @@
       out.sales.textContent = String(total);
       out.mix.textContent = mix.value + "%";
       out.b2b.textContent = String(diagnostics);
-      out.month.textContent = brl(sum);
+      out.month.textContent = brl(Math.min(sum, MONTHLY_CAP));
       out.detail.textContent =
         plural(annual, "venda anual", "vendas anuais") + " (" + brl(annual * COMMISSION_ANNUAL) + ") + " +
         plural(monthly, "mensal", "mensais") + " (" + brl(monthly * COMMISSION_MONTHLY) + ") + " +
         plural(diagnostics, "diagnóstico", "diagnósticos") + " (" + brl(diagnostics * COMMISSION_B2B) + ").";
-      out.year.textContent = brl(sum * MONTHS_PER_YEAR);
+      out.year.textContent = brl(Math.min(sum * MONTHS_PER_YEAR, ANNUAL_CAP));
     }
 
     [sales, mix, b2b].forEach((input) => input.addEventListener("input", render));

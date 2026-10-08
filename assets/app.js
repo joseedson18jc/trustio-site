@@ -489,12 +489,30 @@ themeToggle?.addEventListener("click", () => applyTheme(currentTheme() === "ligh
 // Troca automática de horário (05:00 claro, 19:01 escuro) com a página aberta.
 document.addEventListener("trustio:tema", (e) => applyTheme(e.detail, false));
 
-// Indicação de afiliado: trustio.com.br/?ref=CODIGO guarda o código por 90 dias (cookie
-// de primeira parte), para a venda ser atribuída ao afiliado. Último clique vence.
+// Indicação de afiliado: trustio.com.br/?ref=LUISC10 guarda o cupom por 90 dias (cookie de
+// primeira parte; último clique vence). No clique para pagar, o link da Stripe ganha
+// client_reference_id (atribui a venda no webhook) e prefilled_promo_code (o cupom já vem
+// preenchido no checkout, com os 10% de desconto).
 const REF_DIAS = 90;
+const REF_VALIDO = /^[A-Z]{2,12}\d{2,4}$/;
 try {
-  const ref = new URLSearchParams(location.search).get("ref");
-  if (ref && /^[A-Z]{1,8}\d{3}$/.test(ref.toUpperCase())) {
-    document.cookie = `trustio_ref=${ref.toUpperCase()}; Max-Age=${REF_DIAS * 24 * 60 * 60}; Path=/; SameSite=Lax; Secure`;
+  const ref = (new URLSearchParams(location.search).get("ref") || "").toUpperCase();
+  if (REF_VALIDO.test(ref)) {
+    document.cookie = `trustio_ref=${ref}; Max-Age=${REF_DIAS * 24 * 60 * 60}; Path=/; SameSite=Lax; Secure`;
   }
 } catch { /* sem cookie, sem atribuição: o site segue normal */ }
+
+function refGuardado() {
+  const m = document.cookie.match(/(?:^|;\s*)trustio_ref=([A-Z0-9]+)/);
+  return m && REF_VALIDO.test(m[1]) ? m[1] : null;
+}
+
+document.addEventListener("click", (event) => {
+  const link = event.target.closest?.('a[href^="https://buy.stripe.com/"]');
+  const ref = link && refGuardado();
+  if (!ref) return;
+  const url = new URL(link.href);
+  url.searchParams.set("client_reference_id", ref);
+  url.searchParams.set("prefilled_promo_code", ref);
+  link.href = url.toString();
+}, true);

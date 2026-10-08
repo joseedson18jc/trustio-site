@@ -1,0 +1,455 @@
+/* Trustio Afiliados — componentes da página afiliados.html, só com tokens de assets/styles.css. */
+
+.afil-hero { padding-bottom: clamp(64px, 8vw, 104px); }
+
+.afil-hero-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: clamp(40px, 5vw, 64px);
+  align-items: center;
+}
+
+.home-page .afil-hero h1 { margin-block: var(--space-20) var(--space-24); font-size: clamp(40px, 5.2vw, 76px); }
+
+.afil-note {
+  margin-top: var(--space-20);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.afil-note b { color: var(--plasma); font-family: var(--mono); font-size: 12px; font-weight: 500; }
+
+/* Cartão de comissão */
+.afil-bounty {
+  position: relative;
+  padding: var(--space-36) var(--space-32);
+  border: 1px solid var(--line-bright);
+  border-radius: var(--radius);
+  background: var(--card-gradient-featured);
+  box-shadow: var(--shadow);
+}
+
+.afil-tag {
+  position: absolute;
+  top: -13px;
+  left: var(--space-28);
+  padding: var(--space-4) var(--space-12);
+  border-radius: 999px;
+  background: var(--cta-gradient);
+  box-shadow: var(--shadow-cta);
+  color: #ffffff;
+  font-family: var(--mono);
+  font-size: var(--label);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.afil-big {
+  background: var(--display-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: var(--display);
+  font-size: clamp(52px, 6vw, 80px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.afil-big small {
+  display: inline-block;
+  white-space: nowrap;
+  margin-left: var(--space-8);
+  color: var(--text-strong);
+  -webkit-text-fill-color: var(--text-strong);
+  font-family: var(--body);
+  font-size: 0.24em;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.afil-bounty-lead { margin-top: var(--space-12); color: var(--muted-strong); font-size: 15px; }
+
+.afil-bounty ul {
+  margin-top: var(--space-20);
+  padding: var(--space-16) 0 0;
+  border-top: 1px dashed var(--line);
+  list-style: none;
+}
+
+.afil-bounty li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-12);
+  padding-block: var(--space-8);
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.afil-bounty li b { color: var(--text-strong); font-family: var(--mono); font-size: 13px; font-weight: 500; }
+
+/* Faixa de sinais */
+.afil-strip {
+  border-block: 1px solid var(--line);
+  background: var(--surface-band);
+}
+
+.afil-strip-in { display: flex; overflow-x: auto; scrollbar-width: none; }
+.afil-strip-in::-webkit-scrollbar { display: none; }
+
+.afil-strip span {
+  flex: none;
+  padding: var(--space-16) var(--space-24);
+  border-right: 1px solid var(--line);
+  color: var(--label-color);
+  font-family: var(--mono);
+  font-size: var(--label-lg);
+  white-space: nowrap;
+}
+
+.afil-strip span:last-child { border-right: 0; }
+.afil-strip b { color: var(--plasma); font-weight: 500; }
+
+/* Seções */
+.afil-band {
+  border-block: 1px solid var(--line);
+  background: var(--section-wash);
+}
+
+.afil-pt0 { padding-top: 0; }
+
+/* Cartões */
+.afil-steps,
+.afil-why,
+.afil-personas {
+  display: grid;
+  gap: var(--space-20);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.afil-steps { grid-template-columns: repeat(3, 1fr); }
+.afil-why { grid-template-columns: repeat(2, 1fr); }
+.afil-personas { grid-template-columns: repeat(4, 1fr); gap: var(--space-16); }
+
+.afil-card,
+.afil-persona {
+  padding: var(--space-28);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card-gradient);
+  transition: border-color 300ms var(--ease), background 300ms var(--ease);
+}
+
+.afil-card:hover,
+.afil-persona:hover { border-color: var(--line-bright); background: var(--card-gradient-hover); }
+
+.afil-card h3,
+.afil-persona h3 {
+  margin-block: var(--space-12) var(--space-8);
+  color: var(--text-strong);
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.afil-persona h3 { font-size: 16px; }
+
+.afil-card p,
+.afil-persona p { color: var(--muted); font-size: 15px; line-height: 1.6; }
+
+.afil-persona p { font-size: 14px; }
+
+.afil-card code {
+  color: var(--plasma);
+  font-family: var(--mono);
+  font-size: 0.85em;
+}
+
+.afil-det {
+  display: block;
+  margin-top: var(--space-16);
+  color: var(--ok);
+  font-family: var(--mono);
+  font-size: var(--label-lg);
+}
+
+.afil-ic {
+  color: var(--blue-signal);
+  font-family: var(--mono);
+  font-size: var(--label);
+  letter-spacing: 0.14em;
+}
+
+/* Tabela */
+.afil-table {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-gradient);
+}
+
+.afil-table table { width: 100%; border-collapse: collapse; font-size: 15px; }
+
+.afil-table th,
+.afil-table td {
+  padding: var(--space-16) var(--space-20);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.afil-table th {
+  background: rgba(var(--on-surface-rgb), 0.03);
+  color: var(--label-color);
+  font-family: var(--mono);
+  font-size: var(--label);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.afil-table td b { display: block; color: var(--text-strong); font-weight: 600; }
+.afil-table td span { color: var(--muted); font-size: 13px; }
+.afil-table tr.is-hi td { background: rgba(94, 167, 255, 0.06); }
+.afil-val { color: var(--muted-strong); font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+.afil-comm { color: var(--accent-text); font-family: var(--mono); font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+.afil-tfoot {
+  padding: var(--space-16) var(--space-20);
+  color: var(--label-color);
+  font-family: var(--mono);
+  font-size: var(--label);
+  line-height: 1.7;
+}
+
+.afil-tfoot a { color: var(--accent-text); }
+
+/* Simulador */
+.afil-sim {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-44);
+  align-items: center;
+  padding: var(--space-44);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-large);
+  background: var(--panel-gradient-deep);
+}
+
+.afil-sim label {
+  display: flex;
+  justify-content: space-between;
+  margin: var(--space-24) 0 var(--space-12);
+  color: var(--label-color);
+  font-family: var(--mono);
+  font-size: var(--label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.afil-sim label:first-child { margin-top: 0; }
+.afil-sim output { color: var(--plasma); font-size: 13px; letter-spacing: 0; }
+
+.afil-sim input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(var(--on-surface-rgb), 0.12);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.afil-sim input[type="range"]:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 6px; }
+
+.afil-sim input[type="range"]::-webkit-slider-thumb {
+  width: 22px;
+  height: 22px;
+  border: 4px solid var(--abyss);
+  border-radius: 50%;
+  background: var(--plasma);
+  box-shadow: 0 0 0 1px var(--plasma), 0 0 18px rgba(83, 205, 254, 0.6);
+  cursor: grab;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.afil-sim input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 3px solid var(--abyss);
+  border-radius: 50%;
+  background: var(--plasma);
+  cursor: grab;
+}
+
+.afil-per {
+  color: var(--label-color);
+  font-family: var(--mono);
+  font-size: var(--label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.afil-sim-val {
+  margin-top: var(--space-8);
+  background: var(--display-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: var(--display);
+  font-size: clamp(44px, 5vw, 68px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.afil-sim-sub { max-width: 30em; margin-top: var(--space-12); color: var(--muted); font-size: 14px; }
+.afil-sim-yr { margin-top: var(--space-20); color: var(--text-strong); font-family: var(--mono); font-size: 13px; }
+.afil-sim-yr b { color: var(--ok); font-weight: 500; }
+
+/* FAQ */
+.afil-faq { max-width: 800px; }
+
+.afil-faq details {
+  margin-bottom: var(--space-12);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card-gradient);
+  transition: border-color 300ms var(--ease);
+}
+
+.afil-faq details[open] { border-color: var(--line-bright); }
+
+.afil-faq summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-16);
+  padding: var(--space-20) var(--space-24);
+  color: var(--text-strong);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.afil-faq summary::-webkit-details-marker { display: none; }
+.afil-faq summary::after { content: "+"; flex: none; color: var(--blue-signal); font-family: var(--mono); font-size: 20px; }
+.afil-faq details[open] summary::after { content: "–"; }
+.afil-faq summary:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: -3px; }
+.afil-faq details p { padding: 0 var(--space-24) var(--space-20); color: var(--muted); font-size: 15px; line-height: 1.65; }
+
+/* Cadastro */
+.afil-cta { border-top: 1px solid var(--line); background: var(--declaration-gradient); }
+
+.afil-form-card {
+  max-width: 680px;
+  margin-inline: auto;
+  padding: var(--space-48);
+  border: 1px solid var(--line-bright);
+  border-radius: var(--radius-large);
+  background: var(--panel-gradient);
+  box-shadow: var(--shadow);
+}
+
+.afil-form-card h2 { margin-block: var(--space-12); }
+.afil-form-lead { margin-bottom: var(--space-28); color: var(--muted); font-size: 15.5px; }
+
+.afil-f-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-16); }
+.afil-full { grid-column: 1 / -1; }
+
+.afil-field label {
+  display: block;
+  margin-bottom: var(--space-8);
+  color: var(--label-color);
+  font-family: var(--mono);
+  font-size: var(--label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.afil-field input,
+.afil-field select {
+  width: 100%;
+  min-height: 48px;
+  padding: var(--space-12) var(--space-16);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(var(--bg-rgb), 0.6);
+  color: var(--text-strong);
+  font-family: var(--body);
+  font-size: 15px;
+}
+
+.afil-field input:focus,
+.afil-field select:focus {
+  border-color: var(--blue-signal);
+  box-shadow: 0 0 0 3px rgba(94, 167, 255, 0.2);
+  outline: none;
+}
+
+.afil-field .is-invalid { border-color: var(--danger); }
+
+.afil-f-msg {
+  min-height: 1em;
+  margin-top: var(--space-4);
+  color: var(--danger);
+  font-family: var(--mono);
+  font-size: var(--label);
+}
+
+.afil-submit { width: 100%; margin-top: var(--space-24); }
+
+.afil-form-note,
+.afil-ok p { margin-top: var(--space-16); color: var(--muted); font-size: 13px; text-align: center; }
+
+.afil-form-note b { color: var(--muted-strong); font-weight: 500; }
+.afil-ok { padding: var(--space-28) var(--space-8); text-align: center; }
+.afil-ok-check { color: var(--ok); font-family: var(--mono); font-size: 36px; }
+.afil-ok h3 { margin-top: var(--space-12); color: var(--text-strong); font-family: var(--display); font-size: 24px; font-weight: 500; }
+.afil-ok a { color: var(--accent-text); }
+
+/* Tema claro: só ajustes de contraste. */
+[data-theme="light"] .afil-field input,
+[data-theme="light"] .afil-field select { background: var(--white); }
+[data-theme="light"] .afil-sim input[type="range"]::-webkit-slider-thumb { border-color: var(--white); }
+[data-theme="light"] .afil-note b,
+[data-theme="light"] .afil-strip b,
+[data-theme="light"] .afil-sim output,
+[data-theme="light"] .afil-card code { color: var(--blue); }
+
+@media (max-width: 1024px) {
+  .afil-hero-grid { grid-template-columns: 1fr; }
+  .afil-personas { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 860px) {
+  .afil-steps,
+  .afil-why,
+  .afil-sim { grid-template-columns: 1fr; }
+  .afil-sim { padding: var(--space-28); }
+}
+
+@media (max-width: 640px) {
+  .afil-hide-m { display: none; }
+  .afil-table th,
+  .afil-table td { padding: var(--space-12); font-size: 13.5px; }
+  .afil-personas,
+  .afil-f-grid { grid-template-columns: 1fr; }
+  .afil-form-card { padding: var(--space-28) var(--space-20); }
+  .afil-bounty { padding: var(--space-32) var(--space-20); }
+}
+
+/* Cabeçalhos de seção desta página: kicker, título e apoio empilhados. */
+.afiliados-page .section-heading { display: block; max-width: 780px; }
+.afiliados-page .section-heading > p { max-width: 640px; margin-top: var(--space-20); }
+.afiliados-page .section-heading h2 span,
+.afil-form-card h2 span { display: block; color: var(--muted-strong); font-weight: 300; }
+.afil-form-card h2 { font-size: clamp(30px, 3.6vw, 46px); }

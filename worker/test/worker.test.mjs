@@ -589,5 +589,106 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
   globalThis.fetch = fetchAntes;
 }
 
+// · Stripe: cupom na aprovação, webhook assinado gera comissão, WhatsApp automático
+{
+  const { createHmac } = await import("node:crypto");
+  const fetchAntes = globalThis.fetch;
+  const envS = { ...env, SUPABASE_ANON_KEY: "pk", STRIPE_SECRET_KEY: "rk_test", STRIPE_WEBHOOK_SECRET: "whsec_teste",
+    EVOLUTION_URL: "https://evo.exemplo", EVOLUTION_INSTANCE: "trustio", EVOLUTION_API_KEY: "evo-chave" };
+  let rpcs = [], stripeReq = [], zaps = [], emails = [], respostas = {}, promoTomados = new Set(["LUISC10"]);
+  globalThis.fetch = async (u, o = {}) => {
+    u = String(u);
+    if (u.includes("/rest/v1/rpc/")) {
+      const nome = u.split("/rpc/")[1];
+      const args = JSON.parse(o.body);
+      rpcs.push({ nome, args });
+      const r = typeof respostas[nome] === "function" ? respostas[nome](args) : respostas[nome];
+      return new Response(JSON.stringify(r ?? { ok: true }), { status: 200 });
+    }
+    if (u.includes("api.stripe.com")) {
+      stripeReq.push({ u, metodo: o.method, corpo: o.body ? Object.fromEntries(new URLSearchParams(o.body)) : null, versao: o.headers["Stripe-Version"] });
+      if (u.includes("/coupons/AFILIADOS10")) return new Response(JSON.stringify({ id: "AFILIADOS10" }), { status: 200 });
+      if (u.endsWith("/promotion_codes")) {
+        const code = new URLSearchParams(o.body).get("code");
+        if (promoTomados.has(code)) return new Response(JSON.stringify({ error: { message: "An active promotion code with `code: " + code + "` already exists." } }), { status: 400 });
+        return new Response(JSON.stringify({ id: "promo_" + code }), { status: 200 });
+      }
+      if (u.includes("/checkout/sessions/")) return new Response(JSON.stringify(respostas.sessao), { status: 200 });
+    }
+    if (u.includes("evo.exemplo")) { zaps.push({ u, corpo: JSON.parse(o.body), apikey: o.headers.apikey }); return new Response("{}", { status: 201 }); }
+    if (u.includes("api.resend.com")) { emails.push(JSON.parse(o.body)); return new Response("{}", { status: 200 }); }
+    throw new Error("fetch inesperado: " + u);
+  };
+
+  // aprovação cria o cupom pulando o que já existe na Stripe
+  const ID = "3f2504e0-4f89-11d3-9a0c-0305e82c3301";
+  respostas.aprovar_afiliado = { ok: true, id: ID, email: "luis@x.com", nome: "Luis Costa", codigo: "LUIS123", cupom: null,
+    whatsapp: "11987654321", candidatos: ["LUISC10", "LUISCO10", "LUISCOS10"] };
+  respostas.cupom_livre = true;
+  respostas.definir_cupom_afiliado = { ok: true };
+  let r = await worker.fetch(new Request("https://api.trustio.com.br/afiliados/aprovar", { method: "POST",
+    headers: { origin: "https://trustio.com.br", "content-type": "application/json", authorization: "Bearer jwt" }, body: JSON.stringify({ id: ID }) }), envS);
+  let d = await r.json();
+  ok(d.ok && d.cupom === "LUISCO10" && d.link === "https://trustio.com.br/?ref=LUISCO10", "aprovar: cria cupom (pula LUISC10 já existente) e o link usa o cupom", JSON.stringify(d));
+  const promo = stripeReq.filter((x) => x.u.endsWith("/promotion_codes")).pop();
+  ok(promo?.corpo.coupon === "AFILIADOS10" && promo.corpo["metadata[afiliado_id]"] === ID && promo.corpo["restrictions[first_time_transaction]"] === "true"
+     && promo.versao === "2024-06-20", "aprovar: promoção de 10% na 1ª compra, ligada ao afiliado, API com versão fixa");
+  ok(rpcs.some((x) => x.nome === "definir_cupom_afiliado" && x.args.p_cupom === "LUISCO10" && x.args.p_promo_id === "promo_LUISCO10"), "aprovar: grava cupom e promoção no banco");
+  ok(d.whatsapp_enviado && zaps[0]?.corpo.number === "5511987654321" && zaps[0].corpo.text.includes("LUISCO10") && zaps[0].apikey === "evo-chave",
+     "aprovar: WhatsApp automático com link e cupom");
+  ok(emails.at(-1)?.html.includes("?ref=LUISCO10") && emails.at(-1).html.includes("LUISCO10"), "aprovar: e-mail com link e cupom");
+
+  // webhook
+  const assinar = (corpo, segredo = "whsec_teste", t = Math.floor(Date.now() / 1000)) =>
+    `t=${t},v1=${createHmac("sha256", segredo).update(`${t}.${corpo}`).digest("hex")}`;
+  const hook = (corpo, assinatura) => worker.fetch(new Request("https://api.trustio.com.br/stripe/webhook", {
+    method: "POST", headers: { "content-type": "application/json", "stripe-signature": assinatura }, body: corpo }), envS);
+  const evento = JSON.stringify({ id: "evt_1", type: "checkout.session.completed", data: { object: { id: "cs_1", payment_status: "paid" } } });
+  respostas.sessao = { id: "cs_1", client_reference_id: "LUISCO10", amount_subtotal: 79000, customer_details: { email: "cliente@y.com" },
+    payment_intent: "pi_1", line_items: { data: [{ price: { id: "price_anual" } }] },
+    total_details: { breakdown: { discounts: [{ discount: { promotion_code: "promo_OUTRO10" } }] } } };
+  respostas.registrar_comissao = { ok: true, registrada: true, valor_comissao: 20000, valor_venda: 79000,
+    afiliado: { nome: "Luis Costa", email: "luis@x.com", whatsapp: "11987654321" } };
+
+  r = await hook(evento, "t=1,v1=errada");
+  ok(r.status === 400, "webhook: assinatura inválida → 400");
+  r = await hook(evento, assinar(evento, "whsec_outro"));
+  ok(r.status === 400, "webhook: segredo errado → 400");
+  r = await hook(evento, assinar(evento, "whsec_teste", Math.floor(Date.now() / 1000) - 3600));
+  ok(r.status === 400, "webhook: assinatura velha (replay) → 400");
+
+  rpcs = []; zaps = []; emails = [];
+  r = await hook(evento, assinar(evento));
+  d = await r.json();
+  const rc = rpcs.find((x) => x.nome === "registrar_comissao")?.args;
+  ok(r.status === 200 && d.registrada, "webhook: assinatura válida → comissão registrada");
+  ok(rc?.p_evento === "evt_1" && rc.p_sessao === "cs_1" && rc.p_ref === "LUISCO10" && rc.p_promo_id === "promo_OUTRO10"
+     && rc.p_valor_venda === 79000 && rc.p_price_id === "price_anual" && rc.p_email_comprador === "cliente@y.com",
+     "webhook: manda ao banco link, cupom usado, valor de tabela e comprador", JSON.stringify(rc));
+  ok(emails.some((e) => e.to[0] === "luis@x.com" && /R\$\s?200,00/.test(e.subject)) && zaps.some((z) => /R\$\s?200,00/.test(z.corpo.text)),
+     "webhook: afiliado avisado da comissão por e-mail e WhatsApp");
+
+  const outro = JSON.stringify({ id: "evt_2", type: "invoice.paid", data: { object: {} } });
+  rpcs = [];
+  r = await hook(outro, assinar(outro));
+  ok(r.status === 200 && !rpcs.length, "webhook: renovação (invoice.paid) não paga comissão de novo");
+
+  respostas.registrar_comissao = { ok: true, registrada: false, motivo: "sem_afiliado" };
+  zaps = []; emails = [];
+  r = await hook(evento, assinar(evento));
+  ok(r.status === 200 && !zaps.length && !emails.length, "webhook: venda sem afiliado → 200, ninguém avisado");
+
+  const fetchMock = globalThis.fetch;
+  globalThis.fetch = (u, o) => String(u).includes("/rpc/registrar_comissao") ? Promise.resolve(new Response("erro", { status: 500 })) : fetchMock(u, o);
+  r = await hook(evento, assinar(evento));
+  ok(r.status === 500, "webhook: banco fora do ar → 500 (a Stripe tenta de novo)");
+  globalThis.fetch = fetchMock;
+
+  r = await worker.fetch(req("GET", "/saude"), envS);
+  d = await r.json();
+  ok(d.afiliados?.stripe && d.afiliados.stripe_webhook && d.afiliados.whatsapp, "/saude mostra Stripe, webhook e WhatsApp configurados");
+  globalThis.fetch = fetchAntes;
+}
+
 console.log(falhas ? `\n${falhas} FALHA(S)` : "\ntodos os casos passaram");
 process.exit(falhas ? 1 : 0);

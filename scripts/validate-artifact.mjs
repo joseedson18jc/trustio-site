@@ -25,7 +25,6 @@ for (const [path, expectedStatus, expectedType] of [
   ["/modelos", 200, "text/html"],
   ["/agentio.html", 200, "text/html"],
   ["/ia-sem-censura.html", 200, "text/html"],
-  ["/indicacao.html", 200, "text/html"],
   ["/fundador", 200, "text/html"],
   ["/planos.html", 200, "text/html"],
   ["/console/", 200, "text/html"],
@@ -68,8 +67,6 @@ for (const [path, expectedStatus, expectedType] of [
 // não pode ser servida sob /agentio/).
 for (const [path, expectedLocation] of [
   ["/agentio", "/agentio.html"],
-  ["/indicacao", "/indicacao.html"],
-  ["/indicacao/", "/indicacao.html"],
   ["/agentio/", "/agentio.html"],
   ["/agentio/?utm=x", "/agentio.html?utm=x"],
   ["/en/agentio", "/en/agentio.html"],

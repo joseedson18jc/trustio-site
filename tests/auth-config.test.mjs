@@ -5,21 +5,27 @@ import vm from "node:vm";
 
 const fonte = readFileSync(new URL("../assets/auth-config.js", import.meta.url), "utf8");
 
-function carregar({ lang = "pt-BR", protocolo = "https:" } = {}) {
+function carregar({ lang = "pt-BR", protocolo = "https:", caminho = "/entrar.html", guardado = {} } = {}) {
   const cookies = [];
+  const sessao = { ...guardado };
   const ctx = {
     document: {
       documentElement: { lang },
       set cookie(v) { cookies.push(v); },
       get cookie() { return ""; },
     },
-    location: { protocol: protocolo },
+    location: { protocol: protocolo, pathname: caminho },
+    sessionStorage: {
+      getItem: (k) => (k in sessao ? sessao[k] : null),
+      setItem: (k, v) => { sessao[k] = String(v); },
+      removeItem: (k) => { delete sessao[k]; },
+    },
     Date,
     Math,
   };
   ctx.window = ctx;
   vm.runInNewContext(fonte, ctx);
-  return { cfg: ctx.TRUSTIO_AUTH, cookies };
+  return { cfg: ctx.TRUSTIO_AUTH, cookies, sessao };
 }
 
 let falhas = 0;
@@ -75,6 +81,16 @@ console.log("sincronizarCookie");
   ok(cookies.at(-1).startsWith("tr_sess=novo;"), "renova no TOKEN_REFRESHED");
   ouvinte("SIGNED_OUT", null);
   ok(/Max-Age=0/.test(cookies.at(-1)), "apaga no SIGNED_OUT");
+}
+
+console.log("disjuntor de voltas");
+{
+  const cheio = { "tr-voltas": "[1,2]" };
+  ok(carregar({ caminho: "/app/", guardado: cheio }).sessao["tr-voltas"] === undefined, "chegar em /app/ zera o contador");
+  ok(carregar({ caminho: "/admin/", guardado: cheio }).sessao["tr-voltas"] === undefined, "chegar em /admin/ zera o contador");
+  ok(carregar({ caminho: "/entrar.html", guardado: cheio }).sessao["tr-voltas"] === "[1,2]", "na página de login o contador fica");
+  ok(carregar({ caminho: "/en/cadastro.html", guardado: cheio }).sessao["tr-voltas"] === "[1,2]", "no cadastro o contador fica");
+  ok(carregar().cfg.chaveVoltas === "tr-voltas", "chave exposta para o conta.js");
 }
 
 console.log("idioma");

@@ -176,3 +176,15 @@
 @media(max-width:600px){.seg-sub button small{display:none}}
 @media(prefers-reduced-motion:reduce){.sub-panel{animation:none}}
 .plan .methods .soon{color:var(--blue-signal,#5ea7ff);white-space:nowrap}
+
+/* ── Ajustes de responsividade (out/2026) ──
+   Comparativos no celular: a coluna "Recurso" fica fixa enquanto o resto desliza, para não perder
+   a referência da linha. E a seta do "Fale com um arquiteto" não quebra mais sozinha numa linha
+   (o link é bloco e o ícone .arw é display:block, então caía sempre numa linha própria; agora o ícone
+   é inline e a última palavra + seta ficam juntas em <span class="nowrap">). */
+@media(max-width:767px){
+  .compare th:first-child,.compare td:first-child{position:sticky;left:0;z-index:1;box-shadow:1px 0 0 var(--line,rgba(160,179,211,.16))}
+  .compare table{min-width:560px}
+}
+.diag-alt .nowrap{white-space:nowrap}
+.diag-alt .arw{display:inline-block;vertical-align:-.2em;margin-left:4px}

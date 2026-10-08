@@ -107,6 +107,13 @@ await caso("lixo no cookie → login", async () => {
   ok(r.status === 302, "302", String(r.status));
 });
 
+await caso("JSON válido mas não-objeto no token (corpo null) → login, sem exceção", async () => {
+  for (const lixo of ["e30.bnVsbA.AA", "bnVsbA.e30.AA", "W10.W10.AA"]) {
+    const r = await gate.fetch(req("/app/", "tr_sess=" + lixo), env);
+    ok(r.status === 302, lixo + " → 302", String(r.status));
+  }
+});
+
 await caso("/admin com papel teste → 403", async () => {
   papeis.u1 = "teste";
   const r = await gate.fetch(req("/admin/", "tr_sess=" + (await token())), env);

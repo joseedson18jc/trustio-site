@@ -29,6 +29,7 @@
 const COOKIE = "tr_sess";
 const JWKS_TTL_MS = 10 * 60 * 1000;
 const PAPEL_TTL_MS = 60 * 1000;
+const PAPEL_MAX_ENTRADAS = 1000;
 
 // /console fica de fora de propósito: é a demonstração pública, não usa conta.
 const ROTAS = [
@@ -66,12 +67,20 @@ function deBase64Url(texto) {
   return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 }
 
+function ehObjeto(v) {
+  return v !== null && typeof v === "object" && !Array.isArray(v);
+}
+
 function decodificar(token) {
   const partes = String(token).split(".");
   if (partes.length !== 3) return null;
   try {
     const texto = (p) => JSON.parse(new TextDecoder().decode(deBase64Url(p)));
-    return { cabecalho: texto(partes[0]), corpo: texto(partes[1]), assinado: partes[0] + "." + partes[1], assinatura: deBase64Url(partes[2]) };
+    const cabecalho = texto(partes[0]);
+    const corpo = texto(partes[1]);
+    // JSON válido não basta: "null" ou "[]" no lugar do objeto também é recusado.
+    if (!ehObjeto(cabecalho) || !ehObjeto(corpo)) return null;
+    return { cabecalho, corpo, assinado: partes[0] + "." + partes[1], assinatura: deBase64Url(partes[2]) };
   } catch {
     return null;
   }
@@ -118,6 +127,18 @@ export async function verificarToken(token, env) {
   }
 }
 
+/** Cache limitado: some com o que venceu e, cheio, descarta o mais antigo (ordem de inserção). */
+function guardarPapel(sub, papel) {
+  const agora = Date.now();
+  for (const [usuario, entrada] of cachePapel) {
+    if (agora >= entrada.ate) cachePapel.delete(usuario);
+  }
+  if (!cachePapel.has(sub) && cachePapel.size >= PAPEL_MAX_ENTRADAS) {
+    cachePapel.delete(cachePapel.keys().next().value);
+  }
+  cachePapel.set(sub, { papel, ate: agora + PAPEL_TTL_MS });
+}
+
 async function papelDe(token, sub, env) {
   const guardado = cachePapel.get(sub);
   if (guardado && Date.now() < guardado.ate) return guardado.papel;
@@ -131,7 +152,7 @@ async function papelDe(token, sub, env) {
     return null;
   }
   const papel = await r.json();
-  cachePapel.set(sub, { papel, ate: Date.now() + PAPEL_TTL_MS });
+  guardarPapel(sub, papel);
   return papel;
 }
 

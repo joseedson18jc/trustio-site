@@ -34,7 +34,16 @@
     sb.auth.onAuthStateChange(function (_evento, sessao) { gravarCookie(sessao); });
   }
 
+  /* Disjuntor do conta.js: conta idas de login → página protegida. Se esta página carregou fora
+     do login/cadastro, o porteiro aceitou a sessão — zera, para logins válidos seguidos não
+     dispararem o disjuntor. */
+  var VOLTAS = "tr-voltas";
+  if (!/\/(?:entrar|cadastro)\.html$/.test(location.pathname || "")) {
+    try { sessionStorage.removeItem(VOLTAS); } catch (e) { /* sem sessionStorage: nada a zerar */ }
+  }
+
   window.TRUSTIO_AUTH = Object.freeze({
+    chaveVoltas: VOLTAS,
     destinoSeguro: destinoSeguro,
     gravarCookie: gravarCookie,
     sincronizarCookie: sincronizarCookie,

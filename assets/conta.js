@@ -26,7 +26,7 @@
 
   // Disjuntor: se o porteiro recusar a sessão que o navegador tem, entrar → /app → entrar giraria
   // para sempre. Duas idas em 20 s sem ficar lá = sessão inválida: sai e explica, em vez de girar.
-  var VOLTAS = "tr-voltas", JANELA_VOLTAS_MS = 20000, MAX_VOLTAS = 2;
+  var VOLTAS = CFG.chaveVoltas, JANELA_VOLTAS_MS = 20000, MAX_VOLTAS = 2;
   var indo = false;
   function voltasRecentes() {
     try {

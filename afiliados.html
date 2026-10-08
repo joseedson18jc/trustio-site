@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark light">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow, max-image-preview:large">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://api.trustio.com.br; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Trustio Afiliados | Ganhe R$ 200 por venda indicando a IA brasileira</title>
   <meta name="description" content="Programa de afiliados da Trustio: comissão fixa por venda, pagamento via Pix, materiais prontos. Indique a IA privada e sem censura hospedada no Brasil.">
   <meta name="keywords" content="programa de afiliados, afiliados IA, comissão por venda, Trustio, IA sem censura, IA brasileira">
@@ -38,11 +38,11 @@
   <link rel="stylesheet" href="assets/styles.css?v=77b62ce3">
   <link rel="stylesheet" href="assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="assets/whatsapp-suporte.js?v=19399fa4"></script>
-  <script type="module" src="assets/app.js?v=814b8c88"></script>
+  <script type="module" src="assets/app.js?v=1e260e3e"></script>
   <link rel="stylesheet" href="assets/brasil-banner.css?v=571e8cd4">
   <script defer src="assets/brasil-banner.js?v=2309d3bc"></script>
-  <link rel="stylesheet" href="assets/afiliados.css?v=144f7a52">
-  <script defer src="assets/afiliados.js?v=3b19efa2"></script>
+  <link rel="stylesheet" href="assets/afiliados.css?v=7f6f54d7">
+  <script defer src="assets/afiliados.js?v=c1a04b8b"></script>
 </head>
 <body class="home-page afiliados-page">
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -134,8 +134,8 @@
           <li class="afil-card reveal">
             <span class="card-number">01</span>
             <h3>Cadastre-se</h3>
-            <p>Envie seu canal e o perfil da audiência. Aprovação em até 48h — sem taxa de adesão, sem exclusividade.</p>
-            <span class="afil-det">→ cadastro gratuito</span>
+            <p>Envie canal, WhatsApp, CPF e chave Pix. Análise em até 30 minutos; aprovado, o link chega por e-mail e WhatsApp. Sem taxa de adesão. Só 100 vagas no país.</p>
+            <span class="afil-det">→ 100 vagas · análise em 30 min</span>
           </li>
           <li class="afil-card reveal reveal-delay-1">
             <span class="card-number">02</span>
@@ -276,27 +276,40 @@
     <section class="section-shell afil-cta" id="cadastro" aria-labelledby="afil-form-title">
       <div class="container">
         <div class="afil-form-card reveal">
-          <p class="section-kicker">Cadastro · aprovação em 48h</p>
+          <p class="section-kicker">Cadastro · análise em até 30 min</p>
           <h2 id="afil-form-title">Comece a ganhar<span>esta semana.</span></h2>
-          <p class="afil-form-lead">Preencha abaixo. Você recebe o link de afiliado, o cupom nominal e o kit de materiais por e-mail.</p>
+          <p class="afil-form-lead">Preencha abaixo. Aprovado o cadastro, seu link de afiliado chega por e-mail e WhatsApp.</p>
           <form id="f-cad" novalidate>
             <div class="afil-f-grid">
               <div class="afil-field"><label for="f-nome">Nome completo</label><input id="f-nome" name="nome" type="text" autocomplete="name" required aria-describedby="m-nome"><p class="afil-f-msg" id="m-nome"></p></div>
               <div class="afil-field"><label for="f-email">E-mail</label><input id="f-email" name="email" type="email" autocomplete="email" required aria-describedby="m-email"><p class="afil-f-msg" id="m-email"></p></div>
+              <div class="afil-field afil-full"><label for="f-wa">WhatsApp</label><input id="f-wa" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(11) 98765-4321" required aria-describedby="m-wa"><p class="afil-f-msg" id="m-wa"></p></div>
               <div class="afil-field afil-full"><label for="f-canal">Seu principal canal</label>
                 <select id="f-canal" name="canal" required aria-describedby="m-canal">
                   <option value="">Selecione…</option>
                   <option>YouTube</option><option>Instagram / TikTok</option><option>Newsletter</option><option>Podcast</option><option>Consultoria / B2B</option><option>Comunidade (WhatsApp/Telegram/Discord)</option><option>Outro</option>
                 </select><p class="afil-f-msg" id="m-canal"></p></div>
-              <div class="afil-field afil-full"><label for="f-aud">Tamanho e perfil da audiência (opcional)</label><input id="f-aud" name="audiencia" type="text" placeholder="Ex.: 8 mil inscritos no YouTube, público tech"></div>
+              <div class="afil-field afil-full"><label for="f-aud">Tamanho e perfil da audiência (opcional)</label><input id="f-aud" name="audiencia" type="text" maxlength="300" placeholder="Ex.: 8 mil inscritos no YouTube, público tech"></div>
+              <div class="afil-field afil-full"><label for="f-cpf">CPF do titular</label><input id="f-cpf" name="cpf" type="text" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00" required aria-describedby="m-cpf"><p class="afil-f-msg" id="m-cpf"></p></div>
+              <div class="afil-field"><label for="f-pix-tipo">Tipo da chave Pix</label>
+                <select id="f-pix-tipo" name="pix_tipo" required aria-describedby="m-pix-tipo">
+                  <option value="">Selecione…</option><option value="cpf">CPF</option><option value="email">E-mail</option><option value="telefone">Telefone</option><option value="aleatoria">Chave aleatória</option>
+                </select><p class="afil-f-msg" id="m-pix-tipo"></p></div>
+              <div class="afil-field"><label for="f-pix">Chave Pix</label><input id="f-pix" name="pix" type="text" autocomplete="off" maxlength="140" required aria-describedby="m-pix"><p class="afil-f-msg" id="m-pix"></p></div>
+              <div class="afil-honey" aria-hidden="true"><label for="f-honey">Não preencha</label><input id="f-honey" name="_honey" type="text" tabindex="-1" autocomplete="off"></div>
             </div>
-            <button type="submit" class="button button-primary afil-submit">Quero ser afiliado da Trustio <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
-            <p class="afil-form-note">O botão abre seu aplicativo de e-mail com o cadastro preenchido para <b>contato@trustio.com.br</b>. Sem taxa · sem exclusividade · dados usados só para o programa, conforme a LGPD.</p>
+            <button type="submit" class="button button-primary afil-submit">Enviar cadastro para análise <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
+            <p class="afil-form-msg" data-form-msg role="alert" hidden></p>
+            <div class="afil-aviso">
+              <p><b>Cadastro condicionado a aprovação.</b> O programa de parcerias é extremamente exclusivo: apenas <b>100 vagas</b> para todo o País.</p>
+              <p>A confirmação chegará no seu e-mail e WhatsApp. <b>Tempo de análise: até 30 minutos.</b></p>
+            </div>
+            <p class="afil-form-note">A comissão cai na chave Pix cadastrada, que precisa ser do mesmo titular do CPF. Sem taxa · sem exclusividade · CPF e Pix usados só para pagar comissões, conforme a LGPD.</p>
           </form>
           <div class="afil-ok" id="ok-msg" role="status" hidden>
             <p class="afil-ok-check">[ ✓ ]</p>
-            <h3>Quase lá!</h3>
-            <p>Envie o e-mail que abriu no seu aplicativo. Respondemos em até 48h com link, cupom e kit de materiais. Enquanto isso, <a href="planos.html">conheça os planos</a> para indicar com propriedade.</p>
+            <h3>Cadastro recebido!</h3>
+            <p>Seu cadastro está em análise — até 30 minutos. A confirmação, com o seu link de afiliado, chega em <b data-ok-email></b> e no seu WhatsApp. Enquanto isso, <a href="planos.html">conheça os planos</a> para indicar com propriedade.</p>
           </div>
         </div>
       </div>

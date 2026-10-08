@@ -492,5 +492,102 @@ ok(r.status === 410 && /Link expired/.test(await r.text()), "en: link expirado e
 r = await worker.fetch(req("GET", "/confirm?lang=en"), env);
 ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompleto em inglês");
 
+// · afiliados: cadastro pendente, aviso de análise, aprovação pela equipe e link por e-mail
+{
+  const fetchAntes = globalThis.fetch;
+  const envAf = { ...env, SUPABASE_ANON_KEY: "sb_publishable_x" };
+  let chamadas = [], emails = [], resposta = { ok: true, nome: "Maria", status: "pendente", enviar: true }, resendStatus = 200, rpcStatus = 200;
+  globalThis.fetch = async (u, o) => {
+    u = String(u);
+    if (u.includes("/rest/v1/rpc/")) {
+      chamadas.push({ nome: u.split("/rpc/")[1], args: JSON.parse(o.body), headers: o.headers });
+      return new Response(JSON.stringify(resposta), { status: rpcStatus });
+    }
+    if (u.includes("api.resend.com")) { emails.push(JSON.parse(o.body)); return new Response("{}", { status: resendStatus }); }
+    throw new Error("fetch inesperado: " + u);
+  };
+  const corpo = (extra = {}) => JSON.stringify({ email: "Maria@Exemplo.com", nome: "Maria", canal: "YouTube", audiencia: "8 mil",
+    whatsapp: "(11) 98765-4321", cpf: "529.982.247-25", pix_tipo: "email", pix: "maria@exemplo.com", ...extra });
+  const cadastrar = (c) => worker.fetch(req("POST", "/afiliados", c), envAf);
+
+  let r = await cadastrar(corpo());
+  let d = await r.json();
+  ok(r.status === 200 && d.ok && !("codigo" in d), "afiliados: 200 sem devolver o código");
+  ok(chamadas[0]?.nome === "registrar_afiliado" && chamadas[0].args.p_email === "maria@exemplo.com"
+     && chamadas[0].args.p_cpf === "52998224725" && chamadas[0].args.p_whatsapp === "11987654321",
+     "afiliados: RPC recebe e-mail minúsculo, CPF e WhatsApp só dígitos", JSON.stringify(chamadas[0]?.args));
+  ok(emails.length === 1 && /análise/.test(emails[0].subject + emails[0].html) && /30 minutos/.test(emails[0].html)
+     && /100 vagas/.test(emails[0].html) && !/\?ref=/.test(emails[0].html),
+     "afiliados: cadastro só avisa a análise (30 min, 100 vagas), sem link");
+
+  emails = []; resposta = { ok: true, nome: "Maria", status: "pendente", enviar: false };
+  r = await cadastrar(corpo());
+  ok(r.status === 200 && emails.length === 0, "afiliados: dentro de 5 min não reenvia, mas responde igual");
+
+  chamadas = [];
+  for (const [extra, erro] of [[{ cpf: "111.111.111-11" }, "cpf_invalido"], [{ cpf: "52998224724" }, "cpf_invalido"],
+    [{ whatsapp: "123" }, "whatsapp_invalido"], [{ pix_tipo: "boleto" }, "pix_tipo_invalido"], [{ pix: " " }, "pix_ausente"],
+    [{ canal: "TV" }, "canal_invalido"], [{ email: "x" }, "email_invalido"], [{ nome: "" }, "nome_ausente"]]) {
+    r = await cadastrar(corpo(extra));
+    d = await r.json();
+    ok(r.status === 400 && d.error === erro, "afiliados: recusa " + erro, JSON.stringify(extra));
+  }
+  ok(chamadas.length === 0, "afiliados: dados inválidos não chegam ao banco");
+
+  chamadas = []; emails = []; resposta = { ok: true, nome: "Maria", status: "pendente", enviar: true }; resendStatus = 500;
+  r = await cadastrar(corpo());
+  ok(r.status === 502 && chamadas.some((c) => c.nome === "desfazer_recebido_afiliado"), "afiliados: Resend falhou → 502 e libera reenvio");
+  resendStatus = 200;
+
+  chamadas = [];
+  r = await cadastrar(corpo({ _honey: "robo" }));
+  ok(r.status === 200 && chamadas.length === 0, "afiliados: honeypot não grava");
+
+  // aprovação
+  const ID = "3f2504e0-4f89-11d3-9a0c-0305e82c3301";
+  const aprovar = (corpoA, token = "jwt-da-equipe", e = envAf) => worker.fetch(new Request("https://api.trustio.com.br/afiliados/aprovar", {
+    method: "POST", headers: { origin: "https://trustio.com.br", "content-type": "application/json", ...(token ? { authorization: "Bearer " + token } : {}) },
+    body: corpoA,
+  }), e);
+  r = await aprovar(JSON.stringify({ id: ID }), "");
+  ok(r.status === 401, "aprovar: sem token → 401");
+  r = await aprovar(JSON.stringify({ id: "1; drop" }));
+  ok(r.status === 400, "aprovar: id inválido → 400");
+
+  chamadas = []; emails = []; resposta = { ok: true, email: "maria@exemplo.com", nome: "Maria", codigo: "MARIA482", whatsapp: "11987654321" };
+  r = await aprovar(JSON.stringify({ id: ID }));
+  d = await r.json();
+  ok(chamadas[0]?.nome === "aprovar_afiliado" && chamadas[0].headers.Authorization === "Bearer jwt-da-equipe"
+     && chamadas[0].headers.apikey === "sb_publishable_x", "aprovar: banco chamado com o token de quem aprovou, não a chave de serviço");
+  ok(r.status === 200 && d.email_enviado && d.link === "https://trustio.com.br/?ref=MARIA482" && d.whatsapp === "11987654321",
+     "aprovar: devolve link e WhatsApp ao CRM");
+  ok(emails.length === 1 && emails[0].to[0] === "maria@exemplo.com" && emails[0].html.includes("https://trustio.com.br/?ref=MARIA482")
+     && emails[0].text.includes("MARIA482"), "aprovar: e-mail leva o link ?ref=CODIGO e o código");
+
+  resposta = { ok: false, error: "vagas_esgotadas", vagas: 100 };
+  r = await aprovar(JSON.stringify({ id: ID }));
+  ok(r.status === 409 && (await r.json()).error === "vagas_esgotadas", "aprovar: 101ª vaga → 409");
+  resposta = { ok: false, error: "somente_equipe" };
+  r = await aprovar(JSON.stringify({ id: ID }));
+  ok(r.status === 403, "aprovar: quem não é equipe → 403");
+  rpcStatus = 401;
+  r = await aprovar(JSON.stringify({ id: ID }));
+  ok(r.status === 401, "aprovar: token vencido → 401");
+  rpcStatus = 200;
+
+  emails = []; resposta = { ok: true, email: "m@e.com", nome: "M", codigo: "M001", whatsapp: "11987654321" }; resendStatus = 500;
+  r = await aprovar(JSON.stringify({ id: ID }));
+  d = await r.json();
+  ok(r.status === 200 && d.ok && d.email_enviado === false, "aprovar: e-mail falhou → aprovado, CRM avisa para reenviar");
+  resendStatus = 200;
+
+  r = await worker.fetch(new Request("https://api.trustio.com.br/afiliados/aprovar", { method: "OPTIONS", headers: { origin: "https://trustio.com.br" } }), envAf);
+  ok(/authorization/.test(r.headers.get("access-control-allow-headers") || ""), "CORS aceita o cabeçalho Authorization");
+
+  r = await worker.fetch(req("POST", "/afiliados", corpo()), { ...envAf, RESEND_API_KEY: "" });
+  ok(r.status === 503, "afiliados: sem Resend configurada → 503");
+  globalThis.fetch = fetchAntes;
+}
+
 console.log(falhas ? `\n${falhas} FALHA(S)` : "\ntodos os casos passaram");
 process.exit(falhas ? 1 : 0);

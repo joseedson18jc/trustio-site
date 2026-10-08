@@ -18,7 +18,9 @@
     "test": "npm run test:unit && npm run test:worker",
     "test:unit": "node --test \"tests/*.test.mjs\"",
     "test:worker": "node worker/test/worker.test.mjs",
-    "test:mac": "node mac/test/hermes-autorizados.test.mjs && node mac/test/whatsapp.test.mjs"
+    "test:mac": "node mac/test/hermes-autorizados.test.mjs && node mac/test/whatsapp.test.mjs",
+    "test:gate": "node gate/test/gate.test.mjs",
+    "test:auth": "node tests/auth-config.test.mjs"
   },
   "engines": {
     "node": ">=22.13"

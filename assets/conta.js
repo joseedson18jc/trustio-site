@@ -8,13 +8,61 @@
   var CFG = window.TRUSTIO_AUTH;
   if (!CFG || !window.supabase) return;
 
+  // Lido antes do createClient, que apaga o fragmento: um link de "esqueci a senha" desviado para
+  // cá pelo porteiro precisa abrir o formulário de nova senha no /app/.
+  var emRecuperacao = /type=recovery/.test(location.hash);
+
+  // detectSessionInUrl: esta página recebe o #access_token de duas origens — a volta do Google, e
+  // links de e-mail que apontavam para /app/ e foram desviados para cá pelo porteiro (gate/),
+  // que mantém o fragmento no redirect.
   var sb = window.supabase.createClient(CFG.url, CFG.key, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
+  CFG.sincronizarCookie(sb);
   var appUrl = location.origin + CFG.appPath;
+  // ?next= vem do porteiro: depois de entrar, volta para a página que foi pedida.
+  var proximo = CFG.destinoSeguro(new URLSearchParams(location.search).get("next"), "");
+  var destino = location.origin + (emRecuperacao ? CFG.appPath + "?recovery=1" : (proximo || CFG.appPath));
+
+  // Disjuntor: se o porteiro recusar a sessão que o navegador tem, entrar → /app → entrar giraria
+  // para sempre. Duas idas em 20 s sem ficar lá = sessão inválida: sai e explica, em vez de girar.
+  var VOLTAS = CFG.chaveVoltas, JANELA_VOLTAS_MS = 20000, MAX_VOLTAS = 2;
+  var indo = false;
+  function voltasRecentes() {
+    try {
+      return JSON.parse(sessionStorage.getItem(VOLTAS) || "[]")
+        .filter(function (t) { return Date.now() - t < JANELA_VOLTAS_MS; });
+    } catch (e) { return []; }
+  }
+  // O cookie precisa existir antes da navegação, senão o porteiro devolve a pessoa para cá.
+  function irParaDestino(sessao) {
+    if (indo) return;
+    var voltas = voltasRecentes();
+    if (voltas.length >= MAX_VOLTAS) {
+      try { sessionStorage.removeItem(VOLTAS); } catch (e) { /* sem sessionStorage: segue sem disjuntor */ }
+      sb.auth.signOut(); // SIGNED_OUT apaga o cookie (sincronizarCookie)
+      var aviso = document.querySelector("[data-oauth-status]") || document.querySelector("form [data-status]");
+      if (aviso) {
+        aviso.textContent = T("Sua sessão não pôde ser validada. Entre de novo, por favor.", "We couldn't validate your session. Please sign in again.");
+        aviso.classList.add("is-error");
+      }
+      return;
+    }
+    try { sessionStorage.setItem(VOLTAS, JSON.stringify(voltas.concat(Date.now()))); } catch (e) { /* idem */ }
+    indo = true;
+    CFG.gravarCookie(sessao);
+    location.replace(destino);
+  }
+  // O supabase-js processa o #access_token de forma assíncrona: o getSession abaixo pode chegar
+  // antes. SIGNED_IN cobre esse caso (e a volta do Google); `indo` evita navegar duas vezes.
+  sb.auth.onAuthStateChange(function (evento, sessao) {
+    if ((evento === "SIGNED_IN" || evento === "PASSWORD_RECOVERY") && sessao && document.body.dataset.redirectIfLogged !== "false") {
+      irParaDestino(sessao);
+    }
+  });
   // Os botões chegam desabilitados no HTML: sem este script (bloqueado ou com erro), o formulário
   // não envia nada — muito menos a senha na URL.
-  document.querySelectorAll("#entrar-form [data-submit], #recuperar-form [data-submit], #cadastro-form [data-submit]")
+  document.querySelectorAll("#entrar-form [data-submit], #recuperar-form [data-submit], #cadastro-form [data-submit], [data-oauth]")
     .forEach(function (b) { b.disabled = false; });
 
   function status(form, text, kind) {
@@ -43,11 +91,34 @@
     return T("Não foi possível concluir agora. Tente novamente em instantes.", "We couldn't finish that right now. Try again in a moment.");
   }
 
-  // Já logado? Vai direto para o chat.
+  // Já logado (inclusive acabando de voltar do Google ou de um link de e-mail)? Vai para o destino.
   sb.auth.getSession().then(function (r) {
     if (r.data && r.data.session && document.body.dataset.redirectIfLogged !== "false") {
-      location.replace(appUrl);
+      irParaDestino(r.data.session);
     }
+  });
+
+  // ---------------------------------------------------------------- Google
+  // O Google devolve para esta mesma página (com o ?next= original); o getSession acima
+  // termina o trabalho. Erro ou cancelamento chega como #error_description=… na volta.
+  var oauthStatus = document.querySelector("[data-oauth-status]");
+  var erroOauth = new URLSearchParams(location.hash.slice(1)).get("error_description");
+  if (erroOauth && oauthStatus) {
+    oauthStatus.textContent = T("Não foi possível entrar com o Google. Tente de novo ou use e-mail e senha.", "We couldn't sign you in with Google. Try again, or use email and password.");
+    oauthStatus.classList.add("is-error");
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+  document.querySelectorAll("[data-oauth='google']").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      btn.disabled = true;
+      var volta = location.origin + CFG.loginPath + (proximo ? "?next=" + encodeURIComponent(proximo) : "");
+      sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: volta } })
+        .then(function (r) { if (r.error) throw r.error; })
+        .catch(function (err) {
+          btn.disabled = false;
+          if (oauthStatus) { oauthStatus.textContent = humanError(err); oauthStatus.classList.add("is-error"); }
+        });
+    });
   });
 
   // Quem indicou esta pessoa, se ela chegou por um link `?ref=`. Quem grava é
@@ -108,7 +179,7 @@
       }).then(function (r) {
         if (r.error) throw r.error;
         if (window.TRUSTIO_FUNIL) window.TRUSTIO_FUNIL.inicio();
-        if (r.data && r.data.session) { location.replace(appUrl); return; }
+        if (r.data && r.data.session) { irParaDestino(r.data.session); return; }
         // Mesma resposta para e-mail novo e para e-mail que já tem conta (o Supabase devolve
         // identities vazio nesse caso, sem erro): dizer "já tem conta" num formulário público
         // revelaria quem é cliente. Então nunca "conta criada" — a página diz o que vale nos
@@ -147,7 +218,7 @@
       sb.auth.signInWithPassword({ email: email, password: String(f.get("senha") || "") })
         .then(function (r) {
           if (r.error) throw r.error;
-          location.replace(appUrl);
+          irParaDestino(r.data.session);
         })
         .catch(function (err) {
           busy(login, false);

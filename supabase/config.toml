@@ -84,3 +84,12 @@ verify_jwt = false
 # confere o segredo x-trustio-segredo (HERMES_SEGREDO) no lugar do JWT.
 [functions.hermes-autorizados]
 verify_jwt = false
+
+# Login com Google. O cliente OAuth é criado no Google Cloud com o redirect
+# https://mjdaluioyutnxlyomzyd.supabase.co/auth/v1/callback; id e segredo vêm dos segredos
+# GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET do GitHub (sem eles o workflow desliga o provedor).
+[auth.external.google]
+enabled = true # login com Google
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+skip_nonce_check = false

@@ -69,8 +69,8 @@
   const cities = [
     { n: "Manaus", ll: [-60.0, -3.1], a: "e" }, { n: "Belém", ll: [-48.5, -1.45], a: "e" }, { n: "Fortaleza", ll: [-38.5, -3.7], a: "e" },
     { n: "Recife", ll: [-34.9, -8.05], a: "e" }, { n: "Salvador", ll: [-38.5, -12.97], a: "e" }, { n: "Brasília", ll: [-47.9, -15.8], a: "w" },
-    { n: "Belo Horizonte", ll: [-43.9, -19.9], a: "e" }, { n: "São Paulo", ll: [-46.6, -23.55], a: "s" }, { n: "Rio de Janeiro", ll: [-43.2, -22.9], a: "e" },
-    { n: "Curitiba", ll: [-49.3, -25.4], a: "e" }, { n: "Porto Alegre", ll: [-51.2, -30.0], a: "e" },
+    { n: "Belo Horizonte", ll: [-43.9, -19.9], a: "e" }, { n: "São Paulo", ll: [-46.6, -23.55], a: "w" }, { n: "Rio de Janeiro", ll: [-43.2, -22.9], a: "e" },
+    { n: "Curitiba", ll: [-49.3, -25.4], a: "s" }, { n: "Porto Alegre", ll: [-51.2, -30.0], a: "e" },
   ];
   const minor = [[-67.8,-9.97],[-63.9,-8.76],[-56.1,-15.6],[-49.3,-16.7],[-54.6,-20.4],[-44.3,-2.5],[-60.7,2.8],[-48.3,-10.2],[-42.8,-5.1],[-35.7,-9.6],[-37.1,-10.9],[-48.5,-27.6],[-40.3,-20.3],[-52.4,-31.8],[-61.0,-15.5],[-57.9,-5.5],[-51.6,-7.5],[-45.9,-12.1]];
 
@@ -124,6 +124,15 @@
     const t = el("text", { x: c.a === "w" ? x - 6 : c.a === "s" ? x - 4 : x + 6, y: c.a === "s" ? y + 11 : y + 2.6, "text-anchor": c.a === "w" ? "end" : "start" });
     t.textContent = c.n; g.appendChild(t); cg.appendChild(g);
   });
+  // Nomes das cidades com pelo menos 12 px na tela: o mapa escala com a largura da tela, então o
+  // tamanho em unidades do SVG acompanha a largura renderizada (nunca menor que o original, 7,4).
+  const fitCityLabels = () => {
+    const vb = svg.viewBox && svg.viewBox.baseVal, w = svg.clientWidth || svg.getBoundingClientRect().width;
+    if (!vb || !vb.width || !w) return;
+    cg.style.setProperty("--tb-city-fs", Math.max(7.4, 12.2 / (w / vb.width)).toFixed(2) + "px");
+  };
+  fitCityLabels();
+  if ("ResizeObserver" in window) new ResizeObserver(fitCityLabels).observe(svg); else addEventListener("resize", fitCityLabels);
   const minorPts = minor.map(P);
   minorPts.forEach(([x, y], i) => {
     const g = el("g", { class: "tb-city", style: `transform-origin:${x}px ${y}px;animation-delay:${(2.4 + i * 0.09).toFixed(2)}s` });

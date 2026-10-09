@@ -1,4 +1,4 @@
-@import url("voice-base.css?v=958d3223");
+@import url("voice-base.css?v=77e3ade0");
 
 /* O antigo assets/xspace-logo.webp estava truncado (6.236 de 16.300 bytes
    declarados no cabeçalho RIFF), nenhum navegador o decodificava e a regra
@@ -111,7 +111,7 @@
   align-items:center;
   gap:8px;
   font-family:var(--mono,ui-monospace);
-  font-size:11px;
+  font-size:12px;
   letter-spacing:.14em;
   text-transform:uppercase;
   color:var(--muted);
@@ -158,7 +158,7 @@
 }
 .tech-vendor small{
   font-family:var(--body,sans-serif);
-  font-size:11.5px;
+  font-size:12px;
   line-height:1.35;
   color:var(--muted);
 }

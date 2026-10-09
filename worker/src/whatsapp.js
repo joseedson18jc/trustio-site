@@ -11,14 +11,22 @@ const PRAZO_MS = 10000;
 
 export const whatsappConfigurado = (env) => Boolean(env.EVOLUTION_URL && env.EVOLUTION_INSTANCE && env.EVOLUTION_API_KEY);
 
-/** Número brasileiro só com dígitos e DDI 55. */
-export function numeroBR(bruto) {
-  const d = String(bruto || "").replace(/\D/g, "");
-  return d.length <= 11 ? "55" + d : d;
+/**
+ * WhatsApp brasileiro sempre como 55 + DDD + número (12 ou 13 dígitos), ou null se não der.
+ * Aceita com ou sem 55, com zeros à esquerda (0 11…) e qualquer pontuação.
+ * A mesma regra está em assets/afiliados.js, assets/crm-afiliados.js e no banco (whatsapp_br).
+ */
+export function normalizarWhatsapp(bruto) {
+  const d = String(bruto || "").replace(/\D/g, "").replace(/^0+/, "");
+  if (d.startsWith("55") && (d.length === 12 || d.length === 13)) return d;
+  if (d.length === 10 || d.length === 11) return "55" + d;
+  return null;
 }
 
 export async function enviarWhatsapp(env, numero, texto) {
   if (!whatsappConfigurado(env)) return { enviado: false, motivo: "nao_configurado" };
+  const destino = normalizarWhatsapp(numero);
+  if (!destino) return { enviado: false, motivo: "numero_invalido" };
   const base = String(env.EVOLUTION_URL).replace(/\/$/, "");
   try {
     const r = await fetch(`${base}/message/sendText/${encodeURIComponent(env.EVOLUTION_INSTANCE)}`, {
@@ -26,7 +34,7 @@ export async function enviarWhatsapp(env, numero, texto) {
       signal: AbortSignal.timeout(PRAZO_MS),
       headers: { apikey: env.EVOLUTION_API_KEY, "Content-Type": "application/json" },
       // "text" é o formato da Evolution v2; "textMessage", o da v1. Cada versão ignora o outro.
-      body: JSON.stringify({ number: numeroBR(numero), text: texto, textMessage: { text: texto } }),
+      body: JSON.stringify({ number: destino, text: texto, textMessage: { text: texto } }),
     });
     if (!r.ok) {
       console.error("whatsapp_falhou", r.status, (await r.text()).slice(0, 200));

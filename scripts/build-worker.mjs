@@ -144,7 +144,11 @@ export default {
     if (path === "/empresas" || path === "/empresas/") path = "/empresas.html";
     if (path === "/modelos" || path === "/modelos/") path = "/modelos.html";
     if (path === "/fundador" || path === "/fundador/") path = "/fundador.html";
-    if (path === "/afiliados" || path === "/afiliados/") path = "/afiliados.html";
+    // /afiliados e /afiliados/ redirecionam, como /agentio: a página usa caminhos relativos
+    // (assets/afiliados.css, assets/afiliados.js), que sob /afiliados/ dariam 404.
+    if (path === "/afiliados" || path === "/afiliados/") {
+      return Response.redirect(new URL(prefix + "/afiliados.html" + url.search, url), 308);
+    }
     if (path === "/espera" || path === "/espera/") path = "/espera.html";
     if (path === "/obrigado" || path === "/obrigado/") path = "/obrigado.html";
     if (path === "/ia-sem-censura" || path === "/ia-sem-censura/") path = "/ia-sem-censura.html";

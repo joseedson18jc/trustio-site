@@ -8,12 +8,12 @@
 .home-residency h2 span { display: block; background: linear-gradient(100deg, #53cdfe, #5ea7ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .home-residency p { text-align: center; color: #bdc5d1; max-width: 640px; margin: 22px auto 0; font-size: 18px; }
 .home-residency-stats { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 54px; border-top: 1px solid rgba(160,179,211,.18); border-bottom: 1px solid rgba(160,179,211,.18); }
-.home-residency-stats div { display: flex; align-items: center; gap: 12px; padding: 22px 18px; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #f4f6fa; line-height: 1.5; }
+.home-residency-stats div { display: flex; align-items: center; gap: 12px; padding: 22px 18px; font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #f4f6fa; line-height: 1.5; }
 .home-residency-stats div + div { border-left: 1px solid rgba(160,179,211,.18); }
 .home-residency-stats svg { width: 22px; height: 22px; flex: none; color: #5ea7ff; }
 @media (max-width: 860px) { .home-residency-stats { grid-template-columns: 1fr 1fr; } .home-residency-stats div:nth-child(3) { border-left: 0; } .home-residency-stats div:nth-child(n+3) { border-top: 1px solid rgba(160,179,211,.18); } }
 
-.home-residency p.home-residency-kicker { display:flex; align-items:center; gap:12px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; margin:0 auto 18px; color:#9dc8ff; max-width:none; }
+.home-residency p.home-residency-kicker { display:flex; align-items:center; gap:12px; font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; margin:0 auto 18px; color:#9dc8ff; max-width:none; }
 .home-residency-kicker::before { content:""; width:24px; height:1px; background:currentColor; opacity:.7; }
 @media (prefers-reduced-motion: reduce) { .home-residency-stars i { animation:none; } }
-@media (max-width:480px) { .home-residency-stats div { padding:18px 10px; font-size:10px; gap:8px; } }
+@media (max-width:480px) { .home-residency-stats div { padding:18px 10px; font-size:12px; gap:8px; } }

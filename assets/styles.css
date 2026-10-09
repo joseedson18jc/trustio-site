@@ -74,7 +74,7 @@
   --mono: "Martian Mono", "Geist Mono", "SF Mono", ui-monospace, Menlo, monospace;
   --serif: "Instrument Serif", Georgia, serif;
   /* Type floor: nada abaixo de 11px (rótulos mono) / 12px (qualquer coisa clicável). */
-  --label: 11px;
+  --label: 12px;
   --label-lg: 12px;
   /* Cor dos rótulos mono secundários — 6.9:1 sobre o fundo abyss. */
   --label-color: #8d98aa;
@@ -624,7 +624,7 @@ p {
   gap: 9px;
   color: var(--blue-signal);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.14em;
   line-height: 1.4;
@@ -1375,7 +1375,7 @@ p {
 .deployment-track { display: grid; grid-template-columns: repeat(4, 1fr); }
 .deployment-step { min-height: 350px; padding: 0 26px var(--space-20) 0; }
 .deployment-step + .deployment-step { padding-left: 26px; border-left: 1px solid var(--line); }
-.step-index { display: flex; height: 48px; align-items: center; margin-bottom: 50px; color: var(--blue-signal); font-family: var(--mono); font-size: 11px; }
+.step-index { display: flex; height: 48px; align-items: center; margin-bottom: 50px; color: var(--blue-signal); font-family: var(--mono); font-size: 12px; }
 .step-index i { flex: 1; height: 1px; margin-left: var(--space-20); background: linear-gradient(90deg, rgba(94,167,255,.36), transparent); }
 .deployment-step h3 { margin: 18px 0 var(--space-16); font-size: 20.6px; font-weight: 500; }
 .deployment-step > p:last-child { margin: 0; color: var(--muted); font-size: 14px; }
@@ -1479,7 +1479,7 @@ p {
 .manifesto-chapter { border-top: 1px solid var(--line); }
 .manifesto-chapter-grid { display: grid; grid-template-columns: .34fr 1fr; gap: 70px; }
 .chapter-index { display: flex; align-items: flex-start; gap: 18px; }
-.chapter-index > span { color: var(--blue-signal); font-family: var(--mono); font-size: 11px; }
+.chapter-index > span { color: var(--blue-signal); font-family: var(--mono); font-size: 12px; }
 .chapter-index p { max-width: 140px; margin: 0; color: var(--label-color); font-family: var(--mono); font-size: var(--label); letter-spacing: .11em; line-height: 1.5; text-transform: uppercase; }
 .chapter-copy { max-width: 850px; }
 .chapter-copy p { margin-bottom: 34px; color: var(--muted); font-size: clamp(19px, 2.25vw, 29px); line-height: 1.55; }
@@ -1820,7 +1820,7 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   margin: 0;
   color: var(--blue-signal);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -2153,7 +2153,7 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
 .api-points li { position: relative; padding-left: 26px; color: var(--muted); font-size: 14.5px; line-height: 1.6; }
 .api-points li::before { position: absolute; left: 0; top: 1px; color: var(--blue-signal); font-family: var(--mono); content: "→"; }
 .api-points strong { color: var(--ice); font-weight: 600; }
-.api-terminal { overflow: hidden; border: 1px solid rgba(160, 179, 211, 0.14); border-radius: 18px; background: #07090d; box-shadow: 0 34px 70px -36px rgba(0, 0, 0, 0.8), inset 0 1px rgba(255, 255, 255, 0.05); font-family: var(--mono); font-size: clamp(11px, 1.35vw, 13px); line-height: 1.75; }
+.api-terminal { overflow: hidden; border: 1px solid rgba(160, 179, 211, 0.14); border-radius: 18px; background: #07090d; box-shadow: 0 34px 70px -36px rgba(0, 0, 0, 0.8), inset 0 1px rgba(255, 255, 255, 0.05); font-family: var(--mono); font-size: clamp(12px, 1.35vw, 13px); line-height: 1.75; }
 .api-terminal-bar { display: flex; align-items: center; gap: 6px; padding: var(--space-12) var(--space-16); border-bottom: 1px solid rgba(160, 179, 211, 0.1); background: #0b0e14; }
 .api-terminal-bar i { display: block; width: 10px; height: 10px; border-radius: 50%; background: #2e3542; }
 .api-terminal-bar i:nth-child(1) { background: #f57373; }
@@ -2268,7 +2268,7 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   margin: 0;
   color: var(--ice);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -2541,7 +2541,7 @@ h3 { letter-spacing: -0.018em; }
 }
 .voice-compare thead th {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   font-weight: 500;
@@ -2551,7 +2551,7 @@ h3 { letter-spacing: -0.018em; }
 .voice-compare thead th small {
   display: block;
   margin-top: 5px;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   color: var(--blue-signal);
 }
@@ -2780,7 +2780,7 @@ h3 { letter-spacing: -0.018em; }
 
 /* F6: qualificador "serviço pago" dentro do botão secundário do hero */
 .button-ghost small{display:inline-block;margin-left:8px;padding:2px 7px;border:1px solid currentColor;
-  border-radius:999px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.75;font-weight:500}
+  border-radius:999px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.75;font-weight:500}
 
 /* F9: o que escrever e em quanto tempo respondemos */
 .contact-brief{max-width:620px;margin:18px auto 0;font-size:14.5px;line-height:1.65;color:rgba(235,243,255,.92)}
@@ -2873,7 +2873,7 @@ h3 { letter-spacing: -0.018em; }
   background: rgba(var(--on-surface-rgb), 0.03);
   color: var(--muted-strong);
   font-family: var(--mono, ui-monospace);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.1em;
   line-height: 1;
@@ -2903,7 +2903,7 @@ h3 { letter-spacing: -0.018em; }
 .topbar-right .lang-switch { height: 34px; }
 
 /* ---------- Rodapé: redes sociais e dados da empresa (linha pequena, abaixo da barra) ---------- */
-.footer-legal { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 28px; padding-top: 14px; padding-bottom: 22px; border-top: 1px solid var(--line); color: var(--label-color); font-size: 11.5px; line-height: 1.6; }
+.footer-legal { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 28px; padding-top: 14px; padding-bottom: 22px; border-top: 1px solid var(--line); color: var(--label-color); font-size: 12px; line-height: 1.6; }
 .footer-legal address { display: grid; gap: 2px; margin: 0; font-style: normal; text-align: right; }
 .footer-social { display: flex; flex-wrap: wrap; gap: 8px 18px; }
 .footer-social a { display: inline-flex; align-items: center; gap: 7px; min-height: 24px; color: var(--muted-strong); font-size: 12.5px; transition: color 180ms ease; }
@@ -2987,7 +2987,7 @@ h3 { letter-spacing: -0.018em; }
 .button-ghost:hover { border-color: var(--line-bright); background: rgba(94, 167, 255, 0.1); }
 [data-theme="light"] .button-ghost { border-color: rgba(10, 29, 61, 0.18); box-shadow: none; }
 [data-theme="light"] .button-ghost > span[aria-hidden="true"] { background: rgba(10, 29, 61, 0.06); color: var(--blue-signal); }
-.button-ghost small { margin-left: 0; font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.1em; }
+.button-ghost small { margin-left: 0; font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: 0.1em; }
 
 .button-outline { border-color: rgba(244, 246, 250, 0.42); background: transparent; color: var(--text-strong); }
 .button-outline:hover { border-color: var(--text-strong); background: rgba(var(--on-surface-rgb), 0.06); }
@@ -3042,7 +3042,7 @@ h3 { letter-spacing: -0.018em; }
 .lang-switch { border-color: rgba(160, 179, 211, 0.22); border-radius: 999px; background: var(--glass-gradient); }
 .site-header .lang-switch,
 .site-header .theme-toggle { border-color: rgba(160, 179, 211, 0.24); background: var(--glass-gradient); }
-.site-header .lang-switch { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; }
+.site-header .lang-switch { font-size: 12px; font-weight: 500; letter-spacing: 0.1em; }
 [data-theme="light"] .theme-toggle,
 [data-theme="light"] .menu-toggle,
 [data-theme="light"] .lang-switch,
@@ -3184,7 +3184,7 @@ h3 { letter-spacing: -0.018em; }
   border: 1px solid rgba(94, 167, 255, 0.32);
   border-radius: 999px;
   background: rgba(94, 167, 255, 0.08);
-  font-size: 9.5px;
+  font-size: 12px;
   line-height: 1;
   letter-spacing: 0.12em;
 }

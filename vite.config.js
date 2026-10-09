@@ -19,6 +19,7 @@ export default defineConfig({
         privacidade: resolve(import.meta.dirname, "privacidade.html"),
         seats: resolve(import.meta.dirname, "seats.html"),
         fundador: resolve(import.meta.dirname, "fundador.html"),
+        afiliados: resolve(import.meta.dirname, "afiliados.html"),
         juridico: resolve(import.meta.dirname, "juridico/index.html"),
         voice: resolve(import.meta.dirname, "voice.html"),
         iaSemCensura: resolve(import.meta.dirname, "ia-sem-censura.html"),

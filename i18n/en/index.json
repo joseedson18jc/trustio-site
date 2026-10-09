@@ -319,7 +319,7 @@
     "Para quem é": "Who it is for",
     "Quem mais perde com o filtro": "The people the filter costs most",
     "é quem trabalha com assunto sério.": "are the ones working on serious matters.",
-    "Se a sua pergunta é de trabalho, a resposta “não posso ajudar com isso” não é cuidado: é tempo perdido. Veja o que muda em cada profissão.": "When your question is work, “I can’t help with that” isn’t caution: it’s wasted time. See what changes in each profession.",
+    "Se a sua pergunta é de trabalho, a resposta “não posso ajudar com isso” não é cuidado: é tempo perdido. Veja o que muda em cada profissão.": "When your question is work, “I can’t help with that” isn’t caution: it’s wasted time. See what changes in each profession — the detailed page is in Portuguese.",
     "Advogados": "Lawyers",
     "Tipo penal, tese de defesa e cláusula analisados até o fim, sem “não posso opinar” no meio da peça.": "Criminal charges, defence arguments and contract clauses analysed all the way through, with no “I can’t give an opinion” halfway into the brief.",
     "Direito": "Law",
@@ -337,7 +337,7 @@
     "Criação": "Creative work",
     "Quem não quer ser produto": "People who refuse to be the product",
     "Conversa guardada no Brasil e nunca usada para treinar modelo. Nem o nosso, nem o de ninguém.": "Conversations kept in Brazil and never used to train a model. Not ours, not anyone’s.",
-    "Ver os seis casos em detalhe": "See all six cases in detail",
+    "Ver os seis casos em detalhe": "See all six cases in detail (page in Portuguese)",
     "Sem censura é tirar o filtro, não tirar a responsabilidade: a lei brasileira continua valendo, e quem pergunta responde pelo uso que faz da resposta.": "Uncensored means removing the filter, not removing responsibility: Brazilian law still applies, and whoever asks answers for how they use the answer.",
     "nó ativo · ambiente isolado": "node active · isolated environment",
     "Antes de confiar": "Before you trust us",
@@ -363,7 +363,8 @@
     "Crie a conta e faça as primeiras perguntas de graça, sem cartão. Se não gostar, não assine — e não cobramos nada.": "Create an account and ask your first questions free, with no card. If you don’t like it, don’t subscribe — and we charge you nothing.",
     "O que ainda não temos:": "What we don’t have yet:",
     "caso de cliente para mostrar e número de usuários para exibir. Quando tivermos, vão aparecer aqui com nome, data e permissão de quem autorizou — do mesmo jeito que o resto desta seção.": "a customer case to show and a user count to display. When we have them, they will appear here with a name, a date and the permission of whoever authorised it — the same way as everything else in this section.",
-    "Não dizemos “IA de última geração”. A página de modelos diz quais rodamos e de quem são, com nome e fabricante, e você julga se servem.": "We don’t say “cutting-edge AI”. The models page says which ones we run and who makes them, by name, and you judge whether they fit."
+    "Não dizemos “IA de última geração”. A página de modelos diz quais rodamos e de quem são, com nome e fabricante, e você julga se servem.": "We don’t say “cutting-edge AI”. The models page says which ones we run and who makes them, by name, and you judge whether they fit.",
+    "em português": "in PT"
   },
   "raw": []
 }

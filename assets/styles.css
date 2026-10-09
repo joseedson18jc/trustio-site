@@ -3244,3 +3244,15 @@ h3 { letter-spacing: -0.018em; }
   .home-page .contact-card-inner.contact-lean .contact-actions { flex-direction: column; align-items: stretch; }
   .home-page .contact-card-inner.contact-lean .contact-email-row { justify-content: space-between; }
 }
+
+/* ---------- Home: faixa do painel de servidor sem frestas claras (out/2026) ----------
+   Na home o painel fica entre duas seções escuras (banner do mapa acima, "Construído no Brasil"
+   abaixo); sem fundo próprio, o fundo claro da página aparecia dos dois lados do painel.
+   Só na home: a faixa ganha o gradiente que liga a base do banner (#030918) ao topo da seção de
+   baixo (#050b1c). Em /empresas.html o painel fica entre seções claras e segue como está. */
+.home-page:not(.empresas-page) .hardware-band {
+  overflow: hidden;
+  max-width: 100%;
+  padding-block: clamp(28px, 4vw, 56px);
+  background: linear-gradient(180deg, #030918 0%, #040a20 50%, #050b1c 100%);
+}

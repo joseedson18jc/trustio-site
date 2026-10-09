@@ -43,6 +43,7 @@ const sourceFiles = [
   "privacidade.html",
   "seats.html",
   "fundador.html",
+  "afiliados.html",
   "juridico/index.html",
   "voice.html",
   "agentio.html",
@@ -143,6 +144,7 @@ export default {
     if (path === "/empresas" || path === "/empresas/") path = "/empresas.html";
     if (path === "/modelos" || path === "/modelos/") path = "/modelos.html";
     if (path === "/fundador" || path === "/fundador/") path = "/fundador.html";
+    if (path === "/afiliados" || path === "/afiliados/") path = "/afiliados.html";
     if (path === "/espera" || path === "/espera/") path = "/espera.html";
     if (path === "/obrigado" || path === "/obrigado/") path = "/obrigado.html";
     if (path === "/ia-sem-censura" || path === "/ia-sem-censura/") path = "/ia-sem-censura.html";

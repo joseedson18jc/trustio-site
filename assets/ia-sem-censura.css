@@ -150,6 +150,8 @@ button { font: inherit; }
 :root[data-theme="light"] .round .moon { display: none; }
 .hdr .btn-sm { gap: 0; }
 @media (max-width: 1240px) { .nav { display: none; } .hdr .menu-t { display: grid; } }
+/* Menu com "Afiliados" (out/2026): entre 1241 e 1380 px o cabeçalho passava da borda; espaçamento mais justo nessa faixa. */
+@media (min-width: 1241px) and (max-width: 1380px) { .nav { gap: 14px; } .hdr-in { gap: 22px; } }
 @media (min-width: 1241px) { .mnav { display: none; } }
 @media (max-width: 560px) { .hdr-r .enter { display: none; } .hdr-in { gap: 12px; height: 68px; } .hdr-r { gap: 8px; } .hdr .btn-sm { padding: 0 16px; } .hdr .btn-sm .full { display: none; } .subnav-in { gap: 10px; height: 44px; } .sub-t { font-size: 9.5px; letter-spacing: .12em; gap: 7px; } }
 @media (max-width: 359px) { .hdr .brand .wm { display: none; } .hero-ctas .btn { white-space: normal; height: auto; min-height: 54px; padding-block: 7px; line-height: 1.25; } .law-label { white-space: normal; } }

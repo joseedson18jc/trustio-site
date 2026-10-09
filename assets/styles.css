@@ -3218,3 +3218,29 @@ h3 { letter-spacing: -0.018em; }
   .eyebrow:has(> .status-dot) { display: block; }
   .eyebrow > .status-dot { display: inline-block; margin-right: 9px; vertical-align: 0.12em; }
 }
+
+/* ---------- Home: bloco "Falar com a Trustio" (out/2026) ----------
+   O bloco não tinha respiro vertical (padding 0): o kicker "O próximo passo" encostava na borda
+   de cima da seção, e a linha "Empresas: respondemos…" ficava centralizada enquanto o resto
+   estava alinhado à esquerda. Agora o conteúdo fica centralizado, com o mesmo espaço em cima e embaixo. */
+.home-page .contact-card-inner.contact-lean {
+  padding-block: clamp(72px, 8vw, 112px);
+  text-align: center;
+}
+.home-page .contact-card-inner.contact-lean .section-kicker { justify-content: center; }
+.home-page .contact-card-inner.contact-lean .section-kicker::after {
+  width: 26px;
+  height: 1px;
+  flex: 0 0 auto;
+  background: linear-gradient(270deg, currentColor, transparent);
+  content: "";
+}
+.home-page .contact-card-inner.contact-lean > h2 { margin-inline: auto; }
+.home-page .contact-card-inner.contact-lean > p:not(.section-kicker) { margin-inline: auto; }
+.home-page .contact-card-inner.contact-lean .contact-actions { justify-content: center; }
+.home-page .contact-card-inner.contact-lean > p.contact-brief { max-width: 62ch; margin: 22px auto 0; text-align: center; }
+@media (max-width: 767px) {
+  .home-page .contact-card-inner.contact-lean { padding-block: 64px; padding-inline: 16px; }
+  .home-page .contact-card-inner.contact-lean .contact-actions { flex-direction: column; align-items: stretch; }
+  .home-page .contact-card-inner.contact-lean .contact-email-row { justify-content: space-between; }
+}

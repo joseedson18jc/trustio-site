@@ -5,6 +5,7 @@ import sys
 import time
 import urllib.request
 import urllib.error
+import urllib.parse
 
 EVENTS = ['email.sent', 'email.delivered', 'email.opened', 'email.clicked',
           'email.delivery_delayed', 'email.failed', 'email.bounced', 'email.complained', 'email.suppressed']
@@ -30,14 +31,30 @@ def configure(secret_file):
                 raise RuntimeError(f'Resend HTTP {error.code}: a chave precisa de acesso a domínios e webhooks.') from None
         raise RuntimeError('Resend indisponível.')
 
-    domains = api('/domains')['data']
+    def all_rows(path):
+        rows = []
+        cursor = None
+        while True:
+            params = {'limit': 100}
+            if cursor:
+                params['after'] = cursor
+            page = api(path + '?' + urllib.parse.urlencode(params))
+            rows.extend(page['data'])
+            if not page.get('has_more'):
+                return rows
+            next_cursor = page['data'][-1]['id'] if page['data'] else None
+            if not next_cursor or next_cursor == cursor:
+                raise RuntimeError('Resend retornou paginação incompleta.')
+            cursor = next_cursor
+
+    domains = all_rows('/domains')
     trustio = [d for d in domains if d['name'] == 'trustio.com.br' or d['name'].endswith('.trustio.com.br')]
     if not trustio:
         raise RuntimeError('Nenhum domínio da Trustio encontrado na conta Resend.')
     for domain in trustio:
         api('/domains/' + domain['id'], 'PATCH', {'open_tracking': True, 'click_tracking': True})
 
-    hooks = api('/webhooks')['data']
+    hooks = all_rows('/webhooks')
     existing = next((h for h in hooks if h.get('endpoint') == endpoint), None)
     if existing:
         api('/webhooks/' + existing['id'], 'PATCH', {'events': EVENTS, 'status': 'enabled'})

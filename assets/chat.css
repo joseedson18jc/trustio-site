@@ -79,6 +79,29 @@
 .msg-body ul, .msg-body ol { margin: 4px 0 10px; padding-left: 22px; }
 .msg-body li { margin: 3px 0; }
 .msg-body h3 { font-size: 16px; margin: 12px 0 6px; font-family: var(--body); font-weight: 600; letter-spacing: -0.01em; }
+.msg-body h4 { font-size: 15px; margin: 10px 0 4px; font-family: var(--body); font-weight: 600; }
+.msg-body blockquote { margin: 8px 0; padding: 4px 12px; border-left: 3px solid var(--line); color: var(--muted-strong); }
+.msg-body hr { border: 0; border-top: 1px solid var(--line); margin: 14px 0; }
+.msg-body a { color: var(--blue-signal); text-decoration: underline; text-underline-offset: 2px; }
+/* Matemática (KaTeX em MathML) e tabelas, gráficos — assets/chat-render.js */
+.msg-body math { font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", "Noto Sans Math", math; font-size: 1.08em; }
+.msg-body .tg-math-block { margin: 10px 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.msg-body .tg-math-block math { font-size: 1.18em; }
+.msg-body .tg-math-src { white-space: pre-wrap; }
+.msg-body menclose[notation~="box"] { border: 1.5px solid currentColor; padding: 2px 5px; border-radius: 3px; }
+.msg-body .tg-table { margin: 10px 0; overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+.msg-body table { border-collapse: collapse; width: 100%; font-size: 0.94em; }
+.msg-body th, .msg-body td { padding: 7px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.msg-body th { font-weight: 650; color: var(--text-strong); background: rgba(var(--on-surface-rgb), 0.04); }
+.msg-body tr:last-child td { border-bottom: 0; }
+.msg-body .tg-al-r { text-align: right; }
+.msg-body .tg-al-c { text-align: center; }
+.msg-body .tg-graf { margin: 12px 0; padding: 10px 12px 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-raised); max-width: 720px; }
+.msg-body .tg-graf figcaption { font-weight: 600; font-size: 0.95em; margin: 0 0 6px; color: var(--text-strong); }
+.msg-body .tg-graf-canvas { display: block; width: 100%; height: auto; touch-action: none; cursor: grab; }
+.msg-body .tg-graf-canvas:active { cursor: grabbing; }
+.msg-body .tg-graf-hint, .msg-body .tg-graf-err { margin: 6px 0 0; font-size: 12px; color: var(--muted-strong); }
+.msg-body .tg-graf-wait { color: var(--muted-strong); font-size: 0.92em; }
 .msg-body strong { font-weight: 650; color: var(--text-strong); }
 .msg-meta { font-family: var(--mono); font-size: var(--label); color: var(--label-color); margin-top: 6px; }
 .msg-pending .msg-body::after { content: ""; display: inline-block; width: 8px; height: 16px; margin-left: 3px; vertical-align: -3px; background: var(--blue-signal); animation: blink 1s steps(2) infinite; }

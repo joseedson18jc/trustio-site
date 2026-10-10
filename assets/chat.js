@@ -654,7 +654,7 @@
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token, "apikey": CFG.key },
         body: JSON.stringify(Object.assign({ conversation_id: state.conversationId, message: text },
           imagens.length ? { imagens: imagens } : {},
-          state.modelos.length >= 2 && modeloAtual() ? { modelo: modeloAtual() } : {}))
+          state.modelos.length >= 2 ? { modelo: modeloAtual() || "" } : {}))
       });
     }).then(function (res) {
       if (!res.ok) {
@@ -981,7 +981,8 @@
   // preferências (vale em todas as conversas e aparelhos).
   function modeloAtual() {
     if (state.modelos.some(function (m) { return m.id === state.pref.modelo; })) return state.pref.modelo;
-    var p = state.modelos.filter(function (m) { return m.padrao; })[0] || state.modelos[0];
+    // Sem escolha salva: o padrão marcado na lista; sem ele, nenhum (a função usa o padrão do servidor).
+    var p = state.modelos.filter(function (m) { return m.padrao; })[0];
     return p ? p.id : null;
   }
   function descricaoModelo(m) { return (EN && m.descricao_en) || m.descricao || ""; }
@@ -991,11 +992,15 @@
     if (state.modelos.length < 2) { bar.hidden = true; return; }
     var atual = modeloAtual();
     sel.innerHTML = "";
+    if (!atual) {
+      var padrao = document.createElement("option"); padrao.value = ""; padrao.textContent = T("Trustio (padrão)", "Trustio (default)");
+      sel.appendChild(padrao);
+    }
     state.modelos.forEach(function (m) {
       var o = document.createElement("option"); o.value = m.id; o.textContent = m.rotulo;
       sel.appendChild(o);
     });
-    sel.value = atual;
+    sel.value = atual || "";
     var m = state.modelos.filter(function (x) { return x.id === atual; })[0];
     $("[data-modelo-desc]").textContent = m ? descricaoModelo(m) : "";
     bar.hidden = false;
@@ -1288,12 +1293,16 @@
     }).catch(function () { st.textContent = T("Não foi possível salvar agora. Tente de novo.", "We couldn't save right now. Try again."); });
   });
 
-  var modeloRapido = $("[data-modelo-rapido]");
+  var modeloRapido = $("[data-modelo-rapido]"), filaModelo = Promise.resolve();
   if (modeloRapido) modeloRapido.addEventListener("change", function () {
-    state.pref.modelo = modeloRapido.value;
+    state.pref.modelo = modeloRapido.value || null;
     renderModeloBar();
     // Já vale no próximo envio; salvar é para lembrar nas próximas visitas e em outros aparelhos.
-    salvarPrefs({ modelo: modeloRapido.value }).catch(function () { /* sem salvar, a escolha vale nesta aba */ });
+    // Em fila, uma gravação por vez e sempre com a escolha mais recente: trocas rápidas não
+    // gravam fora de ordem nem devolvem o seletor a uma escolha anterior.
+    filaModelo = filaModelo.then(function () {
+      return sb.from("preferencias_usuario").upsert({ user_id: state.user.id, modelo: state.pref.modelo }, { onConflict: "user_id" });
+    }).catch(function () { /* sem salvar, a escolha vale nesta aba */ });
   });
   var prefForm = $("[data-pref-form]");
   prefForm.instrucoes.addEventListener("input", function () { $("[data-instr-conta]").textContent = prefForm.instrucoes.value.length; });

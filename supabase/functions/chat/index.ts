@@ -47,7 +47,8 @@ function normalizarModelos(lista: unknown): ModeloEscolhivel[] {
     .filter((m: ModeloEscolhivel) => m.id && m.rotulo)
     .slice(0, 12);
 }
-// GET /models do servidor, guardado por 10 minutos (ids anunciados e modos escolhíveis).
+// GET /models do servidor, guardado por 10 minutos (ids anunciados e modos escolhíveis). Se a
+// consulta falhar ou demorar, vale o último catálogo bom: lentidão não pode trocar o modo escolhido.
 let catalogo: { ids: string[]; escolhas: ModeloEscolhivel[]; em: number } | null = null;
 async function catalogoDoServidor(timeoutMs: number): Promise<{ ids: string[]; escolhas: ModeloEscolhivel[] } | null> {
   if (catalogo && Date.now() - catalogo.em < 10 * 60_000) return catalogo;
@@ -56,14 +57,14 @@ async function catalogoDoServidor(timeoutMs: number): Promise<{ ids: string[]; e
       headers: { "Authorization": `Bearer ${LLM_API_KEY}` },
       signal: AbortSignal.timeout(timeoutMs),
     });
-    if (!r.ok) return null;
+    if (!r.ok) return catalogo;
     const j = await r.json();
     const ids: string[] = (Array.isArray(j?.data) ? j.data : []).map((m: { id?: unknown }) => String(m?.id ?? "")).filter(Boolean);
     catalogo = { ids, escolhas: normalizarModelos(j?.trustio_modelos), em: Date.now() };
     return catalogo;
   } catch (err) {
     console.error("llm_models_indisponivel", String(err).slice(0, 200));
-    return null;
+    return catalogo;
   }
 }
 // deno-lint-ignore no-explicit-any
@@ -301,8 +302,11 @@ Deno.serve(async (req) => {
   const pref = (prefRow ?? null) as Preferencias | null;
   // Modelo escolhido pela pessoa: o do seletor do chat (nesta mensagem) ou o salvo nas preferências.
   // Vale só se ainda estiver na lista; senão, o padrão.
-  const pedido = typeof body.modelo === "string" && body.modelo ? body.modelo.slice(0, 200) : pref?.modelo ?? null;
-  const escolhido = pedido ? (await modelosEscolhiveis(admin)).find((m) => m.id === pedido)?.id ?? null : null;
+  // "" no envio = a pessoa escolheu o padrão no seletor (vale mesmo antes de a preferência ser gravada).
+  const pedido = typeof body.modelo === "string" ? body.modelo.slice(0, 200) || null : pref?.modelo ?? null;
+  // 25 s, como a descoberta do modelo logo abaixo: a primeira consulta depois de muito tempo pode
+  // acordar o servidor, e um tempo curto aqui faria a escolha cair para o padrão sem motivo.
+  const escolhido = pedido ? (await modelosEscolhiveis(admin, 25_000)).find((m) => m.id === pedido)?.id ?? null : null;
   const modeloConfigurado = escolhido ?? await modeloDoBanco(admin);
   const systemPrompt = promptComPreferencias(
     typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.",

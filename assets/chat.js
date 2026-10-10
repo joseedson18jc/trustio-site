@@ -12,6 +12,8 @@
   // Marcas dos modelos que o site tem em assets/modelos/ (outro nome que vier do servidor é ignorado).
   var ICONES = { flash: true, heavy: true };
   var ICONE_POR_ID = { "trustio-flash": "flash", "trustio-heavy": "heavy" };
+  // Celular e tablet (toque como entrada principal).
+  var TOQUE = !!(window.matchMedia && window.matchMedia("(hover: none) and (pointer: coarse)").matches);
   var T = function (pt, en) { return EN ? en : pt; };
   var LOCAL = EN ? "en-US" : "pt-BR";
   var CFG = window.TRUSTIO_AUTH;
@@ -55,7 +57,16 @@
   // Respostas: assets/chat-render.js (Markdown com tabelas, LaTeX via KaTeX e gráficos 2D/3D); sem ele,
   // a renderização mínima abaixo. desenhar() pinta os gráficos depois que o HTML entra na página.
   function render(md) { return window.TrustioRender ? window.TrustioRender.html(md) : renderBasico(md); }
-  function desenhar(el) { if (window.TrustioRender) window.TrustioRender.hydrate(el); }
+  function desenhar(el) { if (window.TrustioRender) window.TrustioRender.hydrate(el); destacar(el); }
+  // Parágrafo que abre com "**Resultado:**" (ou Resposta, Conclusão…) vira um cartão de destaque.
+  var RE_DESTAQUE = /^(resultado|resposta|conclus[ãa]o|resumo|result|answer|conclusion|summary|bottom line)( final)?\s*:?$/i;
+  function destacar(el) {
+    if (!el || !el.querySelectorAll) return;
+    el.querySelectorAll(":scope > p").forEach(function (p) {
+      var f = p.firstElementChild;
+      if (f && f.tagName === "STRONG" && p.firstChild === f && RE_DESTAQUE.test(f.textContent.trim())) p.classList.add("msg-destaque");
+    });
+  }
 
   // Renderização mínima e segura de Markdown (blocos de código, inline, negrito, listas, títulos).
   function renderBasico(md) {
@@ -162,7 +173,7 @@
           // do que deixar a pessoa escrever uma pergunta para receber um erro depois.
           verificarAbertura(session.access_token);
         }
-        input.focus();
+        if (!TOQUE) input.focus();
       });
     }).catch(function (err) {
       console.error(err);
@@ -198,8 +209,31 @@
     showNotice(T("<b>O chat está temporariamente indisponível.</b> Sua conta e suas perguntas grátis continuam preservadas. Tente novamente em instantes. Se o problema continuar, fale com a equipe pelo contato@trustio.com.br.", "<b>The chat is temporarily unavailable.</b> Your account and free questions are preserved. Try again shortly. If the issue continues, contact our team at contato@trustio.com.br."));
   }
 
-  // Baixar e apagar só aparecem com uma conversa aberta.
-  function botoesDaConversa(visiveis) { deleteBtn.hidden = !visiveis; baixarBtn.hidden = !visiveis; }
+  // Baixar e apagar ficam no menu ⋯ do cabeçalho, que só aparece com uma conversa aberta.
+  var topMais = $("[data-top-mais]"), topMaisBtn = $("[data-top-mais-btn]"), topMenu = $("[data-top-menu]");
+  function botoesDaConversa(visiveis) { if (!visiveis) fecharMenuTopo(); topMais.hidden = !visiveis; }
+  function fecharMenuTopo() { topMenu.hidden = true; topMaisBtn.setAttribute("aria-expanded", "false"); }
+  topMaisBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var abrir = topMenu.hidden;
+    topMenu.hidden = !abrir; topMaisBtn.setAttribute("aria-expanded", String(abrir));
+    if (abrir) topMenu.querySelector("button").focus();
+  });
+  topMenu.addEventListener("click", fecharMenuTopo);
+  // Teclado no menu: setas, Home e End andam entre os itens (o foco dá a volta nas pontas).
+  topMenu.addEventListener("keydown", function (e) {
+    var itens = Array.prototype.slice.call(topMenu.querySelectorAll("[role=menuitem]"));
+    var i = itens.indexOf(document.activeElement), n = itens.length, alvo = -1;
+    if (e.key === "ArrowDown") alvo = (i + 1) % n;
+    else if (e.key === "ArrowUp") alvo = (i - 1 + n) % n;
+    else if (e.key === "Home") alvo = 0;
+    else if (e.key === "End") alvo = n - 1;
+    else if (e.key === "Tab") { fecharMenuTopo(); return; }
+    if (alvo < 0) return;
+    e.preventDefault(); itens[alvo].focus();
+  });
+  document.addEventListener("click", function (e) { if (!topMenu.hidden && !e.target.closest("[data-top-mais]")) fecharMenuTopo(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !topMenu.hidden) { fecharMenuTopo(); topMaisBtn.focus(); } });
 
   function loadLead() {
     return sb.from("crm_leads").select("nome,email,telefone,tipo,status,papel,plano,mensagens_usadas,onboarding_seen_at,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_requested_at,whatsapp_trial_started_at,whatsapp_trial_ends_at").eq("user_id", state.user.id).maybeSingle()
@@ -530,9 +564,10 @@
     var inner = ensureThreadInner();
     var el = document.createElement("article");
     el.className = "msg msg-" + role;
-    el.innerHTML = "<span class=\"msg-av\" aria-hidden=\"true\">" + (role === "user" ? "" : "T") + "</span><div class=\"msg-body\"></div>";
-    if (role === "user") pintarAvatarMensagem(el.querySelector(".msg-av"));
-    else marcarModelo(el, modelo);
+    // Usuário: balão à direita, sem avatar. Resposta: cartão com a marca e o nome do modelo no topo.
+    el.innerHTML = role === "user" ? "<div class=\"msg-body\"></div>"
+      : "<div class=\"msg-cab\"><span class=\"msg-av\" aria-hidden=\"true\"><img src=\"" + ASSETS + "trustio-mark.svg\" alt=\"\"></span><b class=\"msg-quem\">Trustio</b></div><div class=\"msg-body\"></div>";
+    if (role !== "user") marcarModelo(el, modelo);
     var body = el.querySelector(".msg-body");
     if (role === "user") body.innerHTML = renderUsuario(content); else { body.innerHTML = render(content); desenhar(body); }
     inner.appendChild(el);
@@ -565,7 +600,8 @@
     return m ? m.rotulo : ({ "trustio-flash": "Trustio Flash", "trustio-heavy": "Trustio Heavy Thinking" })[id] || "";
   }
   function marcarModelo(el, modelo) {
-    var ic = iconeDoModelo(modelo), av = el.querySelector(".msg-av");
+    var ic = iconeDoModelo(modelo), av = el.querySelector(".msg-av"), quem = el.querySelector(".msg-quem");
+    if (quem && rotuloDoModelo(modelo)) quem.textContent = rotuloDoModelo(modelo);
     if (!ic || !av) return;
     av.textContent = "";
     var img = document.createElement("img"); img.src = ASSETS + "modelos/" + ic + ".svg"; img.alt = "";
@@ -775,7 +811,7 @@
       if (!body.innerHTML && pending.parentNode) pending.remove();
       state.sending = false;
       thread.setAttribute("aria-busy", "false");
-      if (!state.fechado && !state.sessaoCheia && !(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; input.focus(); }
+      if (!state.fechado && !state.sessaoCheia && !(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; if (!TOQUE) input.focus(); }
     });
   }
 
@@ -927,11 +963,22 @@
   composer.addEventListener("submit", function (e) { e.preventDefault(); send(input.value); });
   input.addEventListener("keydown", function (e) {
     if (e.key !== "Enter" || e.isComposing) return;
+    if (TOQUE && !e.ctrlKey && !e.metaKey) return;
     // Preferência "Enter envia": ligada, Enter envia e Shift+Enter quebra a linha; desligada,
     // Enter quebra a linha e Ctrl+Enter (⌘+Enter no Mac) envia.
     var envia = state.pref.enter_envia ? !e.shiftKey : (e.ctrlKey || e.metaKey);
     if (envia) { e.preventDefault(); send(input.value); }
   });
+  // Teclado virtual aberto (a área visível encolhe): o seletor de modelos recolhe e a conversa
+  // ganha o espaço. Volta quando o teclado fecha.
+  if (TOQUE && window.visualViewport) {
+    var acompanharTeclado = function () {
+      var aberto = window.innerHeight - window.visualViewport.height > 140 && document.activeElement === input;
+      if (aberto) shell.dataset.teclado = "1"; else delete shell.dataset.teclado;
+    };
+    window.visualViewport.addEventListener("resize", acompanharTeclado);
+    input.addEventListener("blur", function () { setTimeout(acompanharTeclado, 60); });
+  }
   function autosize() { input.style.height = "auto"; input.style.height = Math.min(220, input.scrollHeight) + "px"; }
   input.addEventListener("input", autosize);
 
@@ -967,7 +1014,8 @@
   // lê estilo, instruções e modelo), foto de perfil (bucket privado "avatares", pasta da conta),
   // exportar e apagar conversas, senha e sessões.
   var PH_ENTER = input.getAttribute("placeholder") || "";
-  var PH_CTRL = T("Escreva sua mensagem… (Ctrl+Enter ou ⌘+Enter envia)", "Write your message… (Ctrl+Enter or ⌘+Enter sends)");
+  // Tela de toque: Enter quebra a linha e o botão envia; dica de teclado não serve.
+  var PH_CTRL = TOQUE ? PH_ENTER : T("Escreva sua mensagem… (Ctrl+Enter ou ⌘+Enter envia)", "Write your message… (Ctrl+Enter or ⌘+Enter sends)");
   // Cada foto tem nome próprio (derivado de avatar_em): a nova é enviada ao lado da antiga, e a
   // antiga só sai depois que a nova ficou registrada. Uma falha no meio não apaga as duas.
   function caminhoDaFoto(em) { return state.user.id + "/avatar-" + Date.parse(em) + ".jpg"; }
@@ -1019,6 +1067,15 @@
     return p ? p.id : null;
   }
   function descricaoModelo(m) { return (EN && m.descricao_en) || m.descricao || ""; }
+  // Linha curta do cartão: para os modelos com marca, um resumo de quando usar; senão, a descrição do servidor.
+  var RESUMOS = {
+    flash: ["Respostas rápidas para o dia a dia.", "Fast answers for everyday tasks."],
+    heavy: ["Pensa antes de responder. Ideal para tarefas complexas.", "Thinks before answering. Best for complex tasks."]
+  };
+  function resumoModelo(m, ic) {
+    if (ic && RESUMOS[ic]) return T(RESUMOS[ic][0], RESUMOS[ic][1]);
+    return descricaoModelo(m) || (m.id ? "" : T("O modelo padrão do servidor.", "The server's default model."));
+  }
   function renderModeloBar() {
     var bar = $("[data-modelo-bar]"), box = $("[data-modelo-opcoes]");
     if (!bar || !box) return;
@@ -1028,23 +1085,28 @@
     var temPadrao = state.modelos.some(function (m) { return m.padrao; });
     var opcoes = (temPadrao ? [] : [{ id: "", rotulo: T("Trustio (padrão)", "Trustio (default)") }]).concat(state.modelos);
     box.innerHTML = "";
-    opcoes.forEach(function (m) {
+    opcoes.forEach(function (m, i) {
+      // Cartão: marca, nome curto (sem o "Trustio"), uma linha sobre quando usar e o indicador.
       var lab = document.createElement("label");
-      lab.className = "modelo-chip" + (m.id === atual ? " is-on" : "");
-      lab.title = descricaoModelo(m) || m.rotulo;
+      lab.className = "modelo-card" + (m.id === atual ? " is-on" : "");
       var inp = document.createElement("input");
       inp.type = "radio"; inp.name = "modelo-rapido"; inp.value = m.id; inp.checked = m.id === atual;
+      inp.setAttribute("aria-label", m.rotulo);
       lab.appendChild(inp);
       var ic = iconeDoModelo(m.id);
-      if (ic) { var img = document.createElement("img"); img.src = ASSETS + "modelos/" + ic + ".svg"; img.alt = ""; img.width = 18; img.height = 18; lab.appendChild(img); }
-      // Nome completo; em tela estreita, sem o "Trustio" (a marca ao lado já diz).
-      var nome = document.createElement("span"); nome.className = "modelo-nome"; nome.textContent = m.rotulo; lab.appendChild(nome);
-      var curto = m.rotulo.replace(/^Trustio\s+/, "");
-      if (curto !== m.rotulo) { nome.setAttribute("data-curto", curto); }
+      var tile = document.createElement("span"); tile.className = "modelo-ico";
+      var img = document.createElement("img"); img.alt = ""; img.width = 26; img.height = 26;
+      img.src = ASSETS + (ic ? "modelos/" + ic + ".svg" : "trustio-mark.svg");
+      tile.appendChild(img); lab.appendChild(tile);
+      var txt = document.createElement("span"); txt.className = "modelo-txt";
+      var nome = document.createElement("b"); nome.className = "modelo-nome"; nome.textContent = m.rotulo.replace(/^Trustio\s+/, "");
+      var desc = document.createElement("small"); desc.id = "modelo-desc-" + i; desc.textContent = resumoModelo(m, ic);
+      inp.setAttribute("aria-describedby", desc.id);
+      txt.appendChild(nome); txt.appendChild(desc); lab.appendChild(txt);
+      var radio = document.createElement("span"); radio.className = "modelo-radio"; radio.setAttribute("aria-hidden", "true");
+      lab.appendChild(radio);
       box.appendChild(lab);
     });
-    var sel = state.modelos.filter(function (x) { return x.id === atual; })[0];
-    $("[data-modelo-desc]").textContent = sel ? descricaoModelo(sel) : "";
     bar.hidden = false;
   }
   function salvarPrefs(mudancas) {

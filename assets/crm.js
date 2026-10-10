@@ -112,9 +112,12 @@
       $("[data-eu]").textContent = PAPEL_LABEL[papel];
       gate.hidden = true;
       $("[data-hide-tests]").checked = state.ocultarTestes;
-      iniciarEmails();
-      // Configurações e painel mestre são só de admin.
-      return Promise.all([loadLeads(), papel === "admin" ? loadLimit() : null]).then(function () { shell.dataset.state = "ready"; });
+      // Configurações e painel mestre são só de admin. A lista de leads sai antes do painel de
+      // e-mails e não depende dele: um erro lá não pode deixar a página em branco.
+      var pronto = function () { shell.dataset.state = "ready"; };
+      var leads = Promise.all([loadLeads(), papel === "admin" ? loadLimit() : null]).then(pronto, pronto);
+      try { iniciarEmails(); } catch (e) { $("[data-email-connection]").textContent = "Atualização automática indisponível; use o botão Atualizar."; }
+      return leads;
     });
   });
 
@@ -573,15 +576,21 @@
     $("[data-email-panel]").hidden = eu.papel !== "admin";
     if (eu.papel !== "admin") return;
     carregarEmails();
-    $("[data-email-connection]").textContent = "Conectando atualizações automáticas…";
-    sb.channel("crm-emails").on("postgres_changes", { event: "*", schema: "public", table: "crm_emails" }, function () {
-      clearTimeout(emailTimer); emailTimer = setTimeout(atualizarEmails, 250);
-    }).subscribe(function (status) {
-      $("[data-email-connection]").textContent = status === "SUBSCRIBED" ? "Atualizações em tempo real conectadas." : "Reconectando; atualização automática a cada minuto.";
-      if (status === "SUBSCRIBED") atualizarEmails();
-    });
     // Também renova a janela de 48 h, mesmo quando não chega um evento novo.
     setInterval(function () { if (!document.hidden) atualizarEmails(); }, 60000);
+    $("[data-email-connection]").textContent = "Conectando atualizações automáticas…";
+    // O Safari lança erro na hora quando o WebSocket é recusado (CSP, rede); aí fica só a
+    // atualização a cada minuto.
+    try {
+      sb.channel("crm-emails").on("postgres_changes", { event: "*", schema: "public", table: "crm_emails" }, function () {
+        clearTimeout(emailTimer); emailTimer = setTimeout(atualizarEmails, 250);
+      }).subscribe(function (status) {
+        $("[data-email-connection]").textContent = status === "SUBSCRIBED" ? "Atualizações em tempo real conectadas." : "Reconectando; atualização automática a cada minuto.";
+        if (status === "SUBSCRIBED") atualizarEmails();
+      });
+    } catch (e) {
+      $("[data-email-connection]").textContent = "Tempo real indisponível; atualização automática a cada minuto.";
+    }
   }
   $("[data-email-refresh]").addEventListener("click", atualizarEmails);
   $("[data-goto-emails]").addEventListener("click", function () { $("[data-email-panel]").scrollIntoView({ behavior: "smooth" }); });

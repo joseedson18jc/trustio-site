@@ -27,7 +27,7 @@ let resposta = { status: 200, numeros: [] };
 const servidor = createServer((req, res) => {
   if (req.headers["x-trustio-segredo"] !== "segredo") { res.writeHead(401).end(); return; }
   if (resposta.status !== 200) { res.writeHead(resposta.status).end(); return; }
-  res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ numeros: resposta.numeros }));
+  res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ numeros: resposta.numeros, negados: resposta.negados ?? [] }));
 });
 await new Promise((r) => servidor.listen(0, "127.0.0.1", r));
 const url = `http://127.0.0.1:${servidor.address().port}/`;
@@ -63,14 +63,23 @@ await rodar();
 check(lista() === "5511900000001,5511970000045,5511990000081", "junta fixos e testes, com 55 no número sem DDI", lista());
 check(nReinicios() === 1 && marcador() === lista(), "reinicia e marca a lista como aplicada");
 
+// Bloqueios do CRM prevalecem sobre fixos e números dinâmicos; liberar restaura o fixo.
+resposta.negados = ["11970000045", "5511900000001"];
+await rodar();
+check(lista() === "5511990000081", "bloqueados saem mesmo quando estão na lista fixa", lista());
+resposta.negados = [];
+await rodar();
+check(lista() === "5511900000001,5511970000045,5511990000081", "desbloqueio restaura números permitidos", lista());
+const reiniciosAposBloqueio = nReinicios();
+
 // 3. Nada mudou: não reinicia.
 await rodar();
-check(nReinicios() === 1, "lista igual não reinicia o gateway");
+check(nReinicios() === reiniciosAposBloqueio, "lista igual não reinicia o gateway");
 
 // 4. Consulta falha: mantém tudo.
 resposta = { status: 500 };
 await rodar();
-check(lista() === "5511900000001,5511970000045,5511990000081" && nReinicios() === 1, "erro na consulta mantém a lista");
+check(lista() === "5511900000001,5511970000045,5511990000081" && nReinicios() === reiniciosAposBloqueio, "erro na consulta mantém a lista");
 
 // 5. Teste vence e o reinício falha: o marcador fica na lista antiga...
 resposta = { status: 200, numeros: [] };

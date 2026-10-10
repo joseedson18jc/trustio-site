@@ -18,10 +18,10 @@
   <script src="../assets/theme.js?v=62b52a16"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=228a9ffa">
   <link rel="stylesheet" href="../assets/chat.css?v=352dc7bb">
-  <link rel="stylesheet" href="../assets/crm.css?v=0cdf7b86">
+  <link rel="stylesheet" href="../assets/crm.css?v=2543f8df">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=c3461a69"></script>
-  <script defer src="../assets/crm.js?v=7d552cc7"></script>
+  <script defer src="../assets/crm.js?v=4ee7fbc5"></script>
 </head>
 <body class="chat-page crm-page">
 <a class="skip-link" href="#leads">Ir para a lista de leads</a>
@@ -51,7 +51,7 @@
   <main class="crm-main">
     <div class="page-head">
       <h1>Leads e clientes</h1>
-      <p>Toda conta criada no site entra aqui. O status avança sozinho: cadastro, e-mail confirmado, ativo no chat, teste esgotado. Plano e notas você ajusta na linha; clique no nome para ver tudo sobre o lead.</p>
+      <p>Toda conta criada no site entra aqui. O status avança sozinho: cadastro, e-mail confirmado, ativo no chat, teste esgotado. O administrador controla acesso e prazos na ficha. Plano e notas você ajusta na linha; clique no nome para ver tudo sobre o lead.</p>
     </div>
 
     <div class="stat-row" data-stats>
@@ -97,6 +97,13 @@
         <button type="button" data-filter="pa:cliente">Clientes</button>
       </div>
     </div>
+    <div class="toolbar admin-filtros">
+      <label>Segmento <input type="search" data-segment-filter placeholder="Ex.: saúde, varejo"></label>
+      <label>Acesso <select data-access-filter><option value="">Todos</option><option value="disponivel">Disponível</option><option value="agendado">Agendado</option><option value="vencido">Vencido</option><option value="revogado">Revogado</option><option value="bloqueado">Bloqueado</option></select></label>
+      <label>Cadastro desde <input type="date" data-created-from></label>
+      <label>Até <input type="date" data-created-to></label>
+      <button type="button" class="btn btn-ghost" data-clear-admin-filters>Limpar filtros</button>
+    </div>
     <div class="toolbar toolbar-2">
       <label class="search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg><input type="search" placeholder="Buscar nome, e-mail, telefone, plano, notas" data-search aria-label="Buscar"></label>
       <label class="check"><input type="checkbox" data-hide-tests> Ocultar testes <span data-tests-count></span></label>
@@ -129,7 +136,7 @@
       </table>
       <p class="empty" data-empty hidden>Nenhum lead com esse filtro.</p>
     </div>
-    <p class="foot-note">Status <code>assinante</code> libera o chat sem cota. Alterações são salvas ao sair do campo. O CSV exporta o que está na tela (filtro e busca). <b>Tipo de usuário:</b> admin tem acesso total e muda os tipos (só joseedson18@hotmail.com e matheuscastrocorrea@gmail.com); colaborador usa o CRM e o chat sem cota; teste grátis tem a cota de perguntas grátis; cliente usa o chat sem cota. Testes são os endereços <code>@resend.dev</code> e os que começam com <code>test-</code> ou <code>teste-</code>. <b>Retorno e etiquetas</b> ficam na ficha do lead (clique no nome), junto do histórico de quem mudou o quê; clique numa etiqueta para filtrar.</p>
+    <p class="foot-note">Status <code>assinante</code> libera o chat sem cota quando o controle de acesso permite. Bloqueios e prazos prevalecem. Alterações são salvas ao sair do campo. O CSV exporta o que está na tela (filtro e busca). <b>Tipo de usuário:</b> admin tem acesso total e muda os tipos (só joseedson18@hotmail.com e matheuscastrocorrea@gmail.com); colaborador usa o CRM e o chat sem cota; teste grátis tem a cota de perguntas grátis; cliente usa o chat sem cota. Testes são os endereços <code>@resend.dev</code> e os que começam com <code>test-</code> ou <code>teste-</code>. <b>Retorno e etiquetas</b> ficam na ficha do lead (clique no nome), junto do histórico de quem mudou o quê; clique numa etiqueta para filtrar.</p>
   </main>
 
   <dialog class="detail" data-detail aria-labelledby="detail-title">
@@ -157,6 +164,27 @@
         </div>
         <small class="detail-dica">Separadas por vírgula. Até 10, com até 30 caracteres cada.</small>
       </div>
+    </div>
+    <section class="admin-acesso so-admin" data-access-panel aria-labelledby="access-heading">
+      <h3 id="access-heading">Controle de acesso</h3>
+      <p>Vale para o chat, o agente no WhatsApp e os painéis da equipe. Alterações não cancelam cobranças ou assinaturas no provedor de pagamento.</p>
+      <form data-access-form>
+        <label>Acesso <select data-access-mode><option value="padrao">Padrão do plano / teste</option><option value="liberado">Liberar chat sem cota</option><option value="revogado">Revogar acesso aos produtos</option><option value="bloqueado">Bloquear produtos, manter login</option><option value="bloqueado_login">Bloquear produtos e novos logins</option></select></label>
+        <label>Início <input type="datetime-local" data-access-start></label>
+        <label>Fim <input type="datetime-local" data-access-end></label>
+        <small>Horário local do seu dispositivo. Sem fim: acesso sem prazo. Revogação e bloqueio são imediatos; deixe as datas vazias.</small>
+        <label>Motivo <textarea data-access-reason required maxlength="500" rows="2" placeholder="Registre por que está alterando o acesso"></textarea></label>
+        <p data-access-current role="status"></p>
+        <button type="submit" class="btn btn-primary" data-access-save>Salvar acesso</button>
+      </form>
+      <label>Teste do WhatsApp: duração em dias <input type="number" min="1" max="365" value="3" data-access-wa-days></label>
+      <button type="button" class="btn btn-ghost" data-access-wa>Ativar / renovar teste do WhatsApp</button>
+      <button type="button" class="btn btn-ghost" data-access-reset-quota>Reiniciar cota de perguntas (com motivo)</button>
+      <small>A liberação sem cota é do chat. O WhatsApp continua dependendo do teste ou da assinatura ativa.</small>
+    </section>
+    <div class="detail-edit">
+      <label>Segmento <input type="text" data-detail-segment maxlength="100" placeholder="Ex.: saúde, varejo"></label>
+      <button type="button" class="btn btn-ghost" data-detail-segment-save>Salvar segmento</button>
     </div>
     <section class="historico" aria-labelledby="historico-titulo">
       <h3 id="historico-titulo">Histórico</h3>

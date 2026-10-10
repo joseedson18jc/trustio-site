@@ -122,3 +122,42 @@ on conflict (key) do update set value = excluded.value;
 
 Sem essa lista, o seletor aparece travado em "Trustio (padrão)". Um modelo que sai da lista
 deixa de valer na hora: quem o tinha escolhido volta para o padrão.
+
+## Controle administrativo de acesso (10/10/2026)
+
+Na ficha do lead, o administrador pode liberar o chat sem cota, definir início e fim,
+revogar acesso, bloquear produtos mantendo o login ou bloquear também novos logins.
+As datas são verificadas no servidor em cada uso: não dependem de cron. O modo padrão
+mantém as regras de plano/teste; `cancelado` recusa o chat, inclusive para papel cliente.
+A liberação explícita prevalece sobre cancelado enquanto seu período estiver válido.
+O WhatsApp continua exigindo assinatura ou teste ativo: liberar o chat não ativa o agente.
+O teste do WhatsApp pode ser renovado por 1 a 365 dias. A cota do chat pode ser reiniciada
+com motivo, sem remover bloqueios ou renovar datas de acesso.
+
+Todas as mudanças de acesso, motivo, datas, segmento e renovações ficam em `crm_eventos`,
+com autor e valores anteriores/novos. Reiniciar a cota registra também o motivo.
+Colaboradores continuam cuidando de contato, notas, etiquetas e segmentação, mas só admins
+mudam acesso, tipos, status que concedem acesso, cotas e ativação do WhatsApp.
+Um administrador deve ser rebaixado antes de bloquear ou agendar seu acesso; a proteção
+contra remover o último admin considera apenas contas administrativas confirmadas e válidas.
+
+O bloqueio de login atualiza `auth.users.banned_until` na mesma transação do controle de
+acesso, com horizonte de 100 anos (campo usado pelo [Supabase Auth](https://github.com/supabase/auth/blob/master/internal/models/user.go)).
+Ao desfazer, restaura o banimento anterior e preserva mudanças feitas por outra ferramenta.
+Tokens já emitidos não desaparecem do navegador; o servidor recusa os produtos e as permissões
+de equipe pelo controle de acesso. O usuário pode manter seu próprio histórico e dados pessoais.
+Não há exclusão de contas, mensagens ou cancelamento de cobrança: assinatura é administrada
+no provedor de pagamento.
+
+Para publicar, aplique as migrações `20261010150000` e `20261010160000` antes dos novos
+assets e da função `hermes-autorizados`. Atualize também `mac/hermes-autorizados.sh` no Mac
+do agente: a resposta agora inclui `negados`, que prevalece sobre números fixos e compartilhados.
+A remoção no WhatsApp só passa a valer após a sincronização e reinício do gateway (consulta a
+cada 30 segundos; intervalo mínimo normal de reinício de 120 segundos). Falhas de consulta
+mantêm a última lista aplicada, como antes; não considerar a publicação concluída sem testar
+uma revogação no agente real.
+
+Validação local: `npm run test:crm-admin`, `npm run test:crm-audit` e
+`node mac/test/hermes-autorizados.test.mjs`. Os testes de banco usam PostgreSQL embarcado
+(PGlite), o esquema Auth mínimo e as funções reais de autorização/gatilhos das migrações;
+não substituem o teste de login e revogação no Supabase de produção.

@@ -574,6 +574,7 @@
     setInterval(function () { if (!document.hidden) atualizarEmails(); }, 60000);
   }
   $("[data-email-refresh]").addEventListener("click", atualizarEmails);
+  $("[data-goto-emails]").addEventListener("click", function () { $("[data-email-panel]").scrollIntoView({ behavior: "smooth" }); });
   $("[data-email-more]").addEventListener("click", function () { emailLimite += 50; carregarEmails(); });
   ["[data-email-search]", "[data-email-filter]"].forEach(function (selector) { $(selector).addEventListener("input", function () {
     emailLeadId = null; ++emailPedido; clearTimeout(emailTimer); emailLimite = 50; emailTimer = setTimeout(carregarEmails, 250);

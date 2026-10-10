@@ -205,6 +205,11 @@
     }
     d = d || {};
     input.disabled = true; sendBtn.disabled = true;
+    if (d.motivo === "acesso_revogado") {
+      input.placeholder = T("Acesso ao chat indisponível para esta conta", "Chat access unavailable for this account");
+      showNotice(T("<b>Esta conta está sem acesso ao chat.</b> O acesso pode ter sido revogado, bloqueado ou estar fora do período autorizado. Fale com a equipe pelo contato@trustio.com.br.", "<b>This account cannot access chat.</b> Access may have been revoked, blocked, or outside its authorized dates. Contact contato@trustio.com.br."));
+      return;
+    }
     input.placeholder = T("Chat temporariamente indisponível", "Chat temporarily unavailable");
     showNotice(T("<b>O chat está temporariamente indisponível.</b> Sua conta e suas perguntas grátis continuam preservadas. Tente novamente em instantes. Se o problema continuar, fale com a equipe pelo contato@trustio.com.br.", "<b>The chat is temporarily unavailable.</b> Your account and free questions are preserved. Try again shortly. If the issue continues, contact our team at contato@trustio.com.br."));
   }
@@ -799,6 +804,7 @@
       devolverRascunho();
       if (code === "trial_esgotado") { pending.remove(); if (state.lead) { state.lead.status = "trial_esgotado"; state.lead.mensagens_usadas = state.limit; } renderMe(); }
       else if (code === "email_nao_confirmado") { pending.remove(); showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); }
+      else if (code === "acesso_revogado") { pending.remove(); fechar(true, { motivo: "acesso_revogado" }); }
       else if (code === "chat_ainda_fechado") { pending.remove(); fechar(true, (err && err.data) || {}); }
       else if (code === "modelo_nao_configurado") { pending.remove(); fechar(true, { motivo: "sem_modelo" }); }
       else if (code === "contexto_cheio") { pending.remove(); sessaoCheia((err && err.data && err.data.janela) || 0); }

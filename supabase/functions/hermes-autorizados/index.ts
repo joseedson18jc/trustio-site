@@ -45,12 +45,12 @@ Deno.serve(async (req) => {
 
   // Lê todas as páginas por chave (id > último lido), não por posição: um cadastro que entra ou
   // sai no meio da leitura não desloca as páginas seguintes nem esconde outro número.
-  type Linha = { id: string; whatsapp_numero: string | null; telefone: string | null };
+  type Linha = { id: string; whatsapp_numero: string | null; telefone: string | null; acesso_modo: string; acesso_inicio: string | null; acesso_fim: string | null; status: string; whatsapp_trial_status: string; whatsapp_trial_ends_at: string | null };
   async function todas(filtro: (q: any) => any): Promise<Linha[] | null> {
     const linhas: Linha[] = [];
     let ultimo: string | null = null;
     while (true) {
-      let q = filtro(admin.from("crm_leads").select("id,whatsapp_numero,telefone"));
+      let q = filtro(admin.from("crm_leads").select("id,whatsapp_numero,telefone,acesso_modo,acesso_inicio,acesso_fim,status,whatsapp_trial_status,whatsapp_trial_ends_at"));
       if (ultimo) q = q.gt("id", ultimo);
       const { data, error } = await q.order("id").limit(PAGINA);
       if (error) return null;
@@ -59,18 +59,21 @@ Deno.serve(async (req) => {
       ultimo = data[data.length - 1].id;
     }
   }
-  const [teste, assinantes] = await Promise.all([
-    todas((q) => q.eq("whatsapp_trial_status", "ativo").gt("whatsapp_trial_ends_at", agora)),
-    todas((q) => q.eq("status", "assinante")),
-  ]);
-  // Falha de leitura não pode virar "lista vazia": o Mac mantém a lista que já tem.
-  if (!teste || !assinantes) return responder(500, { error: "leitura" });
+  const contas = await todas((q) => q);
+  // Falha de leitura não pode virar lista vazia: o Mac mantém a última lista aplicada.
+  if (!contas) return responder(500, { error: "leitura" });
 
-  // Teste: o número do WhatsApp (a ativação o preenche). Assinante: o do WhatsApp ou, se nunca
-  // pediu o teste, o telefone do cadastro.
-  const numeros = [...new Set([
-    ...teste.map((l) => normalizar(l.whatsapp_numero)),
-    ...assinantes.map((l) => normalizar(l.whatsapp_numero) ?? normalizar(l.telefone)),
-  ].filter((n): n is string => !!n))].sort();
-  return responder(200, { numeros, gerado_em: agora });
+  function permitido(l: Linha) {
+    return !["revogado", "bloqueado", "bloqueado_login"].includes(l.acesso_modo) &&
+      (l.status !== "cancelado" || l.acesso_modo === "liberado") &&
+      (!l.acesso_inicio || Date.parse(l.acesso_inicio) <= Date.parse(agora)) && (!l.acesso_fim || Date.parse(l.acesso_fim) > Date.parse(agora));
+  }
+  // Uma restrição prevalece também sobre um número fixo ou compartilhado com outra conta.
+  const negados = [...new Set(contas.filter((l) => !permitido(l)).flatMap((l) =>
+    [normalizar(l.whatsapp_numero), normalizar(l.telefone)].filter((n): n is string => !!n)))].sort();
+  const numeros = [...new Set(contas.filter(permitido).filter((l) =>
+    l.status === "assinante" || (l.whatsapp_trial_status === "ativo" && !!l.whatsapp_trial_ends_at && Date.parse(l.whatsapp_trial_ends_at) > Date.parse(agora)))
+    .map((l) => normalizar(l.whatsapp_numero) ?? (l.status === "assinante" ? normalizar(l.telefone) : null))
+    .filter((n): n is string => !!n && !negados.includes(n)))].sort();
+  return responder(200, { numeros, negados, gerado_em: agora });
 });

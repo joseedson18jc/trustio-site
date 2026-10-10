@@ -1,5 +1,5 @@
-/* assets/crm.js — painel interno de leads (/crm/). Só usuários na tabela `admins` enxergam dados:
-   as políticas RLS no banco garantem isso, independentemente desta página. */
+/* assets/crm.js — painel interno de leads (/crm/). Equipe lê o CRM; só admin controla acesso.
+   As políticas RLS e as RPCs no banco garantem isso, independentemente desta página. */
 (function () {
   "use strict";
   var CFG = window.TRUSTIO_AUTH;
@@ -38,7 +38,7 @@
   var state = { leads: [], filter: "", tag: "", q: "", sort: { key: "created_at", dir: -1 }, ocultarTestes: lerPref(), carregadoEm: null };
   // Gravações a caminho, por "id|campo": { valor, seq }. Só a mais recente de cada campo vale,
   // e um recarregamento da lista reaplica esses valores por cima do que veio do banco.
-  var pendentes = {}, seqGravacao = 0;
+  var pendentes = {}, seqGravacao = 0, loadPedido = 0;
 
   function lerPref() { try { return localStorage.getItem(PREF) !== "0"; } catch (e) { return true; } }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -119,7 +119,17 @@
 
   function loadLeads() {
     var btn = $("[data-refresh]"); btn.disabled = true;
-    return sb.from("crm_overview").select("*").order("created_at", { ascending: false }).limit(2000).then(function (r) {
+    var linhas = [], pagina = 1000, pedido = ++loadPedido;
+    function proxima(de) {
+      return sb.from("crm_overview").select("*").order("created_at", { ascending: false }).order("id").range(de, de + pagina - 1).then(function (r) {
+        if (r.error) throw r.error;
+        linhas = linhas.concat(r.data || []);
+        return (r.data || []).length === pagina ? proxima(de + pagina) : linhas;
+      });
+    }
+    return proxima(0).then(function (dados) {
+      if (pedido !== loadPedido) return;
+      var r = { data: dados };
       btn.disabled = false;
       // Falha de leitura não pode parecer "nenhum lead".
       if (r.error) { $("[data-load-error]").hidden = false; $("[data-load-error-msg]").textContent = r.error.message || "erro desconhecido"; return; }
@@ -130,6 +140,10 @@
       });
       $("[data-updated]").textContent = "Atualizado às " + state.carregadoEm.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       render();
+    }).catch(function (e) {
+      if (pedido !== loadPedido) return;
+      btn.disabled = false; $("[data-load-error]").hidden = false;
+      $("[data-load-error-msg]").textContent = e.message || "erro desconhecido";
     });
   }
   function loadLimit() {
@@ -193,6 +207,12 @@
   function visible() {
     var q = state.q.toLowerCase(), k = state.sort.key, dir = state.sort.dir;
     return base().filter(function (l) {
+      var segmento = $("[data-segment-filter]").value.trim().toLowerCase(), acesso = $("[data-access-filter]").value;
+      var de = $("[data-created-from]").value, ate = $("[data-created-to]").value;
+      var cadastro = l.created_at ? dataLocal(l.created_at).slice(0, 10) : "";
+      if (segmento && String(l.segmento || "").toLowerCase().indexOf(segmento) < 0) return false;
+      if (acesso && estadoAcesso(l) !== acesso) return false;
+      if ((de && cadastro < de) || (ate && cadastro > ate)) return false;
       if (!passaFiltro(l, state.filter)) return false;
       if (state.tag && etiquetasDe(l).indexOf(state.tag) < 0) return false;
       if (!q) return true;
@@ -221,12 +241,12 @@
       return "<tr data-id=\"" + esc(l.id) + "\">" +
         "<td class=\"who\"><button type=\"button\" class=\"lead-open\" data-open>" + esc(l.nome || "Sem nome") + "</button>" +
           "<span class=\"chip " + esc(l.tipo) + "\">" + (l.tipo === "b2b" ? "Empresa" : "Pessoa") + "</span>" + (ehTeste(l) ? "<span class=\"chip teste\">Teste</span>" : "") +
-          retornoHtml(l) + etiquetasHtml(l) +
+          retornoHtml(l) + etiquetasHtml(l) + "<small>Acesso: " + esc(rotuloAcesso(l)) + "</small>" +
           "<a class=\"mail\" href=\"mailto:" + esc(l.email) + "\">" + esc(l.email) + "</a>" +
           (tel ? tel : "") +
           (l.empresa || l.segmento ? "<small>" + esc([l.empresa, l.segmento].filter(Boolean).join(" · ")) + "</small>" : "") +
         "</td>" +
-        "<td><select class=\"status-sel st-" + esc(l.status) + "\" data-field=\"status\" aria-label=\"Status de " + esc(l.nome || l.email) + "\">" + STATUS.map(function (s) { return "<option value=\"" + s + "\"" + (s === l.status ? " selected" : "") + ">" + LABEL[s] + "</option>"; }).join("") + "</select>" +
+        "<td><select class=\"status-sel st-" + esc(l.status) + "\" data-field=\"status\"" + (eu.papel === "admin" ? "" : " disabled") + " aria-label=\"Status de " + esc(l.nome || l.email) + "\">" + STATUS.map(function (s) { return "<option value=\"" + s + "\"" + (s === l.status ? " selected" : "") + ">" + LABEL[s] + "</option>"; }).join("") + "</select>" +
           (l.confirmed_at ? "" : "<small class=\"hint\">e-mail não confirmado</small>") + "</td>" +
         "<td><input type=\"text\" data-field=\"plano\" value=\"" + esc(l.plano || "") + "\" placeholder=\"—\" aria-label=\"Plano\"></td>" +
         "<td>" + papelCell(l) + "</td>" +
@@ -279,11 +299,11 @@
 
   function waCell(l) {
     var s = l.whatsapp_trial_status || "nao_solicitado";
-    var sel = "<select data-field=\"whatsapp_trial_status\" aria-label=\"Teste WhatsApp\">" + WA.map(function (k) { return "<option value=\"" + k + "\"" + (k === s ? " selected" : "") + ">" + WA_LABEL[k] + "</option>"; }).join("") + "</select>";
+    var sel = "<select " + (eu.papel === "admin" ? "" : "disabled ") + "data-field=\"whatsapp_trial_status\" aria-label=\"Teste WhatsApp\">" + WA.map(function (k) { return "<option value=\"" + k + "\"" + (k === s ? " selected" : "") + ">" + WA_LABEL[k] + "</option>"; }).join("") + "</select>";
     var num = l.whatsapp_numero ? telHtml(l.whatsapp_numero) : "";
     var extra = "";
     // Quem pediu, ou quem só deixou telefone no cadastro, pode ser ativado direto daqui.
-    if (s === "solicitado" || (s === "nao_solicitado" && (l.whatsapp_numero || l.telefone))) extra = "<button type=\"button\" class=\"wa-go\" data-wa-activate>Ativar 3 dias</button>";
+    if (eu.papel === "admin" && (s === "solicitado" || (s === "nao_solicitado" && (l.whatsapp_numero || l.telefone)))) extra = "<button type=\"button\" class=\"wa-go\" data-wa-activate>Ativar 3 dias</button>";
     if (s === "ativo") extra = (l.whatsapp_trial_ends_at ? "<small>até " + fmt(l.whatsapp_trial_ends_at) + "</small>" : "") + avisoHtml(l);
     return sel + num + extra;
   }
@@ -352,7 +372,7 @@
       });
       return;
     }
-    var b = e.target.closest("[data-wa-activate]"); if (!b) return;
+    var b = e.target.closest("[data-wa-activate]"); if (!b || eu.papel !== "admin") return;
     var id = b.closest("tr").dataset.id; b.disabled = true; b.textContent = "Ativando…";
     sb.rpc("activate_whatsapp_trial", { p_lead_id: id, p_days: 3 }).then(function (r) {
       if (r.error) { toast("Não foi possível ativar: " + r.error.message, "erro"); b.disabled = false; b.textContent = "Ativar 3 dias"; return; }
@@ -455,6 +475,10 @@
       ["Empresa", esc(l.empresa || "—")],
       ["Segmento", esc(l.segmento || "—")],
       ["Origem", esc(l.origem || "—")],
+      ["Acesso", esc(rotuloAcesso(l))],
+      ["Início do acesso", fmt(l.acesso_inicio)],
+      ["Fim do acesso", fmt(l.acesso_fim)],
+      ["Motivo do acesso", esc(l.acesso_motivo || "—")],
       ["Status", LABEL[l.status] || esc(l.status)],
       ["Plano", esc(l.plano || "—")],
       ["Tipo de usuário", l.user_id ? PAPEL_LABEL[l.papel || "teste"] : "sem conta (só lista de espera)"],
@@ -479,6 +503,8 @@
     $("[data-detail-mail]").href = "mailto:" + l.email;
     $("[data-detail-copy]").dataset.email = l.email;
     dlg.dataset.id = l.id;
+    preencherAcesso(l);
+    $("[data-detail-segment]").value = l.segmento || "";
     $("[data-detail-audit]").hidden = !(eu.papel === "admin" && l.user_id);
     $("[data-d-retorno]").value = l.proximo_contato || "";
     $("[data-d-etiquetas]").value = etiquetasDe(l).join(", ");
@@ -492,21 +518,90 @@
     (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(function () { toast("E-mail copiado."); }, function () { toast("Não foi possível copiar.", "erro"); });
   });
 
+  function estadoAcesso(l) {
+    if (l.acesso_modo === "bloqueado" || l.acesso_modo === "bloqueado_login") return "bloqueado";
+    if (l.acesso_modo === "revogado" || (l.status === "cancelado" && l.acesso_modo !== "liberado")) return "revogado";
+    if (l.acesso_inicio && Date.parse(l.acesso_inicio) > Date.now()) return "agendado";
+    if (l.acesso_fim && Date.parse(l.acesso_fim) <= Date.now()) return "vencido";
+    return "disponivel";
+  }
+  function rotuloAcesso(l) {
+    return { disponivel: "Disponível", agendado: "Agendado", vencido: "Vencido", revogado: "Revogado", bloqueado: "Bloqueado" }[estadoAcesso(l)];
+  }
+  function dataLocal(v) {
+    if (!v) return "";
+    var d = new Date(v); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  }
+  function preencherAcesso(l) {
+    $("[data-access-panel]").hidden = eu.papel !== "admin" || !l.user_id;
+    $("[data-access-mode]").value = l.acesso_modo || "padrao";
+    $("[data-access-start]").value = dataLocal(l.acesso_inicio);
+    $("[data-access-end]").value = dataLocal(l.acesso_fim);
+    $("[data-access-reason]").value = l.acesso_motivo || "";
+    $("[data-access-current]").textContent = "Acesso atual: " + rotuloAcesso(l) + (l.papel === "admin" ? ". Rebaixe o administrador antes de restringir o acesso." : ".");
+    $("[data-access-save]").disabled = l.papel === "admin" || l.user_id === eu.id;
+  }
+  $("[data-access-form]").addEventListener("submit", function (e) {
+    e.preventDefault(); var l = lead(dlg.dataset.id); if (!l || eu.papel !== "admin") return;
+    var id = l.id, btn = $("[data-access-save]");
+    var inicio = $("[data-access-start]").value, fim = $("[data-access-end]").value;
+    btn.disabled = true;
+    sb.rpc("crm_definir_acesso", { p_lead_id: id, p_modo: $("[data-access-mode]").value,
+      p_inicio: inicio ? new Date(inicio).toISOString() : null, p_fim: fim ? new Date(fim).toISOString() : null,
+      p_motivo: $("[data-access-reason]").value.trim() }).then(function (r) {
+      if (r.error) throw r.error;
+      toast("Controle de acesso salvo."); return loadLeads().then(function () { if (dlg.open && dlg.dataset.id === id) abrirDetalhe(id); });
+    }).catch(function (err) { toast(err.message || "Não foi possível salvar o acesso.", "erro"); })
+      .finally(function () { if (dlg.dataset.id === id) btn.disabled = false; });
+  });
+  $("[data-access-wa]").addEventListener("click", function (e) {
+    var l = lead(dlg.dataset.id); if (!l || eu.papel !== "admin") return;
+    var dias = Number($("[data-access-wa-days]").value), id = l.id, btn = e.currentTarget;
+    if (!Number.isInteger(dias) || dias < 1 || dias > 365) { toast("Escolha de 1 a 365 dias.", "erro"); return; }
+    btn.disabled = true;
+    sb.rpc("activate_whatsapp_trial", { p_lead_id: id, p_days: dias }).then(function (r) {
+      if (r.error) throw r.error;
+      toast("Teste do WhatsApp ativado por " + dias + " dias.");
+      return loadLeads().then(function () { if (dlg.open && dlg.dataset.id === id) abrirDetalhe(id); });
+    }).catch(function (err) { toast(err.message || "Não foi possível ativar.", "erro"); }).finally(function () { btn.disabled = false; });
+  });
+  $("[data-access-reset-quota]").addEventListener("click", function (e) {
+    var l = lead(dlg.dataset.id); if (!l || eu.papel !== "admin") return;
+    var motivo = $("[data-access-reason]").value.trim(), id = l.id, btn = e.currentTarget;
+    if (!motivo) { toast("Informe o motivo para reiniciar a cota.", "erro"); return; }
+    btn.disabled = true;
+    sb.rpc("crm_reiniciar_cota", { p_lead_id: id, p_motivo: motivo }).then(function (r) {
+      if (r.error) throw r.error;
+      toast("Cota de perguntas reiniciada.");
+      return loadLeads().then(function () { if (dlg.open && dlg.dataset.id === id) abrirDetalhe(id); });
+    }).catch(function (err) { toast(err.message || "Não foi possível reiniciar a cota.", "erro"); }).finally(function () { btn.disabled = false; });
+  });
+  $("[data-detail-segment-save]").addEventListener("click", function () {
+    gravarFicha({ segmento: $("[data-detail-segment]").value.trim() || null }, "Segmento salvo.");
+  });
+  ["[data-segment-filter]", "[data-access-filter]", "[data-created-from]", "[data-created-to]"].forEach(function (sel) {
+    $(sel).addEventListener("input", renderRows);
+  });
+  $("[data-clear-admin-filters]").addEventListener("click", function () {
+    ["[data-segment-filter]", "[data-access-filter]", "[data-created-from]", "[data-created-to]"].forEach(function (sel) { $(sel).value = ""; }); renderRows();
+  });
+
   // ------------------------------------------------------------- investigação de atividade (só admin)
   // Conversas e mensagens de uma conta, para investigar suspeita de violação dos Termos. O banco só
-  // entrega esses dados a admins (políticas "admins read conversations/messages"); colaborador recebe
-  // lista vazia mesmo que chame a tela. Fotos não ficam guardadas: aparece só o texto que a pessoa enviou.
+  // entrega esses dados pela RPC de investigação, que verifica is_admin() no servidor.
+  // Fotos não ficam guardadas: aparece só o texto que a pessoa enviou.
   var auditDlg = $("[data-audit]"), audit = { lead: null, conversas: [], msgs: [], porConversa: {} };
   var RE_ANEXO_A = /\n*\[\[anexo: ([^\]\n]*)\]\]\n([\s\S]*?)\n\[\[\/anexo\]\]/g;
-  var MAX_LISTA = 400;
+  var MAX_LISTA = 400, auditPedido = 0;
 
-  function todasAsLinhas(tabela, colunas, uid) {
+  function todasAsLinhas(tabela, colunas, uid, pedido) {
     var linhas = [], pagina = 1000;
     function proxima(de) {
-      return sb.from(tabela).select(colunas).eq("user_id", uid).order("created_at", { ascending: true }).range(de, de + pagina - 1).then(function (r) {
+      if (pedido !== auditPedido) return Promise.reject(new Error("Investigação encerrada"));
+      return sb.rpc("crm_investigar_" + tabela, { p_user_id: uid }).select(colunas).order("created_at", { ascending: true }).order("id", { ascending: true }).range(de, de + pagina - 1).then(function (r) {
         if (r.error) throw r.error;
         linhas = linhas.concat(r.data || []);
-        return (r.data || []).length === pagina && linhas.length < 20000 ? proxima(de + pagina) : linhas;
+        return (r.data || []).length === pagina ? proxima(de + pagina) : linhas;
       });
     }
     return proxima(0);
@@ -515,6 +610,8 @@
   function abrirAuditoria() {
     var l = lead(dlg.dataset.id);
     if (!l || !l.user_id || eu.papel !== "admin") return;
+    clearTimeout(buscaTimer);
+    var pedido = ++auditPedido;
     audit = { lead: l, conversas: [], msgs: [], porConversa: {} };
     $("[data-audit-title]").textContent = "Atividade de " + (l.nome || l.email);
     $("[data-audit-resumo]").innerHTML = "";
@@ -524,10 +621,10 @@
     $("[data-audit-status]").textContent = "Carregando conversas e mensagens…";
     if (auditDlg.showModal) auditDlg.showModal(); else auditDlg.setAttribute("open", "");
     Promise.all([
-      todasAsLinhas("conversations", "id,title,created_at,updated_at", l.user_id),
-      todasAsLinhas("messages", "id,conversation_id,role,content,model,created_at", l.user_id),
+      todasAsLinhas("conversations", "id,title,created_at,updated_at", l.user_id, pedido),
+      todasAsLinhas("messages", "id,conversation_id,role,content,model,created_at", l.user_id, pedido),
     ]).then(function (res) {
-      if (audit.lead !== l) return;
+      if (pedido !== auditPedido) return;
       audit.conversas = res[0]; audit.msgs = res[1];
       audit.conversas.forEach(function (c) { audit.porConversa[c.id] = c; });
       $("[data-audit-conversa]").innerHTML = '<option value="">Todas as conversas</option>' + audit.conversas.slice().reverse().map(function (c) {
@@ -536,6 +633,7 @@
       $("[data-audit-baixar]").disabled = false;
       resumoAuditoria(); renderAuditoria();
     }).catch(function (e) {
+      if (pedido !== auditPedido) return;
       $("[data-audit-status]").textContent = "Não foi possível carregar: " + ((e && e.message) || "erro desconhecido");
     });
   }
@@ -560,18 +658,23 @@
   }
 
   // Texto da mensagem: escapado, anexos recolhidos e o termo buscado destacado.
-  function marcar(htmlEscapado, termo) {
-    if (!termo) return htmlEscapado;
-    var t = esc(termo).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return htmlEscapado.replace(new RegExp(t, "gi"), function (x) { return "<mark>" + x + "</mark>"; });
+  function marcar(texto, termo) {
+    if (!termo) return esc(texto);
+    var t = termo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    var re = new RegExp(t, "gi"), html = "", ultimo = 0, m;
+    while ((m = re.exec(texto))) {
+      html += esc(texto.slice(ultimo, m.index)) + "<mark>" + esc(m[0]) + "</mark>";
+      ultimo = re.lastIndex;
+    }
+    return html + esc(texto.slice(ultimo));
   }
   function corpoMensagem(texto, termo) {
     var html = "", ultimo = 0, m;
     RE_ANEXO_A.lastIndex = 0;
-    function trecho(t) { t = t.trim(); return t ? "<p>" + marcar(esc(t), termo).replace(/\n/g, "<br>") + "</p>" : ""; }
+    function trecho(t) { t = t.trim(); return t ? "<p>" + marcar(t, termo).replace(/\n/g, "<br>") + "</p>" : ""; }
     while ((m = RE_ANEXO_A.exec(texto))) {
       html += trecho(texto.slice(ultimo, m.index));
-      html += '<details class="audit-anexo"><summary>Anexo: ' + esc(m[1]) + "</summary><pre>" + marcar(esc(m[2]), termo) + "</pre></details>";
+      html += '<details class="audit-anexo"><summary>Anexo: ' + esc(m[1]) + "</summary><pre>" + marcar(m[2], termo) + "</pre></details>";
       ultimo = RE_ANEXO_A.lastIndex;
     }
     return html + trecho(texto.slice(ultimo));
@@ -620,7 +723,7 @@
   $("[data-detail-audit]").addEventListener("click", abrirAuditoria);
   $("[data-audit-close]").addEventListener("click", function () { auditDlg.close(); });
   auditDlg.addEventListener("click", function (e) { if (e.target === auditDlg) auditDlg.close(); });
-  auditDlg.addEventListener("close", function () { audit = { lead: null, conversas: [], msgs: [], porConversa: {} }; $("[data-audit-lista]").innerHTML = ""; });
+  auditDlg.addEventListener("close", function () { ++auditPedido; clearTimeout(buscaTimer); audit = { lead: null, conversas: [], msgs: [], porConversa: {} }; $("[data-audit-lista]").innerHTML = ""; });
   $("[data-audit-busca]").addEventListener("input", function () { clearTimeout(buscaTimer); buscaTimer = setTimeout(renderAuditoria, 200); });
   $("[data-audit-papel]").addEventListener("change", renderAuditoria);
   $("[data-audit-conversa]").addEventListener("change", renderAuditoria);
@@ -633,7 +736,7 @@
     sb.from("crm_leads").update(patch).eq("id", id).select("id," + cols).single().then(function (r) {
       if (r.error) { toast(erroLegivel(r.error), "erro"); abrirDetalhe(id); return; }
       Object.keys(patch).forEach(function (k) { l[k] = r.data[k]; });
-      render(); abrirDetalhe(id);
+      render(); if (dlg.open && dlg.dataset.id === id) abrirDetalhe(id);
       toast(ok);
     });
   }
@@ -659,7 +762,7 @@
   $("[data-d-etiquetas]").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); salvarEtiquetas(); } });
 
   // Histórico do lead: quem mudou o quê e quando (gravado pelo banco, só a equipe lê).
-  var CAMPO_LABEL = { criado: "Cadastro", status: "Status", plano: "Plano", papel: "Tipo de usuário", whatsapp_trial_status: "WhatsApp", notas: "Notas", proximo_contato: "Próximo contato", etiquetas: "Etiquetas", telefone: "Telefone", confirmed_at: "E-mail confirmado" };
+  var CAMPO_LABEL = { segmento: "Segmento", acesso_modo: "Controle de acesso", acesso_inicio: "Início do acesso", acesso_fim: "Fim do acesso", acesso_motivo: "Motivo", whatsapp_trial_ends_at: "Fim do teste WhatsApp", criado: "Cadastro", status: "Status", plano: "Plano", papel: "Tipo de usuário", whatsapp_trial_status: "WhatsApp", notas: "Notas", proximo_contato: "Próximo contato", etiquetas: "Etiquetas", telefone: "Telefone", confirmed_at: "E-mail confirmado" };
   function valorEvento(campo, v) {
     if (v == null || v === "") return "—";
     if (campo === "status") return LABEL[v] || v;
@@ -728,7 +831,7 @@
   }
 
   $("[data-export]").addEventListener("click", function () {
-    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "papel", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "whatsapp_aviso_email_em", "whatsapp_aviso_email_erro", "whatsapp_aviso_wa_em", "whatsapp_aviso_wa_erro", "created_at", "confirmed_at", "ultimo_acesso", "proximo_contato", "etiquetas", "notas"];
+    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "acesso_modo", "acesso_inicio", "acesso_fim", "acesso_motivo", "status", "papel", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "whatsapp_aviso_email_em", "whatsapp_aviso_email_erro", "whatsapp_aviso_wa_em", "whatsapp_aviso_wa_erro", "created_at", "confirmed_at", "ultimo_acesso", "proximo_contato", "etiquetas", "notas"];
     // Valores vindos do cadastro público: neutraliza prefixos que planilhas interpretam como fórmula.
     var cell = function (v) {
       v = v == null ? "" : String(v);

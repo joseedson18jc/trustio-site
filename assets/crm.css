@@ -238,3 +238,13 @@ table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-
 .audit-anexo summary { cursor: pointer; color: var(--blue-signal); font-size: 12.5px; }
 .audit-anexo pre { max-height: 280px; overflow: auto; margin: 6px 0 0; padding: 8px 10px; border-radius: 8px; background: rgba(var(--on-surface-rgb), 0.04); white-space: pre-wrap; font-size: 12.5px; }
 @media (max-width: 600px) { .audit-filtros select { flex: 1 1 100%; } }
+
+/* Administração de acesso e segmentação */
+.admin-filtros { flex-wrap: wrap; gap: 12px; }
+.admin-filtros label, .admin-acesso label { display: flex; flex-direction: column; gap: 6px; }
+.admin-acesso { padding: 18px 20px; font-size: 13.5px; border-top: 1px solid var(--line, #ddd); }
+.admin-acesso h3 { font-size: 18px; }
+.admin-acesso form { display: grid; gap: 12px; }
+.admin-acesso p, .admin-acesso small { line-height: 1.5; }
+.admin-acesso input, .admin-acesso select, .admin-acesso textarea, .admin-filtros input, .admin-filtros select { padding: 9px; border: 1px solid var(--line, #ccc); border-radius: 8px; font: inherit; background: var(--surface, Canvas); color: inherit; min-width: 0; }
+.admin-acesso [data-access-wa] { margin-top: 10px; }

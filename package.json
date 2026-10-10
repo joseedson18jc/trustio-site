@@ -18,6 +18,8 @@
     "test:worker": "node worker/test/worker.test.mjs",
     "test:mac": "node mac/test/hermes-autorizados.test.mjs && node mac/test/whatsapp.test.mjs",
     "test:gate": "node gate/test/gate.test.mjs",
+    "test:crm-admin": "node --test tests/crm-admin-db.test.mjs tests/crm-admin-ui.test.mjs tests/hermes-access.test.mjs",
+    "test:crm-audit": "node --test tests/crm-audit.test.mjs",
     "test:auth": "node tests/auth-config.test.mjs",
     "test:chat-render": "node tests/chat-render.test.mjs"
   },
@@ -25,6 +27,7 @@
     "node": ">=22.13"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
     "vite": "7.0.6"
   }
 }

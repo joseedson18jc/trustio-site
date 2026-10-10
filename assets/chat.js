@@ -47,8 +47,13 @@
   }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
+  // Respostas: assets/chat-render.js (Markdown com tabelas, LaTeX via KaTeX e gráficos 2D/3D); sem ele,
+  // a renderização mínima abaixo. desenhar() pinta os gráficos depois que o HTML entra na página.
+  function render(md) { return window.TrustioRender ? window.TrustioRender.html(md) : renderBasico(md); }
+  function desenhar(el) { if (window.TrustioRender) window.TrustioRender.hydrate(el); }
+
   // Renderização mínima e segura de Markdown (blocos de código, inline, negrito, listas, títulos).
-  function render(md) {
+  function renderBasico(md) {
     var out = [], parts = String(md).split(/```/);
     for (var i = 0; i < parts.length; i++) {
       if (i % 2 === 1) {
@@ -523,7 +528,7 @@
     el.innerHTML = "<span class=\"msg-av\" aria-hidden=\"true\">" + (role === "user" ? "" : "T") + "</span><div class=\"msg-body\"></div>";
     if (role === "user") pintarAvatarMensagem(el.querySelector(".msg-av"));
     var body = el.querySelector(".msg-body");
-    if (role === "user") body.innerHTML = renderUsuario(content); else body.innerHTML = render(content);
+    if (role === "user") body.innerHTML = renderUsuario(content); else { body.innerHTML = render(content); desenhar(body); }
     inner.appendChild(el);
     return el;
   }
@@ -680,7 +685,7 @@
             if (d.delta) {
               // Primeiro trecho da resposta: o raciocínio recolhe e a resposta fica em foco.
               if (!full && !think.hidden) think.open = false;
-              contar(d); full += d.delta; body.innerHTML = render(full); mostrarProgresso(); scrollBottom();
+              contar(d); full += d.delta; body.innerHTML = render(full); desenhar(body); mostrarProgresso(); scrollBottom();
             }
             if (!d.delta && !d.raciocinio && typeof d.n === "number" && !d.done) { contar(d); mostrarProgresso(); }
             if (d.error) {

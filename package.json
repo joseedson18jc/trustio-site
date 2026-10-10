@@ -18,7 +18,8 @@
     "test:worker": "node worker/test/worker.test.mjs",
     "test:mac": "node mac/test/hermes-autorizados.test.mjs && node mac/test/whatsapp.test.mjs",
     "test:gate": "node gate/test/gate.test.mjs",
-    "test:auth": "node tests/auth-config.test.mjs"
+    "test:auth": "node tests/auth-config.test.mjs",
+    "test:chat-render": "node tests/chat-render.test.mjs"
   },
   "engines": {
     "node": ">=22.13"

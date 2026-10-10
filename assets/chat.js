@@ -1024,7 +1024,9 @@
     if (!bar || !box) return;
     if (state.modelos.length < 2) { bar.hidden = true; return; }
     var atual = modeloAtual() || "";
-    var opcoes = (modeloAtual() ? [] : [{ id: "", rotulo: T("Trustio (padrão)", "Trustio (default)") }]).concat(state.modelos);
+    // Lista sem padrão marcado: a opção "padrão" fica sempre, para a pessoa poder voltar a ela daqui.
+    var temPadrao = state.modelos.some(function (m) { return m.padrao; });
+    var opcoes = (temPadrao ? [] : [{ id: "", rotulo: T("Trustio (padrão)", "Trustio (default)") }]).concat(state.modelos);
     box.innerHTML = "";
     opcoes.forEach(function (m) {
       var lab = document.createElement("label");

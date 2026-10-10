@@ -22,7 +22,7 @@ name: Supabase
 on:
   push:
     branches: [main]
-    paths: ["supabase/**", ".github/workflows/supabase.yml", "scripts/configure-email-tracking.py", "scripts/verify-email-tracking.py"]
+    paths: ["supabase/**", ".github/workflows/supabase.yml", "scripts/configure-email-tracking.py", "scripts/verify-email-tracking.py", "scripts/configure-admin-notifications.py"]
   workflow_dispatch:
 
 concurrency:
@@ -133,11 +133,15 @@ jobs:
       - name: Publicar acompanhamento de e-mails
         run: supabase functions deploy email-eventos --no-verify-jwt --project-ref "$PROJECT_REF"
 
+      - name: Publicar avisos de novos cadastros e assinantes
+        run: supabase functions deploy admin-avisos --no-verify-jwt --project-ref "$PROJECT_REF"
+
       - name: Configurar e-mail do convite de retorno
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
+          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
           # A senha do SMTP Resend é uma API key; reutiliza a integração já configurada.
           key="$RESEND_API_KEY"
@@ -155,6 +159,7 @@ jobs:
                   f.write(name + '=' + json.dumps(os.environ[name]) + '\n')
           PY
           python3 scripts/configure-email-tracking.py "$f"
+          python3 scripts/configure-admin-notifications.py "$f"
           supabase secrets set --env-file "$f" --project-ref "$PROJECT_REF"
           echo "E-mail do CRM configurado com o remetente do domínio."
 

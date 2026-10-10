@@ -82,6 +82,15 @@ Em GitHub → Settings → Secrets and variables → Actions → New repository 
 | `HERMES_SEGREDO` | um valor aleatório longo; o mesmo vai no Mac em `~/.trustio-hermes-sync-key` | o sincronizador do Mac ler a lista de números autorizados |
 | `ADMIN_EMAILS` | seus e-mails, separados por vírgula (as contas precisam existir no Auth) | abrir o `/crm/` |
 
+O CRM envia aos administradores atuais com e-mail confirmado um aviso por novo cadastro
+vinculado ao Auth e por primeira assinatura (mudança para `assinante` no CRM ou checkout
+confirmado pela integração Stripe, mesmo sem afiliado). Sem retroatividade. O banco mantém
+uma fila, processada a cada minuto; retentativas usam a mesma chave de idempotência no
+Resend e param após 23 horas para não ultrapassar a janela de deduplicação do provedor.
+O histórico e os erros ficam em `crm_admin_avisos`, com leitura restrita a administradores.
+A remoção de um administrador impede novas tentativas para ele. O workflow configura a
+credencial interna no Vault e na função `admin-avisos` sem publicar seu valor.
+
 Depois disso, rode o workflow uma vez em Actions → Supabase → Run workflow (ou faça qualquer push em
 `supabase/`). Ele vincula o projeto, aplica migrações, `config.toml` (URLs, confirmação, SMTP, templates),
 publica a função `chat`, define os segredos dela e insere os administradores. Sem `SMTP_PASS`, o SMTP

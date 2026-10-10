@@ -57,6 +57,43 @@ async function setup() {
   const control = async (n,mode,start=null,end=null,reason='Teste administrativo') => db.query('select crm_definir_acesso($1,$2,$3,$4,$5)',[uid(n),mode,start,end,reason]);
   return { db, actor, control };
 }
+test('admin recebe cadastro e primeira assinatura uma vez, com reserva e revogação protegidas', async () => {
+  const {db,actor}=await setup();
+  try {
+    const sql=migration('20261010190000_crm_admin_notifications.sql');
+    await db.exec(`create function public.registrar_comissao(text,text,text,text,text,int,text,text) returns jsonb language sql as $$ select '{"registrada":false,"motivo":"sem_afiliado"}'::jsonb $$;`);
+    await db.exec(sql.slice(0,sql.indexOf("select cron.schedule(")));
+    assert.equal((await db.query('select count(*)::int n from crm_admin_avisos')).rows[0].n,0);
+    await db.query('insert into auth.users values($1,$2,null,null)',[uid(6),'new@test']);
+    await db.query('insert into crm_leads(id,user_id,email,nome) values($1,$1,$2,$3)',[uid(6),'new@test','New']);
+    assert.equal((await db.query('select count(*)::int n from crm_admin_avisos')).rows[0].n,2);
+    await db.exec(`update crm_leads set status='assinante' where id='${uid(6)}'; update crm_leads set status='cancelado' where id='${uid(6)}'; update crm_leads set status='assinante' where id='${uid(6)}'`);
+    assert.equal((await db.query('select count(*)::int n from crm_admin_avisos')).rows[0].n,4);
+    const paidArgs=['evt','checkout',null,null,'new@test',1000,'price',null];
+    const result=(await db.query('select registrar_comissao($1,$2,$3,$4,$5,$6,$7,$8) result',paidArgs)).rows[0].result;
+    assert.equal(result.motivo,'sem_afiliado');
+    assert.equal((await db.query('select count(*)::int n from crm_admin_avisos')).rows[0].n,4);
+    paidArgs[4]='buyer-without-account@test';
+    await db.query('select registrar_comissao($1,$2,$3,$4,$5,$6,$7,$8)',paidArgs);
+    await db.query('select registrar_comissao($1,$2,$3,$4,$5,$6,$7,$8)',paidArgs);
+    assert.equal((await db.query('select count(*)::int n from crm_admin_avisos')).rows[0].n,6);
+    await actor(2); await assert.rejects(db.query('select crm_admin_reservar_avisos()'));
+    assert.equal((await db.query('select count(*)::int n from crm_admin_avisos')).rows[0].n,0);
+    await actor(null);
+    const claimed=(await db.query('select * from crm_admin_reservar_avisos()')).rows;
+    assert.equal(claimed.length,6);
+    assert.equal((await db.query('select * from crm_admin_reservar_avisos()')).rows.length,0);
+    const first=claimed[0];
+    await db.query('select crm_admin_concluir_aviso($1,$2,$3,$4)',[first.id,first.reservado_em,'provider',null]);
+    await db.query('select crm_admin_concluir_aviso($1,$2,$3,$4)',[first.id,first.reservado_em,null,'late failure']);
+    assert.equal((await db.query('select provider_id,erro from crm_admin_avisos where id=$1',[first.id])).rows[0].erro,null);
+    await db.exec(`update crm_admin_avisos set reservado_em=now()-interval '3 minutes'; delete from admins where user_id='${uid(4)}'`);
+    const retry=(await db.query('select * from crm_admin_reservar_avisos()')).rows;
+    assert.ok(retry.every(n=>n.destinatario==='admin@test'&&n.id!==first.id));
+    await db.exec(`update crm_admin_avisos set criado_em=now()-interval '24 hours',reservado_em=null`);
+    assert.equal((await db.query('select * from crm_admin_reservar_avisos()')).rows.length,0);
+  } finally {await db.close();}
+});
 test('concessão, revogação, agendamento e expiração prevalecem sobre planos e cotas', async () => {
   const { db,actor,control } = await setup();
   try {

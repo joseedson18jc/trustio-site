@@ -51,8 +51,14 @@ function normalizarModelos(lista: unknown): ModeloEscolhivel[] {
 }
 // GET /models do servidor, guardado por 10 minutos (ids anunciados e modos escolhíveis). Se a
 // consulta falhar ou demorar, vale o último catálogo bom: lentidão não pode trocar o modo escolhido.
-let catalogo: { ids: string[]; escolhas: ModeloEscolhivel[]; em: number } | null = null;
-async function catalogoDoServidor(timeoutMs: number): Promise<{ ids: string[]; escolhas: ModeloEscolhivel[] } | null> {
+// contexto: janela por plano que o servidor anuncia ("trustio_contexto": { teste, pago }), se anunciar.
+type Contexto = { teste: number; pago: number };
+let catalogo: { ids: string[]; escolhas: ModeloEscolhivel[]; contexto: Contexto | null; em: number } | null = null;
+function lerContexto(c: unknown): Contexto | null {
+  const t = Number((c as { teste?: unknown })?.teste), p = Number((c as { pago?: unknown })?.pago);
+  return t > 0 && p > 0 ? { teste: Math.floor(t), pago: Math.floor(p) } : null;
+}
+async function catalogoDoServidor(timeoutMs: number): Promise<{ ids: string[]; escolhas: ModeloEscolhivel[]; contexto: Contexto | null } | null> {
   if (catalogo && Date.now() - catalogo.em < 10 * 60_000) return catalogo;
   try {
     const r = await fetch(`${LLM_BASE_URL}/models`, {
@@ -62,7 +68,7 @@ async function catalogoDoServidor(timeoutMs: number): Promise<{ ids: string[]; e
     if (!r.ok) return catalogo;
     const j = await r.json();
     const ids: string[] = (Array.isArray(j?.data) ? j.data : []).map((m: { id?: unknown }) => String(m?.id ?? "")).filter(Boolean);
-    catalogo = { ids, escolhas: normalizarModelos(j?.trustio_modelos), em: Date.now() };
+    catalogo = { ids, escolhas: normalizarModelos(j?.trustio_modelos), contexto: lerContexto(j?.trustio_contexto), em: Date.now() };
     return catalogo;
   } catch (err) {
     console.error("llm_models_indisponivel", String(err).slice(0, 200));
@@ -321,6 +327,12 @@ Deno.serve(async (req) => {
   ];
   let modelo = await modeloDaChamada(modeloConfigurado);
   console.log("llm_modelo", modelo);
+  // Janela do plano: o servidor da Trustio anuncia uma para o teste e outra para assinantes, e
+  // recebe o plano em cada pedido (ele mesmo barra o que passar da janela do teste). Servidor que
+  // não anuncia (outro provedor) não recebe o campo, e vale LLM_CONTEXTO.
+  const plano = reservation.subscriber ? "pago" : "teste";
+  const contextoDoServidor = (await catalogoDoServidor(25_000))?.contexto ?? null;
+  const janela = contextoDoServidor ? contextoDoServidor[plano] : LLM_CONTEXTO;
   const chamarModelo = (ultima: unknown) => fetch(`${LLM_BASE_URL}/chat/completions`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
@@ -329,6 +341,7 @@ Deno.serve(async (req) => {
       stream_options: { include_usage: true },
       ...(LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
       ...(LLAMA_TIMINGS ? { timings_per_token: true } : {}),
+      ...(contextoDoServidor ? { trustio_plano: plano } : {}),
     }),
   });
 
@@ -387,7 +400,7 @@ Deno.serve(async (req) => {
     await release();
     // Conversa maior que o contexto do modelo: não é falha do modelo; o chat pede uma sessão nova.
     if (ehContextoCheio(upstream.status, detail)) {
-      return json(409, { error: "contexto_cheio", janela: LLM_CONTEXTO }, origin);
+      return json(409, { error: "contexto_cheio", janela }, origin);
     }
     return json(502, { error: "modelo_indisponivel", status: upstream.status }, origin);
   }
@@ -526,7 +539,7 @@ Deno.serve(async (req) => {
         // Contexto que a próxima pergunta vai ocupar: prompt + resposta salva. O raciocínio
         // não é salvo nem reenviado, então não conta.
         contexto: tokensPrompt === null ? null : tokensPrompt + Math.max(0, tokens - tokensRaciocinio),
-        janela: LLM_CONTEXTO,
+        janela,
         remaining: reservation.remaining ?? null,
         limit: reservation.subscriber ? null : reservation.limit,
       });

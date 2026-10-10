@@ -112,6 +112,7 @@
       $("[data-eu]").textContent = PAPEL_LABEL[papel];
       gate.hidden = true;
       $("[data-hide-tests]").checked = state.ocultarTestes;
+      iniciarEmails();
       // Configurações e painel mestre são só de admin.
       return Promise.all([loadLeads(), papel === "admin" ? loadLimit() : null]).then(function () { shell.dataset.state = "ready"; });
     });
@@ -504,6 +505,8 @@
     $("[data-detail-copy]").dataset.email = l.email;
     dlg.dataset.id = l.id;
     preencherAcesso(l);
+    carregarConvite(l);
+    carregarEmailsDetalhe(l.id);
     $("[data-detail-segment]").value = l.segmento || "";
     $("[data-detail-audit]").hidden = !(eu.papel === "admin" && l.user_id);
     $("[data-d-retorno]").value = l.proximo_contato || "";
@@ -517,6 +520,138 @@
     var v = e.currentTarget.dataset.email;
     (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(function () { toast("E-mail copiado."); }, function () { toast("Não foi possível copiar.", "erro"); });
   });
+
+  // Status do provedor: enviado não é entregue, e ausência de abertura não prova desinteresse.
+  var emailLeadId = null;
+  var emailPedido = 0, emailDetalhePedido = 0, emailLimite = 50, emailTimer = 0;
+  var EMAIL_ESTADO = { enviado: "Enviado · aguardando entrega", entregue: "Entregue", aberto: "Abertura registrada", clicado: "Clique registrado", sem_interacao: "Sem interação registrada há 48h", atrasado: "Entrega atrasada", rejeitado: "Rejeitado pelo destinatário", falhou: "Falha no envio", spam: "Marcado como spam" };
+  function emailHtml(e) {
+    var etapas = [["Enviado", e.enviado_em], ["Entregue", e.entregue_em], ["Abertura", e.aberto_em], ["Clique", e.clicado_em]].map(function (x) { return x[0] + ": " + fmt(x[1]); }).join(" · ");
+    return "<li><b>" + esc(e.assunto || "Sem assunto") + "</b><span>" + esc(EMAIL_ESTADO[e.estado] || "Aguardando atualização") + "</span><small>" + esc(e.remetente) + " → " + esc(e.destinatario) + "</small><small>" + esc(etapas) + "</small>" +
+      (e.multidestinatario ? "<small>Mensagem com vários destinatários: a interação não identifica quem abriu ou clicou.</small>" : "") +
+      (e.ultimo_link ? "<small>Último link: " + esc(e.ultimo_link) + " · " + Number(e.cliques || 0) + " clique(s)</small>" : "") + "</li>";
+  }
+  function carregarEmails() {
+    if (eu.papel !== "admin") return Promise.resolve();
+    var pedido = ++emailPedido, q = $("[data-email-search]").value.trim(), filtro = $("[data-email-filter]").value;
+    var limite = emailLimite, leadId = emailLeadId;
+    function pagina(offset, linhas) {
+      var take = Math.min(1000, limite - offset);
+      var query = sb.from("crm_emails_overview").select("*").order("atualizado_em", { ascending: false }).order("email_id").order("destinatario");
+      if (leadId) query = query.eq("lead_id", leadId);
+      else if (q) query = query.ilike("destinatario", "%" + q.replace(/[\\%_]/g, "\\$&") + "%");
+      if (filtro) query = query.eq("estado", filtro);
+      return query.range(offset, offset + take - 1).then(function (r) {
+        if (r.error) throw r.error;
+        linhas = linhas.concat(r.data || []);
+        if (pedido === emailPedido && r.data.length === take && linhas.length < limite) return pagina(offset + take, linhas);
+        return { data: linhas };
+      });
+    }
+    return pagina(0, []).then(function (r) {
+      if (pedido !== emailPedido) return;
+      if (r.error) { $("[data-email-list]").textContent = "Não foi possível carregar os e-mails."; return; }
+      $("[data-email-list]").innerHTML = r.data.length ? r.data.map(emailHtml).join("") : "<li>Nenhum e-mail acompanhado com este filtro.</li>";
+      $("[data-email-more]").hidden = r.data.length < emailLimite;
+    }).catch(function () { if (pedido === emailPedido) $("[data-email-list]").textContent = "Não foi possível carregar os e-mails."; });
+  }
+  function carregarEmailsDetalhe(id) {
+    var pedido = ++emailDetalhePedido;
+    $("[data-detail-email-panel]").hidden = eu.papel !== "admin";
+    if (eu.papel !== "admin") return;
+    $("[data-detail-email-list]").textContent = "Carregando…";
+    sb.from("crm_emails_overview").select("*").eq("lead_id", id).order("atualizado_em", { ascending: false }).order("email_id").order("destinatario").limit(50).then(function (r) {
+      if (pedido !== emailDetalhePedido || !dlg.open || dlg.dataset.id !== id) return;
+      $("[data-detail-email-list]").innerHTML = r.error ? "<li>Não foi possível carregar os e-mails.</li>" : r.data.length ? r.data.map(emailHtml).join("") : "<li>Nenhum evento de e-mail registrado ainda.</li>";
+    }).catch(function () { if (pedido === emailDetalhePedido && dlg.dataset.id === id) $("[data-detail-email-list]").textContent = "Não foi possível carregar os e-mails."; });
+  }
+  function atualizarEmails() {
+    carregarEmails();
+    if (dlg.open) carregarEmailsDetalhe(dlg.dataset.id);
+  }
+  function iniciarEmails() {
+    $("[data-email-panel]").hidden = eu.papel !== "admin";
+    if (eu.papel !== "admin") return;
+    carregarEmails();
+    $("[data-email-connection]").textContent = "Conectando atualizações automáticas…";
+    sb.channel("crm-emails").on("postgres_changes", { event: "*", schema: "public", table: "crm_emails" }, function () {
+      clearTimeout(emailTimer); emailTimer = setTimeout(atualizarEmails, 250);
+    }).subscribe(function (status) {
+      $("[data-email-connection]").textContent = status === "SUBSCRIBED" ? "Atualizações em tempo real conectadas." : "Reconectando; atualização automática a cada minuto.";
+      if (status === "SUBSCRIBED") atualizarEmails();
+    });
+    // Também renova a janela de 48 h, mesmo quando não chega um evento novo.
+    setInterval(function () { if (!document.hidden) atualizarEmails(); }, 60000);
+  }
+  $("[data-email-refresh]").addEventListener("click", atualizarEmails);
+  $("[data-goto-emails]").addEventListener("click", function () { $("[data-email-panel]").scrollIntoView({ behavior: "smooth" }); });
+  $("[data-email-more]").addEventListener("click", function () { emailLimite += 50; carregarEmails(); });
+  ["[data-email-search]", "[data-email-filter]"].forEach(function (selector) { $(selector).addEventListener("input", function () {
+    emailLeadId = null; ++emailPedido; clearTimeout(emailTimer); emailLimite = 50; emailTimer = setTimeout(carregarEmails, 250);
+  }); });
+  $("[data-detail-email-all]").addEventListener("click", function () {
+    var l = lead(dlg.dataset.id); if (!l) return;
+    $("[data-email-search]").value = l.email; $("[data-email-filter]").value = ""; emailLimite = 50;
+    emailLeadId = l.id; dlg.close(); carregarEmails(); $("[data-email-panel]").scrollIntoView({ behavior: "smooth" });
+  });
+
+  var convitePedido = 0, conviteOcupado = {};
+  function podeConvidar(l) {
+    return eu.papel === "admin" && l.user_id && l.papel === "teste" && l.status !== "assinante" &&
+      ["revogado", "bloqueado", "bloqueado_login"].indexOf(l.acesso_modo) < 0 &&
+      !(l.acesso_inicio && Date.parse(l.acesso_inicio) > Date.now()) &&
+      !(l.acesso_modo === "liberado" && !l.acesso_fim);
+  }
+  function carregarConvite(l) {
+    var pedido = ++convitePedido, id = l.id;
+    $("[data-invite-panel]").hidden = eu.papel !== "admin" || !l.user_id;
+    $("[data-invite-grant]").disabled = !podeConvidar(l) || !!conviteOcupado[id];
+    $("[data-invite-resend]").disabled = true;
+    $("[data-invite-status]").textContent = "";
+    if (eu.papel !== "admin" || !l.user_id) return;
+    $("[data-invite-status]").textContent = "Consultando último convite…";
+    sb.from("crm_convites").select("fim,enviado_em,erro,criado_em").eq("lead_id", id).order("criado_em", { ascending: false }).limit(1).maybeSingle().then(function (r) {
+      if (pedido !== convitePedido || !dlg.open || dlg.dataset.id !== id) return;
+      var c = r.data;
+      $("[data-invite-status]").textContent = r.error ? "Não foi possível consultar o último convite." : !c ? "Nenhum convite enviado ainda." :
+        "Prazo da cortesia: " + fmt(c.fim) + ". " + (c.enviado_em ? "E-mail enviado em " + fmt(c.enviado_em) + "." : c.erro ? "Envio não confirmado. Tente novamente." : "Envio ainda não confirmado.");
+      $("[data-invite-resend]").disabled = !podeConvidar(l) || !!conviteOcupado[id] || !c || Date.parse(c.fim) <= Date.now() || l.acesso_modo !== "liberado" || Date.parse(l.acesso_fim) !== Date.parse(c.fim);
+    }).catch(function () {
+      if (pedido === convitePedido && dlg.open && dlg.dataset.id === id) $("[data-invite-status]").textContent = "Não foi possível consultar o último convite.";
+    });
+  }
+  async function enviarConvite(conceder) {
+    var l = lead(dlg.dataset.id); if (!l || !podeConvidar(l) || conviteOcupado[l.id]) return;
+    var id = l.id, chave = "crm-convite/" + eu.id + "/" + id + "/" + conceder;
+    var pedido = sessionStorage.getItem(chave);
+    if (!pedido) { pedido = crypto.randomUUID(); sessionStorage.setItem(chave, pedido); }
+    conviteOcupado[id] = true; ++convitePedido;
+    $("[data-invite-grant]").disabled = true; $("[data-invite-resend]").disabled = true;
+    $("[data-invite-status]").textContent = "Enviando convite…";
+    try {
+      var r = await sb.functions.invoke("crm-convite", { body: { lead_id: id, pedido: pedido, conceder: conceder } });
+      if (r.error) {
+        var mensagem = r.error.message;
+        if (r.error.context && [400, 401, 403, 503].indexOf(r.error.context.status) >= 0) sessionStorage.removeItem(chave);
+        if (r.error.context && r.error.context.json) { try { mensagem = (await r.error.context.json()).error || mensagem; } catch (_) {} }
+        throw new Error(mensagem);
+      }
+      if (r.data.error) throw new Error((r.data.fim ? "Cortesia até " + fmt(r.data.fim) + ". " : "") + r.data.error);
+      if (!r.data.enviado) throw new Error("Envio ainda não confirmado. Tente novamente.");
+      sessionStorage.removeItem(chave);
+      toast("Convite enviado. Chat grátis até " + fmt(r.data.fim) + ".");
+    } catch (err) {
+      // Conserva o mesmo pedido em caso de timeout: repetir não concede mais dias nem duplica o e-mail.
+      toast(err.message || "Não foi possível enviar o convite.", "erro");
+      if (dlg.open && dlg.dataset.id === id) $("[data-invite-status]").textContent = err.message || "Envio não confirmado.";
+    } finally {
+      conviteOcupado[id] = false;
+      await loadLeads();
+      if (dlg.open && dlg.dataset.id === id) { preencherAcesso(lead(id)); carregarConvite(lead(id)); carregarHistorico(id); }
+    }
+  }
+  $("[data-invite-grant]").addEventListener("click", function () { enviarConvite(true); });
+  $("[data-invite-resend]").addEventListener("click", function () { enviarConvite(false); });
 
   function estadoAcesso(l) {
     if (l.acesso_modo === "bloqueado" || l.acesso_modo === "bloqueado_login") return "bloqueado";
@@ -762,7 +897,7 @@
   $("[data-d-etiquetas]").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); salvarEtiquetas(); } });
 
   // Histórico do lead: quem mudou o quê e quando (gravado pelo banco, só a equipe lê).
-  var CAMPO_LABEL = { segmento: "Segmento", acesso_modo: "Controle de acesso", acesso_inicio: "Início do acesso", acesso_fim: "Fim do acesso", acesso_motivo: "Motivo", whatsapp_trial_ends_at: "Fim do teste WhatsApp", criado: "Cadastro", status: "Status", plano: "Plano", papel: "Tipo de usuário", whatsapp_trial_status: "WhatsApp", notas: "Notas", proximo_contato: "Próximo contato", etiquetas: "Etiquetas", telefone: "Telefone", confirmed_at: "E-mail confirmado" };
+  var CAMPO_LABEL = { convite_retorno: "Convite de retorno", segmento: "Segmento", acesso_modo: "Controle de acesso", acesso_inicio: "Início do acesso", acesso_fim: "Fim do acesso", acesso_motivo: "Motivo", whatsapp_trial_ends_at: "Fim do teste WhatsApp", criado: "Cadastro", status: "Status", plano: "Plano", papel: "Tipo de usuário", whatsapp_trial_status: "WhatsApp", notas: "Notas", proximo_contato: "Próximo contato", etiquetas: "Etiquetas", telefone: "Telefone", confirmed_at: "E-mail confirmado" };
   function valorEvento(campo, v) {
     if (v == null || v === "") return "—";
     if (campo === "status") return LABEL[v] || v;

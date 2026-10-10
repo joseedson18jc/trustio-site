@@ -18,7 +18,7 @@
     "test:worker": "node worker/test/worker.test.mjs",
     "test:mac": "node mac/test/hermes-autorizados.test.mjs && node mac/test/whatsapp.test.mjs",
     "test:gate": "node gate/test/gate.test.mjs",
-    "test:crm-admin": "node --test tests/crm-admin-db.test.mjs tests/crm-admin-ui.test.mjs tests/hermes-access.test.mjs",
+    "test:crm-admin": "node --test tests/crm-admin-db.test.mjs tests/crm-admin-ui.test.mjs tests/hermes-access.test.mjs tests/crm-invite.test.mjs tests/crm-email-tracking.test.mjs tests/crm-admin-notifications.test.mjs",
     "test:crm-audit": "node --test tests/crm-audit.test.mjs",
     "test:auth": "node tests/auth-config.test.mjs",
     "test:chat-render": "node tests/chat-render.test.mjs"
@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.14",
+    "svix": "2.8.0",
     "vite": "7.0.6"
   }
 }

@@ -534,11 +534,21 @@
   function carregarEmails() {
     if (eu.papel !== "admin") return Promise.resolve();
     var pedido = ++emailPedido, q = $("[data-email-search]").value.trim(), filtro = $("[data-email-filter]").value;
-    var query = sb.from("crm_emails_overview").select("*").order("atualizado_em", { ascending: false }).order("email_id").order("destinatario").limit(emailLimite);
-    if (emailLeadId) query = query.eq("lead_id", emailLeadId);
-    else if (q) query = query.ilike("destinatario", "%" + q.replace(/[\\%_]/g, "\\$&") + "%");
-    if (filtro) query = query.eq("estado", filtro);
-    return query.then(function (r) {
+    var limite = emailLimite, leadId = emailLeadId;
+    function pagina(offset, linhas) {
+      var take = Math.min(1000, limite - offset);
+      var query = sb.from("crm_emails_overview").select("*").order("atualizado_em", { ascending: false }).order("email_id").order("destinatario");
+      if (leadId) query = query.eq("lead_id", leadId);
+      else if (q) query = query.ilike("destinatario", "%" + q.replace(/[\\%_]/g, "\\$&") + "%");
+      if (filtro) query = query.eq("estado", filtro);
+      return query.range(offset, offset + take - 1).then(function (r) {
+        if (r.error) throw r.error;
+        linhas = linhas.concat(r.data || []);
+        if (pedido === emailPedido && r.data.length === take && linhas.length < limite) return pagina(offset + take, linhas);
+        return { data: linhas };
+      });
+    }
+    return pagina(0, []).then(function (r) {
       if (pedido !== emailPedido) return;
       if (r.error) { $("[data-email-list]").textContent = "Não foi possível carregar os e-mails."; return; }
       $("[data-email-list]").innerHTML = r.data.length ? r.data.map(emailHtml).join("") : "<li>Nenhum e-mail acompanhado com este filtro.</li>";

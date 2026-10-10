@@ -36,3 +36,13 @@ test('painel representa eventos sem chamar ausência de abertura de ignorado',()
   const html=ctx.emailHtml({assunto:'<script>',estado:'sem_interacao',remetente:'contato@trustio.com.br',destinatario:'user@test'});
   assert.ok(html.includes('Sem interação registrada há 48h'));assert.ok(!html.includes('Ignorado'));assert.ok(!html.includes('<script>'));
 });
+
+test('mostrar mais pagina além do limite de mil linhas do servidor',async()=>{
+  const source=readFileSync(new URL('../assets/crm.js',import.meta.url),'utf8');
+  const start=source.indexOf('  var emailLeadId'),end=source.indexOf('  function carregarEmailsDetalhe',start);
+  const nodes=new Map();const $=key=>{if(!nodes.has(key))nodes.set(key,{value:''});return nodes.get(key);};
+  const rows=Array.from({length:1050},(_,i)=>({email_id:String(i),assunto:String(i),estado:'enviado'}));const ranges=[];
+  const ctx={$,eu:{papel:'admin'},esc:String,fmt:()=>'',sb:{from:()=>({select(){return this;},order(){return this;},range(a,b){ranges.push([a,b]);return Promise.resolve({data:rows.slice(a,b+1)});}})}};
+  vm.runInNewContext(source.slice(start,end),ctx);ctx.emailLimite=1050;await ctx.carregarEmails();
+  assert.deepEqual(ranges,[[0,999],[1000,1049]]);assert.ok($('[data-email-list]').innerHTML.includes('<b>1049</b>'));
+});

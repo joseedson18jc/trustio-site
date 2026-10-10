@@ -37,6 +37,12 @@ function fromHash() {
   const h = location.hash.replace("#", "");
   if (h === "agentio" || h === "combo") { show("pessoal"); showSub(h); }
   else if (h === "pessoal" || h === "lista") { show("pessoal"); if (h === "pessoal") showSub("chat"); if (h === "lista") document.getElementById("lista")?.scrollIntoView({ behavior: rm.matches ? "auto" : "smooth", block: "start" }); }
+  // #passe aponta para um card dentro do painel "chat": sem abrir o painel, o link não
+  // revela nada (e uma visita direta a planos.html#passe cairia em Empresas).
+  else if (h === "passe") {
+    show("pessoal"); showSub("chat");
+    document.getElementById("passe")?.scrollIntoView({ behavior: rm.matches ? "auto" : "smooth", block: "center" });
+  }
   else if (h === "empresas" || h === "diagnostico") show("empresas");
 }
 fromHash();

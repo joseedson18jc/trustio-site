@@ -494,19 +494,20 @@
 
   // ------------------------------------------------------------- investigação de atividade (só admin)
   // Conversas e mensagens de uma conta, para investigar suspeita de violação dos Termos. O banco só
-  // entrega esses dados a admins (políticas "admins read conversations/messages"); colaborador recebe
-  // lista vazia mesmo que chame a tela. Fotos não ficam guardadas: aparece só o texto que a pessoa enviou.
+  // entrega esses dados pela RPC de investigação, que verifica is_admin() no servidor.
+  // Fotos não ficam guardadas: aparece só o texto que a pessoa enviou.
   var auditDlg = $("[data-audit]"), audit = { lead: null, conversas: [], msgs: [], porConversa: {} };
   var RE_ANEXO_A = /\n*\[\[anexo: ([^\]\n]*)\]\]\n([\s\S]*?)\n\[\[\/anexo\]\]/g;
-  var MAX_LISTA = 400;
+  var MAX_LISTA = 400, auditPedido = 0;
 
-  function todasAsLinhas(tabela, colunas, uid) {
+  function todasAsLinhas(tabela, colunas, uid, pedido) {
     var linhas = [], pagina = 1000;
     function proxima(de) {
-      return sb.from(tabela).select(colunas).eq("user_id", uid).order("created_at", { ascending: true }).range(de, de + pagina - 1).then(function (r) {
+      if (pedido !== auditPedido) return Promise.reject(new Error("Investigação encerrada"));
+      return sb.rpc("crm_investigar_" + tabela, { p_user_id: uid }).select(colunas).order("created_at", { ascending: true }).order("id", { ascending: true }).range(de, de + pagina - 1).then(function (r) {
         if (r.error) throw r.error;
         linhas = linhas.concat(r.data || []);
-        return (r.data || []).length === pagina && linhas.length < 20000 ? proxima(de + pagina) : linhas;
+        return (r.data || []).length === pagina ? proxima(de + pagina) : linhas;
       });
     }
     return proxima(0);
@@ -515,6 +516,8 @@
   function abrirAuditoria() {
     var l = lead(dlg.dataset.id);
     if (!l || !l.user_id || eu.papel !== "admin") return;
+    clearTimeout(buscaTimer);
+    var pedido = ++auditPedido;
     audit = { lead: l, conversas: [], msgs: [], porConversa: {} };
     $("[data-audit-title]").textContent = "Atividade de " + (l.nome || l.email);
     $("[data-audit-resumo]").innerHTML = "";
@@ -524,10 +527,10 @@
     $("[data-audit-status]").textContent = "Carregando conversas e mensagens…";
     if (auditDlg.showModal) auditDlg.showModal(); else auditDlg.setAttribute("open", "");
     Promise.all([
-      todasAsLinhas("conversations", "id,title,created_at,updated_at", l.user_id),
-      todasAsLinhas("messages", "id,conversation_id,role,content,model,created_at", l.user_id),
+      todasAsLinhas("conversations", "id,title,created_at,updated_at", l.user_id, pedido),
+      todasAsLinhas("messages", "id,conversation_id,role,content,model,created_at", l.user_id, pedido),
     ]).then(function (res) {
-      if (audit.lead !== l) return;
+      if (pedido !== auditPedido) return;
       audit.conversas = res[0]; audit.msgs = res[1];
       audit.conversas.forEach(function (c) { audit.porConversa[c.id] = c; });
       $("[data-audit-conversa]").innerHTML = '<option value="">Todas as conversas</option>' + audit.conversas.slice().reverse().map(function (c) {
@@ -536,6 +539,7 @@
       $("[data-audit-baixar]").disabled = false;
       resumoAuditoria(); renderAuditoria();
     }).catch(function (e) {
+      if (pedido !== auditPedido) return;
       $("[data-audit-status]").textContent = "Não foi possível carregar: " + ((e && e.message) || "erro desconhecido");
     });
   }
@@ -560,18 +564,23 @@
   }
 
   // Texto da mensagem: escapado, anexos recolhidos e o termo buscado destacado.
-  function marcar(htmlEscapado, termo) {
-    if (!termo) return htmlEscapado;
-    var t = esc(termo).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return htmlEscapado.replace(new RegExp(t, "gi"), function (x) { return "<mark>" + x + "</mark>"; });
+  function marcar(texto, termo) {
+    if (!termo) return esc(texto);
+    var t = termo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    var re = new RegExp(t, "gi"), html = "", ultimo = 0, m;
+    while ((m = re.exec(texto))) {
+      html += esc(texto.slice(ultimo, m.index)) + "<mark>" + esc(m[0]) + "</mark>";
+      ultimo = re.lastIndex;
+    }
+    return html + esc(texto.slice(ultimo));
   }
   function corpoMensagem(texto, termo) {
     var html = "", ultimo = 0, m;
     RE_ANEXO_A.lastIndex = 0;
-    function trecho(t) { t = t.trim(); return t ? "<p>" + marcar(esc(t), termo).replace(/\n/g, "<br>") + "</p>" : ""; }
+    function trecho(t) { t = t.trim(); return t ? "<p>" + marcar(t, termo).replace(/\n/g, "<br>") + "</p>" : ""; }
     while ((m = RE_ANEXO_A.exec(texto))) {
       html += trecho(texto.slice(ultimo, m.index));
-      html += '<details class="audit-anexo"><summary>Anexo: ' + esc(m[1]) + "</summary><pre>" + marcar(esc(m[2]), termo) + "</pre></details>";
+      html += '<details class="audit-anexo"><summary>Anexo: ' + esc(m[1]) + "</summary><pre>" + marcar(m[2], termo) + "</pre></details>";
       ultimo = RE_ANEXO_A.lastIndex;
     }
     return html + trecho(texto.slice(ultimo));
@@ -620,7 +629,7 @@
   $("[data-detail-audit]").addEventListener("click", abrirAuditoria);
   $("[data-audit-close]").addEventListener("click", function () { auditDlg.close(); });
   auditDlg.addEventListener("click", function (e) { if (e.target === auditDlg) auditDlg.close(); });
-  auditDlg.addEventListener("close", function () { audit = { lead: null, conversas: [], msgs: [], porConversa: {} }; $("[data-audit-lista]").innerHTML = ""; });
+  auditDlg.addEventListener("close", function () { ++auditPedido; clearTimeout(buscaTimer); audit = { lead: null, conversas: [], msgs: [], porConversa: {} }; $("[data-audit-lista]").innerHTML = ""; });
   $("[data-audit-busca]").addEventListener("input", function () { clearTimeout(buscaTimer); buscaTimer = setTimeout(renderAuditoria, 200); });
   $("[data-audit-papel]").addEventListener("change", renderAuditoria);
   $("[data-audit-conversa]").addEventListener("change", renderAuditoria);

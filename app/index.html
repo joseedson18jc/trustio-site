@@ -19,7 +19,7 @@
   <script src="../assets/theme.js?v=62b52a16"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=228a9ffa">
   <link rel="stylesheet" href="../assets/chat-templates.css?v=e18f2981">
-  <link rel="stylesheet" href="../assets/chat.css?v=52562edc">
+  <link rel="stylesheet" href="../assets/chat.css?v=3f4824fb">
   <link rel="stylesheet" href="../assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="../assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,7 +33,7 @@
   <script defer src="../assets/chat-templates.js?v=09aa860d"></script>
   <script defer src="../assets/vendor/katex/katex.min.js?v=e8d88550"></script>
   <script defer src="../assets/chat-render.js?v=d592348b"></script>
-  <script defer src="../assets/chat.js?v=a58cc591"></script>
+  <script defer src="../assets/chat.js?v=e67e5416"></script>
   <script defer src="../assets/welcome-hero.js?v=dad4d932"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
@@ -217,6 +217,11 @@
       <button class="send" type="submit" aria-label="Enviar" data-send>
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h13M11 5l5 5-5 5"/></svg>
       </button>
+      <div class="modelo-bar" data-modelo-bar hidden>
+        <span class="modelo-rotulo" id="modelo-rotulo">Modelo</span>
+        <div class="modelo-opcoes" role="radiogroup" aria-labelledby="modelo-rotulo" aria-describedby="modelo-desc" data-modelo-opcoes></div>
+        <span id="modelo-desc" class="modelo-desc" data-modelo-desc></span>
+      </div>
       <p class="composer-hint">Enter envia · Shift+Enter quebra linha · até 3 fotos ou PDFs por envio · A IA pode errar — confira informações importantes. <span data-model-hint></span></p>
       <details class="composer-legal">
         <summary>Privacidade e termos</summary>

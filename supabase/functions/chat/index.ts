@@ -30,22 +30,51 @@ async function modeloDoBanco(admin: any): Promise<string | null> {
   const { data } = await admin.from("app_settings").select("value").eq("key", "llm_model").maybeSingle();
   return typeof data?.value === "string" && data.value.trim() ? data.value.trim() : null;
 }
-// Modelos que a pessoa pode escolher no chat: app_settings.modelos_chat, lista definida pelo
-// admin ([{ id, rotulo, descricao }]), todos atendidos pelo mesmo LLM_BASE_URL (um llama-server
-// com vários modelos, llama-swap etc.). Sem a lista, só o modelo padrão.
-type ModeloEscolhivel = { id: string; rotulo: string; descricao?: string };
-// deno-lint-ignore no-explicit-any
-async function modelosEscolhiveis(admin: any): Promise<ModeloEscolhivel[]> {
-  const { data } = await admin.from("app_settings").select("value").eq("key", "modelos_chat").maybeSingle();
-  const lista = Array.isArray(data?.value) ? data.value : [];
-  return lista
-    .map((m: { id?: unknown; rotulo?: unknown; descricao?: unknown }) => ({
+// Modelos que a pessoa pode escolher no chat, todos atendidos pelo mesmo LLM_BASE_URL. Vêm,
+// nesta ordem: do próprio servidor do modelo (GET /models com "trustio_modelos": o gateway da
+// Trustio anuncia os modos dele, ex.: Flash e Heavy Thinking); de app_settings.modelos_chat,
+// lista definida pelo admin ([{ id, rotulo, descricao }]). Sem nenhuma, só o modelo padrão.
+// icone: nome curto da marca do modelo (o site mostra assets/modelos/<icone>.svg, se conhecer).
+type ModeloEscolhivel = { id: string; rotulo: string; descricao?: string; descricao_en?: string; icone?: string; padrao?: boolean };
+function normalizarModelos(lista: unknown): ModeloEscolhivel[] {
+  return (Array.isArray(lista) ? lista : [])
+    .map((m: { id?: unknown; rotulo?: unknown; descricao?: unknown; descricao_en?: unknown; icone?: unknown; padrao?: unknown }) => ({
       id: String(m?.id ?? "").trim().slice(0, 200),
       rotulo: String(m?.rotulo ?? m?.id ?? "").trim().slice(0, 60),
       descricao: m?.descricao ? String(m.descricao).trim().slice(0, 160) : undefined,
+      descricao_en: m?.descricao_en ? String(m.descricao_en).trim().slice(0, 160) : undefined,
+      icone: typeof m?.icone === "string" && /^[a-z0-9-]{1,24}$/.test(m.icone) ? m.icone : undefined,
+      padrao: m?.padrao === true ? true : undefined,
     }))
     .filter((m: ModeloEscolhivel) => m.id && m.rotulo)
     .slice(0, 12);
+}
+// GET /models do servidor, guardado por 10 minutos (ids anunciados e modos escolhíveis). Se a
+// consulta falhar ou demorar, vale o último catálogo bom: lentidão não pode trocar o modo escolhido.
+let catalogo: { ids: string[]; escolhas: ModeloEscolhivel[]; em: number } | null = null;
+async function catalogoDoServidor(timeoutMs: number): Promise<{ ids: string[]; escolhas: ModeloEscolhivel[] } | null> {
+  if (catalogo && Date.now() - catalogo.em < 10 * 60_000) return catalogo;
+  try {
+    const r = await fetch(`${LLM_BASE_URL}/models`, {
+      headers: { "Authorization": `Bearer ${LLM_API_KEY}` },
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (!r.ok) return catalogo;
+    const j = await r.json();
+    const ids: string[] = (Array.isArray(j?.data) ? j.data : []).map((m: { id?: unknown }) => String(m?.id ?? "")).filter(Boolean);
+    catalogo = { ids, escolhas: normalizarModelos(j?.trustio_modelos), em: Date.now() };
+    return catalogo;
+  } catch (err) {
+    console.error("llm_models_indisponivel", String(err).slice(0, 200));
+    return catalogo;
+  }
+}
+// deno-lint-ignore no-explicit-any
+async function modelosEscolhiveis(admin: any, timeoutMs = 4_000): Promise<ModeloEscolhivel[]> {
+  const doServidor = (await catalogoDoServidor(timeoutMs))?.escolhas ?? [];
+  if (doServidor.length >= 2) return doServidor;
+  const { data } = await admin.from("app_settings").select("value").eq("key", "modelos_chat").maybeSingle();
+  return normalizarModelos(data?.value);
 }
 
 // Preferências da pessoa (tabela preferencias_usuario, só ela e esta função leem).
@@ -72,21 +101,13 @@ async function modeloDaChamada(configurado: string | null): Promise<string> {
   // propagação dos segredos da função nem do workflow que os regrava a cada deploy.
   if (configurado) return configurado;
   if (modeloDescoberto && Date.now() - modeloDescoberto.em < 10 * 60_000) return modeloDescoberto.id;
-  try {
-    // 25 s: a primeira chamada depois de ociosidade longa acorda o modelo (~15 s).
-    const r = await fetch(`${LLM_BASE_URL}/models`, {
-      headers: { "Authorization": `Bearer ${LLM_API_KEY}` },
-      signal: AbortSignal.timeout(25_000),
-    });
-    if (r.ok) {
-      const j = await r.json();
-      const ids: string[] = (Array.isArray(j?.data) ? j.data : []).map((m: { id?: unknown }) => String(m?.id ?? "")).filter(Boolean);
-      const id = ids.includes(LLM_MODEL) ? LLM_MODEL : ids.length === 1 ? ids[0] : null;
-      if (!id) console.log("llm_models_lista", ids.length);
-      if (id) { modeloDescoberto = { id, em: Date.now() }; return id; }
-    }
-  } catch (err) {
-    console.error("llm_models_indisponivel", String(err).slice(0, 200));
+  // 25 s: a primeira chamada depois de ociosidade longa acorda o modelo (~15 s).
+  const cat = await catalogoDoServidor(25_000);
+  if (cat) {
+    const ids = cat.ids;
+    const id = ids.includes(LLM_MODEL) ? LLM_MODEL : ids.length === 1 ? ids[0] : null;
+    if (!id) console.log("llm_models_lista", ids.length);
+    if (id) { modeloDescoberto = { id, em: Date.now() }; return id; }
   }
   return LLM_MODEL;
 }
@@ -213,7 +234,7 @@ Deno.serve(async (req) => {
 
   if (!user.email_confirmed_at) return json(403, { error: "email_nao_confirmado" }, origin);
 
-  let body: { conversation_id?: string; message?: string; imagens?: unknown };
+  let body: { conversation_id?: string; message?: string; imagens?: unknown; modelo?: unknown };
   try { body = await req.json(); } catch { return json(400, { error: "bad_json" }, origin); }
   const message = String(body.message ?? "").trim();
   if (!message) return json(400, { error: "mensagem_vazia" }, origin);
@@ -281,8 +302,13 @@ Deno.serve(async (req) => {
   const { data: prefRow } = await admin.from("preferencias_usuario").select("estilo,instrucoes,modelo")
     .eq("user_id", user.id).maybeSingle();
   const pref = (prefRow ?? null) as Preferencias | null;
-  // Modelo escolhido pela pessoa vale só se ainda estiver na lista do admin; senão, o padrão.
-  const escolhido = pref?.modelo ? (await modelosEscolhiveis(admin)).find((m) => m.id === pref.modelo)?.id ?? null : null;
+  // Modelo escolhido pela pessoa: o do seletor do chat (nesta mensagem) ou o salvo nas preferências.
+  // Vale só se ainda estiver na lista; senão, o padrão.
+  // "" no envio = a pessoa escolheu o padrão no seletor (vale mesmo antes de a preferência ser gravada).
+  const pedido = typeof body.modelo === "string" ? body.modelo.slice(0, 200) || null : pref?.modelo ?? null;
+  // 25 s, como a descoberta do modelo logo abaixo: a primeira consulta depois de muito tempo pode
+  // acordar o servidor, e um tempo curto aqui faria a escolha cair para o padrão sem motivo.
+  const escolhido = pedido ? (await modelosEscolhiveis(admin, 25_000)).find((m) => m.id === pedido)?.id ?? null : null;
   const modeloConfigurado = escolhido ?? await modeloDoBanco(admin);
   const systemPrompt = promptComPreferencias(
     typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.",
@@ -341,6 +367,7 @@ Deno.serve(async (req) => {
       if (!detail) detail = await upstream.text().catch(() => "");
       if (ehErroDeNomeDoModelo(upstream.status, detail)) {
         modeloDescoberto = null;
+        catalogo = null;
         const novo = await modeloDaChamada(null);
         if (novo !== modelo) {
           console.log("llm_modelo_trocado", modelo, "→", novo);
@@ -391,7 +418,7 @@ Deno.serve(async (req) => {
   };
 
   const stream = new ReadableStream<Uint8Array>({
-    start(controller) { saida = controller; send({ conversation_id: convId, limite: LLM_MAX_TOKENS }); },
+    start(controller) { saida = controller; send({ conversation_id: convId, limite: LLM_MAX_TOKENS, modelo }); },
     // Navegador foi embora: só para de enviar; a leitura do modelo segue.
     cancel() { aberto = false; },
   });

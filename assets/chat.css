@@ -132,6 +132,26 @@
 .send svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .send:hover { filter: brightness(1.08); }
 .send:disabled { opacity: 0.4; cursor: default; }
+/* Seletor de modelo (Trustio Flash / Heavy Thinking): botões com a marca, logo abaixo da caixa de mensagem. */
+.modelo-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: 8px 4px 0; }
+.modelo-bar[hidden] { display: none; }
+.modelo-rotulo { font-family: var(--mono); font-size: var(--label); letter-spacing: 0.06em; text-transform: uppercase; color: var(--label-color); }
+.modelo-opcoes { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-raised); }
+.modelo-chip { position: relative; display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 0 12px 0 8px; border-radius: 999px; color: var(--muted-strong); font-size: 13px; font-weight: 600; cursor: pointer; user-select: none; transition: background 0.15s, color 0.15s; }
+.modelo-chip input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.modelo-chip img { width: 18px; height: 18px; flex: 0 0 auto; display: block; opacity: 0.7; transition: opacity 0.15s; }
+.modelo-chip:hover { color: var(--ice); }
+.modelo-chip:hover img, .modelo-chip.is-on img { opacity: 1; }
+.modelo-chip.is-on { background: rgba(94, 167, 255, 0.14); color: var(--ice); box-shadow: inset 0 0 0 1px rgba(94, 167, 255, 0.35); }
+.modelo-chip:has(input:focus-visible) { outline: 2px solid var(--blue-signal); outline-offset: 1px; }
+.modelo-desc { font-size: 12.5px; color: var(--muted); }
+@media (max-width: 520px) {
+  .modelo-nome[data-curto] { font-size: 0; }
+  .modelo-nome[data-curto]::after { content: attr(data-curto); font-size: 13px; }
+}
+/* Resposta com a marca do modelo que respondeu. */
+.msg-assistant .msg-av.tem-modelo { background: transparent; border-radius: 0; }
+.msg-assistant .msg-av.tem-modelo img { object-fit: contain; }
 .composer-hint { margin: 8px 4px 0; font-family: var(--mono); font-size: var(--label); color: var(--label-color); letter-spacing: 0.03em; }
 
 /* ── gate (sem sessão / recuperação de senha) ── */

@@ -27,8 +27,31 @@ def verify():
         result = subprocess.run(['psql', conn, '-v', 'ON_ERROR_STOP=1', '-At', '-c', sql], capture_output=True, text=True, timeout=15)
         if result.returncode == 0 and result.stdout.strip() == '1':
             print('Envio aceito e evento real de entrega registrado no CRM (caixa simulada Resend).')
+            verify_admin_notifications(conn, ref)
             return
     raise RuntimeError('Entrega não apareceu no CRM dentro da janela de validação; confira o webhook Resend.')
+
+
+def verify_admin_notifications(conn, ref):
+    # Trigger only legitimate pending notifications; do not manufacture customer accounts.
+    query = "select decrypted_secret from vault.decrypted_secrets where name='crm_admin_avisos_segredo';"
+    result = subprocess.run(['psql', conn, '-XAt', '-v', 'ON_ERROR_STOP=1'],
+                            input=query, capture_output=True, text=True, timeout=15)
+    secret = result.stdout.strip()
+    if result.returncode or not secret:
+        raise RuntimeError('Credencial interna dos avisos administrativos não está configurada.')
+    request = urllib.request.Request(f'https://{ref}.supabase.co/functions/v1/admin-avisos', method='POST', data=b'{}',
+                                     headers={'Content-Type': 'application/json', 'x-trustio-segredo': secret})
+    with urllib.request.urlopen(request, timeout=60) as response:
+        body = json.load(response)
+    if body.get('enviados') != body.get('processados'):
+        raise RuntimeError('Há avisos administrativos cujo envio ainda não foi confirmado; confira crm_admin_avisos.')
+    result = subprocess.run(['psql', conn, '-XAt', '-v', 'ON_ERROR_STOP=1', '-c',
+                             "select count(*) from cron.job where jobname='crm-admin-avisos' and active;"],
+                            capture_output=True, text=True, timeout=15)
+    if result.returncode or result.stdout.strip() != '1':
+        raise RuntimeError('Agendamento dos avisos administrativos não está ativo.')
+    print('Credencial da função de avisos validada; fila e agendamento de um minuto ativos.')
 
 
 if __name__ == '__main__':

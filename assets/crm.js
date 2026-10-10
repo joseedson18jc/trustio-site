@@ -479,6 +479,7 @@
     $("[data-detail-mail]").href = "mailto:" + l.email;
     $("[data-detail-copy]").dataset.email = l.email;
     dlg.dataset.id = l.id;
+    $("[data-detail-audit]").hidden = !(eu.papel === "admin" && l.user_id);
     $("[data-d-retorno]").value = l.proximo_contato || "";
     $("[data-d-etiquetas]").value = etiquetasDe(l).join(", ");
     carregarHistorico(l.id);
@@ -490,6 +491,140 @@
     var v = e.currentTarget.dataset.email;
     (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(function () { toast("E-mail copiado."); }, function () { toast("Não foi possível copiar.", "erro"); });
   });
+
+  // ------------------------------------------------------------- investigação de atividade (só admin)
+  // Conversas e mensagens de uma conta, para investigar suspeita de violação dos Termos. O banco só
+  // entrega esses dados a admins (políticas "admins read conversations/messages"); colaborador recebe
+  // lista vazia mesmo que chame a tela. Fotos não ficam guardadas: aparece só o texto que a pessoa enviou.
+  var auditDlg = $("[data-audit]"), audit = { lead: null, conversas: [], msgs: [], porConversa: {} };
+  var RE_ANEXO_A = /\n*\[\[anexo: ([^\]\n]*)\]\]\n([\s\S]*?)\n\[\[\/anexo\]\]/g;
+  var MAX_LISTA = 400;
+
+  function todasAsLinhas(tabela, colunas, uid) {
+    var linhas = [], pagina = 1000;
+    function proxima(de) {
+      return sb.from(tabela).select(colunas).eq("user_id", uid).order("created_at", { ascending: true }).range(de, de + pagina - 1).then(function (r) {
+        if (r.error) throw r.error;
+        linhas = linhas.concat(r.data || []);
+        return (r.data || []).length === pagina && linhas.length < 20000 ? proxima(de + pagina) : linhas;
+      });
+    }
+    return proxima(0);
+  }
+
+  function abrirAuditoria() {
+    var l = lead(dlg.dataset.id);
+    if (!l || !l.user_id || eu.papel !== "admin") return;
+    audit = { lead: l, conversas: [], msgs: [], porConversa: {} };
+    $("[data-audit-title]").textContent = "Atividade de " + (l.nome || l.email);
+    $("[data-audit-resumo]").innerHTML = "";
+    $("[data-audit-lista]").innerHTML = "";
+    $("[data-audit-busca]").value = ""; $("[data-audit-papel]").value = ""; $("[data-audit-conversa]").innerHTML = '<option value="">Todas as conversas</option>';
+    $("[data-audit-baixar]").disabled = true;
+    $("[data-audit-status]").textContent = "Carregando conversas e mensagens…";
+    if (auditDlg.showModal) auditDlg.showModal(); else auditDlg.setAttribute("open", "");
+    Promise.all([
+      todasAsLinhas("conversations", "id,title,created_at,updated_at", l.user_id),
+      todasAsLinhas("messages", "id,conversation_id,role,content,model,created_at", l.user_id),
+    ]).then(function (res) {
+      if (audit.lead !== l) return;
+      audit.conversas = res[0]; audit.msgs = res[1];
+      audit.conversas.forEach(function (c) { audit.porConversa[c.id] = c; });
+      $("[data-audit-conversa]").innerHTML = '<option value="">Todas as conversas</option>' + audit.conversas.slice().reverse().map(function (c) {
+        return '<option value="' + esc(c.id) + '">' + esc((c.title || "Sem título").slice(0, 70)) + " · " + esc(fmt(c.created_at)) + "</option>";
+      }).join("");
+      $("[data-audit-baixar]").disabled = false;
+      resumoAuditoria(); renderAuditoria();
+    }).catch(function (e) {
+      $("[data-audit-status]").textContent = "Não foi possível carregar: " + ((e && e.message) || "erro desconhecido");
+    });
+  }
+
+  function resumoAuditoria() {
+    var enviadas = 0, respostas = 0, anexos = 0, modelos = {};
+    audit.msgs.forEach(function (m) {
+      if (m.role === "user") { enviadas++; RE_ANEXO_A.lastIndex = 0; while (RE_ANEXO_A.exec(m.content || "")) anexos++; }
+      else { respostas++; var k = m.model || "—"; modelos[k] = (modelos[k] || 0) + 1; }
+    });
+    var primeira = audit.msgs[0], ultima = audit.msgs[audit.msgs.length - 1];
+    var linhas = [
+      ["Conversas", String(audit.conversas.length)],
+      ["Mensagens enviadas", String(enviadas)],
+      ["Respostas do modelo", String(respostas)],
+      ["Anexos (texto lido)", String(anexos)],
+      ["Primeira atividade", primeira ? fmt(primeira.created_at) : "—"],
+      ["Última atividade", ultima ? fmt(ultima.created_at) : "—"],
+      ["Modelos usados", Object.keys(modelos).map(function (k) { return esc(k) + " (" + modelos[k] + ")"; }).join(" · ") || "—"],
+    ];
+    $("[data-audit-resumo]").innerHTML = linhas.map(function (x) { return "<div><dt>" + x[0] + "</dt><dd>" + x[1] + "</dd></div>"; }).join("");
+  }
+
+  // Texto da mensagem: escapado, anexos recolhidos e o termo buscado destacado.
+  function marcar(htmlEscapado, termo) {
+    if (!termo) return htmlEscapado;
+    var t = esc(termo).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return htmlEscapado.replace(new RegExp(t, "gi"), function (x) { return "<mark>" + x + "</mark>"; });
+  }
+  function corpoMensagem(texto, termo) {
+    var html = "", ultimo = 0, m;
+    RE_ANEXO_A.lastIndex = 0;
+    function trecho(t) { t = t.trim(); return t ? "<p>" + marcar(esc(t), termo).replace(/\n/g, "<br>") + "</p>" : ""; }
+    while ((m = RE_ANEXO_A.exec(texto))) {
+      html += trecho(texto.slice(ultimo, m.index));
+      html += '<details class="audit-anexo"><summary>Anexo: ' + esc(m[1]) + "</summary><pre>" + marcar(esc(m[2]), termo) + "</pre></details>";
+      ultimo = RE_ANEXO_A.lastIndex;
+    }
+    return html + trecho(texto.slice(ultimo));
+  }
+
+  function renderAuditoria() {
+    var termo = $("[data-audit-busca]").value.trim(), papel = $("[data-audit-papel]").value, conv = $("[data-audit-conversa]").value;
+    var t = termo.toLowerCase();
+    var lista = audit.msgs.filter(function (m) {
+      return (!papel || m.role === papel) && (!conv || m.conversation_id === conv) && (!t || String(m.content || "").toLowerCase().indexOf(t) >= 0);
+    });
+    var html = "", convAtual = null;
+    lista.slice(0, MAX_LISTA).forEach(function (m) {
+      if (m.conversation_id !== convAtual) {
+        convAtual = m.conversation_id;
+        var c = audit.porConversa[convAtual];
+        html += '<li class="audit-conv"><b>' + esc(c ? (c.title || "Sem título") : "Conversa apagada") + "</b><span>" + esc(c ? "aberta em " + fmt(c.created_at) : "") + "</span></li>";
+      }
+      var quem = m.role === "user" ? "Pessoa" : "Trustio";
+      html += '<li class="audit-msg audit-' + (m.role === "user" ? "user" : "ia") + '"><div class="audit-meta"><span class="audit-quem">' + quem + "</span><time>" + esc(fmt(m.created_at)) + "</time>" +
+        (m.model ? '<span class="audit-modelo">' + esc(m.model) + "</span>" : "") + "</div>" + corpoMensagem(String(m.content || ""), termo) + "</li>";
+    });
+    $("[data-audit-lista]").innerHTML = html;
+    $("[data-audit-status]").textContent = !audit.msgs.length ? "Nenhuma mensagem nesta conta."
+      : lista.length > MAX_LISTA ? "Mostrando " + MAX_LISTA + " de " + lista.length + " mensagens: refine a busca ou escolha uma conversa."
+      : lista.length + (lista.length === 1 ? " mensagem" : " mensagens") + (lista.length < audit.msgs.length ? " de " + audit.msgs.length : "") + ".";
+  }
+
+  function baixarAuditoria() {
+    var l = audit.lead; if (!l) return;
+    var dados = {
+      exportado_em: new Date().toISOString(), exportado_por: eu.id,
+      finalidade: "Investigação de possível violação dos Termos de Uso (acesso de administrador)",
+      conta: { user_id: l.user_id, email: l.email, nome: l.nome || null },
+      conversas: audit.conversas, mensagens: audit.msgs,
+    };
+    var blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "trustio-atividade-" + String(l.email || l.user_id).replace(/[^a-z0-9@._-]+/gi, "_") + "-" + hoje() + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+
+  var buscaTimer = null;
+  $("[data-detail-audit]").addEventListener("click", abrirAuditoria);
+  $("[data-audit-close]").addEventListener("click", function () { auditDlg.close(); });
+  auditDlg.addEventListener("click", function (e) { if (e.target === auditDlg) auditDlg.close(); });
+  auditDlg.addEventListener("close", function () { audit = { lead: null, conversas: [], msgs: [], porConversa: {} }; $("[data-audit-lista]").innerHTML = ""; });
+  $("[data-audit-busca]").addEventListener("input", function () { clearTimeout(buscaTimer); buscaTimer = setTimeout(renderAuditoria, 200); });
+  $("[data-audit-papel]").addEventListener("change", renderAuditoria);
+  $("[data-audit-conversa]").addEventListener("change", renderAuditoria);
+  $("[data-audit-baixar]").addEventListener("click", baixarAuditoria);
 
   // Grava um campo da ficha (próximo contato, etiquetas) e atualiza linha, números e histórico.
   function gravarFicha(patch, ok) {

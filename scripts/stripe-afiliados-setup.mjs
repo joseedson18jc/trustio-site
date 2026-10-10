@@ -45,19 +45,28 @@ function segredoNoWorker(nome, valor) {
 // 1. Payment Links
 let ligados = 0;
 let total = 0;
+const pulados = [];
 let depois;
 do {
   const pagina = await stripe("GET", `payment_links?active=true&limit=100${depois ? `&starting_after=${depois}` : ""}`);
   for (const link of pagina.data) {
     total++;
     if (!link.allow_promotion_codes) {
-      await stripe("POST", `payment_links/${link.id}`, { allow_promotion_codes: "true" });
-      ligados++;
+      try {
+        await stripe("POST", `payment_links/${link.id}`, { allow_promotion_codes: "true" });
+        ligados++;
+      } catch (err) {
+        // Preço livre ("o cliente escolhe o valor") não aceita cupom na Stripe: o link segue
+        // atribuindo pelo client_reference_id, só sem o cupom preenchido.
+        if (!/custom_unit_amount/.test(err.message)) throw err;
+        pulados.push(link.url);
+      }
     }
   }
   depois = pagina.has_more ? pagina.data.at(-1).id : null;
 } while (depois);
 console.log(`Payment Links: ${total} ativos, cupom ligado em ${ligados}.`);
+if (pulados.length) console.log(`Sem cupom (preço livre, a Stripe não permite): ${pulados.join(", ")}`);
 
 // 2. Webhook
 const existentes = await stripe("GET", "webhook_endpoints?limit=100");

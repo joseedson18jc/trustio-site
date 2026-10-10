@@ -453,7 +453,10 @@ button.me:hover .me-gear { stroke: var(--ice); }
 /* Gaveta fechada no celular sem sombra (no tema claro ela aparecia como uma faixa cinza na borda). */
 @media (max-width: 900px) { .chat-shell:not([data-side="open"]) .chat-side { box-shadow: none; } }
 
-/* Rodapé do menu lateral: o aviso legal que saiu da tela do chat. */
+/* Rodapé do menu lateral: o aviso legal que saiu da tela do chat. Em tela baixa (celular deitado)
+   a gaveta inteira rola, e a lista de conversas mantém uma altura mínima. */
+.chat-page:not(.crm-page) .chat-side { overflow-y: auto; overscroll-behavior: contain; }
+.chat-page:not(.crm-page) .conv-list { min-height: 120px; }
 .side-legal { margin: 0 6px; font-size: 11.5px; line-height: 1.5; color: var(--muted); }
 .side-legal a { color: var(--blue-signal); }
 
@@ -483,5 +486,14 @@ button.me:hover .me-gear { stroke: var(--ice); }
   .side-toggle, .top-btn, .chat-top-right > .wa-float,
   .chat-main .chat-top-right .theme-toggle, .chat-main .chat-top-right .lang-switch { width: 38px; min-width: 38px; height: 38px; min-height: 38px; border-radius: 12px; }
   .chat-top-right > .wa-float { border-radius: 50%; }
+}
+/* Tela baixa (celular deitado): seletor compacto, só a marca, o nome e o indicador. */
+@media (max-height: 520px) {
+  .modelo-bar { margin-top: 8px; }
+  .modelo-cab, .modelo-txt small { display: none; }
+  .modelo-card { flex-wrap: nowrap; align-items: center; padding: 7px 10px; gap: 10px; }
+  .modelo-ico { width: 28px; height: 28px; border-radius: 9px; }
+  .modelo-ico img { width: 19px; height: 19px; }
+  .modelo-txt { flex-basis: auto; order: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .composer-box, .modelo-card, .modelo-radio { transition: none; } }

@@ -220,6 +220,18 @@
     if (abrir) topMenu.querySelector("button").focus();
   });
   topMenu.addEventListener("click", fecharMenuTopo);
+  // Teclado no menu: setas, Home e End andam entre os itens (o foco dá a volta nas pontas).
+  topMenu.addEventListener("keydown", function (e) {
+    var itens = Array.prototype.slice.call(topMenu.querySelectorAll("[role=menuitem]"));
+    var i = itens.indexOf(document.activeElement), n = itens.length, alvo = -1;
+    if (e.key === "ArrowDown") alvo = (i + 1) % n;
+    else if (e.key === "ArrowUp") alvo = (i - 1 + n) % n;
+    else if (e.key === "Home") alvo = 0;
+    else if (e.key === "End") alvo = n - 1;
+    else if (e.key === "Tab") { fecharMenuTopo(); return; }
+    if (alvo < 0) return;
+    e.preventDefault(); itens[alvo].focus();
+  });
   document.addEventListener("click", function (e) { if (!topMenu.hidden && !e.target.closest("[data-top-mais]")) fecharMenuTopo(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !topMenu.hidden) { fecharMenuTopo(); topMaisBtn.focus(); } });
 

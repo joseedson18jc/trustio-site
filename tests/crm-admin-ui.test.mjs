@@ -4,6 +4,21 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 const source = readFileSync(new URL('../assets/crm.js',import.meta.url),'utf8');
 const func = (a,b) => source.slice(source.indexOf(a),source.indexOf(b,source.indexOf(a)));
+test('leads remain visible when realtime throws or the database read fails', async () => {
+  for (const fails of [false, true]) {
+    const shell = {dataset:{}}, nodes = new Map(); let session;
+    const ctx = {shell, gate:{hidden:false}, state:{ocultarTestes:false}, PAPEL_LABEL:{admin:'Admin'},
+      $: key => {if (!nodes.has(key)) nodes.set(key,{}); return nodes.get(key);},
+      sb:{auth:{getSession:()=>session=Promise.resolve({data:{session:{user:{id:'admin'}}}})},rpc:()=>Promise.resolve({data:'admin'})},
+      loadLeads:()=>fails ? Promise.reject(new Error('database unavailable')) : Promise.resolve(),
+      loadLimit:()=>Promise.resolve(), iniciarEmails:()=>{throw new Error('WebSocket blocked');}};
+    vm.createContext(ctx);
+    vm.runInContext(func('  sb.auth.getSession()', '  function loadLeads()'),ctx);
+    for (let i=0;i<12;i++) await Promise.resolve();
+    assert.equal(shell.dataset.state,'ready');
+    assert.match(nodes.get('[data-email-connection]').textContent,/Atualizar/);
+  }
+});
 function harness() {
   const nodes=new Map();
   const $=key=>{ if(!nodes.has(key)) nodes.set(key,{value:'',listeners:{},addEventListener(type,fn){this.listeners[type]=fn;}});return nodes.get(key); };

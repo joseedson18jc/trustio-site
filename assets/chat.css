@@ -132,6 +132,14 @@
 .send svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .send:hover { filter: brightness(1.08); }
 .send:disabled { opacity: 0.4; cursor: default; }
+/* Seletor de modelo (Trustio Flash / Heavy Thinking), logo abaixo da caixa de mensagem. */
+.modelo-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: 8px 4px 0; }
+.modelo-bar[hidden] { display: none; }
+.modelo-bar label { font-family: var(--mono); font-size: var(--label); letter-spacing: 0.06em; text-transform: uppercase; color: var(--label-color); }
+.modelo-bar select { min-height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-raised); color: var(--ice); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; max-width: 100%; }
+.modelo-bar select:hover { border-color: var(--line-bright); }
+.modelo-bar select:focus-visible { outline: none; border-color: var(--line-bright); box-shadow: 0 0 0 3px rgba(94, 167, 255, 0.18); }
+.modelo-desc { font-size: 12.5px; color: var(--muted); }
 .composer-hint { margin: 8px 4px 0; font-family: var(--mono); font-size: var(--label); color: var(--label-color); letter-spacing: 0.03em; }
 
 /* ── gate (sem sessão / recuperação de senha) ── */

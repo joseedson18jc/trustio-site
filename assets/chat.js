@@ -170,7 +170,7 @@
     fetch(CFG.chatEndpoint, { method: "GET", headers: { "Authorization": "Bearer " + token, "apikey": CFG.key } })
       .then(function (res) { return res.ok ? res.json() : null; })
       .then(function (d) {
-        if (d && Array.isArray(d.modelos)) state.modelos = d.modelos;
+        if (d && Array.isArray(d.modelos)) { state.modelos = d.modelos; renderModeloBar(); }
         if (!d || d.chat_aberto) { fechar(false); return; }
         fechar(true, d);
       })
@@ -652,9 +652,9 @@
       return fetch(CFG.chatEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token, "apikey": CFG.key },
-        body: JSON.stringify(imagens.length
-          ? { conversation_id: state.conversationId, message: text, imagens: imagens }
-          : { conversation_id: state.conversationId, message: text })
+        body: JSON.stringify(Object.assign({ conversation_id: state.conversationId, message: text },
+          imagens.length ? { imagens: imagens } : {},
+          state.modelos.length >= 2 && modeloAtual() ? { modelo: modeloAtual() } : {}))
       });
     }).then(function (res) {
       if (!res.ok) {
@@ -974,6 +974,31 @@
     shell.dataset.fonte = state.pref.fonte === "grande" ? "grande" : "normal";
     state.placeholderPadrao = state.pref.enter_envia ? PH_ENTER : PH_CTRL;
     if (!state.fechado && !state.sessaoCheia) input.placeholder = state.placeholderPadrao;
+    renderModeloBar();
+  }
+  // Seletor de modelo na caixa de mensagem (ex.: Trustio Flash / Trustio Heavy Thinking). Aparece
+  // com 2+ modelos na lista que a função devolve; a escolha vai em cada envio e fica salva nas
+  // preferências (vale em todas as conversas e aparelhos).
+  function modeloAtual() {
+    if (state.modelos.some(function (m) { return m.id === state.pref.modelo; })) return state.pref.modelo;
+    var p = state.modelos.filter(function (m) { return m.padrao; })[0] || state.modelos[0];
+    return p ? p.id : null;
+  }
+  function descricaoModelo(m) { return (EN && m.descricao_en) || m.descricao || ""; }
+  function renderModeloBar() {
+    var bar = $("[data-modelo-bar]"), sel = $("[data-modelo-rapido]");
+    if (!bar || !sel) return;
+    if (state.modelos.length < 2) { bar.hidden = true; return; }
+    var atual = modeloAtual();
+    sel.innerHTML = "";
+    state.modelos.forEach(function (m) {
+      var o = document.createElement("option"); o.value = m.id; o.textContent = m.rotulo;
+      sel.appendChild(o);
+    });
+    sel.value = atual;
+    var m = state.modelos.filter(function (x) { return x.id === atual; })[0];
+    $("[data-modelo-desc]").textContent = m ? descricaoModelo(m) : "";
+    bar.hidden = false;
   }
   function salvarPrefs(mudancas) {
     var linha = Object.assign({ user_id: state.user.id }, mudancas);
@@ -1193,13 +1218,18 @@
     $("[data-instr-conta]").textContent = f.instrucoes.value.length;
     var sel = $("[data-modelo-select]");
     sel.innerHTML = "";
-    var padrao = document.createElement("option"); padrao.value = ""; padrao.textContent = T("Trustio (padrão)", "Trustio (default)");
-    sel.appendChild(padrao);
+    // Lista com um modelo marcado como padrão (vinda do servidor): sem a opção vazia, já mostra qual vale.
+    var temPadrao = state.modelos.some(function (m) { return m.padrao; });
+    if (!temPadrao) {
+      var padrao = document.createElement("option"); padrao.value = ""; padrao.textContent = T("Trustio (padrão)", "Trustio (default)");
+      sel.appendChild(padrao);
+    }
     state.modelos.forEach(function (m) {
-      var o = document.createElement("option"); o.value = m.id; o.textContent = m.rotulo + (m.descricao ? " · " + m.descricao : "");
+      var d = descricaoModelo(m);
+      var o = document.createElement("option"); o.value = m.id; o.textContent = m.rotulo + (d ? " · " + d : "");
       sel.appendChild(o);
     });
-    sel.value = state.modelos.some(function (m) { return m.id === state.pref.modelo; }) ? state.pref.modelo : "";
+    sel.value = temPadrao ? modeloAtual() : state.modelos.some(function (m) { return m.id === state.pref.modelo; }) ? state.pref.modelo : "";
     sel.disabled = !state.modelos.length;
     $("[data-modelo-dica]").textContent = state.modelos.length
       ? T("O modelo escolhido vale para as próximas mensagens, em todas as conversas.", "The model you pick applies to your next messages, in every conversation.")
@@ -1258,6 +1288,13 @@
     }).catch(function () { st.textContent = T("Não foi possível salvar agora. Tente de novo.", "We couldn't save right now. Try again."); });
   });
 
+  var modeloRapido = $("[data-modelo-rapido]");
+  if (modeloRapido) modeloRapido.addEventListener("change", function () {
+    state.pref.modelo = modeloRapido.value;
+    renderModeloBar();
+    // Já vale no próximo envio; salvar é para lembrar nas próximas visitas e em outros aparelhos.
+    salvarPrefs({ modelo: modeloRapido.value }).catch(function () { /* sem salvar, a escolha vale nesta aba */ });
+  });
   var prefForm = $("[data-pref-form]");
   prefForm.instrucoes.addEventListener("input", function () { $("[data-instr-conta]").textContent = prefForm.instrucoes.value.length; });
   // Tema e tamanho do texto mudam na hora; o resto vale ao salvar.

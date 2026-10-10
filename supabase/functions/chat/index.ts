@@ -34,14 +34,16 @@ async function modeloDoBanco(admin: any): Promise<string | null> {
 // nesta ordem: do próprio servidor do modelo (GET /models com "trustio_modelos": o gateway da
 // Trustio anuncia os modos dele, ex.: Flash e Heavy Thinking); de app_settings.modelos_chat,
 // lista definida pelo admin ([{ id, rotulo, descricao }]). Sem nenhuma, só o modelo padrão.
-type ModeloEscolhivel = { id: string; rotulo: string; descricao?: string; descricao_en?: string; padrao?: boolean };
+// icone: nome curto da marca do modelo (o site mostra assets/modelos/<icone>.svg, se conhecer).
+type ModeloEscolhivel = { id: string; rotulo: string; descricao?: string; descricao_en?: string; icone?: string; padrao?: boolean };
 function normalizarModelos(lista: unknown): ModeloEscolhivel[] {
   return (Array.isArray(lista) ? lista : [])
-    .map((m: { id?: unknown; rotulo?: unknown; descricao?: unknown; descricao_en?: unknown; padrao?: unknown }) => ({
+    .map((m: { id?: unknown; rotulo?: unknown; descricao?: unknown; descricao_en?: unknown; icone?: unknown; padrao?: unknown }) => ({
       id: String(m?.id ?? "").trim().slice(0, 200),
       rotulo: String(m?.rotulo ?? m?.id ?? "").trim().slice(0, 60),
       descricao: m?.descricao ? String(m.descricao).trim().slice(0, 160) : undefined,
       descricao_en: m?.descricao_en ? String(m.descricao_en).trim().slice(0, 160) : undefined,
+      icone: typeof m?.icone === "string" && /^[a-z0-9-]{1,24}$/.test(m.icone) ? m.icone : undefined,
       padrao: m?.padrao === true ? true : undefined,
     }))
     .filter((m: ModeloEscolhivel) => m.id && m.rotulo)
@@ -416,7 +418,7 @@ Deno.serve(async (req) => {
   };
 
   const stream = new ReadableStream<Uint8Array>({
-    start(controller) { saida = controller; send({ conversation_id: convId, limite: LLM_MAX_TOKENS }); },
+    start(controller) { saida = controller; send({ conversation_id: convId, limite: LLM_MAX_TOKENS, modelo }); },
     // Navegador foi embora: só para de enviar; a leitura do modelo segue.
     cancel() { aberto = false; },
   });

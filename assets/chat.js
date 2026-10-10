@@ -7,6 +7,11 @@
   var abrirContaAoEntrar = location.hash === "#conta";
   // Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
   var EN = /^en\b/i.test(document.documentElement.lang);
+  // Pasta assets/ a partir deste arquivo (vale em /app/ e em /en/app/).
+  var ASSETS = (function () { try { return new URL(".", document.currentScript.src).href; } catch (e) { return "../assets/"; } })();
+  // Marcas dos modelos que o site tem em assets/modelos/ (outro nome que vier do servidor é ignorado).
+  var ICONES = { flash: true, heavy: true };
+  var ICONE_POR_ID = { "trustio-flash": "flash", "trustio-heavy": "heavy" };
   var T = function (pt, en) { return EN ? en : pt; };
   var LOCAL = EN ? "en-US" : "pt-BR";
   var CFG = window.TRUSTIO_AUTH;
@@ -511,22 +516,23 @@
     var inner = ensureThreadInner();
     inner.innerHTML = "<p class=\"msg-meta\">" + T("Carregando…", "Loading…") + "</p>";
     renderConversations();
-    sb.from("messages").select("role,content,created_at").eq("conversation_id", id).order("created_at", { ascending: true })
+    sb.from("messages").select("role,content,created_at,model").eq("conversation_id", id).order("created_at", { ascending: true })
       .then(function (r) {
         // O usuário pode ter trocado de conversa enquanto esta carregava: só renderiza se ainda for a ativa.
         if (state.conversationId !== id || state.threadInner !== inner) return;
         inner.innerHTML = "";
-        (r.data || []).forEach(function (m) { appendMessage(m.role, m.content); });
+        (r.data || []).forEach(function (m) { appendMessage(m.role, m.content, m.model); });
         scrollBottom();
       });
   }
 
-  function appendMessage(role, content) {
+  function appendMessage(role, content, modelo) {
     var inner = ensureThreadInner();
     var el = document.createElement("article");
     el.className = "msg msg-" + role;
     el.innerHTML = "<span class=\"msg-av\" aria-hidden=\"true\">" + (role === "user" ? "" : "T") + "</span><div class=\"msg-body\"></div>";
     if (role === "user") pintarAvatarMensagem(el.querySelector(".msg-av"));
+    else marcarModelo(el, modelo);
     var body = el.querySelector(".msg-body");
     if (role === "user") body.innerHTML = renderUsuario(content); else { body.innerHTML = render(content); desenhar(body); }
     inner.appendChild(el);
@@ -545,6 +551,27 @@
       ultimo = RE_ANEXO.lastIndex;
     }
     return html + trecho(texto.slice(ultimo));
+  }
+
+  // Resposta de um modelo com marca conhecida (Flash, Heavy Thinking): o avatar mostra a marca dele.
+  function iconeDoModelo(id) {
+    if (!id) return null;
+    var m = state.modelos.filter(function (x) { return x.id === id; })[0];
+    var ic = (m && m.icone) || ICONE_POR_ID[id];
+    return ic && ICONES[ic] ? ic : null;
+  }
+  function rotuloDoModelo(id) {
+    var m = state.modelos.filter(function (x) { return x.id === id; })[0];
+    return m ? m.rotulo : ({ "trustio-flash": "Trustio Flash", "trustio-heavy": "Trustio Heavy Thinking" })[id] || "";
+  }
+  function marcarModelo(el, modelo) {
+    var ic = iconeDoModelo(modelo), av = el.querySelector(".msg-av");
+    if (!ic || !av) return;
+    av.textContent = "";
+    var img = document.createElement("img"); img.src = ASSETS + "modelos/" + ic + ".svg"; img.alt = "";
+    av.appendChild(img);
+    av.classList.add("tem-modelo");
+    av.title = rotuloDoModelo(modelo);
   }
 
   function scrollBottom() { thread.scrollTop = thread.scrollHeight; }
@@ -604,7 +631,7 @@
       input.value = rascunho.texto; autosize();
       anexos = rascunho.anexos; renderAnexos();
     }
-    var pending = appendMessage("assistant", "");
+    var pending = appendMessage("assistant", "", state.modelos.length >= 2 ? modeloAtual() : null);
     pending.classList.add("msg-pending");
     var body = pending.querySelector(".msg-body");
     var full = "", avisado = false;
@@ -671,6 +698,12 @@
             if (!line) return;
             var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
             if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; lembrarConversa(d.conversation_id); }
+            if (d.modelo && d.modelo !== (pending.dataset.modelo || "")) {
+              pending.dataset.modelo = d.modelo;
+              var avAtual = pending.querySelector(".msg-av");
+              if (avAtual && iconeDoModelo(d.modelo)) marcarModelo(pending, d.modelo);
+              else if (avAtual && avAtual.classList.contains("tem-modelo")) { avAtual.classList.remove("tem-modelo"); avAtual.textContent = "T"; avAtual.removeAttribute("title"); }
+            }
             if (d.limite) { limite = Number(d.limite) || 0; prog.classList.remove("is-open"); mostrarProgresso(); }
             if (d.raciocinio) {
               contar(d);
@@ -987,22 +1020,29 @@
   }
   function descricaoModelo(m) { return (EN && m.descricao_en) || m.descricao || ""; }
   function renderModeloBar() {
-    var bar = $("[data-modelo-bar]"), sel = $("[data-modelo-rapido]");
-    if (!bar || !sel) return;
+    var bar = $("[data-modelo-bar]"), box = $("[data-modelo-opcoes]");
+    if (!bar || !box) return;
     if (state.modelos.length < 2) { bar.hidden = true; return; }
-    var atual = modeloAtual();
-    sel.innerHTML = "";
-    if (!atual) {
-      var padrao = document.createElement("option"); padrao.value = ""; padrao.textContent = T("Trustio (padrão)", "Trustio (default)");
-      sel.appendChild(padrao);
-    }
-    state.modelos.forEach(function (m) {
-      var o = document.createElement("option"); o.value = m.id; o.textContent = m.rotulo;
-      sel.appendChild(o);
+    var atual = modeloAtual() || "";
+    var opcoes = (modeloAtual() ? [] : [{ id: "", rotulo: T("Trustio (padrão)", "Trustio (default)") }]).concat(state.modelos);
+    box.innerHTML = "";
+    opcoes.forEach(function (m) {
+      var lab = document.createElement("label");
+      lab.className = "modelo-chip" + (m.id === atual ? " is-on" : "");
+      lab.title = descricaoModelo(m) || m.rotulo;
+      var inp = document.createElement("input");
+      inp.type = "radio"; inp.name = "modelo-rapido"; inp.value = m.id; inp.checked = m.id === atual;
+      lab.appendChild(inp);
+      var ic = iconeDoModelo(m.id);
+      if (ic) { var img = document.createElement("img"); img.src = ASSETS + "modelos/" + ic + ".svg"; img.alt = ""; img.width = 18; img.height = 18; lab.appendChild(img); }
+      // Nome completo; em tela estreita, sem o "Trustio" (a marca ao lado já diz).
+      var nome = document.createElement("span"); nome.className = "modelo-nome"; nome.textContent = m.rotulo; lab.appendChild(nome);
+      var curto = m.rotulo.replace(/^Trustio\s+/, "");
+      if (curto !== m.rotulo) { nome.setAttribute("data-curto", curto); }
+      box.appendChild(lab);
     });
-    sel.value = atual || "";
-    var m = state.modelos.filter(function (x) { return x.id === atual; })[0];
-    $("[data-modelo-desc]").textContent = m ? descricaoModelo(m) : "";
+    var sel = state.modelos.filter(function (x) { return x.id === atual; })[0];
+    $("[data-modelo-desc]").textContent = sel ? descricaoModelo(sel) : "";
     bar.hidden = false;
   }
   function salvarPrefs(mudancas) {
@@ -1293,10 +1333,13 @@
     }).catch(function () { st.textContent = T("Não foi possível salvar agora. Tente de novo.", "We couldn't save right now. Try again."); });
   });
 
-  var modeloRapido = $("[data-modelo-rapido]"), filaModelo = Promise.resolve();
-  if (modeloRapido) modeloRapido.addEventListener("change", function () {
-    state.pref.modelo = modeloRapido.value || null;
+  var modeloOpcoes = $("[data-modelo-opcoes]"), filaModelo = Promise.resolve();
+  if (modeloOpcoes) modeloOpcoes.addEventListener("change", function (e) {
+    if (!e.target || e.target.name !== "modelo-rapido") return;
+    state.pref.modelo = e.target.value || null;
     renderModeloBar();
+    var marcado = modeloOpcoes.querySelector("input:checked");
+    if (marcado) marcado.focus();
     // Já vale no próximo envio; salvar é para lembrar nas próximas visitas e em outros aparelhos.
     // Em fila, uma gravação por vez e sempre com a escolha mais recente: trocas rápidas não
     // gravam fora de ordem nem devolvem o seletor a uma escolha anterior.

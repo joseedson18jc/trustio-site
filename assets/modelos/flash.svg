@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="t d">
+  <title id="t">Trustio Flash</title>
+  <desc id="d">F em itálico com corte de raio: responde na hora</desc>
+  <defs>
+    <linearGradient id="fl" gradientUnits="userSpaceOnUse" x1="20" y1="10" x2="86" y2="40">
+      <stop offset="0" stop-color="#5EA7FF"/><stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="fb" gradientUnits="userSpaceOnUse" x1="30" y1="40" x2="40" y2="90">
+      <stop offset="0" stop-color="#2E6BF0"/><stop offset="1" stop-color="#0F2C6B"/>
+    </linearGradient>
+  </defs>
+  <g stroke-linejoin="round" stroke-width="4">
+    <path fill="url(#fl)" stroke="url(#fl)" d="M25.4 24Q29 12 41 12H86L79.7 31H52L14 60Z"/>
+    <path fill="url(#fb)" stroke="url(#fb)" d="M10.4 74.2L57.5 38.2L64 46H71L65.5 62H40L32 86H7Z"/>
+  </g>
+</svg>

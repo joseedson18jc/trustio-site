@@ -1,5 +1,5 @@
-/* assets/crm.js — painel interno de leads (/crm/). Só usuários na tabela `admins` enxergam dados:
-   as políticas RLS no banco garantem isso, independentemente desta página. */
+/* assets/crm.js — painel interno de leads (/crm/). Equipe lê o CRM; só admin controla acesso.
+   As políticas RLS e as RPCs no banco garantem isso, independentemente desta página. */
 (function () {
   "use strict";
   var CFG = window.TRUSTIO_AUTH;
@@ -38,7 +38,7 @@
   var state = { leads: [], filter: "", tag: "", q: "", sort: { key: "created_at", dir: -1 }, ocultarTestes: lerPref(), carregadoEm: null };
   // Gravações a caminho, por "id|campo": { valor, seq }. Só a mais recente de cada campo vale,
   // e um recarregamento da lista reaplica esses valores por cima do que veio do banco.
-  var pendentes = {}, seqGravacao = 0;
+  var pendentes = {}, seqGravacao = 0, loadPedido = 0;
 
   function lerPref() { try { return localStorage.getItem(PREF) !== "0"; } catch (e) { return true; } }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -112,6 +112,7 @@
       $("[data-eu]").textContent = PAPEL_LABEL[papel];
       gate.hidden = true;
       $("[data-hide-tests]").checked = state.ocultarTestes;
+      iniciarEmails();
       // Configurações e painel mestre são só de admin.
       return Promise.all([loadLeads(), papel === "admin" ? loadLimit() : null]).then(function () { shell.dataset.state = "ready"; });
     });
@@ -119,7 +120,17 @@
 
   function loadLeads() {
     var btn = $("[data-refresh]"); btn.disabled = true;
-    return sb.from("crm_overview").select("*").order("created_at", { ascending: false }).limit(2000).then(function (r) {
+    var linhas = [], pagina = 1000, pedido = ++loadPedido;
+    function proxima(de) {
+      return sb.from("crm_overview").select("*").order("created_at", { ascending: false }).order("id").range(de, de + pagina - 1).then(function (r) {
+        if (r.error) throw r.error;
+        linhas = linhas.concat(r.data || []);
+        return (r.data || []).length === pagina ? proxima(de + pagina) : linhas;
+      });
+    }
+    return proxima(0).then(function (dados) {
+      if (pedido !== loadPedido) return;
+      var r = { data: dados };
       btn.disabled = false;
       // Falha de leitura não pode parecer "nenhum lead".
       if (r.error) { $("[data-load-error]").hidden = false; $("[data-load-error-msg]").textContent = r.error.message || "erro desconhecido"; return; }
@@ -130,6 +141,10 @@
       });
       $("[data-updated]").textContent = "Atualizado às " + state.carregadoEm.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       render();
+    }).catch(function (e) {
+      if (pedido !== loadPedido) return;
+      btn.disabled = false; $("[data-load-error]").hidden = false;
+      $("[data-load-error-msg]").textContent = e.message || "erro desconhecido";
     });
   }
   function loadLimit() {
@@ -193,6 +208,12 @@
   function visible() {
     var q = state.q.toLowerCase(), k = state.sort.key, dir = state.sort.dir;
     return base().filter(function (l) {
+      var segmento = $("[data-segment-filter]").value.trim().toLowerCase(), acesso = $("[data-access-filter]").value;
+      var de = $("[data-created-from]").value, ate = $("[data-created-to]").value;
+      var cadastro = l.created_at ? dataLocal(l.created_at).slice(0, 10) : "";
+      if (segmento && String(l.segmento || "").toLowerCase().indexOf(segmento) < 0) return false;
+      if (acesso && estadoAcesso(l) !== acesso) return false;
+      if ((de && cadastro < de) || (ate && cadastro > ate)) return false;
       if (!passaFiltro(l, state.filter)) return false;
       if (state.tag && etiquetasDe(l).indexOf(state.tag) < 0) return false;
       if (!q) return true;
@@ -221,12 +242,12 @@
       return "<tr data-id=\"" + esc(l.id) + "\">" +
         "<td class=\"who\"><button type=\"button\" class=\"lead-open\" data-open>" + esc(l.nome || "Sem nome") + "</button>" +
           "<span class=\"chip " + esc(l.tipo) + "\">" + (l.tipo === "b2b" ? "Empresa" : "Pessoa") + "</span>" + (ehTeste(l) ? "<span class=\"chip teste\">Teste</span>" : "") +
-          retornoHtml(l) + etiquetasHtml(l) +
+          retornoHtml(l) + etiquetasHtml(l) + "<small>Acesso: " + esc(rotuloAcesso(l)) + "</small>" +
           "<a class=\"mail\" href=\"mailto:" + esc(l.email) + "\">" + esc(l.email) + "</a>" +
           (tel ? tel : "") +
           (l.empresa || l.segmento ? "<small>" + esc([l.empresa, l.segmento].filter(Boolean).join(" · ")) + "</small>" : "") +
         "</td>" +
-        "<td><select class=\"status-sel st-" + esc(l.status) + "\" data-field=\"status\" aria-label=\"Status de " + esc(l.nome || l.email) + "\">" + STATUS.map(function (s) { return "<option value=\"" + s + "\"" + (s === l.status ? " selected" : "") + ">" + LABEL[s] + "</option>"; }).join("") + "</select>" +
+        "<td><select class=\"status-sel st-" + esc(l.status) + "\" data-field=\"status\"" + (eu.papel === "admin" ? "" : " disabled") + " aria-label=\"Status de " + esc(l.nome || l.email) + "\">" + STATUS.map(function (s) { return "<option value=\"" + s + "\"" + (s === l.status ? " selected" : "") + ">" + LABEL[s] + "</option>"; }).join("") + "</select>" +
           (l.confirmed_at ? "" : "<small class=\"hint\">e-mail não confirmado</small>") + "</td>" +
         "<td><input type=\"text\" data-field=\"plano\" value=\"" + esc(l.plano || "") + "\" placeholder=\"—\" aria-label=\"Plano\"></td>" +
         "<td>" + papelCell(l) + "</td>" +
@@ -279,11 +300,11 @@
 
   function waCell(l) {
     var s = l.whatsapp_trial_status || "nao_solicitado";
-    var sel = "<select data-field=\"whatsapp_trial_status\" aria-label=\"Teste WhatsApp\">" + WA.map(function (k) { return "<option value=\"" + k + "\"" + (k === s ? " selected" : "") + ">" + WA_LABEL[k] + "</option>"; }).join("") + "</select>";
+    var sel = "<select " + (eu.papel === "admin" ? "" : "disabled ") + "data-field=\"whatsapp_trial_status\" aria-label=\"Teste WhatsApp\">" + WA.map(function (k) { return "<option value=\"" + k + "\"" + (k === s ? " selected" : "") + ">" + WA_LABEL[k] + "</option>"; }).join("") + "</select>";
     var num = l.whatsapp_numero ? telHtml(l.whatsapp_numero) : "";
     var extra = "";
     // Quem pediu, ou quem só deixou telefone no cadastro, pode ser ativado direto daqui.
-    if (s === "solicitado" || (s === "nao_solicitado" && (l.whatsapp_numero || l.telefone))) extra = "<button type=\"button\" class=\"wa-go\" data-wa-activate>Ativar 3 dias</button>";
+    if (eu.papel === "admin" && (s === "solicitado" || (s === "nao_solicitado" && (l.whatsapp_numero || l.telefone)))) extra = "<button type=\"button\" class=\"wa-go\" data-wa-activate>Ativar 3 dias</button>";
     if (s === "ativo") extra = (l.whatsapp_trial_ends_at ? "<small>até " + fmt(l.whatsapp_trial_ends_at) + "</small>" : "") + avisoHtml(l);
     return sel + num + extra;
   }
@@ -352,7 +373,7 @@
       });
       return;
     }
-    var b = e.target.closest("[data-wa-activate]"); if (!b) return;
+    var b = e.target.closest("[data-wa-activate]"); if (!b || eu.papel !== "admin") return;
     var id = b.closest("tr").dataset.id; b.disabled = true; b.textContent = "Ativando…";
     sb.rpc("activate_whatsapp_trial", { p_lead_id: id, p_days: 3 }).then(function (r) {
       if (r.error) { toast("Não foi possível ativar: " + r.error.message, "erro"); b.disabled = false; b.textContent = "Ativar 3 dias"; return; }
@@ -455,6 +476,10 @@
       ["Empresa", esc(l.empresa || "—")],
       ["Segmento", esc(l.segmento || "—")],
       ["Origem", esc(l.origem || "—")],
+      ["Acesso", esc(rotuloAcesso(l))],
+      ["Início do acesso", fmt(l.acesso_inicio)],
+      ["Fim do acesso", fmt(l.acesso_fim)],
+      ["Motivo do acesso", esc(l.acesso_motivo || "—")],
       ["Status", LABEL[l.status] || esc(l.status)],
       ["Plano", esc(l.plano || "—")],
       ["Tipo de usuário", l.user_id ? PAPEL_LABEL[l.papel || "teste"] : "sem conta (só lista de espera)"],
@@ -479,6 +504,11 @@
     $("[data-detail-mail]").href = "mailto:" + l.email;
     $("[data-detail-copy]").dataset.email = l.email;
     dlg.dataset.id = l.id;
+    preencherAcesso(l);
+    carregarConvite(l);
+    carregarEmailsDetalhe(l.id);
+    $("[data-detail-segment]").value = l.segmento || "";
+    $("[data-detail-audit]").hidden = !(eu.papel === "admin" && l.user_id);
     $("[data-d-retorno]").value = l.proximo_contato || "";
     $("[data-d-etiquetas]").value = etiquetasDe(l).join(", ");
     carregarHistorico(l.id);
@@ -491,6 +521,349 @@
     (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(function () { toast("E-mail copiado."); }, function () { toast("Não foi possível copiar.", "erro"); });
   });
 
+  // Status do provedor: enviado não é entregue, e ausência de abertura não prova desinteresse.
+  var emailLeadId = null;
+  var emailPedido = 0, emailDetalhePedido = 0, emailLimite = 50, emailTimer = 0;
+  var EMAIL_ESTADO = { enviado: "Enviado · aguardando entrega", entregue: "Entregue", aberto: "Abertura registrada", clicado: "Clique registrado", sem_interacao: "Sem interação registrada há 48h", atrasado: "Entrega atrasada", rejeitado: "Rejeitado pelo destinatário", falhou: "Falha no envio", spam: "Marcado como spam" };
+  function emailHtml(e) {
+    var etapas = [["Enviado", e.enviado_em], ["Entregue", e.entregue_em], ["Abertura", e.aberto_em], ["Clique", e.clicado_em]].map(function (x) { return x[0] + ": " + fmt(x[1]); }).join(" · ");
+    return "<li><b>" + esc(e.assunto || "Sem assunto") + "</b><span>" + esc(EMAIL_ESTADO[e.estado] || "Aguardando atualização") + "</span><small>" + esc(e.remetente) + " → " + esc(e.destinatario) + "</small><small>" + esc(etapas) + "</small>" +
+      (e.multidestinatario ? "<small>Mensagem com vários destinatários: a interação não identifica quem abriu ou clicou.</small>" : "") +
+      (e.ultimo_link ? "<small>Último link: " + esc(e.ultimo_link) + " · " + Number(e.cliques || 0) + " clique(s)</small>" : "") + "</li>";
+  }
+  function carregarEmails() {
+    if (eu.papel !== "admin") return Promise.resolve();
+    var pedido = ++emailPedido, q = $("[data-email-search]").value.trim(), filtro = $("[data-email-filter]").value;
+    var limite = emailLimite, leadId = emailLeadId;
+    function pagina(offset, linhas) {
+      var take = Math.min(1000, limite - offset);
+      var query = sb.from("crm_emails_overview").select("*").order("atualizado_em", { ascending: false }).order("email_id").order("destinatario");
+      if (leadId) query = query.eq("lead_id", leadId);
+      else if (q) query = query.ilike("destinatario", "%" + q.replace(/[\\%_]/g, "\\$&") + "%");
+      if (filtro) query = query.eq("estado", filtro);
+      return query.range(offset, offset + take - 1).then(function (r) {
+        if (r.error) throw r.error;
+        linhas = linhas.concat(r.data || []);
+        if (pedido === emailPedido && r.data.length === take && linhas.length < limite) return pagina(offset + take, linhas);
+        return { data: linhas };
+      });
+    }
+    return pagina(0, []).then(function (r) {
+      if (pedido !== emailPedido) return;
+      if (r.error) { $("[data-email-list]").textContent = "Não foi possível carregar os e-mails."; return; }
+      $("[data-email-list]").innerHTML = r.data.length ? r.data.map(emailHtml).join("") : "<li>Nenhum e-mail acompanhado com este filtro.</li>";
+      $("[data-email-more]").hidden = r.data.length < emailLimite;
+    }).catch(function () { if (pedido === emailPedido) $("[data-email-list]").textContent = "Não foi possível carregar os e-mails."; });
+  }
+  function carregarEmailsDetalhe(id) {
+    var pedido = ++emailDetalhePedido;
+    $("[data-detail-email-panel]").hidden = eu.papel !== "admin";
+    if (eu.papel !== "admin") return;
+    $("[data-detail-email-list]").textContent = "Carregando…";
+    sb.from("crm_emails_overview").select("*").eq("lead_id", id).order("atualizado_em", { ascending: false }).order("email_id").order("destinatario").limit(50).then(function (r) {
+      if (pedido !== emailDetalhePedido || !dlg.open || dlg.dataset.id !== id) return;
+      $("[data-detail-email-list]").innerHTML = r.error ? "<li>Não foi possível carregar os e-mails.</li>" : r.data.length ? r.data.map(emailHtml).join("") : "<li>Nenhum evento de e-mail registrado ainda.</li>";
+    }).catch(function () { if (pedido === emailDetalhePedido && dlg.dataset.id === id) $("[data-detail-email-list]").textContent = "Não foi possível carregar os e-mails."; });
+  }
+  function atualizarEmails() {
+    carregarEmails();
+    if (dlg.open) carregarEmailsDetalhe(dlg.dataset.id);
+  }
+  function iniciarEmails() {
+    $("[data-email-panel]").hidden = eu.papel !== "admin";
+    if (eu.papel !== "admin") return;
+    carregarEmails();
+    $("[data-email-connection]").textContent = "Conectando atualizações automáticas…";
+    sb.channel("crm-emails").on("postgres_changes", { event: "*", schema: "public", table: "crm_emails" }, function () {
+      clearTimeout(emailTimer); emailTimer = setTimeout(atualizarEmails, 250);
+    }).subscribe(function (status) {
+      $("[data-email-connection]").textContent = status === "SUBSCRIBED" ? "Atualizações em tempo real conectadas." : "Reconectando; atualização automática a cada minuto.";
+      if (status === "SUBSCRIBED") atualizarEmails();
+    });
+    // Também renova a janela de 48 h, mesmo quando não chega um evento novo.
+    setInterval(function () { if (!document.hidden) atualizarEmails(); }, 60000);
+  }
+  $("[data-email-refresh]").addEventListener("click", atualizarEmails);
+  $("[data-goto-emails]").addEventListener("click", function () { $("[data-email-panel]").scrollIntoView({ behavior: "smooth" }); });
+  $("[data-email-more]").addEventListener("click", function () { emailLimite += 50; carregarEmails(); });
+  ["[data-email-search]", "[data-email-filter]"].forEach(function (selector) { $(selector).addEventListener("input", function () {
+    emailLeadId = null; ++emailPedido; clearTimeout(emailTimer); emailLimite = 50; emailTimer = setTimeout(carregarEmails, 250);
+  }); });
+  $("[data-detail-email-all]").addEventListener("click", function () {
+    var l = lead(dlg.dataset.id); if (!l) return;
+    $("[data-email-search]").value = l.email; $("[data-email-filter]").value = ""; emailLimite = 50;
+    emailLeadId = l.id; dlg.close(); carregarEmails(); $("[data-email-panel]").scrollIntoView({ behavior: "smooth" });
+  });
+
+  var convitePedido = 0, conviteOcupado = {};
+  function podeConvidar(l) {
+    return eu.papel === "admin" && l.user_id && l.papel === "teste" && l.status !== "assinante" &&
+      ["revogado", "bloqueado", "bloqueado_login"].indexOf(l.acesso_modo) < 0 &&
+      !(l.acesso_inicio && Date.parse(l.acesso_inicio) > Date.now()) &&
+      !(l.acesso_modo === "liberado" && !l.acesso_fim);
+  }
+  function carregarConvite(l) {
+    var pedido = ++convitePedido, id = l.id;
+    $("[data-invite-panel]").hidden = eu.papel !== "admin" || !l.user_id;
+    $("[data-invite-grant]").disabled = !podeConvidar(l) || !!conviteOcupado[id];
+    $("[data-invite-resend]").disabled = true;
+    $("[data-invite-status]").textContent = "";
+    if (eu.papel !== "admin" || !l.user_id) return;
+    $("[data-invite-status]").textContent = "Consultando último convite…";
+    sb.from("crm_convites").select("fim,enviado_em,erro,criado_em").eq("lead_id", id).order("criado_em", { ascending: false }).limit(1).maybeSingle().then(function (r) {
+      if (pedido !== convitePedido || !dlg.open || dlg.dataset.id !== id) return;
+      var c = r.data;
+      $("[data-invite-status]").textContent = r.error ? "Não foi possível consultar o último convite." : !c ? "Nenhum convite enviado ainda." :
+        "Prazo da cortesia: " + fmt(c.fim) + ". " + (c.enviado_em ? "E-mail enviado em " + fmt(c.enviado_em) + "." : c.erro ? "Envio não confirmado. Tente novamente." : "Envio ainda não confirmado.");
+      $("[data-invite-resend]").disabled = !podeConvidar(l) || !!conviteOcupado[id] || !c || Date.parse(c.fim) <= Date.now() || l.acesso_modo !== "liberado" || Date.parse(l.acesso_fim) !== Date.parse(c.fim);
+    }).catch(function () {
+      if (pedido === convitePedido && dlg.open && dlg.dataset.id === id) $("[data-invite-status]").textContent = "Não foi possível consultar o último convite.";
+    });
+  }
+  async function enviarConvite(conceder) {
+    var l = lead(dlg.dataset.id); if (!l || !podeConvidar(l) || conviteOcupado[l.id]) return;
+    var id = l.id, chave = "crm-convite/" + eu.id + "/" + id + "/" + conceder;
+    var pedido = sessionStorage.getItem(chave);
+    if (!pedido) { pedido = crypto.randomUUID(); sessionStorage.setItem(chave, pedido); }
+    conviteOcupado[id] = true; ++convitePedido;
+    $("[data-invite-grant]").disabled = true; $("[data-invite-resend]").disabled = true;
+    $("[data-invite-status]").textContent = "Enviando convite…";
+    try {
+      var r = await sb.functions.invoke("crm-convite", { body: { lead_id: id, pedido: pedido, conceder: conceder } });
+      if (r.error) {
+        var mensagem = r.error.message;
+        if (r.error.context && [400, 401, 403, 503].indexOf(r.error.context.status) >= 0) sessionStorage.removeItem(chave);
+        if (r.error.context && r.error.context.json) { try { mensagem = (await r.error.context.json()).error || mensagem; } catch (_) {} }
+        throw new Error(mensagem);
+      }
+      if (r.data.error) throw new Error((r.data.fim ? "Cortesia até " + fmt(r.data.fim) + ". " : "") + r.data.error);
+      if (!r.data.enviado) throw new Error("Envio ainda não confirmado. Tente novamente.");
+      sessionStorage.removeItem(chave);
+      toast("Convite enviado. Chat grátis até " + fmt(r.data.fim) + ".");
+    } catch (err) {
+      // Conserva o mesmo pedido em caso de timeout: repetir não concede mais dias nem duplica o e-mail.
+      toast(err.message || "Não foi possível enviar o convite.", "erro");
+      if (dlg.open && dlg.dataset.id === id) $("[data-invite-status]").textContent = err.message || "Envio não confirmado.";
+    } finally {
+      conviteOcupado[id] = false;
+      await loadLeads();
+      if (dlg.open && dlg.dataset.id === id) { preencherAcesso(lead(id)); carregarConvite(lead(id)); carregarHistorico(id); }
+    }
+  }
+  $("[data-invite-grant]").addEventListener("click", function () { enviarConvite(true); });
+  $("[data-invite-resend]").addEventListener("click", function () { enviarConvite(false); });
+
+  function estadoAcesso(l) {
+    if (l.acesso_modo === "bloqueado" || l.acesso_modo === "bloqueado_login") return "bloqueado";
+    if (l.acesso_modo === "revogado" || (l.status === "cancelado" && l.acesso_modo !== "liberado")) return "revogado";
+    if (l.acesso_inicio && Date.parse(l.acesso_inicio) > Date.now()) return "agendado";
+    if (l.acesso_fim && Date.parse(l.acesso_fim) <= Date.now()) return "vencido";
+    return "disponivel";
+  }
+  function rotuloAcesso(l) {
+    return { disponivel: "Disponível", agendado: "Agendado", vencido: "Vencido", revogado: "Revogado", bloqueado: "Bloqueado" }[estadoAcesso(l)];
+  }
+  function dataLocal(v) {
+    if (!v) return "";
+    var d = new Date(v); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  }
+  function preencherAcesso(l) {
+    $("[data-access-panel]").hidden = eu.papel !== "admin" || !l.user_id;
+    $("[data-access-mode]").value = l.acesso_modo || "padrao";
+    $("[data-access-start]").value = dataLocal(l.acesso_inicio);
+    $("[data-access-end]").value = dataLocal(l.acesso_fim);
+    $("[data-access-reason]").value = l.acesso_motivo || "";
+    $("[data-access-current]").textContent = "Acesso atual: " + rotuloAcesso(l) + (l.papel === "admin" ? ". Rebaixe o administrador antes de restringir o acesso." : ".");
+    $("[data-access-save]").disabled = l.papel === "admin" || l.user_id === eu.id;
+  }
+  $("[data-access-form]").addEventListener("submit", function (e) {
+    e.preventDefault(); var l = lead(dlg.dataset.id); if (!l || eu.papel !== "admin") return;
+    var id = l.id, btn = $("[data-access-save]");
+    var inicio = $("[data-access-start]").value, fim = $("[data-access-end]").value;
+    btn.disabled = true;
+    sb.rpc("crm_definir_acesso", { p_lead_id: id, p_modo: $("[data-access-mode]").value,
+      p_inicio: inicio ? new Date(inicio).toISOString() : null, p_fim: fim ? new Date(fim).toISOString() : null,
+      p_motivo: $("[data-access-reason]").value.trim() }).then(function (r) {
+      if (r.error) throw r.error;
+      toast("Controle de acesso salvo."); return loadLeads().then(function () { if (dlg.open && dlg.dataset.id === id) abrirDetalhe(id); });
+    }).catch(function (err) { toast(err.message || "Não foi possível salvar o acesso.", "erro"); })
+      .finally(function () { if (dlg.dataset.id === id) btn.disabled = false; });
+  });
+  $("[data-access-wa]").addEventListener("click", function (e) {
+    var l = lead(dlg.dataset.id); if (!l || eu.papel !== "admin") return;
+    var dias = Number($("[data-access-wa-days]").value), id = l.id, btn = e.currentTarget;
+    if (!Number.isInteger(dias) || dias < 1 || dias > 365) { toast("Escolha de 1 a 365 dias.", "erro"); return; }
+    btn.disabled = true;
+    sb.rpc("activate_whatsapp_trial", { p_lead_id: id, p_days: dias }).then(function (r) {
+      if (r.error) throw r.error;
+      toast("Teste do WhatsApp ativado por " + dias + " dias.");
+      return loadLeads().then(function () { if (dlg.open && dlg.dataset.id === id) abrirDetalhe(id); });
+    }).catch(function (err) { toast(err.message || "Não foi possível ativar.", "erro"); }).finally(function () { btn.disabled = false; });
+  });
+  $("[data-access-reset-quota]").addEventListener("click", function (e) {
+    var l = lead(dlg.dataset.id); if (!l || eu.papel !== "admin") return;
+    var motivo = $("[data-access-reason]").value.trim(), id = l.id, btn = e.currentTarget;
+    if (!motivo) { toast("Informe o motivo para reiniciar a cota.", "erro"); return; }
+    btn.disabled = true;
+    sb.rpc("crm_reiniciar_cota", { p_lead_id: id, p_motivo: motivo }).then(function (r) {
+      if (r.error) throw r.error;
+      toast("Cota de perguntas reiniciada.");
+      return loadLeads().then(function () { if (dlg.open && dlg.dataset.id === id) abrirDetalhe(id); });
+    }).catch(function (err) { toast(err.message || "Não foi possível reiniciar a cota.", "erro"); }).finally(function () { btn.disabled = false; });
+  });
+  $("[data-detail-segment-save]").addEventListener("click", function () {
+    gravarFicha({ segmento: $("[data-detail-segment]").value.trim() || null }, "Segmento salvo.");
+  });
+  ["[data-segment-filter]", "[data-access-filter]", "[data-created-from]", "[data-created-to]"].forEach(function (sel) {
+    $(sel).addEventListener("input", renderRows);
+  });
+  $("[data-clear-admin-filters]").addEventListener("click", function () {
+    ["[data-segment-filter]", "[data-access-filter]", "[data-created-from]", "[data-created-to]"].forEach(function (sel) { $(sel).value = ""; }); renderRows();
+  });
+
+  // ------------------------------------------------------------- investigação de atividade (só admin)
+  // Conversas e mensagens de uma conta, para investigar suspeita de violação dos Termos. O banco só
+  // entrega esses dados pela RPC de investigação, que verifica is_admin() no servidor.
+  // Fotos não ficam guardadas: aparece só o texto que a pessoa enviou.
+  var auditDlg = $("[data-audit]"), audit = { lead: null, conversas: [], msgs: [], porConversa: {} };
+  var RE_ANEXO_A = /\n*\[\[anexo: ([^\]\n]*)\]\]\n([\s\S]*?)\n\[\[\/anexo\]\]/g;
+  var MAX_LISTA = 400, auditPedido = 0;
+
+  function todasAsLinhas(tabela, colunas, uid, pedido) {
+    var linhas = [], pagina = 1000;
+    function proxima(de) {
+      if (pedido !== auditPedido) return Promise.reject(new Error("Investigação encerrada"));
+      return sb.rpc("crm_investigar_" + tabela, { p_user_id: uid }).select(colunas).order("created_at", { ascending: true }).order("id", { ascending: true }).range(de, de + pagina - 1).then(function (r) {
+        if (r.error) throw r.error;
+        linhas = linhas.concat(r.data || []);
+        return (r.data || []).length === pagina ? proxima(de + pagina) : linhas;
+      });
+    }
+    return proxima(0);
+  }
+
+  function abrirAuditoria() {
+    var l = lead(dlg.dataset.id);
+    if (!l || !l.user_id || eu.papel !== "admin") return;
+    clearTimeout(buscaTimer);
+    var pedido = ++auditPedido;
+    audit = { lead: l, conversas: [], msgs: [], porConversa: {} };
+    $("[data-audit-title]").textContent = "Atividade de " + (l.nome || l.email);
+    $("[data-audit-resumo]").innerHTML = "";
+    $("[data-audit-lista]").innerHTML = "";
+    $("[data-audit-busca]").value = ""; $("[data-audit-papel]").value = ""; $("[data-audit-conversa]").innerHTML = '<option value="">Todas as conversas</option>';
+    $("[data-audit-baixar]").disabled = true;
+    $("[data-audit-status]").textContent = "Carregando conversas e mensagens…";
+    if (auditDlg.showModal) auditDlg.showModal(); else auditDlg.setAttribute("open", "");
+    Promise.all([
+      todasAsLinhas("conversations", "id,title,created_at,updated_at", l.user_id, pedido),
+      todasAsLinhas("messages", "id,conversation_id,role,content,model,created_at", l.user_id, pedido),
+    ]).then(function (res) {
+      if (pedido !== auditPedido) return;
+      audit.conversas = res[0]; audit.msgs = res[1];
+      audit.conversas.forEach(function (c) { audit.porConversa[c.id] = c; });
+      $("[data-audit-conversa]").innerHTML = '<option value="">Todas as conversas</option>' + audit.conversas.slice().reverse().map(function (c) {
+        return '<option value="' + esc(c.id) + '">' + esc((c.title || "Sem título").slice(0, 70)) + " · " + esc(fmt(c.created_at)) + "</option>";
+      }).join("");
+      $("[data-audit-baixar]").disabled = false;
+      resumoAuditoria(); renderAuditoria();
+    }).catch(function (e) {
+      if (pedido !== auditPedido) return;
+      $("[data-audit-status]").textContent = "Não foi possível carregar: " + ((e && e.message) || "erro desconhecido");
+    });
+  }
+
+  function resumoAuditoria() {
+    var enviadas = 0, respostas = 0, anexos = 0, modelos = {};
+    audit.msgs.forEach(function (m) {
+      if (m.role === "user") { enviadas++; RE_ANEXO_A.lastIndex = 0; while (RE_ANEXO_A.exec(m.content || "")) anexos++; }
+      else { respostas++; var k = m.model || "—"; modelos[k] = (modelos[k] || 0) + 1; }
+    });
+    var primeira = audit.msgs[0], ultima = audit.msgs[audit.msgs.length - 1];
+    var linhas = [
+      ["Conversas", String(audit.conversas.length)],
+      ["Mensagens enviadas", String(enviadas)],
+      ["Respostas do modelo", String(respostas)],
+      ["Anexos (texto lido)", String(anexos)],
+      ["Primeira atividade", primeira ? fmt(primeira.created_at) : "—"],
+      ["Última atividade", ultima ? fmt(ultima.created_at) : "—"],
+      ["Modelos usados", Object.keys(modelos).map(function (k) { return esc(k) + " (" + modelos[k] + ")"; }).join(" · ") || "—"],
+    ];
+    $("[data-audit-resumo]").innerHTML = linhas.map(function (x) { return "<div><dt>" + x[0] + "</dt><dd>" + x[1] + "</dd></div>"; }).join("");
+  }
+
+  // Texto da mensagem: escapado, anexos recolhidos e o termo buscado destacado.
+  function marcar(texto, termo) {
+    if (!termo) return esc(texto);
+    var t = termo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    var re = new RegExp(t, "gi"), html = "", ultimo = 0, m;
+    while ((m = re.exec(texto))) {
+      html += esc(texto.slice(ultimo, m.index)) + "<mark>" + esc(m[0]) + "</mark>";
+      ultimo = re.lastIndex;
+    }
+    return html + esc(texto.slice(ultimo));
+  }
+  function corpoMensagem(texto, termo) {
+    var html = "", ultimo = 0, m;
+    RE_ANEXO_A.lastIndex = 0;
+    function trecho(t) { t = t.trim(); return t ? "<p>" + marcar(t, termo).replace(/\n/g, "<br>") + "</p>" : ""; }
+    while ((m = RE_ANEXO_A.exec(texto))) {
+      html += trecho(texto.slice(ultimo, m.index));
+      html += '<details class="audit-anexo"><summary>Anexo: ' + esc(m[1]) + "</summary><pre>" + marcar(m[2], termo) + "</pre></details>";
+      ultimo = RE_ANEXO_A.lastIndex;
+    }
+    return html + trecho(texto.slice(ultimo));
+  }
+
+  function renderAuditoria() {
+    var termo = $("[data-audit-busca]").value.trim(), papel = $("[data-audit-papel]").value, conv = $("[data-audit-conversa]").value;
+    var t = termo.toLowerCase();
+    var lista = audit.msgs.filter(function (m) {
+      return (!papel || m.role === papel) && (!conv || m.conversation_id === conv) && (!t || String(m.content || "").toLowerCase().indexOf(t) >= 0);
+    });
+    var html = "", convAtual = null;
+    lista.slice(0, MAX_LISTA).forEach(function (m) {
+      if (m.conversation_id !== convAtual) {
+        convAtual = m.conversation_id;
+        var c = audit.porConversa[convAtual];
+        html += '<li class="audit-conv"><b>' + esc(c ? (c.title || "Sem título") : "Conversa apagada") + "</b><span>" + esc(c ? "aberta em " + fmt(c.created_at) : "") + "</span></li>";
+      }
+      var quem = m.role === "user" ? "Pessoa" : "Trustio";
+      html += '<li class="audit-msg audit-' + (m.role === "user" ? "user" : "ia") + '"><div class="audit-meta"><span class="audit-quem">' + quem + "</span><time>" + esc(fmt(m.created_at)) + "</time>" +
+        (m.model ? '<span class="audit-modelo">' + esc(m.model) + "</span>" : "") + "</div>" + corpoMensagem(String(m.content || ""), termo) + "</li>";
+    });
+    $("[data-audit-lista]").innerHTML = html;
+    $("[data-audit-status]").textContent = !audit.msgs.length ? "Nenhuma mensagem nesta conta."
+      : lista.length > MAX_LISTA ? "Mostrando " + MAX_LISTA + " de " + lista.length + " mensagens: refine a busca ou escolha uma conversa."
+      : lista.length + (lista.length === 1 ? " mensagem" : " mensagens") + (lista.length < audit.msgs.length ? " de " + audit.msgs.length : "") + ".";
+  }
+
+  function baixarAuditoria() {
+    var l = audit.lead; if (!l) return;
+    var dados = {
+      exportado_em: new Date().toISOString(), exportado_por: eu.id,
+      finalidade: "Investigação de possível violação dos Termos de Uso (acesso de administrador)",
+      conta: { user_id: l.user_id, email: l.email, nome: l.nome || null },
+      conversas: audit.conversas, mensagens: audit.msgs,
+    };
+    var blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "trustio-atividade-" + String(l.email || l.user_id).replace(/[^a-z0-9@._-]+/gi, "_") + "-" + hoje() + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  }
+
+  var buscaTimer = null;
+  $("[data-detail-audit]").addEventListener("click", abrirAuditoria);
+  $("[data-audit-close]").addEventListener("click", function () { auditDlg.close(); });
+  auditDlg.addEventListener("click", function (e) { if (e.target === auditDlg) auditDlg.close(); });
+  auditDlg.addEventListener("close", function () { ++auditPedido; clearTimeout(buscaTimer); audit = { lead: null, conversas: [], msgs: [], porConversa: {} }; $("[data-audit-lista]").innerHTML = ""; });
+  $("[data-audit-busca]").addEventListener("input", function () { clearTimeout(buscaTimer); buscaTimer = setTimeout(renderAuditoria, 200); });
+  $("[data-audit-papel]").addEventListener("change", renderAuditoria);
+  $("[data-audit-conversa]").addEventListener("change", renderAuditoria);
+  $("[data-audit-baixar]").addEventListener("click", baixarAuditoria);
+
   // Grava um campo da ficha (próximo contato, etiquetas) e atualiza linha, números e histórico.
   function gravarFicha(patch, ok) {
     var id = dlg.dataset.id, l = lead(id); if (!l) return;
@@ -498,7 +871,7 @@
     sb.from("crm_leads").update(patch).eq("id", id).select("id," + cols).single().then(function (r) {
       if (r.error) { toast(erroLegivel(r.error), "erro"); abrirDetalhe(id); return; }
       Object.keys(patch).forEach(function (k) { l[k] = r.data[k]; });
-      render(); abrirDetalhe(id);
+      render(); if (dlg.open && dlg.dataset.id === id) abrirDetalhe(id);
       toast(ok);
     });
   }
@@ -524,7 +897,7 @@
   $("[data-d-etiquetas]").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); salvarEtiquetas(); } });
 
   // Histórico do lead: quem mudou o quê e quando (gravado pelo banco, só a equipe lê).
-  var CAMPO_LABEL = { criado: "Cadastro", status: "Status", plano: "Plano", papel: "Tipo de usuário", whatsapp_trial_status: "WhatsApp", notas: "Notas", proximo_contato: "Próximo contato", etiquetas: "Etiquetas", telefone: "Telefone", confirmed_at: "E-mail confirmado" };
+  var CAMPO_LABEL = { convite_retorno: "Convite de retorno", segmento: "Segmento", acesso_modo: "Controle de acesso", acesso_inicio: "Início do acesso", acesso_fim: "Fim do acesso", acesso_motivo: "Motivo", whatsapp_trial_ends_at: "Fim do teste WhatsApp", criado: "Cadastro", status: "Status", plano: "Plano", papel: "Tipo de usuário", whatsapp_trial_status: "WhatsApp", notas: "Notas", proximo_contato: "Próximo contato", etiquetas: "Etiquetas", telefone: "Telefone", confirmed_at: "E-mail confirmado" };
   function valorEvento(campo, v) {
     if (v == null || v === "") return "—";
     if (campo === "status") return LABEL[v] || v;
@@ -593,7 +966,7 @@
   }
 
   $("[data-export]").addEventListener("click", function () {
-    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "status", "papel", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "whatsapp_aviso_email_em", "whatsapp_aviso_email_erro", "whatsapp_aviso_wa_em", "whatsapp_aviso_wa_erro", "created_at", "confirmed_at", "ultimo_acesso", "proximo_contato", "etiquetas", "notas"];
+    var cols = ["nome", "email", "telefone", "tipo", "empresa", "segmento", "origem", "acesso_modo", "acesso_inicio", "acesso_fim", "acesso_motivo", "status", "papel", "plano", "mensagens_usadas", "conversas", "whatsapp_numero", "whatsapp_trial_status", "whatsapp_trial_requested_at", "whatsapp_trial_ends_at", "whatsapp_aviso_email_em", "whatsapp_aviso_email_erro", "whatsapp_aviso_wa_em", "whatsapp_aviso_wa_erro", "created_at", "confirmed_at", "ultimo_acesso", "proximo_contato", "etiquetas", "notas"];
     // Valores vindos do cadastro público: neutraliza prefixos que planilhas interpretam como fórmula.
     var cell = function (v) {
       v = v == null ? "" : String(v);

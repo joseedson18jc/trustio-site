@@ -31,9 +31,11 @@ def norm(n):
     d = re.sub(r"\D", "", n or "")
     if len(d) in (10, 11): d = "55" + d
     return d if 12 <= len(d) <= 15 else None
-dinamicos = json.load(sys.stdin)["numeros"]
+dados = json.load(sys.stdin)
+dinamicos = dados["numeros"]
+negados = {n for n in map(norm, dados.get("negados", [])) if n}
 fixos = open(sys.argv[1]).read().split()
-print(",".join(sorted({n for n in map(norm, fixos + dinamicos) if n})))
+print(",".join(sorted({n for n in map(norm, fixos + dinamicos) if n and n not in negados})))
 ' "$FIXOS") || { log "resposta inválida; lista mantida"; exit 0; }
 # Lista vazia não pode virar "sem lista": no Hermes isso pode liberar qualquer número. Um número
 # que não existe mantém o gateway fechado para todos até alguém ser liberado.

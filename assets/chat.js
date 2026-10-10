@@ -7,6 +7,13 @@
   var abrirContaAoEntrar = location.hash === "#conta";
   // Mesmo arquivo nas duas versões do site: o texto segue o idioma da página.
   var EN = /^en\b/i.test(document.documentElement.lang);
+  // Pasta assets/ a partir deste arquivo (vale em /app/ e em /en/app/).
+  var ASSETS = (function () { try { return new URL(".", document.currentScript.src).href; } catch (e) { return "../assets/"; } })();
+  // Marcas dos modelos que o site tem em assets/modelos/ (outro nome que vier do servidor é ignorado).
+  var ICONES = { flash: true, heavy: true };
+  var ICONE_POR_ID = { "trustio-flash": "flash", "trustio-heavy": "heavy" };
+  // Celular e tablet (toque como entrada principal).
+  var TOQUE = !!(window.matchMedia && window.matchMedia("(hover: none) and (pointer: coarse)").matches);
   var T = function (pt, en) { return EN ? en : pt; };
   var LOCAL = EN ? "en-US" : "pt-BR";
   var CFG = window.TRUSTIO_AUTH;
@@ -47,8 +54,22 @@
   }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
+  // Respostas: assets/chat-render.js (Markdown com tabelas, LaTeX via KaTeX e gráficos 2D/3D); sem ele,
+  // a renderização mínima abaixo. desenhar() pinta os gráficos depois que o HTML entra na página.
+  function render(md) { return window.TrustioRender ? window.TrustioRender.html(md) : renderBasico(md); }
+  function desenhar(el) { if (window.TrustioRender) window.TrustioRender.hydrate(el); destacar(el); }
+  // Parágrafo que abre com "**Resultado:**" (ou Resposta, Conclusão…) vira um cartão de destaque.
+  var RE_DESTAQUE = /^(resultado|resposta|conclus[ãa]o|resumo|result|answer|conclusion|summary|bottom line)( final)?\s*:?$/i;
+  function destacar(el) {
+    if (!el || !el.querySelectorAll) return;
+    el.querySelectorAll(":scope > p").forEach(function (p) {
+      var f = p.firstElementChild;
+      if (f && f.tagName === "STRONG" && p.firstChild === f && RE_DESTAQUE.test(f.textContent.trim())) p.classList.add("msg-destaque");
+    });
+  }
+
   // Renderização mínima e segura de Markdown (blocos de código, inline, negrito, listas, títulos).
-  function render(md) {
+  function renderBasico(md) {
     var out = [], parts = String(md).split(/```/);
     for (var i = 0; i < parts.length; i++) {
       if (i % 2 === 1) {
@@ -152,7 +173,7 @@
           // do que deixar a pessoa escrever uma pergunta para receber um erro depois.
           verificarAbertura(session.access_token);
         }
-        input.focus();
+        if (!TOQUE) input.focus();
       });
     }).catch(function (err) {
       console.error(err);
@@ -165,7 +186,7 @@
     fetch(CFG.chatEndpoint, { method: "GET", headers: { "Authorization": "Bearer " + token, "apikey": CFG.key } })
       .then(function (res) { return res.ok ? res.json() : null; })
       .then(function (d) {
-        if (d && Array.isArray(d.modelos)) state.modelos = d.modelos;
+        if (d && Array.isArray(d.modelos)) { state.modelos = d.modelos; renderModeloBar(); }
         if (!d || d.chat_aberto) { fechar(false); return; }
         fechar(true, d);
       })
@@ -184,12 +205,40 @@
     }
     d = d || {};
     input.disabled = true; sendBtn.disabled = true;
+    if (d.motivo === "acesso_revogado") {
+      input.placeholder = T("Acesso ao chat indisponível para esta conta", "Chat access unavailable for this account");
+      showNotice(T("<b>Esta conta está sem acesso ao chat.</b> O acesso pode ter sido revogado, bloqueado ou estar fora do período autorizado. Fale com a equipe pelo contato@trustio.com.br.", "<b>This account cannot access chat.</b> Access may have been revoked, blocked, or outside its authorized dates. Contact contato@trustio.com.br."));
+      return;
+    }
     input.placeholder = T("Chat temporariamente indisponível", "Chat temporarily unavailable");
     showNotice(T("<b>O chat está temporariamente indisponível.</b> Sua conta e suas perguntas grátis continuam preservadas. Tente novamente em instantes. Se o problema continuar, fale com a equipe pelo contato@trustio.com.br.", "<b>The chat is temporarily unavailable.</b> Your account and free questions are preserved. Try again shortly. If the issue continues, contact our team at contato@trustio.com.br."));
   }
 
-  // Baixar e apagar só aparecem com uma conversa aberta.
-  function botoesDaConversa(visiveis) { deleteBtn.hidden = !visiveis; baixarBtn.hidden = !visiveis; }
+  // Baixar e apagar ficam no menu ⋯ do cabeçalho, que só aparece com uma conversa aberta.
+  var topMais = $("[data-top-mais]"), topMaisBtn = $("[data-top-mais-btn]"), topMenu = $("[data-top-menu]");
+  function botoesDaConversa(visiveis) { if (!visiveis) fecharMenuTopo(); topMais.hidden = !visiveis; }
+  function fecharMenuTopo() { topMenu.hidden = true; topMaisBtn.setAttribute("aria-expanded", "false"); }
+  topMaisBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var abrir = topMenu.hidden;
+    topMenu.hidden = !abrir; topMaisBtn.setAttribute("aria-expanded", String(abrir));
+    if (abrir) topMenu.querySelector("button").focus();
+  });
+  topMenu.addEventListener("click", fecharMenuTopo);
+  // Teclado no menu: setas, Home e End andam entre os itens (o foco dá a volta nas pontas).
+  topMenu.addEventListener("keydown", function (e) {
+    var itens = Array.prototype.slice.call(topMenu.querySelectorAll("[role=menuitem]"));
+    var i = itens.indexOf(document.activeElement), n = itens.length, alvo = -1;
+    if (e.key === "ArrowDown") alvo = (i + 1) % n;
+    else if (e.key === "ArrowUp") alvo = (i - 1 + n) % n;
+    else if (e.key === "Home") alvo = 0;
+    else if (e.key === "End") alvo = n - 1;
+    else if (e.key === "Tab") { fecharMenuTopo(); return; }
+    if (alvo < 0) return;
+    e.preventDefault(); itens[alvo].focus();
+  });
+  document.addEventListener("click", function (e) { if (!topMenu.hidden && !e.target.closest("[data-top-mais]")) fecharMenuTopo(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !topMenu.hidden) { fecharMenuTopo(); topMaisBtn.focus(); } });
 
   function loadLead() {
     return sb.from("crm_leads").select("nome,email,telefone,tipo,status,papel,plano,mensagens_usadas,onboarding_seen_at,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_requested_at,whatsapp_trial_started_at,whatsapp_trial_ends_at").eq("user_id", state.user.id).maybeSingle()
@@ -506,24 +555,26 @@
     var inner = ensureThreadInner();
     inner.innerHTML = "<p class=\"msg-meta\">" + T("Carregando…", "Loading…") + "</p>";
     renderConversations();
-    sb.from("messages").select("role,content,created_at").eq("conversation_id", id).order("created_at", { ascending: true })
+    sb.from("messages").select("role,content,created_at,model").eq("conversation_id", id).order("created_at", { ascending: true })
       .then(function (r) {
         // O usuário pode ter trocado de conversa enquanto esta carregava: só renderiza se ainda for a ativa.
         if (state.conversationId !== id || state.threadInner !== inner) return;
         inner.innerHTML = "";
-        (r.data || []).forEach(function (m) { appendMessage(m.role, m.content); });
+        (r.data || []).forEach(function (m) { appendMessage(m.role, m.content, m.model); });
         scrollBottom();
       });
   }
 
-  function appendMessage(role, content) {
+  function appendMessage(role, content, modelo) {
     var inner = ensureThreadInner();
     var el = document.createElement("article");
     el.className = "msg msg-" + role;
-    el.innerHTML = "<span class=\"msg-av\" aria-hidden=\"true\">" + (role === "user" ? "" : "T") + "</span><div class=\"msg-body\"></div>";
-    if (role === "user") pintarAvatarMensagem(el.querySelector(".msg-av"));
+    // Usuário: balão à direita, sem avatar. Resposta: cartão com a marca e o nome do modelo no topo.
+    el.innerHTML = role === "user" ? "<div class=\"msg-body\"></div>"
+      : "<div class=\"msg-cab\"><span class=\"msg-av\" aria-hidden=\"true\"><img src=\"" + ASSETS + "trustio-mark.svg\" alt=\"\"></span><b class=\"msg-quem\">Trustio</b></div><div class=\"msg-body\"></div>";
+    if (role !== "user") marcarModelo(el, modelo);
     var body = el.querySelector(".msg-body");
-    if (role === "user") body.innerHTML = renderUsuario(content); else body.innerHTML = render(content);
+    if (role === "user") body.innerHTML = renderUsuario(content); else { body.innerHTML = render(content); desenhar(body); }
     inner.appendChild(el);
     return el;
   }
@@ -540,6 +591,28 @@
       ultimo = RE_ANEXO.lastIndex;
     }
     return html + trecho(texto.slice(ultimo));
+  }
+
+  // Resposta de um modelo com marca conhecida (Flash, Heavy Thinking): o avatar mostra a marca dele.
+  function iconeDoModelo(id) {
+    if (!id) return null;
+    var m = state.modelos.filter(function (x) { return x.id === id; })[0];
+    var ic = (m && m.icone) || ICONE_POR_ID[id];
+    return ic && ICONES[ic] ? ic : null;
+  }
+  function rotuloDoModelo(id) {
+    var m = state.modelos.filter(function (x) { return x.id === id; })[0];
+    return m ? m.rotulo : ({ "trustio-flash": "Trustio Flash", "trustio-heavy": "Trustio Heavy Thinking" })[id] || "";
+  }
+  function marcarModelo(el, modelo) {
+    var ic = iconeDoModelo(modelo), av = el.querySelector(".msg-av"), quem = el.querySelector(".msg-quem");
+    if (quem && rotuloDoModelo(modelo)) quem.textContent = rotuloDoModelo(modelo);
+    if (!ic || !av) return;
+    av.textContent = "";
+    var img = document.createElement("img"); img.src = ASSETS + "modelos/" + ic + ".svg"; img.alt = "";
+    av.appendChild(img);
+    av.classList.add("tem-modelo");
+    av.title = rotuloDoModelo(modelo);
   }
 
   function scrollBottom() { thread.scrollTop = thread.scrollHeight; }
@@ -599,7 +672,7 @@
       input.value = rascunho.texto; autosize();
       anexos = rascunho.anexos; renderAnexos();
     }
-    var pending = appendMessage("assistant", "");
+    var pending = appendMessage("assistant", "", state.modelos.length >= 2 ? modeloAtual() : null);
     pending.classList.add("msg-pending");
     var body = pending.querySelector(".msg-body");
     var full = "", avisado = false;
@@ -647,9 +720,9 @@
       return fetch(CFG.chatEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token, "apikey": CFG.key },
-        body: JSON.stringify(imagens.length
-          ? { conversation_id: state.conversationId, message: text, imagens: imagens }
-          : { conversation_id: state.conversationId, message: text })
+        body: JSON.stringify(Object.assign({ conversation_id: state.conversationId, message: text },
+          imagens.length ? { imagens: imagens } : {},
+          state.modelos.length >= 2 ? { modelo: modeloAtual() || "" } : {}))
       });
     }).then(function (res) {
       if (!res.ok) {
@@ -666,6 +739,12 @@
             if (!line) return;
             var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
             if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; lembrarConversa(d.conversation_id); }
+            if (d.modelo && d.modelo !== (pending.dataset.modelo || "")) {
+              pending.dataset.modelo = d.modelo;
+              var avAtual = pending.querySelector(".msg-av");
+              if (avAtual && iconeDoModelo(d.modelo)) marcarModelo(pending, d.modelo);
+              else if (avAtual && avAtual.classList.contains("tem-modelo")) { avAtual.classList.remove("tem-modelo"); avAtual.textContent = "T"; avAtual.removeAttribute("title"); }
+            }
             if (d.limite) { limite = Number(d.limite) || 0; prog.classList.remove("is-open"); mostrarProgresso(); }
             if (d.raciocinio) {
               contar(d);
@@ -680,7 +759,7 @@
             if (d.delta) {
               // Primeiro trecho da resposta: o raciocínio recolhe e a resposta fica em foco.
               if (!full && !think.hidden) think.open = false;
-              contar(d); full += d.delta; body.innerHTML = render(full); mostrarProgresso(); scrollBottom();
+              contar(d); full += d.delta; body.innerHTML = render(full); desenhar(body); mostrarProgresso(); scrollBottom();
             }
             if (!d.delta && !d.raciocinio && typeof d.n === "number" && !d.done) { contar(d); mostrarProgresso(); }
             if (d.error) {
@@ -725,6 +804,7 @@
       devolverRascunho();
       if (code === "trial_esgotado") { pending.remove(); if (state.lead) { state.lead.status = "trial_esgotado"; state.lead.mensagens_usadas = state.limit; } renderMe(); }
       else if (code === "email_nao_confirmado") { pending.remove(); showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); }
+      else if (code === "acesso_revogado") { pending.remove(); fechar(true, { motivo: "acesso_revogado" }); }
       else if (code === "chat_ainda_fechado") { pending.remove(); fechar(true, (err && err.data) || {}); }
       else if (code === "modelo_nao_configurado") { pending.remove(); fechar(true, { motivo: "sem_modelo" }); }
       else if (code === "contexto_cheio") { pending.remove(); sessaoCheia((err && err.data && err.data.janela) || 0); }
@@ -737,7 +817,7 @@
       if (!body.innerHTML && pending.parentNode) pending.remove();
       state.sending = false;
       thread.setAttribute("aria-busy", "false");
-      if (!state.fechado && !state.sessaoCheia && !(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; input.focus(); }
+      if (!state.fechado && !state.sessaoCheia && !(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; if (!TOQUE) input.focus(); }
     });
   }
 
@@ -889,11 +969,22 @@
   composer.addEventListener("submit", function (e) { e.preventDefault(); send(input.value); });
   input.addEventListener("keydown", function (e) {
     if (e.key !== "Enter" || e.isComposing) return;
+    if (TOQUE && !e.ctrlKey && !e.metaKey) return;
     // Preferência "Enter envia": ligada, Enter envia e Shift+Enter quebra a linha; desligada,
     // Enter quebra a linha e Ctrl+Enter (⌘+Enter no Mac) envia.
     var envia = state.pref.enter_envia ? !e.shiftKey : (e.ctrlKey || e.metaKey);
     if (envia) { e.preventDefault(); send(input.value); }
   });
+  // Teclado virtual aberto (a área visível encolhe): o seletor de modelos recolhe e a conversa
+  // ganha o espaço. Volta quando o teclado fecha.
+  if (TOQUE && window.visualViewport) {
+    var acompanharTeclado = function () {
+      var aberto = window.innerHeight - window.visualViewport.height > 140 && document.activeElement === input;
+      if (aberto) shell.dataset.teclado = "1"; else delete shell.dataset.teclado;
+    };
+    window.visualViewport.addEventListener("resize", acompanharTeclado);
+    input.addEventListener("blur", function () { setTimeout(acompanharTeclado, 60); });
+  }
   function autosize() { input.style.height = "auto"; input.style.height = Math.min(220, input.scrollHeight) + "px"; }
   input.addEventListener("input", autosize);
 
@@ -929,7 +1020,8 @@
   // lê estilo, instruções e modelo), foto de perfil (bucket privado "avatares", pasta da conta),
   // exportar e apagar conversas, senha e sessões.
   var PH_ENTER = input.getAttribute("placeholder") || "";
-  var PH_CTRL = T("Escreva sua mensagem… (Ctrl+Enter ou ⌘+Enter envia)", "Write your message… (Ctrl+Enter or ⌘+Enter sends)");
+  // Tela de toque: Enter quebra a linha e o botão envia; dica de teclado não serve.
+  var PH_CTRL = TOQUE ? PH_ENTER : T("Escreva sua mensagem… (Ctrl+Enter ou ⌘+Enter envia)", "Write your message… (Ctrl+Enter or ⌘+Enter sends)");
   // Cada foto tem nome próprio (derivado de avatar_em): a nova é enviada ao lado da antiga, e a
   // antiga só sai depois que a nova ficou registrada. Uma falha no meio não apaga as duas.
   function caminhoDaFoto(em) { return state.user.id + "/avatar-" + Date.parse(em) + ".jpg"; }
@@ -969,6 +1061,59 @@
     shell.dataset.fonte = state.pref.fonte === "grande" ? "grande" : "normal";
     state.placeholderPadrao = state.pref.enter_envia ? PH_ENTER : PH_CTRL;
     if (!state.fechado && !state.sessaoCheia) input.placeholder = state.placeholderPadrao;
+    renderModeloBar();
+  }
+  // Seletor de modelo na caixa de mensagem (ex.: Trustio Flash / Trustio Heavy Thinking). Aparece
+  // com 2+ modelos na lista que a função devolve; a escolha vai em cada envio e fica salva nas
+  // preferências (vale em todas as conversas e aparelhos).
+  function modeloAtual() {
+    if (state.modelos.some(function (m) { return m.id === state.pref.modelo; })) return state.pref.modelo;
+    // Sem escolha salva: o padrão marcado na lista; sem ele, nenhum (a função usa o padrão do servidor).
+    var p = state.modelos.filter(function (m) { return m.padrao; })[0];
+    return p ? p.id : null;
+  }
+  function descricaoModelo(m) { return (EN && m.descricao_en) || m.descricao || ""; }
+  // Linha curta do cartão: para os modelos com marca, um resumo de quando usar; senão, a descrição do servidor.
+  var RESUMOS = {
+    flash: ["Respostas rápidas para o dia a dia.", "Fast answers for everyday tasks."],
+    heavy: ["Pensa antes de responder. Ideal para tarefas complexas.", "Thinks before answering. Best for complex tasks."]
+  };
+  function resumoModelo(m, ic) {
+    if (ic && RESUMOS[ic]) return T(RESUMOS[ic][0], RESUMOS[ic][1]);
+    return descricaoModelo(m) || (m.id ? "" : T("O modelo padrão do servidor.", "The server's default model."));
+  }
+  function renderModeloBar() {
+    var bar = $("[data-modelo-bar]"), box = $("[data-modelo-opcoes]");
+    if (!bar || !box) return;
+    if (state.modelos.length < 2) { bar.hidden = true; return; }
+    var atual = modeloAtual() || "";
+    // Lista sem padrão marcado: a opção "padrão" fica sempre, para a pessoa poder voltar a ela daqui.
+    var temPadrao = state.modelos.some(function (m) { return m.padrao; });
+    var opcoes = (temPadrao ? [] : [{ id: "", rotulo: T("Trustio (padrão)", "Trustio (default)") }]).concat(state.modelos);
+    box.innerHTML = "";
+    opcoes.forEach(function (m, i) {
+      // Cartão: marca, nome curto (sem o "Trustio"), uma linha sobre quando usar e o indicador.
+      var lab = document.createElement("label");
+      lab.className = "modelo-card" + (m.id === atual ? " is-on" : "");
+      var inp = document.createElement("input");
+      inp.type = "radio"; inp.name = "modelo-rapido"; inp.value = m.id; inp.checked = m.id === atual;
+      inp.setAttribute("aria-label", m.rotulo);
+      lab.appendChild(inp);
+      var ic = iconeDoModelo(m.id);
+      var tile = document.createElement("span"); tile.className = "modelo-ico";
+      var img = document.createElement("img"); img.alt = ""; img.width = 26; img.height = 26;
+      img.src = ASSETS + (ic ? "modelos/" + ic + ".svg" : "trustio-mark.svg");
+      tile.appendChild(img); lab.appendChild(tile);
+      var txt = document.createElement("span"); txt.className = "modelo-txt";
+      var nome = document.createElement("b"); nome.className = "modelo-nome"; nome.textContent = m.rotulo.replace(/^Trustio\s+/, "");
+      var desc = document.createElement("small"); desc.id = "modelo-desc-" + i; desc.textContent = resumoModelo(m, ic);
+      inp.setAttribute("aria-describedby", desc.id);
+      txt.appendChild(nome); txt.appendChild(desc); lab.appendChild(txt);
+      var radio = document.createElement("span"); radio.className = "modelo-radio"; radio.setAttribute("aria-hidden", "true");
+      lab.appendChild(radio);
+      box.appendChild(lab);
+    });
+    bar.hidden = false;
   }
   function salvarPrefs(mudancas) {
     var linha = Object.assign({ user_id: state.user.id }, mudancas);
@@ -1188,13 +1333,18 @@
     $("[data-instr-conta]").textContent = f.instrucoes.value.length;
     var sel = $("[data-modelo-select]");
     sel.innerHTML = "";
-    var padrao = document.createElement("option"); padrao.value = ""; padrao.textContent = T("Trustio (padrão)", "Trustio (default)");
-    sel.appendChild(padrao);
+    // Lista com um modelo marcado como padrão (vinda do servidor): sem a opção vazia, já mostra qual vale.
+    var temPadrao = state.modelos.some(function (m) { return m.padrao; });
+    if (!temPadrao) {
+      var padrao = document.createElement("option"); padrao.value = ""; padrao.textContent = T("Trustio (padrão)", "Trustio (default)");
+      sel.appendChild(padrao);
+    }
     state.modelos.forEach(function (m) {
-      var o = document.createElement("option"); o.value = m.id; o.textContent = m.rotulo + (m.descricao ? " · " + m.descricao : "");
+      var d = descricaoModelo(m);
+      var o = document.createElement("option"); o.value = m.id; o.textContent = m.rotulo + (d ? " · " + d : "");
       sel.appendChild(o);
     });
-    sel.value = state.modelos.some(function (m) { return m.id === state.pref.modelo; }) ? state.pref.modelo : "";
+    sel.value = temPadrao ? modeloAtual() : state.modelos.some(function (m) { return m.id === state.pref.modelo; }) ? state.pref.modelo : "";
     sel.disabled = !state.modelos.length;
     $("[data-modelo-dica]").textContent = state.modelos.length
       ? T("O modelo escolhido vale para as próximas mensagens, em todas as conversas.", "The model you pick applies to your next messages, in every conversation.")
@@ -1253,6 +1403,20 @@
     }).catch(function () { st.textContent = T("Não foi possível salvar agora. Tente de novo.", "We couldn't save right now. Try again."); });
   });
 
+  var modeloOpcoes = $("[data-modelo-opcoes]"), filaModelo = Promise.resolve();
+  if (modeloOpcoes) modeloOpcoes.addEventListener("change", function (e) {
+    if (!e.target || e.target.name !== "modelo-rapido") return;
+    state.pref.modelo = e.target.value || null;
+    renderModeloBar();
+    var marcado = modeloOpcoes.querySelector("input:checked");
+    if (marcado) marcado.focus();
+    // Já vale no próximo envio; salvar é para lembrar nas próximas visitas e em outros aparelhos.
+    // Em fila, uma gravação por vez e sempre com a escolha mais recente: trocas rápidas não
+    // gravam fora de ordem nem devolvem o seletor a uma escolha anterior.
+    filaModelo = filaModelo.then(function () {
+      return sb.from("preferencias_usuario").upsert({ user_id: state.user.id, modelo: state.pref.modelo }, { onConflict: "user_id" });
+    }).catch(function () { /* sem salvar, a escolha vale nesta aba */ });
+  });
   var prefForm = $("[data-pref-form]");
   prefForm.instrucoes.addEventListener("input", function () { $("[data-instr-conta]").textContent = prefForm.instrucoes.value.length; });
   // Tema e tamanho do texto mudam na hora; o resto vale ao salvar.

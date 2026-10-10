@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="t d">
+  <title id="t">Trustio Heavy Thinking</title>
+  <desc id="d">Portal com câmara: pensa antes de responder</desc>
+  <defs>
+    <linearGradient id="hl" gradientUnits="userSpaceOnUse" x1="20" y1="8" x2="44" y2="88">
+      <stop offset="0" stop-color="#5EA7FF"/><stop offset=".45" stop-color="#2E6BF0"/><stop offset="1" stop-color="#0F2C6B"/>
+    </linearGradient>
+    <linearGradient id="hr" gradientUnits="userSpaceOnUse" x1="70" y1="8" x2="76" y2="88">
+      <stop offset="0" stop-color="#2563EB"/><stop offset="1" stop-color="#5EA7FF"/>
+    </linearGradient>
+  </defs>
+  <g stroke-linejoin="round" stroke-width="4">
+    <path fill="url(#hl)" stroke="url(#hl)" d="M10 28Q10 10 28 10H40V38H32V58H58V86H28Q10 86 10 68Z"/>
+    <path fill="url(#hr)" stroke="url(#hr)" d="M56 10H68Q86 10 86 28V68Q86 86 68 86H62V38H56Z"/>
+  </g>
+</svg>

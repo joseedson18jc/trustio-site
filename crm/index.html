@@ -17,11 +17,11 @@
   <link rel="preload" href="../assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="../assets/theme.js?v=62b52a16"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=228a9ffa">
-  <link rel="stylesheet" href="../assets/chat.css?v=94f31701">
-  <link rel="stylesheet" href="../assets/crm.css?v=6bd1f7a0">
+  <link rel="stylesheet" href="../assets/chat.css?v=352dc7bb">
+  <link rel="stylesheet" href="../assets/crm.css?v=4c2b7dd0">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=c3461a69"></script>
-  <script defer src="../assets/crm.js?v=7ccd7f12"></script>
+  <script defer src="../assets/crm.js?v=a4610da7"></script>
 </head>
 <body class="chat-page crm-page">
 <a class="skip-link" href="#leads">Ir para a lista de leads</a>
@@ -38,6 +38,7 @@
       <a class="btn btn-ghost" href="afiliados.html">Afiliados</a>
       <a class="btn btn-ghost" href="../app/">Chat</a>
       <a class="btn btn-ghost so-admin" href="../admin/">Painel</a>
+      <button class="btn btn-ghost so-admin" type="button" data-goto-emails>E-mails e entregas</button>
       <button class="btn btn-ghost" type="button" data-refresh title="Recarregar os leads">Atualizar</button>
       <button class="btn btn-ghost" type="button" data-export>Exportar CSV</button>
       <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Ativar tema claro" title="Alternar tema">
@@ -51,7 +52,7 @@
   <main class="crm-main">
     <div class="page-head">
       <h1>Leads e clientes</h1>
-      <p>Toda conta criada no site entra aqui. O status avança sozinho: cadastro, e-mail confirmado, ativo no chat, teste esgotado. Plano e notas você ajusta na linha; clique no nome para ver tudo sobre o lead.</p>
+      <p>Toda conta criada no site entra aqui. O status avança sozinho: cadastro, e-mail confirmado, ativo no chat, teste esgotado. O administrador controla acesso e prazos na ficha. Plano e notas você ajusta na linha; clique no nome para ver tudo sobre o lead.</p>
     </div>
 
     <div class="stat-row" data-stats>
@@ -97,6 +98,13 @@
         <button type="button" data-filter="pa:cliente">Clientes</button>
       </div>
     </div>
+    <div class="toolbar admin-filtros">
+      <label>Segmento <input type="search" data-segment-filter placeholder="Ex.: saúde, varejo"></label>
+      <label>Acesso <select data-access-filter><option value="">Todos</option><option value="disponivel">Disponível</option><option value="agendado">Agendado</option><option value="vencido">Vencido</option><option value="revogado">Revogado</option><option value="bloqueado">Bloqueado</option></select></label>
+      <label>Cadastro desde <input type="date" data-created-from></label>
+      <label>Até <input type="date" data-created-to></label>
+      <button type="button" class="btn btn-ghost" data-clear-admin-filters>Limpar filtros</button>
+    </div>
     <div class="toolbar toolbar-2">
       <label class="search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg><input type="search" placeholder="Buscar nome, e-mail, telefone, plano, notas" data-search aria-label="Buscar"></label>
       <label class="check"><input type="checkbox" data-hide-tests> Ocultar testes <span data-tests-count></span></label>
@@ -129,8 +137,22 @@
       </table>
       <p class="empty" data-empty hidden>Nenhum lead com esse filtro.</p>
     </div>
-    <p class="foot-note">Status <code>assinante</code> libera o chat sem cota. Alterações são salvas ao sair do campo. O CSV exporta o que está na tela (filtro e busca). <b>Tipo de usuário:</b> admin tem acesso total e muda os tipos (só joseedson18@hotmail.com e matheuscastrocorrea@gmail.com); colaborador usa o CRM e o chat sem cota; teste grátis tem a cota de perguntas grátis; cliente usa o chat sem cota. Testes são os endereços <code>@resend.dev</code> e os que começam com <code>test-</code> ou <code>teste-</code>. <b>Retorno e etiquetas</b> ficam na ficha do lead (clique no nome), junto do histórico de quem mudou o quê; clique numa etiqueta para filtrar.</p>
+    <p class="foot-note">Status <code>assinante</code> libera o chat sem cota quando o controle de acesso permite. Bloqueios e prazos prevalecem. Alterações são salvas ao sair do campo. O CSV exporta o que está na tela (filtro e busca). <b>Tipo de usuário:</b> admin tem acesso total e muda os tipos (só joseedson18@hotmail.com e matheuscastrocorrea@gmail.com); colaborador usa o CRM e o chat sem cota; teste grátis tem a cota de perguntas grátis; cliente usa o chat sem cota. Testes são os endereços <code>@resend.dev</code> e os que começam com <code>test-</code> ou <code>teste-</code>. <b>Retorno e etiquetas</b> ficam na ficha do lead (clique no nome), junto do histórico de quem mudou o quê; clique numa etiqueta para filtrar.</p>
   </main>
+
+  <section class="email-painel so-admin" data-email-panel hidden aria-labelledby="email-title">
+    <h2 id="email-title">E-mails da Trustio</h2>
+    <p>Todos os remetentes @trustio.com.br e seus subdomínios no Resend. Entrega, abertura e cliques aparecem aqui e na ficha do usuário.</p>
+    <div class="detail-linha">
+      <label>Buscar destinatário <input type="search" data-email-search placeholder="E-mail do usuário"></label>
+      <label>Status <select data-email-filter><option value="">Todos</option><option value="enviado">Enviado</option><option value="entregue">Entregue</option><option value="aberto">Abertura registrada</option><option value="clicado">Clique registrado</option><option value="sem_interacao">Sem interação há 48h</option><option value="atrasado">Entrega atrasada</option><option value="rejeitado">Rejeitado</option><option value="falhou">Falhou</option><option value="spam">Marcado como spam</option></select></label>
+      <button type="button" class="btn btn-ghost" data-email-refresh>Atualizar</button>
+    </div>
+    <p data-email-connection role="status"></p>
+    <ol class="email-list" data-email-list aria-live="polite"></ol>
+    <button type="button" class="btn btn-ghost" data-email-more hidden>Mostrar mais e-mails</button>
+    <small>Entregue significa aceito pelo servidor do destinatário. Aberturas e cliques podem ser automáticos; ausência de registro não prova que a pessoa ignorou. O acompanhamento começa na ativação desta integração.</small>
+  </section>
 
   <dialog class="detail" data-detail aria-labelledby="detail-title">
     <div class="detail-head">
@@ -158,6 +180,41 @@
         <small class="detail-dica">Separadas por vírgula. Até 10, com até 30 caracteres cada.</small>
       </div>
     </div>
+    <section class="admin-acesso so-admin" data-invite-panel aria-labelledby="invite-heading">
+      <h3 id="invite-heading">Convidar para experimentar mais</h3>
+      <p>Libere mais 3 dias de chat grátis e envie um e-mail com o prazo, o botão para voltar e o programa de afiliados para ganhar comissões por indicações.</p>
+      <button type="button" class="btn btn-primary" data-invite-grant>+3 dias grátis e enviar e-mail</button>
+      <button type="button" class="btn btn-ghost" data-invite-resend disabled>Reenviar convite</button>
+      <p data-invite-status role="status" aria-live="polite"></p>
+      <small>Somente contas de teste com e-mail confirmado. Reenviar mantém o prazo. Bloqueios e revogações precisam ser revisados no controle de acesso. O teste do WhatsApp é separado.</small>
+      <p><a href="/afiliados.html" target="_blank" rel="noopener">Ver página de afiliados e comissões</a></p>
+    </section>
+    <section class="admin-acesso so-admin" data-detail-email-panel hidden aria-labelledby="detail-email-heading">
+      <h3 id="detail-email-heading">Entrega e interação dos e-mails</h3>
+      <ol class="email-list" data-detail-email-list aria-live="polite"></ol>
+      <button type="button" class="btn btn-ghost" data-detail-email-all>Ver todos os e-mails deste destinatário</button>
+    </section>
+    <section class="admin-acesso so-admin" data-access-panel aria-labelledby="access-heading">
+      <h3 id="access-heading">Controle de acesso</h3>
+      <p>Vale para o chat, o agente no WhatsApp e os painéis da equipe. Alterações não cancelam cobranças ou assinaturas no provedor de pagamento.</p>
+      <form data-access-form>
+        <label>Acesso <select data-access-mode><option value="padrao">Padrão do plano / teste</option><option value="liberado">Liberar chat sem cota</option><option value="revogado">Revogar acesso aos produtos</option><option value="bloqueado">Bloquear produtos, manter login</option><option value="bloqueado_login">Bloquear produtos e novos logins</option></select></label>
+        <label>Início <input type="datetime-local" data-access-start></label>
+        <label>Fim <input type="datetime-local" data-access-end></label>
+        <small>Horário local do seu dispositivo. Sem fim: acesso sem prazo. Revogação e bloqueio são imediatos; deixe as datas vazias.</small>
+        <label>Motivo <textarea data-access-reason required maxlength="500" rows="2" placeholder="Registre por que está alterando o acesso"></textarea></label>
+        <p data-access-current role="status"></p>
+        <button type="submit" class="btn btn-primary" data-access-save>Salvar acesso</button>
+      </form>
+      <label>Teste do WhatsApp: duração em dias <input type="number" min="1" max="365" value="3" data-access-wa-days></label>
+      <button type="button" class="btn btn-ghost" data-access-wa>Ativar / renovar teste do WhatsApp</button>
+      <button type="button" class="btn btn-ghost" data-access-reset-quota>Reiniciar cota de perguntas (com motivo)</button>
+      <small>A liberação sem cota é do chat. O WhatsApp continua dependendo do teste ou da assinatura ativa.</small>
+    </section>
+    <div class="detail-edit">
+      <label>Segmento <input type="text" data-detail-segment maxlength="100" placeholder="Ex.: saúde, varejo"></label>
+      <button type="button" class="btn btn-ghost" data-detail-segment-save>Salvar segmento</button>
+    </div>
     <section class="historico" aria-labelledby="historico-titulo">
       <h3 id="historico-titulo">Histórico</h3>
       <ol data-historico></ol>
@@ -166,7 +223,30 @@
       <a class="btn btn-primary" data-detail-mail href="#">Enviar e-mail</a>
       <a class="btn btn-ghost" data-detail-wa href="#" target="_blank" rel="noopener">Abrir no WhatsApp</a>
       <button type="button" class="btn btn-ghost" data-detail-copy>Copiar e-mail</button>
+      <button type="button" class="btn btn-ghost" data-detail-audit hidden>Investigar atividade</button>
     </div>
+  </dialog>
+  <dialog class="detail audit" data-audit aria-labelledby="audit-title">
+    <div class="detail-head">
+      <div>
+        <h2 id="audit-title" data-audit-title>Atividade</h2>
+        <p class="audit-aviso">Só administradores. Use para investigar suspeita de violação dos Termos; o acesso é previsto na Política de Privacidade.</p>
+      </div>
+      <button type="button" class="detail-x" data-audit-close aria-label="Fechar">×</button>
+    </div>
+    <dl class="audit-resumo" data-audit-resumo></dl>
+    <div class="audit-filtros">
+      <input type="search" data-audit-busca placeholder="Buscar no conteúdo…" aria-label="Buscar no conteúdo" autocomplete="off">
+      <select data-audit-papel aria-label="Mostrar">
+        <option value="">Tudo</option>
+        <option value="user">Só o que a pessoa enviou</option>
+        <option value="assistant">Só as respostas</option>
+      </select>
+      <select data-audit-conversa aria-label="Conversa"><option value="">Todas as conversas</option></select>
+      <button type="button" class="btn btn-ghost" data-audit-baixar disabled>Baixar JSON</button>
+    </div>
+    <p class="audit-status" data-audit-status role="status" aria-live="polite"></p>
+    <ol class="audit-lista" data-audit-lista></ol>
   </dialog>
   <div class="toast" data-toast role="status" aria-live="polite"></div>
 </div>

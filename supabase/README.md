@@ -82,6 +82,15 @@ Em GitHub → Settings → Secrets and variables → Actions → New repository 
 | `HERMES_SEGREDO` | um valor aleatório longo; o mesmo vai no Mac em `~/.trustio-hermes-sync-key` | o sincronizador do Mac ler a lista de números autorizados |
 | `ADMIN_EMAILS` | seus e-mails, separados por vírgula (as contas precisam existir no Auth) | abrir o `/crm/` |
 
+O CRM envia aos administradores atuais com e-mail confirmado um aviso por novo cadastro
+vinculado ao Auth e por primeira assinatura (mudança para `assinante` no CRM ou checkout
+confirmado pela integração Stripe, mesmo sem afiliado). Sem retroatividade. O banco mantém
+uma fila, processada a cada minuto; retentativas usam a mesma chave de idempotência no
+Resend e param após 23 horas para não ultrapassar a janela de deduplicação do provedor.
+O histórico e os erros ficam em `crm_admin_avisos`, com leitura restrita a administradores.
+A remoção de um administrador impede novas tentativas para ele. O workflow configura a
+credencial interna no Vault e na função `admin-avisos` sem publicar seu valor.
+
 Depois disso, rode o workflow uma vez em Actions → Supabase → Run workflow (ou faça qualquer push em
 `supabase/`). Ele vincula o projeto, aplica migrações, `config.toml` (URLs, confirmação, SMTP, templates),
 publica a função `chat`, define os segredos dela e insere os administradores. Sem `SMTP_PASS`, o SMTP
@@ -122,3 +131,60 @@ on conflict (key) do update set value = excluded.value;
 
 Sem essa lista, o seletor aparece travado em "Trustio (padrão)". Um modelo que sai da lista
 deixa de valer na hora: quem o tinha escolhido volta para o padrão.
+
+## Controle administrativo de acesso (10/10/2026)
+
+Na ficha do lead, o administrador pode liberar o chat sem cota, definir início e fim,
+revogar acesso, bloquear produtos mantendo o login ou bloquear também novos logins.
+As datas são verificadas no servidor em cada uso: não dependem de cron. O modo padrão
+mantém as regras de plano/teste; `cancelado` recusa o chat, inclusive para papel cliente.
+A liberação explícita prevalece sobre cancelado enquanto seu período estiver válido.
+O WhatsApp continua exigindo assinatura ou teste ativo: liberar o chat não ativa o agente.
+O teste do WhatsApp pode ser renovado por 1 a 365 dias. A cota do chat pode ser reiniciada
+com motivo, sem remover bloqueios ou renovar datas de acesso.
+
+Todas as mudanças de acesso, motivo, datas, segmento e renovações ficam em `crm_eventos`,
+com autor e valores anteriores/novos. Reiniciar a cota registra também o motivo.
+Colaboradores continuam cuidando de contato, notas, etiquetas e segmentação, mas só admins
+mudam acesso, tipos, status que concedem acesso, cotas e ativação do WhatsApp.
+Um administrador deve ser rebaixado antes de bloquear ou agendar seu acesso; a proteção
+contra remover o último admin considera apenas contas administrativas confirmadas e válidas.
+
+O bloqueio de login atualiza `auth.users.banned_until` na mesma transação do controle de
+acesso, com horizonte de 100 anos (campo usado pelo [Supabase Auth](https://github.com/supabase/auth/blob/master/internal/models/user.go)).
+Ao desfazer, restaura o banimento anterior e preserva mudanças feitas por outra ferramenta.
+Tokens já emitidos não desaparecem do navegador; o servidor recusa os produtos e as permissões
+de equipe pelo controle de acesso. O usuário pode manter seu próprio histórico e dados pessoais.
+Não há exclusão de contas, mensagens ou cancelamento de cobrança: assinatura é administrada
+no provedor de pagamento.
+
+Para publicar, aplique as migrações `20261010150000` e `20261010160000` antes dos novos
+assets e da função `hermes-autorizados`. Atualize também `mac/hermes-autorizados.sh` no Mac
+do agente: a resposta agora inclui `negados`, que prevalece sobre números fixos e compartilhados.
+A remoção no WhatsApp só passa a valer após a sincronização e reinício do gateway (consulta a
+cada 30 segundos; intervalo mínimo normal de reinício de 120 segundos). Falhas de consulta
+mantêm a última lista aplicada, como antes; não considerar a publicação concluída sem testar
+uma revogação no agente real.
+
+Validação local: `npm run test:crm-admin`, `npm run test:crm-audit` e
+`node mac/test/hermes-autorizados.test.mjs`. Os testes de banco usam PostgreSQL embarcado
+(PGlite), o esquema Auth mínimo e as funções reais de autorização/gatilhos das migrações;
+não substituem o teste de login e revogação no Supabase de produção.
+
+### Convite de retorno pelo CRM
+
+Na ficha de uma conta de teste, o administrador pode usar **+3 dias grátis e enviar e-mail**. A migração `20261010170000_crm_convite_retorno.sql` concede chat sem cota até o maior entre agora e o prazo atual, mais três dias. Não altera assinatura, cobrança, papel ou teste do WhatsApp. Não permite contas com bloqueio/revogação, acesso agendado, conta paga/equipe ou acesso sem prazo. O destinatário é o e-mail confirmado do Auth, não o campo editável do lead.
+
+**Reenviar convite** mantém o prazo do convite vigente. A função `crm-convite` valida a sessão e `is_admin` antes de usar `RESEND_API_KEY` e `EMAIL_FROM` (mesmos segredos dos avisos existentes). O e-mail tem prazo em Brasília, links para `/app/` e `/afiliados.html`, e explica que comissões dependem de vendas elegíveis. O CRM mostra o envio aceito pelo provedor ou a falha; aceitação não confirma entrega na caixa de entrada.
+
+Cada pedido tem UUID conservado na sessão do navegador para retentativas. A concessão e o registro são atômicos, há intervalo mínimo de um minuto entre pedidos novos por lead, e o envio usa `Idempotency-Key`. Retentativas pendentes expiram antes das 24 horas de retenção de chaves do Resend; reenvios explícitos têm UUID novo. Só administradores leem `crm_convites`; só a função com service role conclui envios. Histórico registra autor e concessão/reenvio.
+
+Validação: `npm run test:crm-admin`, testes de auditoria e smoke de navegador desktop/mobile. Chamadas ao provedor são simuladas nos testes; nenhum cliente recebe e-mail durante validação.
+
+### Rastreamento de todos os remetentes Trustio
+
+O workflow ativa abertura/cliques nos domínios `trustio.com.br` e subdomínios da conta Resend e cria/reutiliza um webhook com assinatura Svix para `email-eventos`. Precisa de API key com acesso a domínios/webhooks; pode reutilizar `SMTP_PASS` quando for uma chave Resend. O segredo de assinatura vai diretamente para os secrets do Supabase sem aparecer no log.
+
+A migração `20261010180000_crm_email_tracking.sql` grava metadados por mensagem/destinatário, com RLS exclusiva de admin, deduplicação e merge de eventos fora de ordem. Publica `crm_emails` no Realtime. O painel lista os envios de todos os remetentes Trustio, com busca, status e mostrar mais; a ficha mostra os últimos 50, com acesso à lista completa. Atualiza por eventos e a cada minuto como recuperação/renovação da janela de 48h.
+
+Estados: enviado, entregue ao servidor, abertura registrada, clique registrado, sem interação registrada após 48h, atraso, rejeição, falha e spam. Ausência de abertura não prova que a pessoa ignorou; filtros de segurança podem abrir/clicar automaticamente. Eventos de mensagem com múltiplos destinatários não identificam quem interagiu e têm aviso explícito. Não grava corpo, IP/user-agent, query ou fragmento dos links (que poderiam conter tokens de login). Abrange eventos a partir da ativação; histórico antigo não é reconstruído.

@@ -28,6 +28,8 @@ test('rastreamento cobre subdomínios Trustio e rejeita remetentes de outro dom�
   const h=harness();h.event.data.from='Trustio <no-reply@send.trustio.com.br>';assert.equal((await h.request()).status,200);assert.equal(h.calls.length,1);
   h.event.data.from='spam@trustio.com.br.evil.test';assert.equal((await h.request()).status,200);assert.equal(h.calls.length,1);
   h.event.data.from='spam@eviltrustio.com.br';assert.equal((await h.request()).status,200);assert.equal(h.calls.length,1);
+  h.event.data.from='Trustio <diretor@trustio.com.br>';h.event.data.to=['Cliente <USER@test>'];await h.request();
+  assert.equal(h.calls[1].args.p_destinatarios[0],'user@test');
 });
 test('painel representa eventos sem chamar ausência de abertura de ignorado',()=>{
   const source=readFileSync(new URL('../assets/crm.js',import.meta.url),'utf8');

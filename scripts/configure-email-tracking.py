@@ -28,7 +28,13 @@ def configure(secret_file):
                 if error.code == 429 and attempt < 2:
                     time.sleep(2)
                     continue
-                raise RuntimeError(f'Resend HTTP {error.code}: a chave precisa de acesso a domínios e webhooks.') from None
+                try:
+                    reason = json.load(error)
+                    restricted = 'restricted' in str(reason.get('name','')) or 'restricted' in str(reason.get('message','')).lower()
+                except Exception:
+                    restricted = False
+                explanation = 'A chave permite apenas envio; configure uma chave com Full access.' if restricted else 'A chave foi rejeitada; configure uma chave válida com acesso a domínios e webhooks.'
+                raise RuntimeError(f'Resend HTTP {error.code}: {explanation}') from None
         raise RuntimeError('Resend indisponível.')
 
     def all_rows(path):

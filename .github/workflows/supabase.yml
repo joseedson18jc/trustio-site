@@ -22,7 +22,7 @@ name: Supabase
 on:
   push:
     branches: [main]
-    paths: ["supabase/**", ".github/workflows/supabase.yml"]
+    paths: ["supabase/**", ".github/workflows/supabase.yml", "scripts/configure-email-tracking.py", "scripts/verify-email-tracking.py"]
   workflow_dispatch:
 
 concurrency:
@@ -126,6 +126,45 @@ jobs:
 
       - name: Publicar função de aviso do teste do Agentio
         run: supabase functions deploy aviso-agente --no-verify-jwt --project-ref "$PROJECT_REF"
+
+      - name: Publicar função de convite de retorno do CRM
+        run: supabase functions deploy crm-convite --no-verify-jwt --project-ref "$PROJECT_REF"
+
+      - name: Publicar acompanhamento de e-mails
+        run: supabase functions deploy email-eventos --no-verify-jwt --project-ref "$PROJECT_REF"
+
+      - name: Configurar e-mail do convite de retorno
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
+        run: |
+          # A senha do SMTP Resend é uma API key; reutiliza a integração já configurada.
+          key="$RESEND_API_KEY"
+          if [ -z "$key" ]; then
+            case "$SMTP_PASS" in re_*) key="$SMTP_PASS" ;; esac
+          fi
+          [ -n "$key" ] || { echo "::error::Configure RESEND_API_KEY ou a API key do Resend em SMTP_PASS para os convites do CRM."; exit 1; }
+          sender="${SMTP_SENDER:-no-reply@send.trustio.com.br}"
+          f=$(mktemp); chmod 600 "$f"; trap 'rm -f "$f"' EXIT
+          export RESEND_API_KEY="$key" EMAIL_FROM="Trustio <$sender>" SECRET_FILE="$f"
+          python3 - <<'PY'
+          import os, json
+          with open(os.environ['SECRET_FILE'], 'w') as f:
+              for name in ['RESEND_API_KEY', 'EMAIL_FROM']:
+                  f.write(name + '=' + json.dumps(os.environ[name]) + '\n')
+          PY
+          python3 scripts/configure-email-tracking.py "$f"
+          supabase secrets set --env-file "$f" --project-ref "$PROJECT_REF"
+          echo "E-mail do CRM configurado com o remetente do domínio."
+
+      - name: Validar entrega e webhook em caixa simulada
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
+          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: python3 scripts/verify-email-tracking.py
 
       - name: Publicar função de números autorizados do Hermes
         run: supabase functions deploy hermes-autorizados --no-verify-jwt --project-ref "$PROJECT_REF"

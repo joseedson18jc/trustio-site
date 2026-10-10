@@ -46,6 +46,8 @@ async function setup() {
     grant usage on schema auth to authenticated; grant select,update on crm_leads to authenticated;`);
   await db.exec(migration('20261010150000_crm_investigacao.sql'));
   await db.exec(migration('20261010160000_crm_controle_acesso.sql'));
+  await db.exec(migration('20261010170000_crm_convite_retorno.sql'));
+  await db.exec(migration('20261010180000_crm_email_tracking.sql'));
   await db.exec(`create trigger crm_leads_eventos after insert or update on crm_leads for each row execute function crm_registrar_eventos();`);
   for (const [n,email,papel,status] of [[1,'admin@test','admin','ativo'],[2,'user@test','teste','ativo'],[3,'staff@test','colaborador','ativo'],[4,'admin2@test','admin','ativo'],[5,'paid@test','cliente','assinante']]) {
     await db.query('insert into auth.users values($1,$2,now(),null)',[uid(n),email]);
@@ -137,4 +139,94 @@ test('teste grátis mantém limite e contador; controle de login não aceita alt
     await actor(1); await control(2,'padrao'); await actor(null);
     assert.equal(new Date((await db.query('select banned_until from auth.users where id=$1',[uid(2)])).rows[0].banned_until).getUTCFullYear(),2200);
   } finally {await db.close();}
+});
+
+test('convite concede três dias uma vez, usa e-mail confirmado e reenvia sem novo prazo',async()=>{
+  const {db,actor}=await setup();
+  const invite=(id,request,grant)=>db.query('select crm_preparar_convite($1,$2,$3) convite',[uid(id),uid(request),grant]);
+  try {
+    await actor(null); await db.query('update crm_leads set email=$1 where id=$2',['forged@test',uid(2)]);
+    await actor(1);
+    const first=(await invite(2,100,true)).rows[0].convite;
+    assert.equal(first.email,'user@test');
+    assert.ok(Date.parse(first.fim)-Date.now()>2.99*86400000);
+    const repeat=(await invite(2,100,true)).rows[0].convite;
+    assert.equal(repeat.fim,first.fim);
+    await assert.rejects(invite(2,101,true),/Aguarde/);
+    await actor(null); await db.exec(`update crm_convites set criado_em=now()-interval '2 minutes'`);
+    await actor(1); const resend=(await invite(2,102,false)).rows[0].convite;
+    assert.equal(resend.fim,first.fim); assert.equal(resend.concedeu,false);
+    await actor(null); await db.exec(`update crm_convites set criado_em=now()-interval '2 minutes'`);
+    await actor(1); const extra=(await invite(2,103,true)).rows[0].convite;
+    assert.equal(Date.parse(extra.fim)-Date.parse(first.fim),3*86400000);
+    await actor(null);
+    assert.equal((await db.query('select count(*) from crm_eventos where campo=$1',['convite_retorno'])).rows[0].count,3);
+    await db.exec('set role service_role');
+    await db.query('select crm_concluir_convite($1,$2,$3)',[uid(103),'provider-1',null]);
+    await db.query('select crm_concluir_convite($1,$2,$3)',[uid(103),null,'Late error']);
+    await db.exec('reset role');
+    assert.equal((await db.query('select erro from crm_convites where id=$1',[uid(103)])).rows[0].erro,null);
+  }finally{await db.close();}
+});
+
+test('convite protege bloqueios, contas pagas, Auth e histórico contra cliente e colaborador',async()=>{
+  const {db,actor,control}=await setup();
+  const invite=(id,request=100,grant=true)=>db.query('select crm_preparar_convite($1,$2,$3)',[uid(id),uid(request),grant]);
+  try{
+    for(const n of [2,3]) {
+      await actor(n); await assert.rejects(invite(2),e=>e.code==='42501');
+      assert.equal((await db.query('select * from crm_convites')).rows.length,0);
+      await assert.rejects(db.query('select crm_concluir_convite($1,$2,$3)',[uid(100),'forged',null]),e=>e.code==='42501');
+      await assert.rejects(db.query('insert into crm_convites(id,lead_id,autor,email,fim,concedeu) values($1,$2,$3,$4,now(),true)',[uid(100),uid(2),uid(n),'forged@test']),e=>e.code==='42501');
+    }
+    await actor(1);
+    for(const n of [1,3,5]) await assert.rejects(invite(n),/acesso sem prazo/);
+    for(const mode of ['bloqueado','bloqueado_login','revogado']) {
+      await control(2,mode); await assert.rejects(invite(2),/bloqueada ou revogada/);
+    }
+    await control(2,'liberado','2099-01-01','2100-01-01'); await assert.rejects(invite(2),/agendado/);
+    await control(2,'padrao'); await assert.rejects(invite(2,100,false),/Não há convite/);
+    await actor(null); await db.query('update auth.users set email_confirmed_at=null where id=$1',[uid(2)]);
+    await actor(1); await assert.rejects(invite(2),/confirmado/);
+    await actor(null); await db.query('update auth.users set email_confirmed_at=now(),banned_until=$1 where id=$2',['2099-01-01',uid(2)]);
+    await actor(1); await assert.rejects(invite(2),/login permitido/);
+    await actor(null); await db.query('update auth.users set banned_until=null where id=$1',[uid(2)]);
+    await actor(1); await invite(2);
+    await actor(null);await db.exec(`update crm_convites set criado_em=now()-interval '24 hours'`);
+    await actor(1);await assert.rejects(invite(2),/Convite antigo/);
+    await actor(null);await db.exec(`select set_config('trustio.access_rpc','on',true); update crm_leads set acesso_fim=now()-interval '1 second' where id='${uid(2)}'; update crm_convites set fim=now()-interval '1 second'`);
+    await actor(1);await assert.rejects(invite(2,101,false),/Não há convite/);
+    await db.exec('reset role;set role anon'); await assert.rejects(invite(2),e=>e.code==='42501');
+  }finally{await db.close();}
+});
+
+test('email tracking deduplica eventos, preserva engajamento fora de ordem e limita leitura ao admin',async()=>{
+  const {db,actor}=await setup();
+  const event=(id,type,date,to=['USER@test'],message='message')=>db.query('select crm_registrar_email($1,$2,$3,$4,$5,$6,$7,$8)',[id,message,type,date,'contato@trustio.com.br',to,'Convite','https://trustio.com.br/afiliados.html']);
+  try {
+    await actor(null);await db.exec('set role service_role');
+    await event('click','email.clicked','2026-10-10T12:00:00Z');
+    await event('click','email.clicked','2026-10-10T12:00:00Z');
+    await event('sent','email.sent','2026-10-09T12:00:00Z');
+    await event('delivered','email.delivered','2026-10-09T12:01:00Z');
+    await event('open','email.opened','2026-10-10T11:00:00Z');
+    await event('none','email.delivered','2000-01-01T12:00:00Z',['other@test'],'old');
+    await event('bounce','email.bounced','2026-10-10T12:00:00Z',['other@test'],'bounce');
+    await event('failed','email.failed','2026-10-10T12:00:00Z',['other@test'],'failed');
+    await event('delay','email.delivery_delayed','2026-10-10T12:00:00Z',['other@test'],'delay');
+    await event('delayok','email.delivered','2026-10-10T12:01:00Z',['other@test'],'delay');
+    await actor(1);
+    const data=(await db.query('select * from crm_emails_overview order by email_id')).rows;
+    const clicked=data.find(x=>x.email_id==='message');assert.equal(clicked.cliques,1);assert.equal(clicked.estado,'clicado');assert.equal(clicked.lead_id,uid(2));
+    assert.ok(clicked.entregue_em);assert.ok(clicked.aberto_em);
+    assert.equal(data.find(x=>x.email_id==='old').estado,'sem_interacao');
+    assert.equal(data.find(x=>x.email_id==='bounce').estado,'rejeitado');
+    assert.equal(data.find(x=>x.email_id==='failed').estado,'falhou');
+    assert.equal(data.find(x=>x.email_id==='delay').estado,'entregue');
+    for(const n of [2,3]){
+      await actor(n);assert.equal((await db.query('select * from crm_emails_overview')).rows.length,0);
+      await assert.rejects(event('forged','email.opened','2026-10-10'),e=>e.code==='42501');
+      await assert.rejects(db.query('update crm_emails set aberto_em=now()'),e=>e.code==='42501');
+    }
+  }finally{await db.close();}
 });

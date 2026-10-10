@@ -18,10 +18,10 @@
   <script src="../assets/theme.js?v=62b52a16"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=228a9ffa">
   <link rel="stylesheet" href="../assets/chat.css?v=352dc7bb">
-  <link rel="stylesheet" href="../assets/crm.css?v=2543f8df">
+  <link rel="stylesheet" href="../assets/crm.css?v=4c2b7dd0">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=c3461a69"></script>
-  <script defer src="../assets/crm.js?v=4ee7fbc5"></script>
+  <script defer src="../assets/crm.js?v=df60f124"></script>
 </head>
 <body class="chat-page crm-page">
 <a class="skip-link" href="#leads">Ir para a lista de leads</a>
@@ -139,6 +139,20 @@
     <p class="foot-note">Status <code>assinante</code> libera o chat sem cota quando o controle de acesso permite. Bloqueios e prazos prevalecem. Alterações são salvas ao sair do campo. O CSV exporta o que está na tela (filtro e busca). <b>Tipo de usuário:</b> admin tem acesso total e muda os tipos (só joseedson18@hotmail.com e matheuscastrocorrea@gmail.com); colaborador usa o CRM e o chat sem cota; teste grátis tem a cota de perguntas grátis; cliente usa o chat sem cota. Testes são os endereços <code>@resend.dev</code> e os que começam com <code>test-</code> ou <code>teste-</code>. <b>Retorno e etiquetas</b> ficam na ficha do lead (clique no nome), junto do histórico de quem mudou o quê; clique numa etiqueta para filtrar.</p>
   </main>
 
+  <section class="email-painel so-admin" data-email-panel hidden aria-labelledby="email-title">
+    <h2 id="email-title">E-mails da Trustio</h2>
+    <p>Todos os remetentes @trustio.com.br e seus subdomínios no Resend. Entrega, abertura e cliques aparecem aqui e na ficha do usuário.</p>
+    <div class="detail-linha">
+      <label>Buscar destinatário <input type="search" data-email-search placeholder="E-mail do usuário"></label>
+      <label>Status <select data-email-filter><option value="">Todos</option><option value="enviado">Enviado</option><option value="entregue">Entregue</option><option value="aberto">Abertura registrada</option><option value="clicado">Clique registrado</option><option value="sem_interacao">Sem interação há 48h</option><option value="atrasado">Entrega atrasada</option><option value="rejeitado">Rejeitado</option><option value="falhou">Falhou</option><option value="spam">Marcado como spam</option></select></label>
+      <button type="button" class="btn btn-ghost" data-email-refresh>Atualizar</button>
+    </div>
+    <p data-email-connection role="status"></p>
+    <ol class="email-list" data-email-list aria-live="polite"></ol>
+    <button type="button" class="btn btn-ghost" data-email-more hidden>Mostrar mais e-mails</button>
+    <small>Entregue significa aceito pelo servidor do destinatário. Aberturas e cliques podem ser automáticos; ausência de registro não prova que a pessoa ignorou. O acompanhamento começa na ativação desta integração.</small>
+  </section>
+
   <dialog class="detail" data-detail aria-labelledby="detail-title">
     <div class="detail-head">
       <h2 id="detail-title" data-detail-title></h2>
@@ -165,6 +179,20 @@
         <small class="detail-dica">Separadas por vírgula. Até 10, com até 30 caracteres cada.</small>
       </div>
     </div>
+    <section class="admin-acesso so-admin" data-invite-panel aria-labelledby="invite-heading">
+      <h3 id="invite-heading">Convidar para experimentar mais</h3>
+      <p>Libere mais 3 dias de chat grátis e envie um e-mail com o prazo, o botão para voltar e o programa de afiliados para ganhar comissões por indicações.</p>
+      <button type="button" class="btn btn-primary" data-invite-grant>+3 dias grátis e enviar e-mail</button>
+      <button type="button" class="btn btn-ghost" data-invite-resend disabled>Reenviar convite</button>
+      <p data-invite-status role="status" aria-live="polite"></p>
+      <small>Somente contas de teste com e-mail confirmado. Reenviar mantém o prazo. Bloqueios e revogações precisam ser revisados no controle de acesso. O teste do WhatsApp é separado.</small>
+      <p><a href="/afiliados.html" target="_blank" rel="noopener">Ver página de afiliados e comissões</a></p>
+    </section>
+    <section class="admin-acesso so-admin" data-detail-email-panel hidden aria-labelledby="detail-email-heading">
+      <h3 id="detail-email-heading">Entrega e interação dos e-mails</h3>
+      <ol class="email-list" data-detail-email-list aria-live="polite"></ol>
+      <button type="button" class="btn btn-ghost" data-detail-email-all>Ver todos os e-mails deste destinatário</button>
+    </section>
     <section class="admin-acesso so-admin" data-access-panel aria-labelledby="access-heading">
       <h3 id="access-heading">Controle de acesso</h3>
       <p>Vale para o chat, o agente no WhatsApp e os painéis da equipe. Alterações não cancelam cobranças ou assinaturas no provedor de pagamento.</p>

@@ -85,6 +85,14 @@ verify_jwt = false
 [functions.hermes-autorizados]
 verify_jwt = false
 
+# Valida a sessão com Auth e is_admin dentro da função (inclui bloqueios).
+[functions.crm-convite]
+verify_jwt = false
+
+# Webhook Resend: a assinatura Svix é obrigatória dentro da função.
+[functions.email-eventos]
+verify_jwt = false
+
 # Login com Google. O cliente OAuth é criado no Google Cloud com o redirect
 # https://mjdaluioyutnxlyomzyd.supabase.co/auth/v1/callback; id e segredo vêm dos segredos
 # GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET do GitHub (sem eles o workflow desliga o provedor).

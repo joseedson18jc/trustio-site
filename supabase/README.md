@@ -161,3 +161,21 @@ Validação local: `npm run test:crm-admin`, `npm run test:crm-audit` e
 `node mac/test/hermes-autorizados.test.mjs`. Os testes de banco usam PostgreSQL embarcado
 (PGlite), o esquema Auth mínimo e as funções reais de autorização/gatilhos das migrações;
 não substituem o teste de login e revogação no Supabase de produção.
+
+### Convite de retorno pelo CRM
+
+Na ficha de uma conta de teste, o administrador pode usar **+3 dias grátis e enviar e-mail**. A migração `20261010170000_crm_convite_retorno.sql` concede chat sem cota até o maior entre agora e o prazo atual, mais três dias. Não altera assinatura, cobrança, papel ou teste do WhatsApp. Não permite contas com bloqueio/revogação, acesso agendado, conta paga/equipe ou acesso sem prazo. O destinatário é o e-mail confirmado do Auth, não o campo editável do lead.
+
+**Reenviar convite** mantém o prazo do convite vigente. A função `crm-convite` valida a sessão e `is_admin` antes de usar `RESEND_API_KEY` e `EMAIL_FROM` (mesmos segredos dos avisos existentes). O e-mail tem prazo em Brasília, links para `/app/` e `/afiliados.html`, e explica que comissões dependem de vendas elegíveis. O CRM mostra o envio aceito pelo provedor ou a falha; aceitação não confirma entrega na caixa de entrada.
+
+Cada pedido tem UUID conservado na sessão do navegador para retentativas. A concessão e o registro são atômicos, há intervalo mínimo de um minuto entre pedidos novos por lead, e o envio usa `Idempotency-Key`. Retentativas pendentes expiram antes das 24 horas de retenção de chaves do Resend; reenvios explícitos têm UUID novo. Só administradores leem `crm_convites`; só a função com service role conclui envios. Histórico registra autor e concessão/reenvio.
+
+Validação: `npm run test:crm-admin`, testes de auditoria e smoke de navegador desktop/mobile. Chamadas ao provedor são simuladas nos testes; nenhum cliente recebe e-mail durante validação.
+
+### Rastreamento de todos os remetentes Trustio
+
+O workflow ativa abertura/cliques nos domínios `trustio.com.br` e subdomínios da conta Resend e cria/reutiliza um webhook com assinatura Svix para `email-eventos`. Precisa de API key com acesso a domínios/webhooks; pode reutilizar `SMTP_PASS` quando for uma chave Resend. O segredo de assinatura vai diretamente para os secrets do Supabase sem aparecer no log.
+
+A migração `20261010180000_crm_email_tracking.sql` grava metadados por mensagem/destinatário, com RLS exclusiva de admin, deduplicação e merge de eventos fora de ordem. Publica `crm_emails` no Realtime. O painel lista os envios de todos os remetentes Trustio, com busca, status e mostrar mais; a ficha mostra os últimos 50, com acesso à lista completa. Atualiza por eventos e a cada minuto como recuperação/renovação da janela de 48h.
+
+Estados: enviado, entregue ao servidor, abertura registrada, clique registrado, sem interação registrada após 48h, atraso, rejeição, falha e spam. Ausência de abertura não prova que a pessoa ignorou; filtros de segurança podem abrir/clicar automaticamente. Eventos de mensagem com múltiplos destinatários não identificam quem interagiu e têm aviso explícito. Não grava corpo, IP/user-agent, query ou fragmento dos links (que poderiam conter tokens de login). Abrange eventos a partir da ativação; histórico antigo não é reconstruído.

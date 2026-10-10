@@ -175,124 +175,211 @@ function montar(THREE, palco) {
   if (REDUZIR) { t = tipo === "flash" ? 0.08 : 4; desenhar(0); }
 }
 
-// ───────────────────────────────────────────────────────────── Flash: raios e velocidade
+// ───────────────────────────────────────────────────────────── brilho em shader
+// Fitas (raios, corrente) e anéis (onda de choque) com perfil gaussiano: núcleo claro e halo suave,
+// somados à cena (aditivo). Cores em sRGB direto, sem conversão.
+const corV = (THREE, hex) => { const n = parseInt(hex.slice(1), 16); return new THREE.Vector3((n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255); };
+const VS_UV = "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }";
+const FS_FITA = `
+uniform vec3 uCor; uniform vec3 uNucleo; uniform float uOpac; uniform float uProg; uniform float uCauda; uniform float uHalo;
+varying vec2 vUv;
+void main(){
+  float v = vUv.y, u = vUv.x;
+  float nucleo = exp(-pow(v * 3.4, 2.0));
+  float halo = exp(-pow(v * 1.2, 2.0)) * uHalo;
+  float revela = 1.0 - smoothstep(uProg - 0.05, uProg, u);
+  float apaga = smoothstep(uCauda - 0.18, uCauda, u);
+  float a = (nucleo + halo) * revela * apaga * uOpac;
+  gl_FragColor = vec4(mix(uCor, uNucleo, nucleo), a);
+}`;
+const FS_ANEL = `
+uniform float uR; uniform float uW; uniform float uOpac; uniform float uT; uniform vec3 uA; uniform vec3 uB;
+varying vec2 vUv;
+void main(){
+  vec2 p = vUv * 2.0 - 1.0; float d = length(p);
+  float anel = exp(-pow((d - uR) / uW, 2.0));
+  float rastro = exp(-pow((d - uR * 0.82) / (uW * 3.0), 2.0)) * 0.22;
+  float ang = atan(p.y, p.x);
+  vec3 c = mix(uA, uB, 0.5 + 0.5 * sin(ang * 2.0 + uT * 1.7 + d * 6.0));
+  float a = (anel + rastro) * uOpac * (1.0 - smoothstep(0.9, 1.0, d));
+  gl_FragColor = vec4(c, a);
+}`;
+
+function matFita(THREE, cor, nucleo, halo) {
+  return new THREE.ShaderMaterial({
+    vertexShader: VS_UV, fragmentShader: FS_FITA, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    uniforms: { uCor: { value: corV(THREE, cor) }, uNucleo: { value: corV(THREE, nucleo) }, uOpac: { value: 0 }, uProg: { value: 1.1 }, uCauda: { value: 0 }, uHalo: { value: halo } },
+  });
+}
+function matAnel(THREE, a, b) {
+  return new THREE.ShaderMaterial({
+    vertexShader: VS_UV, fragmentShader: FS_ANEL, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    uniforms: { uR: { value: 0 }, uW: { value: 0.08 }, uOpac: { value: 0 }, uT: { value: 0 }, uA: { value: corV(THREE, a) }, uB: { value: corV(THREE, b) } },
+  });
+}
+// Fita ao longo de uma polilinha no plano XY: u = posição ao longo (0..1), v = -1..1 na largura.
+function geoFita(THREE, pts, largura, afina) {
+  const n = pts.length, pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = [];
+  const acc = [0];
+  for (let i = 1; i < n; i++) acc.push(acc[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+  const total = acc[n - 1] || 1;
+  for (let i = 0; i < n; i++) {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)];
+    const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1;
+    const u = acc[i] / total, w = largura * (1 - afina * u);
+    const nx = -dy / l * w, ny = dx / l * w, p = pts[i];
+    pos.set([p.x + nx, p.y + ny, p.z, p.x - nx, p.y - ny, p.z], i * 6);
+    uv.set([u, 1, u, -1], i * 4);
+    if (i < n - 1) { const k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+  geo.setIndex(idx);
+  return geo;
+}
+// Caminho de raio por deslocamento do ponto médio.
+function trajeto(THREE, de, ate, geracoes, desvio) {
+  let pts = [de.clone(), ate.clone()];
+  for (let g = 0; g < geracoes; g++) {
+    const novo = [pts[0]];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i], b = pts[i + 1], m = a.clone().lerp(b, 0.5);
+      const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1, off = (Math.random() - 0.5) * desvio;
+      m.x += -dy / l * off; m.y += dx / l * off;
+      novo.push(m, b);
+    }
+    pts = novo; desvio *= 0.56;
+  }
+  return pts;
+}
+function clarao(THREE, cor, escala) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: pontoTextura(THREE), color: cor, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  s.scale.setScalar(escala); return s;
+}
+const easeOutExpo = (x) => x >= 1 ? 1 : 1 - Math.pow(2, -10 * x);
+
+// ───────────────────────────────────────────────────────────── Flash: raio, corrente e velocidade
 function cenaFlash(THREE, cena, pivo, grupo, meshes) {
   const g = new THREE.Group(); cena.add(g);
-  // Ponto de impacto: o corte do raio dentro da marca (entre a cunha da tampa e a ponta do corpo).
-  const impactoLocal = new THREE.Vector3(px(36), py(48), 0.2);
-  const luz = new THREE.PointLight(0xbfdcff, 0, 6, 1.6); cena.add(luz);
+  const impactoLocal = new THREE.Vector3(px(36), py(48), 0.2); // o corte do raio na marca
+  const luz = new THREE.PointLight(0xbfdcff, 0, 7, 1.5); cena.add(luz);
+  const flare = clarao(THREE, 0xdbeaff, 1.2); cena.add(flare);
 
-  // Linhas de velocidade atrás da marca.
-  const N = 34, pos = new Float32Array(N * 6), vel = [];
-  for (let i = 0; i < N; i++) vel.push(reiniciaTraco(i, true));
-  const tracos = new THREE.LineSegments(
-    (() => { const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(pos, 3)); return geo; })(),
-    new THREE.LineBasicMaterial({ color: 0x5ea7ff, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false }),
-  );
-  tracos.position.z = -1.6; cena.add(tracos);
-  function reiniciaTraco(i, inicio) {
-    return { x: inicio ? Math.random() * 10 - 5 : 5 + Math.random() * 2, y: (Math.random() - 0.5) * 3.6, l: 0.4 + Math.random() * 1.4, v: 3 + Math.random() * 5 };
+  // Corrente elétrica dentro do corte da marca (centro do vão diagonal), redesenhada a cada ~45 ms.
+  const corteA = new THREE.Vector3(px(56), py(34.6), 0.02), corteB = new THREE.Vector3(px(13), py(67), 0.02);
+  const matCorrente = matFita(THREE, "#5EA7FF", "#F4F6FA", 0.7);
+  const corrente = new THREE.Mesh(new THREE.BufferGeometry(), matCorrente); grupo.add(corrente);
+  let proxCorrente = 0, energia = 0;
+  function redesenhaCorrente() {
+    corrente.geometry.dispose();
+    corrente.geometry = geoFita(THREE, trajeto(THREE, corteA, corteB, 5, 0.16), 0.03, 0.2);
   }
 
-  // Faíscas do impacto.
-  const NF = 90, fpos = new Float32Array(NF * 3), fvel = new Float32Array(NF * 3);
+  // Linhas de velocidade: cabeça clara, cauda transparente.
+  const N = 40, pos = new Float32Array(N * 6), cor = new Float32Array(N * 8), tr = [];
+  const novoTraco = (inicio) => ({ x: inicio ? Math.random() * 11 - 5.5 : 5.5 + Math.random() * 2, y: (Math.random() - 0.5) * 3.8, l: 0.5 + Math.random() * 1.6, v: 3.5 + Math.random() * 5.5, a: 0.25 + Math.random() * 0.45 });
+  for (let i = 0; i < N; i++) tr.push(novoTraco(true));
+  const tgeo = new THREE.BufferGeometry();
+  tgeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  tgeo.setAttribute("color", new THREE.BufferAttribute(cor, 4));
+  const tracos = new THREE.LineSegments(tgeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  tracos.position.z = -1.8; cena.add(tracos);
+
+  // Faíscas.
+  const NF = 120, fpos = new Float32Array(NF * 3), fvel = new Float32Array(NF * 3);
   const fgeo = new THREE.BufferGeometry(); fgeo.setAttribute("position", new THREE.BufferAttribute(fpos, 3));
-  const fmat = new THREE.PointsMaterial({ color: 0xcfe4ff, size: 0.07, map: pontoTextura(THREE), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
-  const faiscas = new THREE.Points(fgeo, fmat); cena.add(faiscas);
+  const fmat = new THREE.PointsMaterial({ color: 0xd6e8ff, size: 0.06, map: pontoTextura(THREE), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+  cena.add(new THREE.Points(fgeo, fmat));
   let vidaFaisca = 0;
 
-  // Raio: fita (dois triângulos por segmento) no plano da tela, núcleo claro e halo azul.
-  function fita(pontos, largura) {
-    const v = [];
-    for (let i = 0; i < pontos.length - 1; i++) {
-      const a = pontos[i], b = pontos[i + 1];
-      const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1;
-      const nx = -dy / l * largura, ny = dx / l * largura;
-      v.push(a.x + nx, a.y + ny, a.z, a.x - nx, a.y - ny, a.z, b.x + nx, b.y + ny, b.z,
-             a.x - nx, a.y - ny, a.z, b.x - nx, b.y - ny, b.z, b.x + nx, b.y + ny, b.z);
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.Float32BufferAttribute(v, 3));
-    return geo;
-  }
-  function trajeto(de, ate, geracoes, desvio) {
-    let pts = [de.clone(), ate.clone()];
-    for (let gnum = 0; gnum < geracoes; gnum++) {
-      const novo = [pts[0]];
-      for (let i = 0; i < pts.length - 1; i++) {
-        const a = pts[i], b = pts[i + 1], m = a.clone().lerp(b, 0.5);
-        const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1;
-        const off = (Math.random() - 0.5) * desvio;
-        m.x += -dy / l * off; m.y += dx / l * off;
-        novo.push(m, b);
-      }
-      pts = novo; desvio *= 0.55;
-    }
-    return pts;
-  }
-  const raios = [];
+  // Raio: fitas com shader, desenhadas do céu até o alvo, com repiques e cauda que recolhe.
+  let raio = null, proximo = 0.05;
+  function limpaRaio() { if (!raio) return; raio.partes.forEach((p) => { g.remove(p.m); p.m.geometry.dispose(); p.m.material.dispose(); }); raio = null; }
   function disparar() {
+    limpaRaio();
     const alvo = grupo.localToWorld(impactoLocal.clone());
-    const de = new THREE.Vector3(alvo.x + (Math.random() - 0.3) * 2.6, 2.6, alvo.z + 0.1);
-    const principal = trajeto(de, alvo, 6, 1.1);
-    const conjunto = [{ pts: principal, w: 1 }];
-    for (let k = 0; k < 2; k++) {
-      const i = Math.floor(principal.length * (0.25 + Math.random() * 0.4));
-      const p = principal[i], fim = p.clone().add(new THREE.Vector3((Math.random() - 0.5) * 1.6, -0.5 - Math.random() * 0.9, 0));
-      conjunto.push({ pts: trajeto(p, fim, 4, 0.5), w: 0.55 });
+    const de = new THREE.Vector3(alvo.x + (Math.random() - 0.35) * 2.2, 2.9, alvo.z + 0.15);
+    const principal = trajeto(THREE, de, alvo, 7, 1.0);
+    const partes = [{ pts: principal, w: 0.11, atraso: 0, peso: 1 }];
+    const nRamos = 2 + (Math.random() * 2 | 0);
+    for (let k = 0; k < nRamos; k++) {
+      const i = Math.floor(principal.length * (0.2 + Math.random() * 0.5)), p = principal[i];
+      const fim = p.clone().add(new THREE.Vector3((Math.random() - 0.5) * 1.9, -0.45 - Math.random() * 0.8, 0));
+      partes.push({ pts: trajeto(THREE, p, fim, 5, 0.45), w: 0.05, atraso: i / principal.length * 0.07, peso: 0.55 });
     }
-    const itens = [];
-    for (const r of conjunto) {
-      const halo = new THREE.Mesh(fita(r.pts, 0.045 * r.w), new THREE.MeshBasicMaterial({ color: 0x5ea7ff, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
-      const nucleo = new THREE.Mesh(fita(r.pts, 0.012 * r.w), new THREE.MeshBasicMaterial({ color: 0xf4f6fa, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false }));
-      g.add(halo, nucleo); itens.push(halo, nucleo);
-    }
-    raios.push({ itens, vida: 0 });
-    luz.position.copy(alvo).add(new THREE.Vector3(0, 0.4, 0.8)); luz.intensity = 26;
+    raio = { t: 0, alvo, impacto: false, repiques: Math.random() < 0.55 ? [0.16, 0.27] : [0.18], partes: partes.map((p) => {
+      const m = new THREE.Mesh(geoFita(THREE, p.pts, p.w, p.peso < 1 ? 0.85 : 0.35), matFita(THREE, "#5EA7FF", "#F4F6FA", 0.75));
+      g.add(m); return { m, atraso: p.atraso, peso: p.peso };
+    }) };
+  }
+  function impacto(alvo) {
+    luz.position.copy(alvo).add(new THREE.Vector3(0, 0.3, 0.9)); luz.intensity = 30;
+    flare.position.copy(alvo).add(new THREE.Vector3(0, 0, 0.3));
+    energia = 1;
     for (let i = 0; i < NF; i++) {
-      fpos[i * 3] = alvo.x; fpos[i * 3 + 1] = alvo.y; fpos[i * 3 + 2] = alvo.z + 0.1;
-      const a = Math.random() * Math.PI * 2, s = 0.6 + Math.random() * 2.2;
-      fvel[i * 3] = Math.cos(a) * s; fvel[i * 3 + 1] = Math.sin(a) * s * 0.8 + 0.6; fvel[i * 3 + 2] = (Math.random() - 0.3) * 1.2;
+      fpos.set([alvo.x, alvo.y, alvo.z + 0.1], i * 3);
+      const a = Math.random() * Math.PI * 2, s = 0.5 + Math.random() * 2.6;
+      fvel.set([Math.cos(a) * s, Math.sin(a) * s * 0.7 + 0.7, (Math.random() - 0.3) * 1.4], i * 3);
     }
-    fgeo.attributes.position.needsUpdate = true; vidaFaisca = 0.9;
+    fgeo.attributes.position.needsUpdate = true; vidaFaisca = 1;
   }
 
-  let proximo = 0.05;
   return function (t, dt) {
-    // Marca flutuando, com leve impulso para a frente (velocidade).
+    const estatico = dt === 0;
     grupo.position.y = Math.sin(t * 1.6) * 0.05;
     grupo.rotation.z = Math.sin(t * 0.9) * 0.025;
-    for (let i = 0; i < N; i++) {
-      const s = vel[i];
-      s.x -= s.v * dt;
-      if (s.x + s.l < -5) vel[i] = reiniciaTraco(i, false);
-      const c = vel[i];
-      pos.set([c.x, c.y, 0, c.x + c.l, c.y, 0], i * 6);
-    }
-    tracos.geometry.attributes.position.needsUpdate = true;
 
-    if (t >= proximo) { disparar(); proximo = t + (Math.random() < 0.3 ? 0.18 : 1.3 + Math.random() * 1.6); }
-    for (let i = raios.length - 1; i >= 0; i--) {
-      const r = raios[i]; r.vida += dt;
-      const piscar = r.vida < 0.12 ? 1 : Math.max(0, 1 - (r.vida - 0.12) / 0.3) * (Math.random() > 0.25 ? 1 : 0.35);
-      r.itens.forEach((m, k) => { m.material.opacity = (k % 2 ? 1 : 0.55) * piscar; });
-      if (r.vida > 0.45) { r.itens.forEach((m) => { g.remove(m); m.geometry.dispose(); m.material.dispose(); }); raios.splice(i, 1); }
+    for (let i = 0; i < N; i++) {
+      const s = tr[i]; s.x -= s.v * dt;
+      if (s.x + s.l < -5.5) tr[i] = novoTraco(false);
+      const c = tr[i];
+      pos.set([c.x, c.y, 0, c.x + c.l, c.y, 0], i * 6);
+      cor.set([0.37, 0.65, 1, c.a, 0.37, 0.65, 1, 0], i * 8);
     }
-    luz.intensity *= Math.pow(0.0008, dt);
-    meshes.forEach((m) => { m.material.emissiveIntensity = 0.18 + Math.min(0.9, luz.intensity / 30); });
+    tgeo.attributes.position.needsUpdate = true; tgeo.attributes.color.needsUpdate = true;
+
+    if (t >= proximo) { disparar(); proximo = t + (Math.random() < 0.25 ? 0.6 : 1.6 + Math.random() * 1.8); }
+    if (raio) {
+      raio.t += estatico ? 0.1 : dt;
+      const rt = raio.t;
+      // Brilho: acende ao chegar, repica e decai; a cauda recolhe de cima para baixo.
+      let brilho = rt < 0.07 ? 1 : Math.max(0, 1 - (rt - 0.07) / 0.5);
+      for (const r of raio.repiques) { const d = rt - r; if (d > 0 && d < 0.09) brilho = Math.max(brilho, 1 - d / 0.09); }
+      raio.partes.forEach((p) => {
+        const u = p.m.material.uniforms;
+        u.uProg.value = Math.min(1.1, Math.max(0, (rt - p.atraso) / 0.07) * 1.1);
+        u.uCauda.value = rt < 0.32 ? 0 : Math.min(1.2, (rt - 0.32) / 0.3 * 1.2);
+        u.uOpac.value = brilho * p.peso * 1.25;
+      });
+      if (!raio.impacto && rt >= 0.07) { raio.impacto = true; impacto(raio.alvo); }
+      if (rt > 0.7) limpaRaio();
+    }
+
+    // Clarão do impacto, luz e brilho da marca.
+    luz.intensity *= Math.pow(0.002, dt);
+    const k = Math.min(1, luz.intensity / 30);
+    flare.material.opacity = k * 0.85; flare.scale.setScalar(0.6 + (1 - k) * 1.4);
+    meshes.forEach((m) => { m.material.emissiveIntensity = 0.18 + k * 0.65; });
+
+    // Corrente no corte: forte logo após o impacto, um fio sutil no resto do tempo.
+    energia = Math.max(0, energia - dt * 1.3);
+    if (t >= proxCorrente || estatico) { redesenhaCorrente(); proxCorrente = t + 0.045; }
+    matCorrente.uniforms.uOpac.value = 0.18 + energia * 1.1 + Math.random() * 0.06;
+
     if (vidaFaisca > 0) {
       vidaFaisca -= dt;
       for (let i = 0; i < NF; i++) {
-        fvel[i * 3 + 1] -= 3.2 * dt;
+        fvel[i * 3] *= 0.985; fvel[i * 3 + 1] = fvel[i * 3 + 1] * 0.985 - 3.4 * dt;
         fpos[i * 3] += fvel[i * 3] * dt; fpos[i * 3 + 1] += fvel[i * 3 + 1] * dt; fpos[i * 3 + 2] += fvel[i * 3 + 2] * dt;
       }
       fgeo.attributes.position.needsUpdate = true;
-      fmat.opacity = Math.max(0, vidaFaisca / 0.9);
+      fmat.opacity = Math.max(0, vidaFaisca) * 0.9;
     }
   };
 }
 
-// ───────────────────────────────────────────────────────────── Heavy: peso e pensamento
+// ───────────────────────────────────────────────────────────── Heavy: peso, encaixe e pensamento
 function cenaHeavy(THREE, cena, pivo, grupo, meshes, camera) {
   const [esq, dir] = meshes;
   const CICLO = 10, ENCAIXE = 1.5, SOLTA = 8.6;
@@ -313,17 +400,41 @@ function cenaHeavy(THREE, cena, pivo, grupo, meshes, camera) {
   geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
   geo.setAttribute("color", new THREE.BufferAttribute(cor, 3));
   const mat = new THREE.PointsMaterial({ size: 0.075, map: pontoTextura(THREE), vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
-  const nuvem = new THREE.Points(geo, mat); grupo.add(nuvem);
+  grupo.add(new THREE.Points(geo, mat));
 
-  // Onda de choque do encaixe.
-  const anel = new THREE.Mesh(new THREE.RingGeometry(0.98, 1, 96), new THREE.MeshBasicMaterial({ color: 0x5ea7ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-  anel.position.z = -0.3; cena.add(anel);
+  // Onda de choque: dois anéis de frente (o segundo mais fino, logo atrás) e um no "chão", em perspectiva.
+  const aneis = [
+    { m: new THREE.Mesh(new THREE.PlaneGeometry(5.2, 5.2), matAnel(THREE, "#5EA7FF", "#53CDFE")), atraso: 0, dur: 1.15, w0: 0.1, w1: 0.018, op: 1 },
+    { m: new THREE.Mesh(new THREE.PlaneGeometry(5.2, 5.2), matAnel(THREE, "#2563EB", "#9FC6FF")), atraso: 0.12, dur: 1.3, w0: 0.05, w1: 0.01, op: 0.7 },
+    { m: new THREE.Mesh(new THREE.PlaneGeometry(8, 8), matAnel(THREE, "#53CDFE", "#2563EB")), atraso: 0.03, dur: 1.5, w0: 0.08, w1: 0.012, op: 0.75 },
+  ];
+  aneis[0].m.position.z = aneis[1].m.position.z = -0.35;
+  aneis[2].m.rotation.x = -Math.PI / 2.35; aneis[2].m.position.set(0, -1.45, 0);
+  aneis.forEach((a) => cena.add(a.m));
+  const flare = clarao(THREE, 0xcfe2ff, 1); cena.add(flare);
   const brilho = new THREE.PointLight(0x9fc6ff, 0, 5, 1.5); brilho.position.set(centro.x, centro.y, 0.9); grupo.add(brilho);
+
+  // Poeira do impacto: sai da emenda e desacelera.
+  const ND = 180, dpos = new Float32Array(ND * 3), dvel = new Float32Array(ND * 3);
+  const dgeo = new THREE.BufferGeometry(); dgeo.setAttribute("position", new THREE.BufferAttribute(dpos, 3));
+  const dmat = new THREE.PointsMaterial({ color: 0x9fc6ff, size: 0.05, map: pontoTextura(THREE), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+  cena.add(new THREE.Points(dgeo, dmat));
 
   const easeIn = (x) => x * x * x;
   const easeInOut = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
   let impactoEm = -10, ultimoCiclo = -1;
   const camBase = camera.position.clone();
+
+  function onda() {
+    const c = grupo.localToWorld(centro.clone());
+    flare.position.copy(c).add(new THREE.Vector3(0, 0, 0.4));
+    for (let i = 0; i < ND; i++) {
+      dpos.set([c.x + (Math.random() - 0.5) * 0.3, c.y + (Math.random() - 0.5) * 1.6, c.z + 0.05], i * 3);
+      const a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 3.2;
+      dvel.set([Math.cos(a) * s, Math.sin(a) * s * 0.6, (Math.random() - 0.5) * 1.5], i * 3);
+    }
+    dgeo.attributes.position.needsUpdate = true;
+  }
 
   return function (t, dt) {
     const c = t % CICLO, n = Math.floor(t / CICLO);
@@ -331,21 +442,48 @@ function cenaHeavy(THREE, cena, pivo, grupo, meshes, camera) {
     if (c < ENCAIXE) k = 1 - easeIn(c / ENCAIXE);
     else if (c < SOLTA) k = 0;
     else k = easeInOut((c - SOLTA) / (CICLO - SOLTA));
-    if (c >= ENCAIXE && ultimoCiclo !== n) { ultimoCiclo = n; impactoEm = t; }
-    esq.position.copy(longeE).multiplyScalar(k); esq.rotation.z = k * 0.35;
-    dir.position.copy(longeD).multiplyScalar(k); dir.rotation.z = -k * 0.3;
-
-    // Impacto: tremor curto, anel e luz na câmara.
+    if (c >= ENCAIXE && ultimoCiclo !== n) { ultimoCiclo = n; impactoEm = t; onda(); }
     const ti = t - impactoEm;
-    const tremor = ti < 0.45 ? (1 - ti / 0.45) * 0.06 : 0;
-    camera.position.set(camBase.x + (Math.random() - 0.5) * tremor, camBase.y + (Math.random() - 0.5) * tremor, camera.position.z);
-    if (ti < 1.4) { const s = 0.9 + ti * 1.8; anel.scale.set(s, s, 1); anel.material.opacity = 0.55 * (1 - ti / 1.4); }
-    else anel.material.opacity = 0;
-    grupo.position.y = ti < 0.3 ? -Math.sin(ti / 0.3 * Math.PI) * 0.08 : Math.sin(t * 0.8) * 0.03;
+
+    // Assentamento elástico depois do encaixe (mola amortecida), em vez de parar seco.
+    const mola = ti >= 0 && ti < 1.2 ? Math.exp(-7 * ti) * Math.cos(24 * ti) * 0.07 : 0;
+    esq.position.copy(longeE).multiplyScalar(k + mola); esq.rotation.z = k * 0.35 + mola * 0.6;
+    dir.position.copy(longeD).multiplyScalar(k + mola); dir.rotation.z = -k * 0.3 - mola * 0.5;
+
+    // Câmera: tremor em seno amortecido (fluido), não aleatório.
+    const tremor = ti >= 0 && ti < 0.9 ? Math.exp(-6 * ti) * 0.055 : 0;
+    camera.position.x = camBase.x + Math.sin(ti * 47) * tremor * 0.6;
+    camera.position.y = camBase.y + Math.sin(ti * 38 + 1.3) * tremor;
+
+    // Anéis: abrem rápido e desaceleram (easeOutExpo), afinando e sumindo.
+    aneis.forEach((a) => {
+      const u = a.m.material.uniforms, x = (ti - a.atraso) / a.dur;
+      u.uT.value = t;
+      if (x < 0 || x > 1) { u.uOpac.value = 0; return; }
+      const e = easeOutExpo(x);
+      u.uR.value = 0.12 + e * 0.8;
+      u.uW.value = a.w0 + (a.w1 - a.w0) * e;
+      u.uOpac.value = a.op * Math.pow(1 - x, 1.6) * Math.min(1, x * 12);
+    });
+    const fl = ti >= 0 && ti < 0.7 ? 1 - ti / 0.7 : 0;
+    flare.material.opacity = fl * 0.7; flare.scale.setScalar(0.8 + (1 - fl) * 2.2);
+
+    grupo.position.y = Math.sin(t * 0.8) * 0.03;
     const pensando = 1 - k;
-    brilho.intensity = (ti < 0.6 ? (1 - ti / 0.6) * 16 : 0) + pensando * (2.2 + Math.sin(t * 3) * 0.8);
-    meshes.forEach((m) => { m.material.emissiveIntensity = 0.16 + pensando * 0.12; });
+    brilho.intensity = fl * 11 + pensando * (2.2 + Math.sin(t * 3) * 0.8);
+    meshes.forEach((m) => { m.material.emissiveIntensity = 0.16 + pensando * 0.12 + fl * 0.3; });
     grupo.rotation.y = Math.sin(t * 0.35) * 0.32;
+
+    // Poeira.
+    if (ti >= 0 && ti < 1.4) {
+      for (let i = 0; i < ND; i++) {
+        const f = Math.pow(0.04, dt);
+        dvel[i * 3] *= f; dvel[i * 3 + 1] *= f; dvel[i * 3 + 2] *= f;
+        dpos[i * 3] += dvel[i * 3] * dt; dpos[i * 3 + 1] += dvel[i * 3 + 1] * dt; dpos[i * 3 + 2] += dvel[i * 3 + 2] * dt;
+      }
+      dgeo.attributes.position.needsUpdate = true;
+      dmat.opacity = Math.pow(1 - ti / 1.4, 1.5) * 0.85;
+    } else dmat.opacity = 0;
 
     // Pensamento: as partículas giram e afundam na câmara; ao chegar, renascem por fora.
     const puxa = 0.15 + pensando * 0.75;
@@ -354,10 +492,9 @@ function cenaHeavy(THREE, cena, pivo, grupo, meshes, camera) {
       p.a += p.v * dt * (1 + 1.4 / (p.r + 0.3));
       p.r -= dt * puxa * (0.25 + 0.6 / (p.r + 0.4));
       if (p.r < 0.12) nasce(i, true);
-      const x = Math.cos(p.a) * p.r, z = Math.sin(p.a) * p.r * 0.55;
-      pos[i * 3] = centro.x + x;
+      pos[i * 3] = centro.x + Math.cos(p.a) * p.r;
       pos[i * 3 + 1] = centro.y + p.h * Math.min(1, p.r) + Math.sin(p.a) * p.inc * p.r * 0.4;
-      pos[i * 3 + 2] = z;
+      pos[i * 3 + 2] = Math.sin(p.a) * p.r * 0.55;
     }
     geo.attributes.position.needsUpdate = true;
     geo.attributes.color.needsUpdate = true;

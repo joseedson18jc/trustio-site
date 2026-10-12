@@ -7,7 +7,7 @@ GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toqu
 
 | Peça | Onde | O que faz |
 | --- | --- | --- |
-| Auth | `config.toml` `[auth]` | e-mail + senha, confirmação obrigatória, URLs de retorno para `/app/`, SMTP do domínio |
+| Auth | `config.toml` `[auth]` | e-mail + senha, confirmação obrigatória, URLs de retorno para `/app/` e para o app Android (login com Google), SMTP do domínio |
 | E-mails | `templates/*.html` | confirmação, recuperação de senha, link mágico, troca de e-mail, convite — no branding Trustio |
 | Banco | `migrations/*.sql` | `crm_leads`, `conversations`, `messages`, `app_settings`, `admins`, `preferencias_usuario`, bucket `avatares`, view `crm_overview`, RLS, RPCs |
 | Chat | `functions/chat/index.ts` | recebe a mensagem, reserva a cota, chama o modelo em streaming, grava tudo |

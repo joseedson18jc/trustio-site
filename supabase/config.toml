@@ -12,6 +12,9 @@ additional_redirect_urls = [
   "https://trustio.com.br/**",
   "https://www.trustio.com.br/**",
   "http://localhost:8765/**",
+  # App Android (login com Google por PKCE). O esquema é o applicationId de cada sabor.
+  "br.com.trustio.app://auth-callback",
+  "br.com.trustio.app.dev://auth-callback",
 ]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true

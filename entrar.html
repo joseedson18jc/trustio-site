@@ -110,7 +110,7 @@
               <p class="lead-legal" data-oauth-status role="status" aria-live="polite"></p>
               <p class="conta-ou"><span>ou</span></p>
             </div>
-            <form class="lead-form" id="entrar-form" method="post" novalidate>
+            <form class="lead-form" id="entrar-form" method="post" novalidate action="/entrar.html">
               <label for="e-email">E-mail</label>
               <input id="e-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com" required>
               <label for="e-senha">Senha</label>
@@ -128,7 +128,7 @@
           <div data-panel="recuperar" hidden>
             <h2>Recuperar senha</h2>
             <p>Enviamos um link para você definir uma nova senha.</p>
-            <form class="lead-form" id="recuperar-form" method="post" novalidate>
+            <form class="lead-form" id="recuperar-form" method="post" novalidate action="/entrar.html">
               <label for="r-email">E-mail</label>
               <input id="r-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@exemplo.com" required>
               <button class="button button-primary" type="submit" data-submit disabled>Enviar link <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>

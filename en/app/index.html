@@ -170,7 +170,7 @@
               <span class="widget-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 2.5a7.5 7.5 0 0 0-6.4 11.4L2.5 17.5l3.7-1.1A7.5 7.5 0 1 0 10 2.5Z"/><path d="M7.4 7.2c.1-.4.6-.5.9-.2l.7 1.2c.1.2 0 .5-.2.7l-.4.4c.5 1 1.4 1.8 2.4 2.3l.4-.4c.2-.2.5-.2.7-.1l1.2.7c.3.2.2.7-.1.9-.7.5-1.6.5-2.4 0a7.9 7.9 0 0 1-3.3-3.3c-.4-.8-.4-1.6.1-2.2Z"/></svg></span>
               <b>3 days of an agent on WhatsApp</b>
               <p>An AI agent right in your WhatsApp, helping with almost any task: writing, research, spreadsheets, reminders, summaries.</p>
-              <form class="widget-form" data-wa-form>
+              <form class="widget-form" data-wa-form action="/en/app/">
                 <label class="vh" for="wa-num">Your WhatsApp</label>
                 <input id="wa-num" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 9 9999-9999" required>
                 <button class="btn btn-primary" type="submit" data-wa-submit>I want the 3 days</button>
@@ -211,7 +211,7 @@
       <a class="btn btn-primary" href="../planos.html">See plans</a>
     </div>
 
-    <form class="composer" id="composer" data-composer>
+    <form class="composer" id="composer" data-composer action="/en/app/">
       <div class="composer-box">
         <div class="anexos" data-anexos hidden aria-live="polite"></div>
         <div class="composer-row">
@@ -276,7 +276,7 @@
         <small class="conta-status" data-foto-status role="status"></small>
       </div>
     </div>
-    <form class="conta-form" data-perfil-form>
+    <form class="conta-form" data-perfil-form action="/en/app/">
       <label for="conta-nome">Name</label>
       <input id="conta-nome" name="nome" maxlength="80" autocomplete="name" required>
       <label for="conta-tel">Phone</label>
@@ -293,7 +293,7 @@
   </section>
 
   <section class="conta-painel" id="painel-preferencias" role="tabpanel" aria-labelledby="tab-preferencias" data-painel="preferencias" hidden>
-    <form class="conta-form" data-pref-form>
+    <form class="conta-form" data-pref-form action="/en/app/">
       <fieldset class="conta-opcoes">
         <legend>Answer style</legend>
         <label><input type="radio" name="estilo" value="direto"><span><b>Direct</b><small>Short and to the point.</small></span></label>
@@ -337,7 +337,7 @@
   </section>
 
   <section class="conta-painel" id="painel-seguranca" role="tabpanel" aria-labelledby="tab-seguranca" data-painel="seguranca" hidden>
-    <form class="conta-form" data-senha-form>
+    <form class="conta-form" data-senha-form action="/en/app/">
       <label for="conta-senha">New password</label>
       <input id="conta-senha" type="password" autocomplete="new-password" minlength="8" placeholder="at least 8 characters" required>
       <label for="conta-senha2">Repeat the new password</label>
@@ -360,7 +360,7 @@
     <img src="/assets/trustio-mark.svg" alt="" width="36" height="36">
     <h2 data-gate-title>Signing in…</h2>
     <p data-gate-text>One moment.</p>
-    <form class="gate-form" data-recovery-form hidden>
+    <form class="gate-form" data-recovery-form hidden action="/en/app/">
       <label for="nova-senha">New password</label>
       <input id="nova-senha" type="password" autocomplete="new-password" minlength="8" placeholder="at least 8 characters" required>
       <button class="btn btn-primary" type="submit">Save and sign in</button>

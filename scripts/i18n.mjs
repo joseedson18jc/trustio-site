@@ -261,7 +261,8 @@ function traduzirTag(tag, pagina, traduz) {
       });
       return `${esp}${nome}="${r}"`;
     }
-    if (n === "href" || n === "src" || n === "action" || n === "poster") {
+    // data-page-location: endereço que o Ahrefs registra (sem query nem fragmento, ver *.html).
+    if (n === "href" || n === "src" || n === "action" || n === "poster" || n === "data-page-location") {
       return `${esp}${nome}="${reescreverUrl(valor, pagina)}"`;
     }
     // content e value quase nunca são endereço (viewport, CSP, valor de rádio). Qualquer

@@ -652,7 +652,8 @@
     var rascunho = { texto: text, anexos: anexos.slice() };
     // Texto digitado nunca vira bloco de anexo na tela.
     text = semMarcador(text);
-    if (!text) text = T("Analise o conteúdo dos anexos.", "Analyze the content of the attachments.");
+    // Fala gravada: a transcrição é a mensagem (o servidor a usa no lugar do texto vazio).
+    if (!text && !opcoes.fala) text = T("Analise o conteúdo dos anexos.", "Analyze the content of the attachments.");
     if (text.length > LIMITE_MENSAGEM - 1000) {
       showNotice(T("Mensagem longa demais. Divida em partes menores.", "Message too long. Split it into smaller parts."));
       return;

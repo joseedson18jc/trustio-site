@@ -37,20 +37,24 @@ function pedido(p: Provedor, texto: string, idioma: "pt" | "en", c: ConfigVoz): 
 }
 
 // Devolve a resposta de áudio do primeiro provedor que der certo. Falha com "voz_nao_configurada"
-// (nenhum provedor) ou "voz_indisponivel" (todos falharam).
+// (nenhum provedor) ou "voz_indisponivel" (todos falharam); nesse caso o erro leva `falhas`, só o status
+// de cada provedor ("xai:401", "elevenlabs:rede"), nunca o corpo da resposta.
 export async function sintetizar(texto: string, idioma: "pt" | "en", c: ConfigVoz,
                                  fetchFn: typeof fetch = fetch): Promise<{ resposta: Response; provedor: Provedor }> {
   const lista = provedoresConfigurados(c);
   if (!lista.length) throw new Error("voz_nao_configurada");
+  const falhas: string[] = [];
   for (const p of lista) {
     try {
       const [url, init] = pedido(p, texto, idioma, c);
       const r = await fetchFn(url, init);
       if (r.ok && r.body) return { resposta: r, provedor: p };
+      falhas.push(`${p}:${r.status}`);
       console.error(`voz_${p}_status`, r.status, (await r.text().catch(() => "")).slice(0, 200));
     } catch (err) {
+      falhas.push(`${p}:rede`);
       console.error(`voz_${p}_rede`, err instanceof Error ? err.message : String(err));
     }
   }
-  throw new Error("voz_indisponivel");
+  throw Object.assign(new Error("voz_indisponivel"), { falhas });
 }

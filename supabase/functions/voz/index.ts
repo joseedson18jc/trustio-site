@@ -100,6 +100,7 @@ Deno.serve(async (req) => {
   } catch (err) {
     await admin.rpc("devolver_voz", { p_user_id: user.id, p_caracteres: texto.length, p_demo: !!reserva.demo });
     const codigo = err instanceof Error ? err.message : "voz_indisponivel";
-    return json(codigo === "voz_nao_configurada" ? 503 : 502, { error: codigo }, origin);
+    const falhas = (err as { falhas?: string[] })?.falhas ?? [];
+    return json(codigo === "voz_nao_configurada" ? 503 : 502, { error: codigo, falhas }, origin);
   }
 });

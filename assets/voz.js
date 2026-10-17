@@ -1,14 +1,17 @@
 /* assets/voz.js — voz no chat (17 out 2026).
    - Microfone: grava a fala e envia como áudio (a transcrição em português já existe no servidor).
-   - "Ouvir": lê a resposta em voz alta (função de borda "voz", ElevenLabs). Só assinantes; quem está
-     no teste vê o botão com o selo "Assinantes" e, ao tocar, o convite para os planos.
-   - Conversa por voz (assinantes): fala → resposta lida em voz alta → volta a ouvir, sem tocar em nada.
+   - "Ouvir": lê a resposta em voz alta (função de borda "voz": xAI, com ElevenLabs de reserva).
+     Assinantes ouvem à vontade (teto diário no servidor). Quem está no teste ganha uma demonstração
+     única (~3 respostas, selo "Grátis"); depois, o selo vira "Assinantes" e o toque mostra os planos.
+   - Conversa por voz: fala → resposta lida em voz alta → volta a ouvir, sem tocar em nada.
      A gravação para sozinha depois de ~1,4 s de silêncio.
    O chat (assets/chat.js) chama TrustioVoz.iniciar(...) uma vez, decorar(el) em cada resposta e
    respostaPronta(el) quando uma resposta termina de chegar. */
 (function () {
   "use strict";
-  var ctx = null, urlAtual = null, conversa = false, gravador = null, falando = false, configurada = true;
+  var ctx = null, urlAtual = null, conversa = false, gravador = null, falando = false, configurada = false;
+  // O servidor diz o acesso: "livre" (assinante etc.), "teste" (com demo_restante caracteres de demonstração).
+  var acesso = null, demoRestante = 0, dicaMostrada = false;
   // Um só elemento de áudio, desbloqueado no toque: o Safari recusa play() que começa depois de um
   // fetch fora do gesto da pessoa; tocar um WAV mudo no próprio toque libera o elemento para depois.
   var player = null, liberado = false;
@@ -16,10 +19,19 @@
   var SILENCIO_MS = 1400, MAX_GRAVACAO_MS = 120000, LIMIAR = 0.018;
 
   function T(pt, en) { return ctx.T(pt, en); }
-  function assinante() { return !!ctx.semCota(); }
+  function assinante() { return acesso ? acesso === "livre" : !!ctx.semCota(); }
+  // Antes de o servidor responder (acesso === null), não se assume demonstração esgotada: o toque passa
+  // e o servidor decide; o selo só aparece depois da resposta.
+  function podeOuvir() { return acesso === null || assinante() || demoRestante > 0; }
+  function seloHtml() {
+    if (acesso === null || assinante()) return "";
+    return demoRestante > 0
+      ? "<small class=\"selo-assinante selo-gratis\">" + T("Grátis", "Free") + "</small>"
+      : "<small class=\"selo-assinante\">" + T("Assinantes", "Subscribers") + "</small>";
+  }
   function endpoint() { return String(ctx.CFG.chatEndpoint || "").replace(/\/chat\/?$/, "/voz"); }
   function convite() {
-    ctx.showNotice(T("A voz das respostas é exclusiva para assinantes. ", "Spoken answers are for subscribers. ") +
+    ctx.showNotice(T("Sua demonstração de voz acabou. A voz das respostas é exclusiva para assinantes. ", "Your voice demo is over. Spoken answers are for subscribers. ") +
       "<a href=\"" + ctx.planosUrl + "\">" + T("Ver planos", "See plans") + "</a>");
   }
   function svg(d) { return "<svg viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"" + d + "\"/></svg>"; }
@@ -53,7 +65,7 @@
     falando = false;
     Array.prototype.forEach.call(document.querySelectorAll(".msg-ouvir.is-tocando"), marcarParado);
   }
-  function marcarParado(b) { b.classList.remove("is-tocando", "is-carregando"); b.innerHTML = svg(ICONE_FALA) + "<span>" + T("Ouvir", "Listen") + "</span>"; }
+  function marcarParado(b) { b.classList.remove("is-tocando", "is-carregando"); b.innerHTML = svg(ICONE_FALA) + "<span>" + T("Ouvir", "Listen") + "</span>" + (ctx ? seloHtml() : ""); }
 
   function falar(texto, botao) {
     pararFala();
@@ -68,6 +80,7 @@
       });
     }).then(function (res) {
       if (!res.ok) return res.json().catch(function () { return {}; }).then(function (j) { var e = new Error(j.error || "voz_indisponivel"); e.status = res.status; throw e; });
+      if (res.headers.get("X-Voz-Demo") === "1") { demoRestante = Number(res.headers.get("X-Voz-Restante")) || 0; atualizarPlano(); }
       return res.blob();
     }).then(function (blob) {
       if (!player) player = new Audio();
@@ -92,7 +105,7 @@
       falando = false;
       var c = err && err.message;
       if (err && err.silencioso) { /* aviso já mostrado */ }
-      else if (c === "voz_so_assinantes") convite();
+      else if (c === "voz_demo_esgotada" || c === "voz_so_assinantes") { demoRestante = 0; atualizarPlano(); convite(); }
       else if (c === "voz_limite_diario") ctx.showNotice(T("Você chegou ao limite diário de voz. Ela volta amanhã.", "You reached today's voice limit. It comes back tomorrow."));
       else if (c === "voz_nao_configurada") ctx.showNotice(T("A voz ainda não foi ligada no servidor.", "Voice isn't switched on on the server yet."));
       else ctx.showNotice(T("Não foi possível gerar a voz agora. Tente de novo em instantes.", "Couldn't generate the voice just now. Try again shortly."));
@@ -105,19 +118,30 @@
     if (!el || el.querySelector(".msg-ouvir")) return;
     var cab = el.querySelector(".msg-cab"); if (!cab) return;
     var b = document.createElement("button");
-    b.type = "button"; b.className = "msg-ouvir" + (assinante() ? "" : " is-bloqueado");
-    b.title = assinante() ? T("Ouvir esta resposta (o texto é enviado à ElevenLabs para virar voz)", "Listen to this answer (the text is sent to ElevenLabs to become speech)")
-                          : T("Recurso para assinantes", "For subscribers");
+    b.type = "button"; b.className = "msg-ouvir" + (podeOuvir() ? "" : " is-bloqueado");
+    b.title = T("Ouvir esta resposta (o texto vai a um serviço de voz para virar áudio)", "Listen to this answer (the text goes to a voice service to become audio)");
     marcarParado(b);
-    if (!assinante()) b.insertAdjacentHTML("beforeend", "<small class=\"selo-assinante\">" + T("Assinantes", "Subscribers") + "</small>");
     b.addEventListener("click", function () {
-      if (!assinante()) { convite(); return; }
+      if (!podeOuvir()) { convite(); return; }
       liberarAudio();
       if (b.classList.contains("is-tocando") || b.classList.contains("is-carregando")) { pararFala(); return; }
       falar(el._texto || "", b).catch(function () {});
     });
     b.hidden = !configurada;
     cab.appendChild(b);
+  }
+
+  // Surpresa para quem chega: na primeira resposta, um convite para ouvir de graça (uma vez por aparelho).
+  function mostrarDica(b) {
+    if (!b || dicaMostrada || !configurada || assinante() || demoRestante <= 0 || b.hidden) return;
+    try { if (localStorage.getItem("trustio-voz-dica")) { dicaMostrada = true; return; } localStorage.setItem("trustio-voz-dica", "1"); } catch (e) { /* sem storage */ }
+    dicaMostrada = true;
+    b.classList.add("is-destaque");
+    var dica = document.createElement("span");
+    dica.className = "voz-dica"; dica.setAttribute("role", "status");
+    dica.textContent = T("Novo: ouça esta resposta em voz alta. Grátis para experimentar.", "New: hear this answer out loud. Free to try.");
+    b.insertAdjacentElement("afterend", dica);
+    setTimeout(function () { b.classList.remove("is-destaque"); dica.remove(); }, 9000);
   }
 
   // ---------------------------------------------------------------- microfone e conversa por voz
@@ -172,7 +196,7 @@
   }
   function sairConversa() { conversa = false; if (conversaBtn) { conversaBtn.classList.remove("is-ativa"); conversaBtn.setAttribute("aria-pressed", "false"); } }
   function alternarConversa() {
-    if (!assinante()) { convite(); return; }
+    if (!podeOuvir()) { convite(); return; }
     liberarAudio();
     conversa = !conversa;
     conversaBtn.classList.toggle("is-ativa", conversa);
@@ -186,7 +210,8 @@
   // Uma resposta terminou de chegar: na conversa por voz, ela é lida e o microfone volta a ouvir.
   function respostaPronta(el) {
     decorar(el);
-    if (!conversa || !assinante()) return;
+    mostrarDica(el.querySelector(".msg-ouvir"));   // só numa resposta nova, nunca no histórico
+    if (!conversa || !podeOuvir()) return;
     var b = el.querySelector(".msg-ouvir");
     falar(el._texto || "", b).then(function () { if (conversa && !gravador) gravar(); }, function () { sairConversa(); });
   }
@@ -201,12 +226,12 @@
     micBtn.innerHTML = svg(ICONE_MIC);
     micBtn.addEventListener("click", function () { if (ctx.ocupado()) return; liberarAudio(); gravar(); });
     conversaBtn = document.createElement("button");
-    conversaBtn.type = "button"; conversaBtn.className = "conversa-voz" + (assinante() ? "" : " is-bloqueado");
+    conversaBtn.type = "button"; conversaBtn.className = "conversa-voz";
     conversaBtn.setAttribute("aria-pressed", "false");
     conversaBtn.setAttribute("aria-label", T("Conversa por voz", "Voice conversation"));
-    conversaBtn.title = assinante() ? T("Conversa por voz: falo e respondo em voz alta", "Voice conversation: I listen and answer out loud")
-                                    : T("Conversa por voz · recurso para assinantes", "Voice conversation · for subscribers");
-    conversaBtn.innerHTML = svg(ICONE_CONVERSA) + (assinante() ? "" : "<small class=\"selo-assinante\">" + T("Assinantes", "Subscribers") + "</small>");
+    conversaBtn.title = T("Conversa por voz: você fala e eu respondo em voz alta", "Voice conversation: you speak and I answer out loud");
+    conversaBtn.innerHTML = svg(ICONE_CONVERSA) + seloHtml();
+    conversaBtn.hidden = true;                 // aparece quando o servidor confirmar que a voz está ligada
     conversaBtn.addEventListener("click", alternarConversa);
     row.insertBefore(micBtn, enviarBtn);
     row.insertBefore(conversaBtn, enviarBtn);
@@ -220,7 +245,9 @@
       return fetch(endpoint(), { headers: { "Authorization": "Bearer " + s.access_token, "apikey": ctx.CFG.key } });
     }).then(function (res) { return res && res.ok ? res.json() : null; }).then(function (j) {
       configurada = !!(j && j.configurada);
+      if (j && j.acesso) { acesso = j.acesso; demoRestante = Number(j.demo_restante) || 0; }
       aplicarConfigurada();
+      atualizarPlano();
     }).catch(function () { configurada = false; aplicarConfigurada(); });
   }
   function aplicarConfigurada() {
@@ -231,12 +258,12 @@
   // O plano pode mudar depois de carregar (a conta chega depois do primeiro desenho): redesenha os selos.
   function atualizarPlano() {
     if (!ctx) return;
-    var livre = assinante();
+    var pode = podeOuvir();
     Array.prototype.forEach.call(document.querySelectorAll(".msg-ouvir, .conversa-voz"), function (b) {
-      b.classList.toggle("is-bloqueado", !livre);
+      b.classList.toggle("is-bloqueado", !pode);
       var selo = b.querySelector(".selo-assinante");
-      if (livre && selo) selo.remove();
-      if (!livre && !selo) b.insertAdjacentHTML("beforeend", "<small class=\"selo-assinante\">" + T("Assinantes", "Subscribers") + "</small>");
+      if (selo) selo.remove();
+      b.insertAdjacentHTML("beforeend", seloHtml());
     });
   }
 

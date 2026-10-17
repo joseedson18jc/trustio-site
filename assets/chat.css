@@ -522,3 +522,7 @@ button.me:hover .me-gear { stroke: var(--ice); }
   color: #1a1100; background: var(--warn); }
 .conversa-voz .selo-assinante { position: absolute; top: -7px; right: -10px; }
 @media (max-width: 520px) { .msg-ouvir span { display: none; } }
+.selo-gratis { color: #04210f; background: var(--ok); }
+.msg-ouvir.is-destaque { border-color: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }
+.voz-dica { margin-left: 8px; padding: 4px 10px; border-radius: 999px; font-size: 12px; color: var(--ice); background: color-mix(in srgb, var(--ok) 18%, transparent); border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent); }
+@media (max-width: 520px) { .voz-dica { display: none; } }

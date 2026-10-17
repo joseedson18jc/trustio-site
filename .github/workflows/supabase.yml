@@ -19,6 +19,7 @@
 #   HERMES_SEGREDO         segredo do sincronizador do Mac (~/.trustio-hermes-sync-key) para liberar números no Hermes
 #   ADMIN_EMAILS           e-mails dos administradores do CRM, separados por vírgula
 #   VOZ_XAI_API_KEY        chave da xAI só para a voz (principal, pt-BR); XAI_VOICE_ID opcional (padrão rex)
+#   VOZ_XAI_API_KEY_RESERVA  segunda chave da xAI, tentada se a principal falhar (opcional)
 #   ELEVENLABS_API_KEY     voz de reserva, com ELEVENLABS_VOICE_ID; ELEVENLABS_MODEL opcional
 #   VOZ_LIMITE_DIARIO      caracteres por assinante por dia (padrão 60000); VOZ_DEMO, demonstração única do teste (padrão 1500)
 name: Supabase
@@ -182,6 +183,7 @@ jobs:
       - name: Definir segredos da voz
         env:
           VOZ_XAI_API_KEY: ${{ secrets.VOZ_XAI_API_KEY }}
+          VOZ_XAI_API_KEY_RESERVA: ${{ secrets.VOZ_XAI_API_KEY_RESERVA }}
           XAI_VOICE_ID: ${{ secrets.XAI_VOICE_ID }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
@@ -191,7 +193,7 @@ jobs:
         run: |
           # Sem nenhuma chave, a voz fica desligada (a função responde 503 voz_nao_configurada); o deploy segue.
           f=$(mktemp); chmod 600 "$f"; trap 'rm -f "$f"' EXIT
-          for v in VOZ_XAI_API_KEY XAI_VOICE_ID ELEVENLABS_API_KEY ELEVENLABS_VOICE_ID ELEVENLABS_MODEL VOZ_LIMITE_DIARIO VOZ_DEMO; do
+          for v in VOZ_XAI_API_KEY VOZ_XAI_API_KEY_RESERVA XAI_VOICE_ID ELEVENLABS_API_KEY ELEVENLABS_VOICE_ID ELEVENLABS_MODEL VOZ_LIMITE_DIARIO VOZ_DEMO; do
             val="${!v}"; [ -n "$val" ] || continue
             val="${val//\\/\\\\}"; val="${val//\"/\\\"}"
             printf '%s="%s"\n' "$v" "$val" >> "$f"

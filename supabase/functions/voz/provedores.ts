@@ -1,24 +1,25 @@
-// Provedores de voz, na ordem (17 out 2026): xAI primeiro (pt-BR nativo), ElevenLabs de reserva
-// quando a xAI falha ou não está configurada. Recebe o fetch por parâmetro para os testes.
+// Provedores de voz, na ordem (17 out 2026): xAI primeiro (pt-BR nativo), a mesma xAI com a chave
+// reserva (se a principal for recusada ou estourar limite) e ElevenLabs por último. Recebe o fetch por parâmetro para os testes.
 
 export type ConfigVoz = {
-  xaiKey?: string; xaiVoz?: string;
+  xaiKey?: string; xaiVoz?: string; xaiKey2?: string;
   elevenKey?: string; elevenVoz?: string; elevenModelo?: string;
 };
-type Provedor = "xai" | "elevenlabs";
+type Provedor = "xai" | "xai_reserva" | "elevenlabs";
 
 export function provedoresConfigurados(c: ConfigVoz): Provedor[] {
   const lista: Provedor[] = [];
   if (c.xaiKey && c.xaiVoz) lista.push("xai");
+  if (c.xaiKey2 && c.xaiVoz) lista.push("xai_reserva");
   if (c.elevenKey && c.elevenVoz) lista.push("elevenlabs");
   return lista;
 }
 
 function pedido(p: Provedor, texto: string, idioma: "pt" | "en", c: ConfigVoz): [string, RequestInit] {
-  if (p === "xai") {
+  if (p === "xai" || p === "xai_reserva") {
     return ["https://api.x.ai/v1/tts", {
       method: "POST",
-      headers: { "Authorization": `Bearer ${c.xaiKey}`, "Content-Type": "application/json", "Accept": "audio/mpeg" },
+      headers: { "Authorization": `Bearer ${p === "xai" ? c.xaiKey : c.xaiKey2}`, "Content-Type": "application/json", "Accept": "audio/mpeg" },
       body: JSON.stringify({
         text: texto, voice_id: c.xaiVoz, language: idioma === "en" ? "en" : "pt-BR",
         output_format: { codec: "mp3", sample_rate: 44100, bit_rate: 128000 },

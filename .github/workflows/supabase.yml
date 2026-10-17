@@ -18,6 +18,8 @@
 #   EVOLUTION_NUMERO       número conectado à instância, se for o próprio Agentio    opcional
 #   HERMES_SEGREDO         segredo do sincronizador do Mac (~/.trustio-hermes-sync-key) para liberar números no Hermes
 #   ADMIN_EMAILS           e-mails dos administradores do CRM, separados por vírgula
+#   ELEVENLABS_API_KEY     chave da ElevenLabs (voz das respostas, só assinantes)       para a voz
+#   ELEVENLABS_VOICE_ID    voz escolhida; ELEVENLABS_MODEL e VOZ_LIMITE_DIARIO opcionais
 name: Supabase
 
 on:
@@ -172,6 +174,26 @@ jobs:
           SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: python3 scripts/verify-email-tracking.py
+
+      - name: Publicar função de voz das respostas
+        run: supabase functions deploy voz --project-ref "$PROJECT_REF"
+
+      - name: Definir segredos da voz
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+          ELEVENLABS_MODEL: ${{ secrets.ELEVENLABS_MODEL }}
+          VOZ_LIMITE_DIARIO: ${{ secrets.VOZ_LIMITE_DIARIO }}
+        run: |
+          # Sem a chave, a voz fica desligada (a função responde 503 voz_nao_configurada); o deploy segue.
+          f=$(mktemp); chmod 600 "$f"; trap 'rm -f "$f"' EXIT
+          for v in ELEVENLABS_API_KEY ELEVENLABS_VOICE_ID ELEVENLABS_MODEL VOZ_LIMITE_DIARIO; do
+            val="${!v}"; [ -n "$val" ] || continue
+            val="${val//\\/\\\\}"; val="${val//\"/\\\"}"
+            printf '%s="%s"\n' "$v" "$val" >> "$f"
+          done
+          [ -s "$f" ] || { echo "Nenhum segredo da voz definido; a voz fica desligada."; exit 0; }
+          supabase secrets set --env-file "$f" --project-ref "$PROJECT_REF"
 
       - name: Publicar função de números autorizados do Hermes
         run: supabase functions deploy hermes-autorizados --no-verify-jwt --project-ref "$PROJECT_REF"

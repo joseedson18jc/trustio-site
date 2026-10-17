@@ -253,6 +253,7 @@
   }
 
   function renderMe() {
+    if (window.TrustioVoz) window.TrustioVoz.atualizarPlano();
     var meta = state.user.user_metadata || {};
     var name = (state.lead && state.lead.nome) || meta.nome || state.user.email;
     $("[data-me-name]").textContent = name;
@@ -576,6 +577,7 @@
     var body = el.querySelector(".msg-body");
     if (role === "user") body.innerHTML = renderUsuario(content); else { body.innerHTML = render(content); desenhar(body); }
     inner.appendChild(el);
+    if (role !== "user") { el._texto = content || ""; if (content && window.TrustioVoz) window.TrustioVoz.decorar(el); }
     return el;
   }
 
@@ -807,6 +809,9 @@
               // caberia), não a resposta ter batido no teto de tokens por resposta.
               if (d.contexto && d.janela && d.contexto >= d.janela * 0.95) sessaoCheia(d.janela);
               afterDone(d);
+              // Voz: o botão "Ouvir" aparece na resposta; na conversa por voz, ela é lida em voz alta.
+              pending._texto = full;
+              if (full && !interrompida && window.TrustioVoz) window.TrustioVoz.respostaPronta(pending);
             }
           });
           return pump();
@@ -1568,6 +1573,13 @@
   document.addEventListener("trustio:tema", function (e) { pintarTema(e.detail); });
   toggle.setAttribute("aria-pressed", document.documentElement.getAttribute("data-theme") === "light" ? "true" : "false");
   paintThemeColor(document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
+
+  // Voz (assets/voz.js): microfone, "Ouvir" nas respostas e conversa por voz (estes dois, só assinantes).
+  if (window.TrustioVoz) window.TrustioVoz.iniciar({
+    sb: sb, CFG: CFG, T: T, EN: EN, input: input, semCota: semCota, showNotice: showNotice,
+    adicionarArquivos: adicionarArquivos, enviar: send, ocupado: function () { return !!state.sending; },
+    planosUrl: "../planos.html"
+  });
 
   boot();
 })();

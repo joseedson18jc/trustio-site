@@ -388,10 +388,13 @@ Deno.serve(async (req) => {
   // acordar o servidor, e um tempo curto aqui faria a escolha cair para o padrão sem motivo.
   const escolhido = pedido ? (await modelosEscolhiveis(admin, 25_000)).find((m) => m.id === pedido)?.id ?? null : null;
   const modeloConfigurado = escolhido ?? await modeloDoBanco(admin);
-  const systemPrompt = promptComPreferencias(
-    typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.",
-    pref,
-  );
+  const systemPrompt = [
+    promptComPreferencias(
+      typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.",
+      pref,
+    ),
+    "Priorize a precisão factual. Não invente dados, fontes ou detalhes; não apresente inferências como fatos; indique incerteza quando houver e evite afirmações absolutas sem fundamento.",
+  ].join("\n\n");
 
   const anteriores = [
     { role: "system", content: systemPrompt },
@@ -409,7 +412,7 @@ Deno.serve(async (req) => {
     method: "POST",
     headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: modelo, messages: [...anteriores, { role: "user", content: ultima }], stream: true, temperature: 0.7,
+      model: modelo, messages: [...anteriores, { role: "user", content: ultima }], stream: true, temperature: 0.2,
       stream_options: { include_usage: true },
       ...(LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
       ...(LLAMA_TIMINGS ? { timings_per_token: true } : {}),

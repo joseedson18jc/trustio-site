@@ -8,6 +8,7 @@
 //   VOZ_XAI_API_KEY      chave da xAI só para a voz (nome próprio: XAI_API_KEY a função chat lê como
 //                        chave do modelo, e os segredos do projeto valem para todas as funções)
 //   XAI_VOICE_ID         voz da xAI, padrão "rex"
+//   VOZ_XAI_API_KEY_RESERVA  segunda chave da xAI, tentada se a principal falhar
 //   ELEVENLABS_API_KEY   reserva; ELEVENLABS_VOICE_ID, ELEVENLABS_MODEL (padrão eleven_v4_turbo)
 //   VOZ_LIMITE_DIARIO    caracteres por assinante por dia, padrão 60000 (~1 hora de fala)
 //   VOZ_DEMO             caracteres da demonstração única de quem está no teste, padrão 1500
@@ -21,6 +22,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const CONFIG: ConfigVoz = {
   xaiKey: (Deno.env.get("VOZ_XAI_API_KEY") ?? "").trim(),
   xaiVoz: (Deno.env.get("XAI_VOICE_ID") ?? "rex").trim(),
+  xaiKey2: (Deno.env.get("VOZ_XAI_API_KEY_RESERVA") ?? "").trim(),
   elevenKey: (Deno.env.get("ELEVENLABS_API_KEY") ?? "").trim(),
   elevenVoz: (Deno.env.get("ELEVENLABS_VOICE_ID") ?? "").trim(),
   elevenModelo: (Deno.env.get("ELEVENLABS_MODEL") ?? "eleven_v4_turbo").trim(),

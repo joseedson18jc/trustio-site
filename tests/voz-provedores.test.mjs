@@ -70,6 +70,22 @@ await t("os dois falham: erro voz_indisponivel com o status de cada provedor (se
   assert.ok(!JSON.stringify(err.falhas).includes("segredo"));
 });
 
+await t("xAI principal falha: tenta a chave reserva da xAI antes da ElevenLabs", async () => {
+  const f = fakeFetch([new Response("x", { status: 429 }), audio("xai2")]);
+  const r = await sintetizar("Olá.", "pt", { ...cfgTudo, xaiKey2: "x2" }, f);
+  assert.equal(r.provedor, "xai_reserva");
+  assert.equal(f.chamadas[1].url, "https://api.x.ai/v1/tts");
+  assert.equal(f.chamadas[1].headers.Authorization, "Bearer x2");
+  assert.equal(f.chamadas[1].body.voice_id, "rex");
+});
+
+await t("as duas xAI falham: cai para a ElevenLabs e lista as três falhas se tudo falhar", async () => {
+  const f = fakeFetch([new Response("a", { status: 400 }), new Response("b", { status: 400 }), new Response("c", { status: 401 })]);
+  const err = await sintetizar("Olá.", "pt", { ...cfgTudo, xaiKey2: "x2" }, f).catch((e) => e);
+  assert.deepEqual(err.falhas, ["xai:400", "xai_reserva:400", "elevenlabs:401"]);
+  assert.deepEqual(provedoresConfigurados({ ...cfgTudo, xaiKey2: "x2" }), ["xai", "xai_reserva", "elevenlabs"]);
+});
+
 await t("nenhum configurado", async () => {
   assert.deepEqual(provedoresConfigurados({ xaiKey: "", xaiVoz: "rex", elevenKey: "", elevenVoz: "" }), []);
   assert.deepEqual(provedoresConfigurados(cfgTudo), ["xai", "elevenlabs"]);

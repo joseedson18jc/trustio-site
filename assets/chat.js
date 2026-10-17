@@ -783,6 +783,25 @@
               if (noFim) thinkText.scrollTop = thinkText.scrollHeight;
               mostrarProgresso(); scrollBottom();
             }
+            if (d.buscando) {
+              // Busca na web: a resposta mostra o que está sendo pesquisado (texto puro, nunca HTML).
+              var selo = pending.querySelector(".msg-busca");
+              if (!selo) { selo = document.createElement("div"); selo.className = "msg-busca"; body.parentNode.insertBefore(selo, body); }
+              var item = document.createElement("span");
+              item.className = "msg-busca-item is-ativa";
+              item.dataset.consulta = String(d.buscando).slice(0, 300);
+              item.textContent = T("Pesquisando na web: ", "Searching the web: ") + "“" + item.dataset.consulta + "”";
+              selo.appendChild(item);
+              progTxt.textContent = T("Pesquisando na web…", "Searching the web…");
+            }
+            if (typeof d.busca_resultados === "number") {
+              var ativa = pending.querySelector(".msg-busca-item.is-ativa");
+              if (ativa) {
+                ativa.classList.remove("is-ativa");
+                ativa.textContent = T("Pesquisou na web: ", "Searched the web: ") + "“" + ativa.dataset.consulta + "” · " +
+                  d.busca_resultados + " " + (d.busca_resultados === 1 ? T("fonte", "source") : T("fontes", "sources"));
+              }
+            }
             if (d.delta) {
               // Primeiro trecho da resposta: o raciocínio recolhe e a resposta fica em foco.
               if (!full && !think.hidden) think.open = false;
@@ -795,6 +814,9 @@
               avisado = true;
               if (d.error === "stream_interrompido") interrompida = true;
               if (!full) body.textContent = "";
+              var ativaErro = pending.querySelector(".msg-busca-item.is-ativa");
+              if (ativaErro) ativaErro.classList.remove("is-ativa");
+              if (d.error === "contexto_cheio") { if (!full) body.textContent = ""; sessaoCheia(d.janela); return; }
               showNotice(d.error === "resposta_vazia"
                 ? T("O modelo não devolveu resposta desta vez, e a mensagem não foi descontada. Tente enviar de novo.", "The model didn't return an answer this time, and the message wasn't counted. Try sending again.")
                 : T("A resposta foi interrompida. Tente enviar de novo.", "The answer was cut off. Try sending again."));

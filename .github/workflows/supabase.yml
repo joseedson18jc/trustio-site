@@ -22,6 +22,7 @@
 #   VOZ_XAI_API_KEY_RESERVA  segunda chave da xAI, tentada se a principal falhar (opcional)
 #   ELEVENLABS_API_KEY     voz de reserva, com ELEVENLABS_VOICE_ID; ELEVENLABS_MODEL opcional
 #   VOZ_LIMITE_DIARIO      caracteres por assinante por dia (padrão 60000); VOZ_DEMO, demonstração única do teste (padrão 1500)
+#   EXA_API_KEY            busca na web do chat (Exa); BUSCA_LIMITE_DIARIO (padrão 100 por assinante/dia), BUSCA_DEMO (padrão 3 no teste)
 name: Supabase
 
 on:
@@ -199,6 +200,22 @@ jobs:
             printf '%s="%s"\n' "$v" "$val" >> "$f"
           done
           [ -s "$f" ] || { echo "Nenhum segredo da voz definido; a voz fica desligada."; exit 0; }
+          supabase secrets set --env-file "$f" --project-ref "$PROJECT_REF"
+
+      - name: Definir segredos da busca na web
+        env:
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
+          BUSCA_LIMITE_DIARIO: ${{ secrets.BUSCA_LIMITE_DIARIO }}
+          BUSCA_DEMO: ${{ secrets.BUSCA_DEMO }}
+        run: |
+          # Sem EXA_API_KEY, a busca fica desligada (o chat não oferece a ferramenta ao modelo); o deploy segue.
+          f=$(mktemp); chmod 600 "$f"; trap 'rm -f "$f"' EXIT
+          for v in EXA_API_KEY BUSCA_LIMITE_DIARIO BUSCA_DEMO; do
+            val="${!v}"; [ -n "$val" ] || continue
+            val="${val//\\/\\\\}"; val="${val//\"/\\\"}"
+            printf '%s="%s"\n' "$v" "$val" >> "$f"
+          done
+          [ -s "$f" ] || { echo "EXA_API_KEY não definida; a busca na web fica desligada."; exit 0; }
           supabase secrets set --env-file "$f" --project-ref "$PROJECT_REF"
 
       - name: Publicar função de números autorizados do Hermes

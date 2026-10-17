@@ -677,7 +677,10 @@
     function devolverRascunho() {
       if (userEl.parentNode) userEl.remove();
       input.value = rascunho.texto; autosize();
-      anexos = rascunho.anexos; renderAnexos();
+      // Gravação do microfone que falhou não volta para a caixa: travaria a próxima ("um áudio por vez").
+      anexos = opcoes.fala ? rascunho.anexos.filter(function (a) { return !a.audio; }) : rascunho.anexos;
+      renderAnexos();
+      if (opcoes.aoFalhar) opcoes.aoFalhar();
     }
     var pending = appendMessage("assistant", "", state.modelos.length >= 2 ? (opcoes.modelo || modeloAtual()) : null);
     pending.classList.add("msg-pending");
@@ -842,9 +845,10 @@
       else if (code === "audio_sem_fala") { pending.remove(); showNotice(T("Não encontrei fala clara nesse áudio. Confira o arquivo e tente novamente.", "I couldn't find clear speech in that audio. Check the file and try again.")); }
       else if (code === "audio_grande_demais") { pending.remove(); showNotice(T("O áudio passa do limite de 10 MB.", "The audio exceeds the 10 MB limit.")); }
       else if (code === "audio_formato_invalido") { pending.remove(); showNotice(T("Este formato de áudio não é aceito. Use MP3, M4A, WAV, OGG ou FLAC.", "This audio format isn't supported. Use MP3, M4A, WAV, OGG, or FLAC.")); }
+      else if (code === "imagem_invalida") { pending.remove(); showNotice(T("Uma das imagens não pôde ser lida. Remova-a e envie de novo.", "One of the images couldn't be read. Remove it and send again.")); }
       else if (code === "imagem_indisponivel") { pending.remove(); showNotice(T("A leitura de imagens está indisponível. A imagem voltou para o rascunho; tente novamente em instantes.", "Image understanding is unavailable. The image was returned to your draft; try again shortly.")); }
       else if (code === "modelo_indisponivel") { pending.remove(); showNotice(T("O modelo não respondeu agora. Tente novamente em instantes.", "The model didn't respond just now. Try again in a moment.")); }
-      else { pending.remove(); showNotice(T("Não foi possível enviar. Verifique a conexão e tente de novo.", "We couldn't send that. Check your connection and try again.")); console.error(err); }
+      else { pending.remove(); showNotice(esc(T("Não foi possível enviar", "We couldn't send that") + (code && code !== "Failed to fetch" && code !== "Load failed" ? " (" + code + ")" : "") + T(". Tente de novo em instantes.", ". Try again in a moment."))); console.error(err); }
     }).then(function () {
       pending.classList.remove("msg-pending");
       if (!prog.classList.contains("is-done")) prog.remove();

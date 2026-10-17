@@ -15,6 +15,16 @@
   // Um só elemento de áudio, desbloqueado no toque: o Safari recusa play() que começa depois de um
   // fetch fora do gesto da pessoa; tocar um WAV mudo no próprio toque libera o elemento para depois.
   var player = null, liberado = false;
+  // O detector de silêncio usa um AudioContext; no Safari ele nasce "suspended" (e mede zero) se for
+  // criado fora do toque. Ele nasce e é retomado no toque, e a gravação reaproveita o mesmo.
+  var contextoAudio = null;
+  function acordarContexto() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!contextoAudio || contextoAudio.state === "closed") contextoAudio = new AC();
+    if (contextoAudio.state === "suspended" && contextoAudio.resume) contextoAudio.resume().catch(function () {});
+    return contextoAudio;
+  }
   var micBtn = null, conversaBtn = null;
   var SILENCIO_MS = 1400, MAX_GRAVACAO_MS = 120000, LIMIAR = 0.018;
 
@@ -52,6 +62,7 @@
   }
   // Chamar SEMPRE dentro do toque (clique em "Ouvir", no microfone ou na conversa por voz).
   function liberarAudio() {
+    acordarContexto();
     if (!player) { player = new Audio(); player.preload = "auto"; }
     if (liberado) return;
     var mudo = wavMudo();
@@ -79,7 +90,7 @@
         body: JSON.stringify({ texto: texto, idioma: ctx.EN ? "en" : "pt" })
       });
     }).then(function (res) {
-      if (!res.ok) return res.json().catch(function () { return {}; }).then(function (j) { var e = new Error(j.error || "voz_indisponivel"); e.status = res.status; throw e; });
+      if (!res.ok) return res.json().catch(function () { return {}; }).then(function (j) { var e = new Error(j.error || ("http_" + res.status)); e.status = res.status; e.falhas = j.falhas || []; throw e; });
       if (res.headers.get("X-Voz-Demo") === "1") { demoRestante = Number(res.headers.get("X-Voz-Restante")) || 0; atualizarPlano(); }
       return res.blob();
     }).then(function (blob) {
@@ -108,7 +119,9 @@
       else if (c === "voz_demo_esgotada" || c === "voz_so_assinantes") { demoRestante = 0; atualizarPlano(); convite(); }
       else if (c === "voz_limite_diario") ctx.showNotice(T("Você chegou ao limite diário de voz. Ela volta amanhã.", "You reached today's voice limit. It comes back tomorrow."));
       else if (c === "voz_nao_configurada") ctx.showNotice(T("A voz ainda não foi ligada no servidor.", "Voice isn't switched on on the server yet."));
-      else ctx.showNotice(T("Não foi possível gerar a voz agora. Tente de novo em instantes.", "Couldn't generate the voice just now. Try again shortly."));
+      else ctx.showNotice(T("Não foi possível gerar a voz agora", "Couldn't generate the voice just now") +
+        " (" + [c].concat(err && err.falhas && err.falhas.length ? err.falhas : []).filter(Boolean).join(" · ").replace(/[<>&]/g, "") + "). " +
+        T("Tente de novo em instantes.", "Try again shortly."));
       throw err;
     });
   }
@@ -158,8 +171,8 @@
     pararFala();
     navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
       var tipo = tipoGravacao(), partes = [], rec = new MediaRecorder(stream, tipo ? { mimeType: tipo } : undefined);
-      var ac = window.AudioContext ? new AudioContext() : null, analisador = null, ultimoSom = Date.now(), ouviuFala = false, timer = null, inicio = Date.now();
-      if (ac) { analisador = ac.createAnalyser(); analisador.fftSize = 1024; ac.createMediaStreamSource(stream).connect(analisador); }
+      var ac = acordarContexto(), analisador = null, fonte = null, ultimoSom = Date.now(), ouviuFala = false, timer = null, inicio = Date.now();
+      if (ac) { analisador = ac.createAnalyser(); analisador.fftSize = 1024; fonte = ac.createMediaStreamSource(stream); fonte.connect(analisador); }
       var buf = analisador ? new Float32Array(analisador.fftSize) : null;
       function nivel() { analisador.getFloatTimeDomainData(buf); var s = 0; for (var i = 0; i < buf.length; i++) s += buf[i] * buf[i]; return Math.sqrt(s / buf.length); }
       function vigiar() {
@@ -174,14 +187,15 @@
       gravador = { parar: function () { if (rec.state !== "inactive") rec.stop(); } };
       rec.ondataavailable = function (e) { if (e.data && e.data.size) partes.push(e.data); };
       rec.onstop = function () {
-        clearTimeout(timer); stream.getTracks().forEach(function (t) { t.stop(); }); if (ac) ac.close();
+        clearTimeout(timer); stream.getTracks().forEach(function (t) { t.stop(); }); if (fonte) fonte.disconnect();
         gravador = null; marcarMic(false);
         var mime = (rec.mimeType || tipo || "audio/webm").split(";")[0], ext = mime.indexOf("mp4") >= 0 ? "m4a" : mime.indexOf("ogg") >= 0 ? "ogg" : "webm";
         var blob = new Blob(partes, { type: mime });
         if (!ouviuFala || blob.size < 2000) { if (conversa) setTimeout(gravar, 400); return; }
         ctx.adicionarArquivos([new File([blob], "fala." + ext, { type: mime })]);
         // A transcrição vira a própria mensagem; na conversa por voz, resposta curta e rápida (Flash).
-        ctx.enviar(ctx.input.value, conversa ? { fala: "conversa", modelo: "trustio-flash" } : { fala: "1" });
+        var falhou = function () { sairConversa(); };      // o aviso do chat fica na tela; a conversa para
+        ctx.enviar(ctx.input.value, conversa ? { fala: "conversa", modelo: "trustio-flash", aoFalhar: falhou } : { fala: "1", aoFalhar: falhou });
       };
       rec.start(250); marcarMic(true); vigiar();
     }).catch(function () {

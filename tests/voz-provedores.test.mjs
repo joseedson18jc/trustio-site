@@ -62,9 +62,12 @@ await t("sem chave da xAI: vai direto à ElevenLabs", async () => {
   assert.equal(f.chamadas.length, 1);
 });
 
-await t("os dois falham: erro voz_indisponivel", async () => {
-  const f = fakeFetch([new Response("x", { status: 500 }), new Response("y", { status: 401 })]);
-  await assert.rejects(sintetizar("Olá.", "pt", cfgTudo, f), /voz_indisponivel/);
+await t("os dois falham: erro voz_indisponivel com o status de cada provedor (sem corpo da resposta)", async () => {
+  const f = fakeFetch([new Response("segredo-nao-vaza", { status: 401 }), new TypeError("fetch failed")]);
+  const err = await sintetizar("Olá.", "pt", cfgTudo, f).catch((e) => e);
+  assert.match(err.message, /voz_indisponivel/);
+  assert.deepEqual(err.falhas, ["xai:401", "elevenlabs:rede"]);
+  assert.ok(!JSON.stringify(err.falhas).includes("segredo"));
 });
 
 await t("nenhum configurado", async () => {

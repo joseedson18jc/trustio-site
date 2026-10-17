@@ -274,7 +274,8 @@ Deno.serve(async (req) => {
   if (message.length > 40000) return json(413, { error: "mensagem_longa" }, origin);
   // Fotos anexadas: até 3 cópias reduzidas (JPEG/PNG/WebP em data: URL) para o modelo ver
   // a imagem. Não são gravadas: o histórico guarda só o texto da mensagem.
-  const imagens = body.imagens === undefined ? [] : body.imagens;
+  // No envio por formulário (áudio), form.get("imagens") devolve null quando não há fotos: null também é "nenhuma".
+  const imagens = body.imagens == null ? [] : body.imagens;
   if (!Array.isArray(imagens) || imagens.length > 3 ||
       !imagens.every((u) => typeof u === "string" && u.length <= MAX_IMAGEM && RE_IMAGEM.test(u))) {
     return json(400, { error: "imagem_invalida" }, origin);

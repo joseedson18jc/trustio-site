@@ -36,9 +36,11 @@ O GitHub Pages não permite cabeçalhos por repositório, e a CSP em `<meta>` n�
 X-Frame-Options: DENY
 Content-Security-Policy: frame-ancestors 'none'
 Referrer-Policy: strict-origin-when-cross-origin
-Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+Permissions-Policy: camera=(), microphone=(self), geolocation=(), payment=(), usb=()
 Strict-Transport-Security: max-age=63072000; includeSubDomains
 ```
+
+`microphone=(self)` (17 out 2026): o microfone do chat (voz) funciona nas páginas do próprio site e segue bloqueado para conteúdo incorporado. A regra "Trustio production security headers" na Cloudflare também leva `blob:` em `media-src`, para tocar o áudio da voz.
 
 A CSP completa continua nas páginas; o cabeçalho acima só acrescenta a proteção contra
 enquadramento (clickjacking), que o `<meta>` não consegue dar.

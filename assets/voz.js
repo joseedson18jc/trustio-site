@@ -164,7 +164,7 @@
     return "";
   }
   function gravar() {
-    if (gravador) { gravador.parar(); return; }
+    if (gravador) { gravador.parar("toque"); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
       ctx.showNotice(T("Este navegador não grava áudio aqui.", "This browser can't record audio here.")); sairConversa(); return;
     }
@@ -178,20 +178,33 @@
       function vigiar() {
         if (!gravador) return;
         if (analisador) {
-          if (nivel() > LIMIAR) { ultimoSom = Date.now(); ouviuFala = true; }
-          if (ouviuFala && Date.now() - ultimoSom > SILENCIO_MS) { gravador.parar(); return; }
+          var n = nivel(); if (n > pico) pico = n;
+          if (n > LIMIAR) { ultimoSom = Date.now(); ouviuFala = true; }
+          if (ouviuFala && Date.now() - ultimoSom > SILENCIO_MS) { gravador.parar("silencio"); return; }
         }
-        if (Date.now() - inicio > MAX_GRAVACAO_MS) { gravador.parar(); return; }
+        if (Date.now() - inicio > MAX_GRAVACAO_MS) { gravador.parar("limite"); return; }
         timer = setTimeout(vigiar, 120);
       }
-      gravador = { parar: function () { if (rec.state !== "inactive") rec.stop(); } };
+      var motivo = "silencio", pico = 0;
+      gravador = { parar: function (m) { motivo = m || motivo; if (rec.state !== "inactive") rec.stop(); } };
       rec.ondataavailable = function (e) { if (e.data && e.data.size) partes.push(e.data); };
       rec.onstop = function () {
         clearTimeout(timer); stream.getTracks().forEach(function (t) { t.stop(); }); if (fonte) fonte.disconnect();
         gravador = null; marcarMic(false);
         var mime = (rec.mimeType || tipo || "audio/webm").split(";")[0], ext = mime.indexOf("mp4") >= 0 ? "m4a" : mime.indexOf("ogg") >= 0 ? "ogg" : "webm";
         var blob = new Blob(partes, { type: mime });
-        if (!ouviuFala || blob.size < 2000) { if (conversa) setTimeout(gravar, 400); return; }
+        // Parada pelo toque ou pelo limite de tempo: envia o que foi gravado mesmo que o detector não tenha
+        // marcado fala (no Safari ele pode medir baixo). Só o fim automático exige fala detectada.
+        // Detector "morto" (Safari sem o AudioContext rodando, ou nada medido): aí não dá para saber se houve
+        // fala e a gravação vai assim mesmo. Com o detector vivo e sem fala, não envia: o whisper inventa frases
+        // em silêncio ("Obrigado.", créditos de legenda) e isso viraria uma pergunta falsa.
+        var detectorMorto = !analisador || pico === 0 || !ac || ac.state !== "running";
+        var temAudio = blob.size >= 2000;
+        if (!temAudio || (!ouviuFala && (motivo === "silencio" || !detectorMorto))) {
+          if (motivo === "toque") ctx.showNotice(T("Não ouvi sua voz. Fale um pouco mais perto do microfone e tente de novo.", "I didn't hear your voice. Speak a bit closer to the mic and try again."));
+          if (conversa && motivo !== "toque") setTimeout(gravar, 400);
+          return;
+        }
         ctx.adicionarArquivos([new File([blob], "fala." + ext, { type: mime })]);
         // A transcrição vira a própria mensagem; na conversa por voz, resposta curta e rápida (Flash).
         var falhou = function () { sairConversa(); };      // o aviso do chat fica na tela; a conversa para
@@ -219,7 +232,7 @@
     if (conversa) {
       ctx.showNotice(T("Conversa por voz ligada: fale, e eu respondo em voz alta. Toque de novo para desligar.", "Voice conversation on: speak and I'll answer out loud. Tap again to turn it off."));
       if (!gravador && !ctx.ocupado()) gravar();
-    } else { if (gravador) gravador.parar(); pararFala(); }
+    } else { if (gravador) gravador.parar("toque"); pararFala(); }
   }
 
   // Uma resposta terminou de chegar: na conversa por voz, ela é lida e o microfone volta a ouvir.

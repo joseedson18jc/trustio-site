@@ -15,9 +15,9 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const LLM_API_KEY = Deno.env.get("LLM_API_KEY") ?? Deno.env.get("XAI_API_KEY") ?? "";
-const LLM_BASE_URL = (Deno.env.get("LLM_BASE_URL") ?? "https://api.x.ai/v1").replace(/\/$/, "");
-const LLM_MODEL = (Deno.env.get("LLM_MODEL") ?? "grok-4").trim();
+const LLM_API_KEY = Deno.env.get("TRUSTIO_LLM_API_KEY") ?? Deno.env.get("LLM_API_KEY") ?? Deno.env.get("XAI_API_KEY") ?? "";
+const LLM_BASE_URL = (Deno.env.get("TRUSTIO_LLM_BASE_URL") ?? Deno.env.get("LLM_BASE_URL") ?? "https://api.x.ai/v1").replace(/\/$/, "");
+const LLM_MODEL = (Deno.env.get("TRUSTIO_LLM_MODEL") ?? Deno.env.get("LLM_MODEL") ?? "grok-4").trim();
 
 // Nome do modelo que vai na chamada, nesta ordem: app_settings.llm_model; o que o próprio
 // servidor anuncia em GET /models (com um modelo só na lista, vale esse; com vários, como num
@@ -103,9 +103,16 @@ function promptComPreferencias(base: string, pref: Preferencias | null): string 
 }
 
 async function modeloDaChamada(configurado: string | null): Promise<string> {
-  // app_settings.llm_model (definido no banco) vale primeiro: muda na hora, sem depender da
-  // propagação dos segredos da função nem do workflow que os regrava a cada deploy.
-  if (configurado) return configurado;
+  // app_settings.llm_model (definido no banco) vale primeiro quando o servidor o anuncia:
+  // mudanças feitas pelo admin passam a valer na hora, sem depender do deploy dos segredos.
+  // Após trocar de provedor, uma preferência antiga pode continuar no banco; não a envie a
+  // um gateway que anuncia outros modelos, pois isso faria o chat falhar mesmo com Strata ativo.
+  if (configurado) {
+    const disponiveis = await catalogoDoServidor(25_000);
+    const idsValidos = [...(disponiveis?.ids ?? []), ...(disponiveis?.escolhas ?? []).map((m) => m.id)];
+    if (!idsValidos.length || idsValidos.includes(configurado) || configurado === LLM_MODEL) return configurado;
+    console.log("llm_modelo_configurado_indisponivel", configurado);
+  }
   if (modeloDescoberto && Date.now() - modeloDescoberto.em < 10 * 60_000) return modeloDescoberto.id;
   // 25 s: a primeira chamada depois de ociosidade longa acorda o modelo (~15 s).
   const cat = await catalogoDoServidor(25_000);
@@ -135,19 +142,10 @@ const LLAMA_TIMINGS = (Deno.env.get("LLM_SERVIDOR") ?? "").trim().toLowerCase() 
 // Fotos do chat: data: URL de imagem, cada uma com até ~1,5 MB (a página manda JPEG de até 1280 px).
 const RE_IMAGEM = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 const MAX_IMAGEM = 1_500_000;
-const AVISO_SEM_IMAGEM = "[Aviso do sistema: a pessoa anexou foto(s), mas o servidor do modelo não aceitou imagens nesta mensagem. " +
-  "Você recebeu só o texto lido delas, se havia. Se precisar ver a foto para responder, diga isso com franqueza.]";
-// Recusa de imagem pelo servidor do modelo (modelo só de texto): 4xx, ou 5xx cujo erro fala
-// de imagem. Chave inválida, limite de uso, servidor fora do ar e contexto cheio não contam:
-// repetir só com o texto não resolveria e descartaria a foto à toa.
-// O erro que fala de imagem vale em qualquer status: o servidor MLX em uso responde 404
-// "Only 'text' content type is supported." a uma mensagem com foto.
-function ehRecusaDeImagem(status: number, detalhe: string) {
-  if (ehContextoCheio(status, detalhe)) return false;
-  if (/image|imagem|vision|multimodal|image_url|content.?(part|type)|mmproj|clip/i.test(detalhe)) return true;
-  if ([401, 403, 404, 408, 429].includes(status)) return false;
-  return status >= 400 && status < 500;
-}
+const MAX_AUDIO = 10 * 1024 * 1024;
+const MAX_CHAT_REQUEST = 20 * 1024 * 1024;
+const AUDIO_MIMES = new Set(["audio/mpeg", "audio/mp4", "audio/wav", "audio/x-wav", "audio/ogg", "audio/flac", "audio/webm", "audio/aac", "audio/3gpp"]);
+const AUDIO_EXT = /\.(mp3|m4a|wav|ogg|oga|flac|webm|aac|3gp)$/i;
 // Erro que indica nome de modelo desconhecido pelo servidor (ex.: mlx_vlm tentando carregar outro
 // modelo: "Failed to load model…"; OpenAI/xAI: "model_not_found").
 function ehErroDeNomeDoModelo(status: number, detalhe: string) {
@@ -185,7 +183,8 @@ type Liberacao = {
 
 // Uma fonte só para "esta conta pode conversar agora": a função acesso_do_chat no banco.
 // Se a consulta falhar, o chat fica fechado — melhor recusar do que abrir antes da data.
-async function liberacao(admin: ReturnType<typeof createClient>, userId: string): Promise<Liberacao> {
+// deno-lint-ignore no-explicit-any
+async function liberacao(admin: any, userId: string): Promise<Liberacao> {
   const { data, error } = await admin.rpc("acesso_do_chat", { p_user_id: userId });
   if (error || !data) {
     console.error("acesso_do_chat_error", error);
@@ -240,10 +239,34 @@ Deno.serve(async (req) => {
 
   if (!user.email_confirmed_at) return json(403, { error: "email_nao_confirmado" }, origin);
 
+  const requestSize = Number(req.headers.get("content-length") ?? 0);
+  if (requestSize > MAX_CHAT_REQUEST) return json(413, { error: "mensagem_longa" }, origin);
   let body: { conversation_id?: string; message?: string; imagens?: unknown; modelo?: unknown };
-  try { body = await req.json(); } catch { return json(400, { error: "bad_json" }, origin); }
-  const message = String(body.message ?? "").trim();
-  if (!message) return json(400, { error: "mensagem_vazia" }, origin);
+  let audio: File | null = null;
+  let audioLanguage: "pt" | "en" = "pt";
+  const contentType = req.headers.get("content-type") ?? "";
+  try {
+    if (/^multipart\/form-data\b/i.test(contentType)) {
+      const form = await req.formData();
+      const rawAudio = form.get("audio");
+      if (rawAudio !== null && !(rawAudio instanceof File)) return json(400, { error: "audio_invalido" }, origin);
+      audio = rawAudio instanceof File ? rawAudio : null;
+      audioLanguage = form.get("audio_language") === "en" ? "en" : "pt";
+      let imagens: unknown = form.get("imagens");
+      if (typeof imagens === "string" && imagens) {
+        try { imagens = JSON.parse(imagens); } catch { return json(400, { error: "imagem_invalida" }, origin); }
+      }
+      body = {
+        conversation_id: String(form.get("conversation_id") ?? "") || undefined,
+        message: String(form.get("message") ?? ""),
+        imagens,
+        modelo: String(form.get("modelo") ?? ""),
+      };
+    } else {
+      body = await req.json();
+    }
+  } catch { return json(400, { error: "bad_json" }, origin); }
+  let message = String(body.message ?? "").trim();
   // 40 mil caracteres: mensagem com até 3 anexos lidos por OCR no navegador (o texto de
   // cada anexo é cortado em 12 mil, e o total dos anexos em 30 mil, antes de sair da página).
   if (message.length > 40000) return json(413, { error: "mensagem_longa" }, origin);
@@ -254,6 +277,15 @@ Deno.serve(async (req) => {
       !imagens.every((u) => typeof u === "string" && u.length <= MAX_IMAGEM && RE_IMAGEM.test(u))) {
     return json(400, { error: "imagem_invalida" }, origin);
   }
+  if (audio) {
+    if (audio.size <= 0) return json(400, { error: "audio_invalido" }, origin);
+    if (audio.size > MAX_AUDIO) return json(413, { error: "audio_grande_demais" }, origin);
+    if (!AUDIO_MIMES.has(audio.type.toLowerCase()) && !AUDIO_EXT.test(audio.name)) {
+      return json(400, { error: "audio_formato_invalido" }, origin);
+    }
+  }
+  if (!message && (audio || imagens.length)) message = "Analise o conteúdo do anexo.";
+  if (!message) return json(400, { error: "mensagem_vazia" }, origin);
 
   // Sem chave do modelo nada é consumido nem gravado.
   if (!LLM_API_KEY) return json(503, { error: "modelo_nao_configurado" }, origin);
@@ -287,6 +319,47 @@ Deno.serve(async (req) => {
   const leadId = reservation.lead_id!;
   const release = () => admin.rpc("release_chat_message", { p_lead_id: leadId });
 
+  let transcricaoAudio = "";
+  if (audio) {
+    try {
+      const form = new FormData();
+      form.append("file", audio, audio.name || "audio");
+      form.append("response_format", "json");
+      form.append("language", audioLanguage);
+      form.append("temperature", "0");
+      form.append("prompt", audioLanguage === "pt"
+        ? "Português do Brasil. O nome da empresa é Trustio, escrito T-R-U-S-T-I-O. Preserve nomes próprios, números, datas e valores exatamente como foram falados."
+        : "English. Preserve proper names, numbers, dates, and amounts exactly as spoken.");
+      const r = await fetch(`${LLM_BASE_URL}/audio/transcriptions`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${LLM_API_KEY}` },
+        body: form,
+        signal: AbortSignal.timeout(120_000),
+      });
+      if (!r.ok) {
+        console.error("audio_transcription_error", r.status);
+        await release();
+        return json(502, { error: "audio_indisponivel" }, origin);
+      }
+      const result = await r.json().catch(() => null) as { text?: unknown } | null;
+      transcricaoAudio = typeof result?.text === "string" ? result.text.trim() : "";
+      if (!transcricaoAudio) {
+        await release();
+        return json(422, { error: "audio_sem_fala" }, origin);
+      }
+      const nome = (audio.name || "áudio").replace(/[^\p{L}\p{N}._ -]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 120) || "áudio";
+      message += `\n\n[[anexo: Áudio — ${nome} · transcrição automática]]\n${transcricaoAudio}\n[[/anexo]]`;
+      if (message.length > 40000) {
+        await release();
+        return json(413, { error: "mensagem_longa" }, origin);
+      }
+    } catch (err) {
+      console.error("audio_transcription_fetch_error", String(err).slice(0, 120));
+      await release();
+      return json(502, { error: "audio_indisponivel" }, origin);
+    }
+  }
+
   // Conversa (cria se necessário; confere que pertence ao usuário).
   let conversationId = body.conversation_id ?? null;
   if (conversationId) {
@@ -316,10 +389,13 @@ Deno.serve(async (req) => {
   // acordar o servidor, e um tempo curto aqui faria a escolha cair para o padrão sem motivo.
   const escolhido = pedido ? (await modelosEscolhiveis(admin, 25_000)).find((m) => m.id === pedido)?.id ?? null : null;
   const modeloConfigurado = escolhido ?? await modeloDoBanco(admin);
-  const systemPrompt = promptComPreferencias(
-    typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.",
-    pref,
-  );
+  const systemPrompt = [
+    promptComPreferencias(
+      typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.",
+      pref,
+    ),
+    "Priorize a precisão factual. Não invente dados, fontes ou detalhes; não apresente inferências como fatos; indique incerteza quando houver e evite afirmações absolutas sem fundamento.",
+  ].join("\n\n");
 
   const anteriores = [
     { role: "system", content: systemPrompt },
@@ -337,7 +413,7 @@ Deno.serve(async (req) => {
     method: "POST",
     headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: modelo, messages: [...anteriores, { role: "user", content: ultima }], stream: true, temperature: 0.7,
+      model: modelo, messages: [...anteriores, { role: "user", content: ultima }], stream: true, temperature: 0.2,
       stream_options: { include_usage: true },
       ...(LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
       ...(LLAMA_TIMINGS ? { timings_per_token: true } : {}),
@@ -350,9 +426,8 @@ Deno.serve(async (req) => {
   const tentar = async () => {
     detail = "";
     if (imagens.length) {
-      // Com fotos: texto + imagens no formato da API da OpenAI. Servidor que não aceita
-      // imagem (modelo só de texto) recusa; aí vai de novo só o texto, com um aviso ao
-      // modelo de que as fotos não chegaram — a pessoa recebe resposta do mesmo jeito.
+      // Foto: texto + imagem no formato OpenAI. Se a visão não responder, falha claramente
+      // em vez de tentar responder só com OCR e dar a impressão de que viu a imagem.
       upstream = await chamarModelo([
         { type: "text", text: message },
         ...imagens.map((url) => ({ type: "image_url", image_url: { url } })),
@@ -360,10 +435,6 @@ Deno.serve(async (req) => {
       if (!upstream.ok || !upstream.body) {
         detail = await upstream.text().catch(() => "");
         console.error("llm_sem_imagem", upstream.status, detail.slice(0, 300));
-        if (ehRecusaDeImagem(upstream.status, detail)) {
-          upstream = await chamarModelo(message + "\n\n" + AVISO_SEM_IMAGEM);
-          detail = "";
-        }
       }
     } else {
       upstream = await chamarModelo(message);
@@ -402,6 +473,7 @@ Deno.serve(async (req) => {
     if (ehContextoCheio(upstream.status, detail)) {
       return json(409, { error: "contexto_cheio", janela }, origin);
     }
+    if (imagens.length) return json(503, { error: "imagem_indisponivel" }, origin);
     return json(502, { error: "modelo_indisponivel", status: upstream.status }, origin);
   }
 
@@ -431,7 +503,11 @@ Deno.serve(async (req) => {
   };
 
   const stream = new ReadableStream<Uint8Array>({
-    start(controller) { saida = controller; send({ conversation_id: convId, limite: LLM_MAX_TOKENS, modelo }); },
+    start(controller) {
+      saida = controller;
+      send({ conversation_id: convId, limite: LLM_MAX_TOKENS, modelo,
+        ...(transcricaoAudio ? { mensagem_usuario: message } : {}) });
+    },
     // Navegador foi embora: só para de enviar; a leitura do modelo segue.
     cancel() { aberto = false; },
   });

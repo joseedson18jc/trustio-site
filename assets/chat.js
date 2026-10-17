@@ -664,8 +664,11 @@
     text += blocosDeAnexo(prontos, LIMITE_MENSAGEM - text.length);
     // As fotos também vão como imagem (cópia reduzida), para o modelo ver o que não é texto.
     var imagens = prontos.filter(function (a) { return a.imagem; }).map(function (a) { return a.imagem; });
+    var audio = prontos.filter(function (a) { return a.audio; })[0] || null;
     anexos = []; renderAnexos();
-    var userEl = appendMessage("user", text);
+    var textoVisivel = text;
+    if (audio) textoVisivel += "\n\n[[anexo: " + T("Áudio · transcrevendo", "Audio · transcribing") + "]]\n" + T("Aguarde a transcrição em português do Brasil.", "Waiting for the audio transcription.") + "\n[[/anexo]]";
+    var userEl = appendMessage("user", textoVisivel);
     // Envio recusado antes de começar: a mensagem sai da conversa e volta para a caixa.
     function devolverRascunho() {
       if (userEl.parentNode) userEl.remove();
@@ -717,12 +720,26 @@
     sb.auth.getSession().then(function (r) {
       var session = r.data && r.data.session;
       if (!session) throw new Error("sem_sessao");
+      var headers = { "Authorization": "Bearer " + session.access_token, "apikey": CFG.key };
+      var payload;
+      if (audio) {
+        payload = new FormData();
+        payload.append("message", text);
+        if (state.conversationId) payload.append("conversation_id", state.conversationId);
+        if (imagens.length) payload.append("imagens", JSON.stringify(imagens));
+        if (state.modelos.length >= 2) payload.append("modelo", modeloAtual() || "");
+        payload.append("audio_language", EN ? "en" : "pt");
+        payload.append("audio", audio.file, audio.nome);
+      } else {
+        headers["Content-Type"] = "application/json";
+        payload = JSON.stringify(Object.assign({ conversation_id: state.conversationId, message: text },
+          imagens.length ? { imagens: imagens } : {},
+          state.modelos.length >= 2 ? { modelo: modeloAtual() || "" } : {}));
+      }
       return fetch(CFG.chatEndpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token, "apikey": CFG.key },
-        body: JSON.stringify(Object.assign({ conversation_id: state.conversationId, message: text },
-          imagens.length ? { imagens: imagens } : {},
-          state.modelos.length >= 2 ? { modelo: modeloAtual() || "" } : {}))
+        headers: headers,
+        body: payload
       });
     }).then(function (res) {
       if (!res.ok) {
@@ -739,6 +756,10 @@
             if (!line) return;
             var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
             if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; lembrarConversa(d.conversation_id); }
+            if (typeof d.mensagem_usuario === "string") {
+              var userBody = userEl.querySelector(".msg-body");
+              if (userBody) userBody.innerHTML = renderUsuario(d.mensagem_usuario);
+            }
             if (d.modelo && d.modelo !== (pending.dataset.modelo || "")) {
               pending.dataset.modelo = d.modelo;
               var avAtual = pending.querySelector(".msg-av");
@@ -809,6 +830,11 @@
       else if (code === "modelo_nao_configurado") { pending.remove(); fechar(true, { motivo: "sem_modelo" }); }
       else if (code === "contexto_cheio") { pending.remove(); sessaoCheia((err && err.data && err.data.janela) || 0); }
       else if (code === "mensagem_longa") { pending.remove(); showNotice(T("Mensagem longa demais, mesmo com os anexos cortados. Divida em partes menores.", "Message too long, even with the attachments trimmed. Split it into smaller parts.")); }
+      else if (code === "audio_indisponivel") { pending.remove(); showNotice(T("Não foi possível transcrever o áudio agora. O arquivo voltou para o rascunho; tente novamente em instantes.", "The audio could not be transcribed right now. It was returned to your draft; try again shortly.")); }
+      else if (code === "audio_sem_fala") { pending.remove(); showNotice(T("Não encontrei fala clara nesse áudio. Confira o arquivo e tente novamente.", "I couldn't find clear speech in that audio. Check the file and try again.")); }
+      else if (code === "audio_grande_demais") { pending.remove(); showNotice(T("O áudio passa do limite de 10 MB.", "The audio exceeds the 10 MB limit.")); }
+      else if (code === "audio_formato_invalido") { pending.remove(); showNotice(T("Este formato de áudio não é aceito. Use MP3, M4A, WAV, OGG ou FLAC.", "This audio format isn't supported. Use MP3, M4A, WAV, OGG, or FLAC.")); }
+      else if (code === "imagem_indisponivel") { pending.remove(); showNotice(T("A leitura de imagens está indisponível. A imagem voltou para o rascunho; tente novamente em instantes.", "Image understanding is unavailable. The image was returned to your draft; try again shortly.")); }
       else if (code === "modelo_indisponivel") { pending.remove(); showNotice(T("O modelo não respondeu agora. Tente novamente em instantes.", "The model didn't respond just now. Try again in a moment.")); }
       else { pending.remove(); showNotice(T("Não foi possível enviar. Verifique a conexão e tente de novo.", "We couldn't send that. Check your connection and try again.")); console.error(err); }
     }).then(function () {
@@ -839,10 +865,8 @@
     }
   }
 
-  // ---------------------------------------------------------------- anexos (fotos e PDFs, OCR no navegador)
-  // Até 3 arquivos por envio. O arquivo não sai do aparelho: assets/ocr.js extrai o texto
-  // aqui, e o texto vai junto da mensagem, em blocos [[anexo: …]] … [[/anexo]]; das fotos vai
-  // também uma cópia reduzida, para o modelo ver o que não é texto.
+  // ---------------------------------------------------------------- anexos (PDF/OCR no navegador, visão do Strata e transcrição local de áudio)
+  // Até 3 arquivos por envio. O texto extraído fica em blocos [[anexo: …]] … [[/anexo]].
   // LIMITE_MENSAGEM acompanha o teto da função chat (40 mil), com folga para os marcadores.
   var MAX_ANEXOS = 3, MAX_BYTES = 10 * 1024 * 1024, MAX_TEXTO_ANEXO = 12000, MAX_TEXTO_TOTAL = 30000, LIMITE_MENSAGEM = 39000;
   // "[[anexo" digitado ou dentro de um documento não pode abrir nem fechar um bloco de anexo:
@@ -852,16 +876,22 @@
   var anexosEl = $("[data-anexos]"), fileInput = $("[data-file]"), attachBtn = $("[data-attach]");
 
   function ehPdf(f) { return f.type === "application/pdf" || /\.pdf$/i.test(f.name || ""); }
-  function tipoAceito(f) { return ehPdf(f) || /^image\/(png|jpe?g|webp|gif|bmp)$/i.test(f.type || ""); }
+  function ehAudio(f) {
+    return /^audio\/(mpeg|mp4|wav|x-wav|ogg|flac|webm|aac|3gpp)$/i.test(f.type || "") ||
+      /\.(mp3|m4a|wav|ogg|oga|flac|webm|aac|3gp)$/i.test(f.name || "");
+  }
+  function tipoAceito(f) { return ehPdf(f) || ehAudio(f) || /^image\/(png|jpe?g|webp|gif|bmp)$/i.test(f.type || ""); }
 
   function adicionarArquivos(lista) {
     var avisos = [];
     Array.prototype.slice.call(lista || []).forEach(function (f) {
       var nome = f.name || T("imagem", "image");
       if (anexos.length >= MAX_ANEXOS) { avisos.push(T("Máximo de 3 arquivos por envio.", "Up to 3 files per message.")); return; }
-      if (!tipoAceito(f)) { avisos.push(nome + ": " + T("envie foto (JPG, PNG, WebP) ou PDF.", "send a photo (JPG, PNG, WebP) or a PDF.")); return; }
+      if (!tipoAceito(f)) { avisos.push(nome + ": " + T("envie foto, PDF ou áudio (MP3, M4A, WAV, OGG, FLAC).", "send a photo, PDF, or audio (MP3, M4A, WAV, OGG, FLAC).")); return; }
       if (f.size > MAX_BYTES) { avisos.push(nome + ": " + T("passa de 10 MB.", "is over 10 MB.")); return; }
-      var a = { id: ++seqAnexo, file: f, nome: nome, pdf: ehPdf(f), estado: "lendo", progresso: 0 };
+      var audio = ehAudio(f);
+      if (audio && anexos.some(function (x) { return x.audio; })) { avisos.push(T("Envie um áudio por vez.", "Send one audio file at a time.")); return; }
+      var a = { id: ++seqAnexo, file: f, nome: nome, pdf: ehPdf(f), audio: audio, estado: "lendo", progresso: 0 };
       anexos.push(a);
       lerAnexo(a);
     });
@@ -871,6 +901,7 @@
   }
 
   function lerAnexo(a) {
+    if (a.audio) { a.estado = "pronto"; renderAnexos(); return; }
     if (!window.TrustioOCR) { a.estado = "erro"; renderAnexos(); return; }
     window.TrustioOCR.extrair(a.file, function (p) {
       a.progresso = p;
@@ -903,6 +934,7 @@
     if (a.estado === "lendo") return T("lendo ", "reading ") + Math.round((a.progresso || 0) * 100) + "%";
     if (a.estado === "erro") return T("não foi possível ler", "couldn't read it");
     if (a.estado === "vazio") return T("sem texto legível", "no readable text");
+    if (a.audio) return T("áudio · transcrição no envio", "audio · transcribed when sent");
     var n = (a.texto || "").length, pags = a.pdf && a.info ? a.info.paginas : 0;
     if (!a.pdf) return n ? T("foto · ", "photo · ") + n.toLocaleString(LOCAL) + T(" caracteres", " characters") : T("foto", "photo");
     return (pags ? pags + (pags === 1 ? T(" página · ", " page · ") : T(" páginas · ", " pages · ")) : "") + n.toLocaleString(LOCAL) + T(" caracteres", " characters");
@@ -912,14 +944,14 @@
     anexosEl.hidden = !anexos.length;
     anexosEl.innerHTML = anexos.map(function (a) {
       return "<div class=\"anexo-chip is-" + a.estado + "\" data-anexo-id=\"" + a.id + "\">" +
-        "<span class=\"anexo-ico\" aria-hidden=\"true\">" + (a.pdf ? "PDF" : "IMG") + "</span>" +
+        "<span class=\"anexo-ico\" aria-hidden=\"true\">" + (a.audio ? "AUD" : a.pdf ? "PDF" : "IMG") + "</span>" +
         "<span class=\"anexo-txt\"><b>" + esc(a.nome) + "</b><small class=\"anexo-estado\">" + esc(descricaoAnexo(a)) + "</small></span>" +
         "<button type=\"button\" class=\"anexo-x\" data-anexo-remove aria-label=\"" + esc(T("Remover ", "Remove ") + a.nome) + "\">×</button></div>";
     }).join("");
     // Os botões ficam sobre a caixa de texto; a fileira de anexos acima dela os empurra junto.
     composer.style.setProperty("--anexos-h", (anexos.length ? anexosEl.offsetHeight + 8 : 0) + "px");
     attachBtn.disabled = anexos.length >= MAX_ANEXOS;
-    attachBtn.title = anexos.length >= MAX_ANEXOS ? T("Máximo de 3 arquivos por envio", "Up to 3 files per message") : T("Anexar foto ou PDF (até 3)", "Attach a photo or PDF (up to 3)");
+    attachBtn.title = anexos.length >= MAX_ANEXOS ? T("Máximo de 3 arquivos por envio", "Up to 3 files per message") : T("Anexar foto, PDF ou áudio (até 3)", "Attach a photo, PDF, or audio (up to 3)");
   }
 
   // Blocos que vão para o modelo, com teto por anexo e no total (o contexto do modelo é finito).
@@ -928,6 +960,7 @@
     // e nomes também contam (reserva de 200 por anexo).
     var out = "", usado = 0, teto_total = Math.min(MAX_TEXTO_TOTAL, Math.max(0, (orcamento || MAX_TEXTO_TOTAL) - 200 * lista.length));
     lista.forEach(function (a) {
+      if (a.audio) return; // a transcrição real é anexada pelo servidor antes de salvar a mensagem
       var livre = teto_total - usado; if (livre <= 200) return;
       // Foto sem texto: o bloco registra no histórico que houve uma foto (a imagem vai à parte).
       var teto = Math.min(MAX_TEXTO_ANEXO, livre), txt = semMarcador(a.texto) || T("(foto sem texto legível; a imagem só vai ao modelo na mensagem em que foi anexada)", "(photo with no readable text; the image only goes to the model in the message it was attached to)"), cortado = txt.length > teto;

@@ -631,7 +631,9 @@
   }
 
   // ---------------------------------------------------------------- envio
-  function send(text) {
+  // opcoes (assets/voz.js): { fala: "1" | "conversa", modelo } para gravações do microfone.
+  function send(text, opcoes) {
+    opcoes = opcoes || {};
     text = String(text || "").trim();
     if (state.sending || state.sessaoCheia) return;
     if (anexos.some(function (a) { return a.estado === "lendo"; })) {
@@ -677,7 +679,7 @@
       input.value = rascunho.texto; autosize();
       anexos = rascunho.anexos; renderAnexos();
     }
-    var pending = appendMessage("assistant", "", state.modelos.length >= 2 ? modeloAtual() : null);
+    var pending = appendMessage("assistant", "", state.modelos.length >= 2 ? (opcoes.modelo || modeloAtual()) : null);
     pending.classList.add("msg-pending");
     var body = pending.querySelector(".msg-body");
     var full = "", avisado = false;
@@ -729,7 +731,8 @@
         payload.append("message", text);
         if (state.conversationId) payload.append("conversation_id", state.conversationId);
         if (imagens.length) payload.append("imagens", JSON.stringify(imagens));
-        if (state.modelos.length >= 2) payload.append("modelo", modeloAtual() || "");
+        if (state.modelos.length >= 2) payload.append("modelo", opcoes.modelo || modeloAtual() || "");
+        if (opcoes.fala) payload.append("fala", opcoes.fala);
         payload.append("audio_language", EN ? "en" : "pt");
         payload.append("audio", audio.file, audio.nome);
       } else {

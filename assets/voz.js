@@ -180,7 +180,8 @@
         var blob = new Blob(partes, { type: mime });
         if (!ouviuFala || blob.size < 2000) { if (conversa) setTimeout(gravar, 400); return; }
         ctx.adicionarArquivos([new File([blob], "fala." + ext, { type: mime })]);
-        ctx.enviar(ctx.input.value);
+        // A transcrição vira a própria mensagem; na conversa por voz, resposta curta e rápida (Flash).
+        ctx.enviar(ctx.input.value, conversa ? { fala: "conversa", modelo: "trustio-flash" } : { fala: "1" });
       };
       rec.start(250); marcarMic(true); vigiar();
     }).catch(function () {

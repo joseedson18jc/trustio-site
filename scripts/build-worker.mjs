@@ -56,6 +56,7 @@ const sourceFiles = [
   "entrar.html",
   "app/index.html",
   "crm/index.html",
+  "crm/prospeccao.html",
   "admin/index.html",
   "console/index.html",
   "404.html",

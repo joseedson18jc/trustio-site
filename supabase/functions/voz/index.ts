@@ -10,7 +10,7 @@
 //   VOZ_LIMITE_DIARIO    opcional, caracteres por conta por dia, padrão 60000 (~1 hora de fala)
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { textoParaFala } from "./texto.ts";
+import { cortarNaFrase, textoParaFala } from "./texto.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
   if (!API_KEY || !VOICE_ID) return json(503, { error: "voz_nao_configurada" }, origin);
   let body: { texto?: unknown; idioma?: unknown };
   try { body = await req.json(); } catch { return json(400, { error: "pedido_invalido" }, origin); }
-  const texto = textoParaFala(typeof body.texto === "string" ? body.texto : "").slice(0, MAX_POR_PEDIDO);
+  const texto = cortarNaFrase(textoParaFala(typeof body.texto === "string" ? body.texto : ""), MAX_POR_PEDIDO);
   if (!texto) return json(400, { error: "texto_vazio" }, origin);
   const idioma = body.idioma === "en" ? "en" : "pt";
 

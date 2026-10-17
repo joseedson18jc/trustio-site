@@ -1,7 +1,7 @@
 // Testes do texto que vai para a voz (supabase/functions/voz/texto.ts): o que se lê em voz alta
 // não pode ter símbolos de Markdown, código, JSON de gráfico nem LaTeX cru.
 import assert from "node:assert/strict";
-import { textoParaFala } from "../supabase/functions/voz/texto.ts";
+import { cortarNaFrase, textoParaFala } from "../supabase/functions/voz/texto.ts";
 
 let n = 0;
 const t = (name, fn) => { fn(); n++; console.log("ok -", name); };
@@ -45,6 +45,15 @@ t("espaços do LaTeX, vírgula quebrada, índices, sinais e menos antes de parê
 
 t("texto vazio continua vazio", () => {
   assert.equal(textoParaFala("```\nsó código\n```"), "");
+});
+
+t("texto longo é cortado no fim de uma frase, nunca no meio da palavra", () => {
+  const frase = "Esta é uma frase de teste. ";
+  const longo = frase.repeat(200);
+  const c = cortarNaFrase(longo, 3000);
+  assert.ok(c.length <= 3000 && c.endsWith("teste."), c.slice(-40));
+  assert.equal(cortarNaFrase("curto.", 3000), "curto.");
+  assert.equal(cortarNaFrase("palavra ".repeat(10).trim(), 20), "palavra palavra…");
 });
 
 console.log(`\n${n} testes passaram`);

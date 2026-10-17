@@ -67,3 +67,13 @@ export function textoParaFala(md: string): string {
   if (s && !/[.!?…]$/.test(s)) s += ".";
   return s === "." ? "" : s;
 }
+
+// Texto longo: corta no fim da última frase que cabe (sem partir palavra no meio da fala).
+export function cortarNaFrase(texto: string, max: number): string {
+  if (texto.length <= max) return texto;
+  const trecho = texto.slice(0, max);
+  const fim = Math.max(trecho.lastIndexOf(". "), trecho.lastIndexOf("! "), trecho.lastIndexOf("? "));
+  if (fim > max * 0.5) return trecho.slice(0, fim + 1);
+  const espaco = trecho.lastIndexOf(" ");
+  return (espaco > 0 ? trecho.slice(0, espaco) : trecho) + "…";
+}

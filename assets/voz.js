@@ -8,7 +8,10 @@
    respostaPronta(el) quando uma resposta termina de chegar. */
 (function () {
   "use strict";
-  var ctx = null, audioAtual = null, urlAtual = null, conversa = false, gravador = null, falando = false;
+  var ctx = null, urlAtual = null, conversa = false, gravador = null, falando = false, configurada = true;
+  // Um só elemento de áudio, desbloqueado no toque: o Safari recusa play() que começa depois de um
+  // fetch fora do gesto da pessoa; tocar um WAV mudo no próprio toque libera o elemento para depois.
+  var player = null, liberado = false;
   var micBtn = null, conversaBtn = null;
   var SILENCIO_MS = 1400, MAX_GRAVACAO_MS = 120000, LIMIAR = 0.018;
 
@@ -26,8 +29,26 @@
   var ICONE_CONVERSA = "M4 12V9a6 6 0 0 1 12 0v3M4 12h2.5v4H4zM13.5 12H16v4h-2.5z";
 
   // ---------------------------------------------------------------- tocar
+  function wavMudo() {
+    var n = 800, b = new ArrayBuffer(44 + n * 2), v = new DataView(b), i = 0;
+    function str(t) { for (var k = 0; k < t.length; k++) v.setUint8(i++, t.charCodeAt(k)); }
+    str("RIFF"); v.setUint32(i, 36 + n * 2, true); i += 4; str("WAVEfmt "); v.setUint32(i, 16, true); i += 4;
+    v.setUint16(i, 1, true); i += 2; v.setUint16(i, 1, true); i += 2; v.setUint32(i, 8000, true); i += 4;
+    v.setUint32(i, 16000, true); i += 4; v.setUint16(i, 2, true); i += 2; v.setUint16(i, 16, true); i += 2;
+    str("data"); v.setUint32(i, n * 2, true);
+    return URL.createObjectURL(new Blob([b], { type: "audio/wav" }));
+  }
+  // Chamar SEMPRE dentro do toque (clique em "Ouvir", no microfone ou na conversa por voz).
+  function liberarAudio() {
+    if (!player) { player = new Audio(); player.preload = "auto"; }
+    if (liberado) return;
+    var mudo = wavMudo();
+    player.src = mudo;
+    var p = player.play();
+    if (p && p.then) p.then(function () { liberado = true; player.pause(); URL.revokeObjectURL(mudo); }, function () { URL.revokeObjectURL(mudo); });
+  }
   function pararFala() {
-    if (audioAtual) { audioAtual.pause(); audioAtual.src = ""; audioAtual = null; }
+    if (player) { player.pause(); player.removeAttribute("src"); player.load(); }
     if (urlAtual) { URL.revokeObjectURL(urlAtual); urlAtual = null; }
     falando = false;
     Array.prototype.forEach.call(document.querySelectorAll(".msg-ouvir.is-tocando"), marcarParado);
@@ -49,19 +70,29 @@
       if (!res.ok) return res.json().catch(function () { return {}; }).then(function (j) { var e = new Error(j.error || "voz_indisponivel"); e.status = res.status; throw e; });
       return res.blob();
     }).then(function (blob) {
+      if (!player) player = new Audio();
       urlAtual = URL.createObjectURL(blob);
-      audioAtual = new Audio(urlAtual);
+      player.src = urlAtual;
       falando = true;
       if (botao) { botao.classList.remove("is-carregando"); botao.classList.add("is-tocando"); botao.innerHTML = svg(ICONE_PARAR) + "<span>" + T("Parar", "Stop") + "</span>"; }
-      return new Promise(function (fim) {
-        audioAtual.onended = audioAtual.onerror = function () { pararFala(); fim(); };
-        audioAtual.play().catch(function () { pararFala(); fim(); });
+      return new Promise(function (fim, falha) {
+        player.onended = function () { pararFala(); fim(); };
+        player.onerror = function () { pararFala(); fim(); };
+        player.play().catch(function (e) {
+          pararFala();
+          if (e && e.name === "NotAllowedError") {
+            ctx.showNotice(T("O navegador pediu um toque para tocar o áudio: toque em Ouvir na resposta.", "The browser needs a tap to play audio: tap Listen on the answer."));
+            var err = new Error("toque_necessario"); err.silencioso = true; falha(err); return;
+          }
+          fim();
+        });
       });
     }).catch(function (err) {
       if (botao) marcarParado(botao);
       falando = false;
       var c = err && err.message;
-      if (c === "voz_so_assinantes") convite();
+      if (err && err.silencioso) { /* aviso já mostrado */ }
+      else if (c === "voz_so_assinantes") convite();
       else if (c === "voz_limite_diario") ctx.showNotice(T("Você chegou ao limite diário de voz. Ela volta amanhã.", "You reached today's voice limit. It comes back tomorrow."));
       else if (c === "voz_nao_configurada") ctx.showNotice(T("A voz ainda não foi ligada no servidor.", "Voice isn't switched on on the server yet."));
       else ctx.showNotice(T("Não foi possível gerar a voz agora. Tente de novo em instantes.", "Couldn't generate the voice just now. Try again shortly."));
@@ -81,9 +112,11 @@
     if (!assinante()) b.insertAdjacentHTML("beforeend", "<small class=\"selo-assinante\">" + T("Assinantes", "Subscribers") + "</small>");
     b.addEventListener("click", function () {
       if (!assinante()) { convite(); return; }
+      liberarAudio();
       if (b.classList.contains("is-tocando") || b.classList.contains("is-carregando")) { pararFala(); return; }
       falar(el._texto || "", b).catch(function () {});
     });
+    b.hidden = !configurada;
     cab.appendChild(b);
   }
 
@@ -140,6 +173,7 @@
   function sairConversa() { conversa = false; if (conversaBtn) { conversaBtn.classList.remove("is-ativa"); conversaBtn.setAttribute("aria-pressed", "false"); } }
   function alternarConversa() {
     if (!assinante()) { convite(); return; }
+    liberarAudio();
     conversa = !conversa;
     conversaBtn.classList.toggle("is-ativa", conversa);
     conversaBtn.setAttribute("aria-pressed", conversa ? "true" : "false");
@@ -165,7 +199,7 @@
     micBtn.type = "button"; micBtn.className = "mic"; micBtn.setAttribute("aria-pressed", "false");
     micBtn.setAttribute("aria-label", T("Falar", "Speak")); micBtn.title = T("Falar (português)", "Speak");
     micBtn.innerHTML = svg(ICONE_MIC);
-    micBtn.addEventListener("click", function () { if (ctx.ocupado()) return; gravar(); });
+    micBtn.addEventListener("click", function () { if (ctx.ocupado()) return; liberarAudio(); gravar(); });
     conversaBtn = document.createElement("button");
     conversaBtn.type = "button"; conversaBtn.className = "conversa-voz" + (assinante() ? "" : " is-bloqueado");
     conversaBtn.setAttribute("aria-pressed", "false");
@@ -176,6 +210,22 @@
     conversaBtn.addEventListener("click", alternarConversa);
     row.insertBefore(micBtn, enviarBtn);
     row.insertBefore(conversaBtn, enviarBtn);
+    verificarServidor();
+  }
+
+  // A voz só aparece se o servidor tiver a chave e a voz configuradas (o PR pode entrar antes dos segredos).
+  function verificarServidor() {
+    ctx.sb.auth.getSession().then(function (r) {
+      var s = r.data && r.data.session; if (!s) return null;
+      return fetch(endpoint(), { headers: { "Authorization": "Bearer " + s.access_token, "apikey": ctx.CFG.key } });
+    }).then(function (res) { return res && res.ok ? res.json() : null; }).then(function (j) {
+      configurada = !!(j && j.configurada);
+      aplicarConfigurada();
+    }).catch(function () { configurada = false; aplicarConfigurada(); });
+  }
+  function aplicarConfigurada() {
+    if (conversaBtn) conversaBtn.hidden = !configurada;
+    Array.prototype.forEach.call(document.querySelectorAll(".msg-ouvir"), function (b) { b.hidden = !configurada; });
   }
 
   // O plano pode mudar depois de carregar (a conta chega depois do primeiro desenho): redesenha os selos.

@@ -8,6 +8,7 @@
 #   SMTP_SENDER            remetente, se diferente do padrão do config.toml         opcional
 #   LLM_API_KEY            chave do provedor do modelo (xAI ou compatível)          para o chat responder
 #   LLM_BASE_URL, LLM_MODEL                                                         opcionais
+#   TRUSTIO_LLM_API_KEY, TRUSTIO_LLM_BASE_URL, TRUSTIO_LLM_MODEL  Strata local protegido pelo tunnel; têm precedência sem apagar LLM_API_KEY
 #   LLM_SERVIDOR           "llama.cpp" para a contagem exata de tokens               opcional
 #   LLM_CONTEXTO           contexto do modelo (llama-server -c), ex.: 8192           opcional (% da sessão)
 #   LLM_MAX_TOKENS         teto de tokens por resposta, ex.: 8192                    opcional (% da resposta)
@@ -53,6 +54,7 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          TRUSTIO_LLM_API_KEY: ${{ secrets.TRUSTIO_LLM_API_KEY }}
         run: |
           missing=""
           [ -n "$SUPABASE_ACCESS_TOKEN" ] || missing="$missing SUPABASE_ACCESS_TOKEN"
@@ -82,7 +84,7 @@ jobs:
           echo "SUPABASE_ACCESS_TOKEN=$token" >> "$GITHUB_ENV"
 
           [ -n "$SMTP_PASS" ] || echo "::warning::SMTP_PASS ausente: e-mails seguem pelo remetente padrão do Supabase (limite de poucos por hora)."
-          [ -n "$LLM_API_KEY" ] || echo "::warning::LLM_API_KEY ausente: o chat responde 'modelo não ativado' até a chave existir."
+          [ -n "$LLM_API_KEY" ] || [ -n "$TRUSTIO_LLM_API_KEY" ] || echo "::warning::Chave de modelo ausente: o chat responde 'modelo não ativado' até ela existir."
 
       - name: Vincular projeto
         env:
@@ -200,13 +202,16 @@ jobs:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          TRUSTIO_LLM_API_KEY: ${{ secrets.TRUSTIO_LLM_API_KEY }}
+          TRUSTIO_LLM_BASE_URL: ${{ secrets.TRUSTIO_LLM_BASE_URL }}
+          TRUSTIO_LLM_MODEL: ${{ secrets.TRUSTIO_LLM_MODEL }}
           LLM_SERVIDOR: ${{ secrets.LLM_SERVIDOR }}
           LLM_CONTEXTO: ${{ secrets.LLM_CONTEXTO }}
           LLM_MAX_TOKENS: ${{ secrets.LLM_MAX_TOKENS }}
         run: |
-          [ -n "$LLM_API_KEY" ] || { echo "LLM_API_KEY ausente; pulando."; exit 0; }
+          [ -n "$LLM_API_KEY" ] || [ -n "$TRUSTIO_LLM_API_KEY" ] || { echo "Nenhuma chave de modelo definida; pulando."; exit 0; }
           f=$(mktemp); chmod 600 "$f"; trap 'rm -f "$f"' EXIT
-          for v in LLM_API_KEY LLM_BASE_URL LLM_MODEL LLM_SERVIDOR LLM_CONTEXTO LLM_MAX_TOKENS; do
+          for v in LLM_API_KEY LLM_BASE_URL LLM_MODEL TRUSTIO_LLM_API_KEY TRUSTIO_LLM_BASE_URL TRUSTIO_LLM_MODEL LLM_SERVIDOR LLM_CONTEXTO LLM_MAX_TOKENS; do
             val="${!v}"; [ -n "$val" ] || continue
             val="${val//\\/\\\\}"; val="${val//\"/\\\"}"
             printf '%s="%s"\n' "$v" "$val" >> "$f"

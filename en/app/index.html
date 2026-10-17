@@ -30,10 +30,11 @@
   <script defer src="/assets/auth-config.js?v=c3461a69"></script>
   <script defer src="/assets/funil.js?v=9fd4e3e8"></script>
   <script defer src="/assets/ocr.js?v=333c1492"></script>
+  <script defer src="/assets/docx.js?v=6706fb84"></script>
   <script defer src="/assets/chat-templates.js?v=09aa860d"></script>
   <script defer src="/assets/vendor/katex/katex.min.js?v=e8d88550"></script>
-  <script defer src="/assets/chat-render.js?v=d592348b"></script>
-  <script defer src="/assets/chat.js?v=2389328c"></script>
+  <script defer src="/assets/chat-render.js?v=563a4829"></script>
+  <script defer src="/assets/chat.js?v=caa424ee"></script>
   <script defer src="/assets/welcome-hero.js?v=dad4d932"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
@@ -215,12 +216,12 @@
       <div class="composer-box">
         <div class="anexos" data-anexos hidden aria-live="polite"></div>
         <div class="composer-row">
-          <button class="attach" type="button" data-attach aria-label="Attach a photo, PDF, or audio (up to 3)" title="Attach a photo, PDF, or audio (up to 3)">
+          <button class="attach" type="button" data-attach aria-label="Attach a photo, PDF, Word, or audio (up to 3)" title="Attach a photo, PDF, Word, or audio (up to 3)">
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 9.5l-6.4 6.4a4 4 0 0 1-5.7-5.7l6.7-6.7a2.7 2.7 0 0 1 3.8 3.8l-6.7 6.7a1.3 1.3 0 0 1-1.9-1.9l6.1-6.1"/></svg>
           </button>
           <label class="vh" for="prompt">Your message</label>
           <textarea id="prompt" name="prompt" rows="1" placeholder="Write your message…" autocomplete="off"></textarea>
-          <input class="vh" type="file" data-file accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,application/pdf,.pdf,audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/flac,audio/webm,audio/aac,.mp3,.m4a,.wav,.ogg,.flac,.webm,.aac,.3gp" multiple tabindex="-1" aria-hidden="true">
+          <input class="vh" type="file" data-file accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,application/pdf,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx,audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/flac,audio/webm,audio/aac,.mp3,.m4a,.wav,.ogg,.flac,.webm,.aac,.3gp" multiple tabindex="-1" aria-hidden="true">
           <button class="send" type="submit" aria-label="Send" title="Send" data-send>
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16V4.5M5 9.5l5-5 5 5"/></svg>
           </button>

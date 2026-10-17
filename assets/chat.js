@@ -787,6 +787,8 @@
               // Primeiro trecho da resposta: o raciocínio recolhe e a resposta fica em foco.
               if (!full && !think.hidden) think.open = false;
               contar(d); full += d.delta; body.innerHTML = render(full); desenhar(body); mostrarProgresso(); scrollBottom();
+              // Conversa por voz: cada frase completa já começa a ser falada (assets/voz.js).
+              if (window.TrustioVoz && window.TrustioVoz.trecho) window.TrustioVoz.trecho(pending, full);
             }
             if (!d.delta && !d.raciocinio && typeof d.n === "number" && !d.done) { contar(d); mostrarProgresso(); }
             if (d.error) {

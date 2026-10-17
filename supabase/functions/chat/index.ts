@@ -427,6 +427,8 @@ Deno.serve(async (req) => {
       ...(LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
       ...(LLAMA_TIMINGS ? { timings_per_token: true } : {}),
       ...(contextoDoServidor ? { trustio_plano: plano } : {}),
+      // Conversa por voz: o servidor da Trustio responde sem raciocínio, para a fala começar na hora.
+      ...(contextoDoServidor && fala === "conversa" ? { trustio_voz: true } : {}),
     }),
   });
 

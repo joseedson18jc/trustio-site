@@ -4,12 +4,13 @@
      Assinantes ouvem à vontade (teto diário no servidor). Quem está no teste ganha uma demonstração
      única (~3 respostas, selo "Grátis"); depois, o selo vira "Assinantes" e o toque mostra os planos.
    - Conversa por voz: fala → resposta lida em voz alta → volta a ouvir, sem tocar em nada.
-     A gravação para sozinha depois de ~1,4 s de silêncio.
+     A gravação para sozinha depois de ~1,1 s de silêncio, e a resposta é falada frase a frase
+     enquanto chega (trecho(el, texto), chamado pelo chat a cada pedaço).
    O chat (assets/chat.js) chama TrustioVoz.iniciar(...) uma vez, decorar(el) em cada resposta e
    respostaPronta(el) quando uma resposta termina de chegar. */
 (function () {
   "use strict";
-  var ctx = null, urlAtual = null, conversa = false, gravador = null, falando = false, configurada = false;
+  var ctx = null, urlAtual = null, conversa = false, gravador = null, configurada = false;
   // O servidor diz o acesso: "livre" (assinante etc.), "teste" (com demo_restante caracteres de demonstração).
   var acesso = null, demoRestante = 0, dicaMostrada = false;
   // Um só elemento de áudio, desbloqueado no toque: o Safari recusa play() que começa depois de um
@@ -26,7 +27,7 @@
     return contextoAudio;
   }
   var micBtn = null, conversaBtn = null;
-  var SILENCIO_MS = 1400, MAX_GRAVACAO_MS = 120000, LIMIAR = 0.018;
+  var SILENCIO_MS = 1100, MAX_GRAVACAO_MS = 120000, LIMIAR = 0.018;
 
   function T(pt, en) { return ctx.T(pt, en); }
   function assinante() { return acesso ? acesso === "livre" : !!ctx.semCota(); }
@@ -70,18 +71,20 @@
     var p = player.play();
     if (p && p.then) p.then(function () { liberado = true; player.pause(); URL.revokeObjectURL(mudo); }, function () { URL.revokeObjectURL(mudo); });
   }
+  // Cada parada (toque em Parar, nova gravação, conversa desligada) troca a geração: áudio que
+  // chegar depois, de um pedido antigo, não toca.
+  var geracao = 0;
   function pararFala() {
+    geracao++;
     if (player) { player.pause(); player.removeAttribute("src"); player.load(); }
     if (urlAtual) { URL.revokeObjectURL(urlAtual); urlAtual = null; }
-    falando = false;
-    Array.prototype.forEach.call(document.querySelectorAll(".msg-ouvir.is-tocando"), marcarParado);
+    Array.prototype.forEach.call(document.querySelectorAll(".msg-ouvir.is-tocando, .msg-ouvir.is-carregando"), marcarParado);
   }
   function marcarParado(b) { b.classList.remove("is-tocando", "is-carregando"); b.innerHTML = svg(ICONE_FALA) + "<span>" + T("Ouvir", "Listen") + "</span>" + (ctx ? seloHtml() : ""); }
+  function marcarTocando(b) { if (!b) return; b.classList.remove("is-carregando"); b.classList.add("is-tocando"); b.innerHTML = svg(ICONE_PARAR) + "<span>" + T("Parar", "Stop") + "</span>"; }
 
-  function falar(texto, botao) {
-    pararFala();
-    if (!texto || !texto.trim()) return Promise.resolve();
-    if (botao) { botao.classList.add("is-carregando"); botao.innerHTML = svg(ICONE_PARAR) + "<span>" + T("Carregando…", "Loading…") + "</span>"; }
+  // Pede ao servidor o MP3 de um texto. Erro sai com .message = código do servidor e .falhas.
+  function buscarAudio(texto) {
     return ctx.sb.auth.getSession().then(function (r) {
       var s = r.data && r.data.session; if (!s) throw new Error("sem_sessao");
       return fetch(endpoint(), {
@@ -93,37 +96,96 @@
       if (!res.ok) return res.json().catch(function () { return {}; }).then(function (j) { var e = new Error(j.error || ("http_" + res.status)); e.status = res.status; e.falhas = j.falhas || []; throw e; });
       if (res.headers.get("X-Voz-Demo") === "1") { demoRestante = Number(res.headers.get("X-Voz-Restante")) || 0; atualizarPlano(); }
       return res.blob();
-    }).then(function (blob) {
-      if (!player) player = new Audio();
-      urlAtual = URL.createObjectURL(blob);
-      player.src = urlAtual;
-      falando = true;
-      if (botao) { botao.classList.remove("is-carregando"); botao.classList.add("is-tocando"); botao.innerHTML = svg(ICONE_PARAR) + "<span>" + T("Parar", "Stop") + "</span>"; }
-      return new Promise(function (fim, falha) {
-        player.onended = function () { pararFala(); fim(); };
-        player.onerror = function () { pararFala(); fim(); };
-        player.play().catch(function (e) {
-          pararFala();
-          if (e && e.name === "NotAllowedError") {
-            ctx.showNotice(T("O navegador pediu um toque para tocar o áudio: toque em Ouvir na resposta.", "The browser needs a tap to play audio: tap Listen on the answer."));
-            var err = new Error("toque_necessario"); err.silencioso = true; falha(err); return;
-          }
-          fim();
-        });
+    });
+  }
+
+  // Toca um MP3 no player único (desbloqueado no toque) e resolve quando ele acaba.
+  function tocarBlob(blob, botao) {
+    if (!player) player = new Audio();
+    if (urlAtual) URL.revokeObjectURL(urlAtual);
+    urlAtual = URL.createObjectURL(blob);
+    player.src = urlAtual;
+    marcarTocando(botao);
+    return new Promise(function (fim, falha) {
+      player.onended = function () { fim(); };
+      player.onerror = function () { fim(); };
+      player.play().catch(function (e) {
+        if (e && e.name === "NotAllowedError") {
+          ctx.showNotice(T("O navegador pediu um toque para tocar o áudio: toque em Ouvir na resposta.", "The browser needs a tap to play audio: tap Listen on the answer."));
+          var err = new Error("toque_necessario"); err.silencioso = true; falha(err); return;
+        }
+        fim();
       });
-    }).catch(function (err) {
+    });
+  }
+
+  function avisarErro(err) {
+    var c = err && err.message;
+    if (err && err.silencioso) { /* aviso já mostrado */ }
+    else if (c === "voz_demo_esgotada" || c === "voz_so_assinantes") { demoRestante = 0; atualizarPlano(); convite(); }
+    else if (c === "voz_limite_diario") ctx.showNotice(T("Você chegou ao limite diário de voz. Ela volta amanhã.", "You reached today's voice limit. It comes back tomorrow."));
+    else if (c === "voz_nao_configurada") ctx.showNotice(T("A voz ainda não foi ligada no servidor.", "Voice isn't switched on on the server yet."));
+    else ctx.showNotice(T("Não foi possível gerar a voz agora", "Couldn't generate the voice just now") +
+      " (" + [c].concat(err && err.falhas && err.falhas.length ? err.falhas : []).filter(Boolean).join(" · ").replace(/[<>&]/g, "") + "). " +
+      T("Tente de novo em instantes.", "Try again shortly."));
+  }
+
+  // Lê um texto inteiro (botão "Ouvir").
+  function falar(texto, botao) {
+    pararFala();
+    if (!texto || !texto.trim()) return Promise.resolve();
+    var g = geracao;
+    if (botao) { botao.classList.add("is-carregando"); botao.innerHTML = svg(ICONE_PARAR) + "<span>" + T("Carregando…", "Loading…") + "</span>"; }
+    return buscarAudio(texto).then(function (blob) {
+      if (g === geracao) return tocarBlob(blob, botao);
+    }).then(function () {
+      if (g === geracao) pararFala();
+    }, function (err) {
       if (botao) marcarParado(botao);
-      falando = false;
-      var c = err && err.message;
-      if (err && err.silencioso) { /* aviso já mostrado */ }
-      else if (c === "voz_demo_esgotada" || c === "voz_so_assinantes") { demoRestante = 0; atualizarPlano(); convite(); }
-      else if (c === "voz_limite_diario") ctx.showNotice(T("Você chegou ao limite diário de voz. Ela volta amanhã.", "You reached today's voice limit. It comes back tomorrow."));
-      else if (c === "voz_nao_configurada") ctx.showNotice(T("A voz ainda não foi ligada no servidor.", "Voice isn't switched on on the server yet."));
-      else ctx.showNotice(T("Não foi possível gerar a voz agora", "Couldn't generate the voice just now") +
-        " (" + [c].concat(err && err.falhas && err.falhas.length ? err.falhas : []).filter(Boolean).join(" · ").replace(/[<>&]/g, "") + "). " +
-        T("Tente de novo em instantes.", "Try again shortly."));
+      avisarErro(err);
       throw err;
     });
+  }
+
+  // ---------------------------------------------------------------- conversa por voz: frase a frase
+  // A resposta é falada enquanto chega: cada frase completa já vai virar áudio (os pedidos correm
+  // em paralelo) e toca na ordem. Antes, a voz esperava a resposta inteira e o MP3 inteiro.
+  var fila = null;
+  var FIM_FRASE = /[.!?…:;](?=\s)/g;     // fim de frase seguido de espaço: a frase acabou de verdade
+  var MIN_TRECHO = 25;                   // evita pedidos minúsculos ("Sim." vai junto com a próxima)
+
+  function enfileirar(f, texto) {
+    if (!texto || !texto.trim() || f.erro) return;   // depois de um erro, nada mais é pedido (nem cobrado)
+    var audio = buscarAudio(texto);
+    audio.catch(function () { /* tratado na cadeia, na vez dele */ });
+    f.cadeia = f.cadeia.then(function () {
+      if (f.geracao !== geracao || f.erro) return;
+      return audio.then(function (blob) {
+        if (f.geracao !== geracao || f.erro) return;
+        return tocarBlob(blob, f.botao);
+      });
+    }).catch(function (err) {
+      // Trecho sem nada para falar depois da limpeza (só símbolos, "---"): pula e segue.
+      if (err && err.message === "texto_vazio") return;
+      if (!f.erro) { f.erro = err; avisarErro(err); }
+    });
+  }
+
+  // Chamado pelo chat a cada pedaço da resposta (texto acumulado até agora).
+  function trecho(el, texto) {
+    if (!conversa || !configurada || !podeOuvir() || !el) return;
+    if (!fila || fila.el !== el) {
+      pararFala();
+      fila = { el: el, usado: 0, cadeia: Promise.resolve(), geracao: geracao, erro: null, semCortes: false, botao: null };
+    }
+    var f = fila;
+    if (f.semCortes || f.erro || f.geracao !== geracao) return;
+    // Bloco de código: o servidor tira o código da fala; cortar no meio dele confundiria isso.
+    if (texto.indexOf("```") >= 0) { f.semCortes = true; return; }
+    var resto = texto.slice(f.usado), corte = -1, m;
+    FIM_FRASE.lastIndex = 0;
+    while ((m = FIM_FRASE.exec(resto))) if (m.index + 1 >= MIN_TRECHO) corte = m.index + 1;
+    if (corte > 0) { enfileirar(f, resto.slice(0, corte)); f.usado += corte; }
   }
 
   // ---------------------------------------------------------------- botão "Ouvir" em cada resposta
@@ -235,12 +297,25 @@
     } else { if (gravador) gravador.parar("toque"); pararFala(); }
   }
 
-  // Uma resposta terminou de chegar: na conversa por voz, ela é lida e o microfone volta a ouvir.
+  // Uma resposta terminou de chegar: na conversa por voz, termina de ser lida e o microfone volta a ouvir.
   function respostaPronta(el) {
     decorar(el);
     mostrarDica(el.querySelector(".msg-ouvir"));   // só numa resposta nova, nunca no histórico
+    var b = el.querySelector(".msg-ouvir"), f = fila && fila.el === el ? fila : null;
+    if (f) {
+      fila = null;
+      if (f.geracao !== geracao) return;           // alguém parou a fala no meio: não recomeça
+      f.botao = b; if (!f.erro) marcarTocando(b);
+      enfileirar(f, (el._texto || "").slice(f.usado));
+      f.cadeia.then(function () {
+        if (f.geracao !== geracao) return;
+        pararFala();
+        if (f.erro) { sairConversa(); return; }
+        if (conversa && !gravador) gravar();
+      });
+      return;
+    }
     if (!conversa || !podeOuvir()) return;
-    var b = el.querySelector(".msg-ouvir");
     falar(el._texto || "", b).then(function () { if (conversa && !gravador) gravar(); }, function () { sairConversa(); });
   }
 
@@ -295,5 +370,5 @@
     });
   }
 
-  window.TrustioVoz = { iniciar: iniciar, decorar: decorar, respostaPronta: respostaPronta, atualizarPlano: atualizarPlano, parar: pararFala };
+  window.TrustioVoz = { iniciar: iniciar, decorar: decorar, respostaPronta: respostaPronta, trecho: trecho, atualizarPlano: atualizarPlano, parar: pararFala };
 })();

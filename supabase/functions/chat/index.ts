@@ -12,6 +12,10 @@
 // prioridade: muda na hora, sem esperar a propagação dos segredos nem o workflow que os regrava.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import {
+  FERRAMENTA_BUSCA, NOME_FERRAMENTA, SEM_BUSCA, type Resultado,
+  buscarNaWeb, instrucoesDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo,
+} from "./busca.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -125,6 +129,12 @@ async function modeloDaChamada(configurado: string | null): Promise<string> {
   return LLM_MODEL;
 }
 const HISTORY = 30;
+// Busca na web (Exa, busca.ts): ligada só com EXA_API_KEY. Assinantes têm um teto diário;
+// quem está no teste, uma demonstração única. No máximo 2 buscas por mensagem.
+const EXA_API_KEY = (Deno.env.get("EXA_API_KEY") ?? "").trim();
+const BUSCA_LIMITE_DIARIO = Math.max(1, Number(Deno.env.get("BUSCA_LIMITE_DIARIO") ?? "100") || 100);
+const BUSCA_DEMO = Math.max(0, Number(Deno.env.get("BUSCA_DEMO") ?? "3") || 0);
+const MAX_BUSCAS_POR_MENSAGEM = 2;
 // Teto de tokens por resposta, opcional e explícito: só com o segredo LLM_MAX_TOKENS a
 // função limita o modelo, e só então o chat mostra a porcentagem da resposta (contra esse
 // teto, porque o tamanho final não é conhecido de antemão). Sem o segredo, não há teto.
@@ -397,19 +407,6 @@ Deno.serve(async (req) => {
   // acordar o servidor, e um tempo curto aqui faria a escolha cair para o padrão sem motivo.
   const escolhido = pedido ? (await modelosEscolhiveis(admin, 25_000)).find((m) => m.id === pedido)?.id ?? null : null;
   const modeloConfigurado = escolhido ?? await modeloDoBanco(admin);
-  const systemPrompt = [
-    promptComPreferencias(
-      typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.",
-      pref,
-    ),
-    "Priorize a precisão factual. Não invente dados, fontes ou detalhes; não apresente inferências como fatos; indique incerteza quando houver e evite afirmações absolutas sem fundamento.",
-    ...(fala === "conversa" ? ["A pessoa está conversando com você por voz e a sua resposta será lida em voz alta. Responda em tom de conversa, curto (de duas a quatro frases), sem listas, tabelas, código, fórmulas nem Markdown."] : []),
-  ].join("\n\n");
-
-  const anteriores = [
-    { role: "system", content: systemPrompt },
-    ...(history ?? []).reverse().map((m) => ({ role: m.role, content: m.content })),
-  ];
   let modelo = await modeloDaChamada(modeloConfigurado);
   console.log("llm_modelo", modelo);
   // Janela do plano: o servidor da Trustio anuncia uma para o teste e outra para assinantes, e
@@ -418,11 +415,42 @@ Deno.serve(async (req) => {
   const plano = reservation.subscriber ? "pago" : "teste";
   const contextoDoServidor = (await catalogoDoServidor(25_000))?.contexto ?? null;
   const janela = contextoDoServidor ? contextoDoServidor[plano] : LLM_CONTEXTO;
-  const chamarModelo = (ultima: unknown) => fetch(`${LLM_BASE_URL}/chat/completions`, {
+  // Busca na web: com a chave da Exa, só no servidor da Trustio (o formato de ferramentas foi testado
+  // nele) e sem fotos. A ferramenta só é oferecida ao modelo se a conta ainda puder buscar hoje.
+  type SituacaoBusca = { pode?: boolean; acesso?: string };
+  const buscaSituacao: SituacaoBusca | null = EXA_API_KEY && contextoDoServidor && !imagens.length
+    ? await admin.rpc("busca_situacao", { p_user_id: user.id, p_limite: BUSCA_LIMITE_DIARIO, p_demo: BUSCA_DEMO })
+        .then(({ data, error }: { data: unknown; error: unknown }) => {
+          if (error) console.error("busca_situacao", error);
+          return (data ?? null) as SituacaoBusca | null;
+        })
+    : null;
+  const buscaLigada = !!buscaSituacao?.pode;
+  let hoje = new Date().toISOString().slice(0, 10);
+  if (buscaLigada) {
+    try { hoje = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "full" }).format(new Date()); }
+    catch { /* fica a data ISO */ }
+  }
+  const systemPrompt = [
+    promptComPreferencias(
+      typeof promptRow?.value === "string" ? promptRow.value : "Você é a Trustio, uma assistente de IA privada. Responda em português do Brasil.",
+      pref,
+    ),
+    "Priorize a precisão factual. Não invente dados, fontes ou detalhes; não apresente inferências como fatos; indique incerteza quando houver e evite afirmações absolutas sem fundamento.",
+    ...(buscaLigada ? [instrucoesDeBusca(hoje, fala === "conversa")] : buscaSituacao?.acesso === "teste" ? [SEM_BUSCA] : []),
+    ...(fala === "conversa" ? ["A pessoa está conversando com você por voz e a sua resposta será lida em voz alta. Responda em tom de conversa, curto (de duas a quatro frases), sem listas, tabelas, código, fórmulas nem Markdown."] : []),
+  ].join("\n\n");
+
+  const anteriores = [
+    { role: "system", content: systemPrompt },
+    ...(history ?? []).reverse().map((m) => ({ role: m.role, content: m.content })),
+  ];
+  const pedirModelo = (mensagens: unknown[], comBusca: boolean) => fetch(`${LLM_BASE_URL}/chat/completions`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: modelo, messages: [...anteriores, { role: "user", content: ultima }], stream: true, temperature: 0.2,
+      model: modelo, messages: mensagens, stream: true, temperature: 0.2,
+      ...(comBusca ? { tools: [FERRAMENTA_BUSCA] } : {}),
       stream_options: { include_usage: true },
       ...(LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
       ...(LLAMA_TIMINGS ? { timings_per_token: true } : {}),
@@ -431,6 +459,7 @@ Deno.serve(async (req) => {
       ...(contextoDoServidor && fala === "conversa" ? { trustio_voz: true } : {}),
     }),
   });
+  const chamarModelo = (ultima: unknown) => pedirModelo([...anteriores, { role: "user", content: ultima }], buscaLigada);
 
   let upstream!: Response;
   let detail = "";
@@ -524,8 +553,13 @@ Deno.serve(async (req) => {
   });
 
   const trabalho = (async () => {
-    const reader = upstream.body!.getReader();
-    let buffer = "";
+    // Rodadas: a resposta do modelo pode ser um pedido de busca (tool_calls). Aí a função busca,
+    // devolve os resultados como mensagem "tool" e lê a próxima resposta, até ele responder em texto.
+    let atual = upstream;
+    let buscasFeitas = 0;
+    let erroRodada: string | null = null;
+    const resultadosUsados: Resultado[] = [];
+    const conversaDaBusca: unknown[] = [...anteriores, { role: "user", content: message }];
     let pensando = false;
     let interrompido = false;
     let fim: string | null = null;
@@ -557,6 +591,12 @@ Deno.serve(async (req) => {
         raciocinioRetido = raciocinioRetido.slice(corte);
       }
     };
+    rodadas: while (true) {
+    const reader = atual.body!.getReader();
+    let buffer = "";
+    const chamadas: { id: string; nome: string; args: string }[] = [];
+    const inicioDaRodada = full.length;
+    fim = null;
     try {
       while (true) {
         const { done, value } = await reader.read();
@@ -574,6 +614,17 @@ Deno.serve(async (req) => {
             const escolha = pedaco.choices?.[0] ?? {};
             const d = escolha.delta ?? {};
             if (escolha.finish_reason) fim = escolha.finish_reason;
+            // Pedido de busca chega em pedaços (id e nome no primeiro, argumentos espalhados).
+            if (buscaLigada && Array.isArray(d.tool_calls)) {
+              for (const tc of d.tool_calls) {
+                const i = Number.isInteger(tc?.index) ? tc.index : 0;
+                if (i < 0 || i > 7) continue;
+                const c = chamadas[i] ?? (chamadas[i] = { id: "", nome: "", args: "" });
+                if (typeof tc.id === "string" && tc.id) c.id = tc.id;
+                if (typeof tc.function?.name === "string") c.nome += tc.function.name;
+                if (typeof tc.function?.arguments === "string") c.args += tc.function.arguments;
+              }
+            }
             const raciocinio = d.reasoning_content || d.reasoning;
             if (d.content || raciocinio) trechos++;
             if (raciocinio) trechosRaciocinio++;
@@ -588,7 +639,9 @@ Deno.serve(async (req) => {
             const raciocinioInformado = Number(pedaco.usage?.completion_tokens_details?.reasoning_tokens);
             if (raciocinioInformado > 0) tokensRaciocinio = raciocinioInformado;
             tokensRaciocinio = Math.min(tokensRaciocinio, tokens);
-            if (Number(pedaco.usage?.prompt_tokens) > 0) tokensPrompt = Number(pedaco.usage.prompt_tokens);
+            // Só o prompt da primeira rodada: os resultados da busca não são reenviados na próxima
+            // pergunta, então não contam para a sessão.
+            if (Number(pedaco.usage?.prompt_tokens) > 0 && tokensPrompt === null) tokensPrompt = Number(pedaco.usage.prompt_tokens);
             // Modelos com raciocínio mandam esse trecho em outro campo, antes do texto. Vai ao
             // navegador, que o mostra à parte; não entra no histórico nem no contexto.
             if (raciocinio) {
@@ -610,12 +663,76 @@ Deno.serve(async (req) => {
       interrompido = true;
       console.error("stream_error", err);
     }
+    const pedidos = chamadas.filter((c) => c && c.nome);
+    if (interrompido || !pedidos.length) break rodadas;
+
+    // O modelo pediu busca. A leitura acima já terminou (o servidor da Trustio atende um pedido por vez).
+    const lista = pedidos.map((c, i) => ({ ...c, id: c.id || `busca_${buscasFeitas}_${i}` }));
+    conversaDaBusca.push({
+      role: "assistant", content: full.slice(inicioDaRodada),
+      tool_calls: lista.map((c) => ({ id: c.id, type: "function", function: { name: c.nome, arguments: c.args } })),
+    });
+    for (const c of lista) {
+      let conteudo: string;
+      if (c.nome !== NOME_FERRAMENTA) conteudo = "Ferramenta desconhecida.";
+      else if (buscasFeitas >= MAX_BUSCAS_POR_MENSAGEM) conteudo = "Limite de buscas desta mensagem atingido: responda com o que já tem.";
+      else {
+        const { consulta, atual: agora } = lerArgumentos(c.args, message);
+        buscasFeitas++;
+        send({ buscando: consulta, n: tokens });
+        const { data: vaga, error: vagaErro } = await admin.rpc("reservar_busca", { p_user_id: user.id, p_limite: BUSCA_LIMITE_DIARIO, p_demo: BUSCA_DEMO });
+        if (vagaErro || !vaga?.ok) {
+          if (vagaErro) console.error("reservar_busca", vagaErro);
+          conteudo = vaga?.error === "busca_demo_esgotada"
+            ? "A demonstração da busca na web acabou. Responda sem pesquisar e diga que a busca na web é para assinantes."
+            : "Não foi possível pesquisar agora (limite de buscas). Responda com o que você sabe e avise isso.";
+        } else {
+          try {
+            const rs = await buscarNaWeb(consulta, agora, EXA_API_KEY);
+            console.log("busca_ok", rs.length, vaga.demo ? "demo" : "livre");
+            resultadosUsados.push(...rs);
+            conteudo = resultadosParaModelo(consulta, rs);
+            send({ busca_resultados: rs.length });
+          } catch (err) {
+            const e = err as { status?: number; detalhe?: string; message?: string };
+            console.error("busca_falhou", e.status ?? e.message, e.detalhe ?? "");
+            await admin.rpc("devolver_busca", { p_user_id: user.id, p_demo: !!vaga.demo });
+            conteudo = "A busca na web falhou agora. Responda com o que você sabe e avise que não conseguiu pesquisar.";
+          }
+        }
+      }
+      conversaDaBusca.push({ role: "tool", tool_call_id: c.id, content: conteudo });
+    }
+    // Próxima rodada: com a ferramenta só se ainda couber outra busca; senão ele tem de responder.
+    try {
+      atual = await pedirModelo(conversaDaBusca, buscasFeitas < MAX_BUSCAS_POR_MENSAGEM);
+    } catch (err) {
+      console.error("llm_fetch_error_busca", err);
+      erroRodada = "modelo_indisponivel";
+      break rodadas;
+    }
+    if (!atual.ok || !atual.body) {
+      const det = await atual.text().catch(() => "");
+      console.error("llm_error_busca", atual.status, det.slice(0, 300));
+      erroRodada = ehContextoCheio(atual.status, det) ? "contexto_cheio" : "modelo_indisponivel";
+      break rodadas;
+    }
+    }
     if (raciocinioRetido) soltarRaciocinio(true);
+
+    // Fontes: se a resposta usou a busca e não citou nenhum link, a linha de fontes entra no fim
+    // (e fica salva no histórico). Na conversa por voz, não: links não se falam.
+    if (full && resultadosUsados.length && fala !== "conversa") {
+      const fontes = linhaDeFontes(full, resultadosUsados);
+      if (fontes) { full += fontes; send({ delta: fontes, n: tokens }); }
+    }
 
     if (full) {
       await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full, model: modelo });
       await admin.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
       if (interrompido) send({ error: "stream_interrompido" });
+      // A segunda rodada (depois da busca) falhou, mas a primeira já tinha escrito algo: avisa.
+      else if (erroRodada) send({ error: erroRodada, ...(erroRodada === "contexto_cheio" ? { janela } : {}) });
       send({
         done: true,
         conversation_id: convId,
@@ -634,8 +751,8 @@ Deno.serve(async (req) => {
       // Nada de texto. Só devolve a pergunta à cota se nada chegou ao navegador: raciocínio
       // já entregue conta como uso (sem isso, pedir só o raciocínio virava pergunta grátis).
       console.error(interrompido ? "stream_interrompido_sem_texto" : "llm_resposta_vazia");
-      if (!pensando) await release();
-      send({ error: interrompido ? "stream_interrompido" : "resposta_vazia" });
+      if (!pensando && !buscasFeitas) await release();
+      send({ error: erroRodada ?? (interrompido ? "stream_interrompido" : "resposta_vazia"), ...(erroRodada === "contexto_cheio" ? { janela } : {}) });
     }
     fechar();
   })();

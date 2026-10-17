@@ -526,3 +526,19 @@ button.me:hover .me-gear { stroke: var(--ice); }
 .msg-ouvir.is-destaque { border-color: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }
 .voz-dica { margin-left: 8px; padding: 4px 10px; border-radius: 999px; font-size: 12px; color: var(--ice); background: color-mix(in srgb, var(--ok) 18%, transparent); border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent); }
 @media (max-width: 520px) { .voz-dica { display: none; } }
+
+/* ── Busca na web (17 out 2026): o que a resposta pesquisou, acima do texto ── */
+.msg-busca { display: flex; flex-direction: column; gap: 4px; margin: 0 0 8px; }
+.msg-busca-item {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 7px; max-width: 100%;
+  padding: 4px 11px; border: 1px solid var(--line); border-radius: 999px;
+  font-size: 12.5px; line-height: 1.4; color: var(--muted); overflow-wrap: anywhere;
+}
+.msg-busca-item::before {
+  content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%;
+  border: 1.6px solid currentColor; box-shadow: 3px 3px 0 -1.4px currentColor; opacity: .8;
+}
+.msg-busca-item.is-ativa { color: var(--chat-accent, #5ea7ff); border-color: var(--line-bright); }
+.msg-busca-item.is-ativa::before { animation: msg-busca-pulso 1s ease-in-out infinite; }
+@keyframes msg-busca-pulso { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .msg-busca-item.is-ativa::before { animation: none; } }

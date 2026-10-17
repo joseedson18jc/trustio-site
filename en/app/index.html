@@ -24,8 +24,7 @@
   <script defer src="/assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap">
-  <link rel="stylesheet" href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos">
-  <link rel="stylesheet" href="/assets/welcome-hero.css?v=dc6ea57d">
+  <link rel="stylesheet" href="/assets/chat-atalhos.css?v=09a2601c">
   <script defer src="/assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="/assets/auth-config.js?v=c3461a69"></script>
   <script defer src="/assets/funil.js?v=9fd4e3e8"></script>
@@ -35,8 +34,8 @@
   <script defer src="/assets/vendor/katex/katex.min.js?v=e8d88550"></script>
   <script defer src="/assets/chat-render.js?v=563a4829"></script>
   <script defer src="/assets/voz.js?v=ad131413"></script>
-  <script defer src="/assets/chat.js?v=920f2f33"></script>
-  <script defer src="/assets/welcome-hero.js?v=dad4d932"></script>
+  <script defer src="/assets/chat.js?v=19c517e0"></script>
+  <script defer src="/assets/chat-atalhos.js?v=fd07fe98"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/app/"><!--/i18n:alt-->
@@ -118,28 +117,41 @@
 
     <div class="thread" data-thread aria-live="polite" aria-busy="false">
       <div class="welcome" data-welcome>
-        <section class="wh" data-wh aria-labelledby="wh-title">
-          <div class="wh-bg" aria-hidden="true">
-            <video class="wh-video" muted loop playsinline preload="none" poster="/assets/welcome-hero-poster.webp">
-              <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4" type="video/mp4">
-            </video>
+        <section class="atalhos" data-atalhos aria-labelledby="atalhos-title">
+          <h1 class="atalhos-titulo" id="atalhos-title">What shall we do now?</h1>
+          <p class="atalhos-sub">Pick a shortcut or type straight into the message box.</p>
+          <div class="atalhos-grid">
+            <button class="atalho" type="button" data-atalho="arquivo">
+              <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5 12.4 20a5.5 5.5 0 0 1-7.8-7.8l8.9-8.9a3.7 3.7 0 0 1 5.2 5.2l-8.9 8.9a1.8 1.8 0 0 1-2.6-2.6L15.4 6.6"/></svg></span>
+              <b>Send a file</b>
+              <small>Photo, PDF, Word or audio. Up to 3 per message.</small>
+            </button>
+            <button class="atalho" type="button" data-atalho="voz">
+              <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M4 14h3v6H5a1 1 0 0 1-1-1zM20 14h-3v6h2a1 1 0 0 0 1-1z"/></svg></span>
+              <b>Talk by voice</b>
+              <small>Speak and hear the answer out loud.</small>
+            </button>
+            <button class="atalho" type="button" data-atalho="heavy">
+              <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z"/></svg></span>
+              <b>Think it through</b>
+              <small>Turns on Heavy Thinking for hard tasks.</small>
+            </button>
+            <button class="atalho" type="button" data-templates-open aria-haspopup="dialog">
+              <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v5H4zM13 14h7v5h-7z"/></svg></span>
+              <b>Uncensored templates</b>
+              <small>Ready-made prompts, just pick one.</small>
+            </button>
           </div>
-          <div class="wh-hero">
-            <div class="wh-trust wh-anim wh-d1">
-              <span class="wh-av" aria-hidden="true"><span><img src="/assets/trustio-mark.svg" alt="" width="24" height="24"></span></span>
-              <span class="wh-trust-pill">Private AI infrastructure in Brazil</span>
-            </div>
-            <h1 class="wh-headline" id="wh-title"><span>Your private chat.</span> <span>Start with a question.</span></h1>
-            <p class="wh-sub wh-anim wh-d2">Write, research, or send up to 3 photos, PDFs, Word documents, or audio files per message. You get 5 free questions to try it; after that, pick a plan to continue.</p>
-            <button class="wh-cta wh-anim-pulse" type="button" data-wh-cta>Ask my first question</button>
+          <p class="atalhos-k">Quick tasks</p>
+          <div class="atalhos-tarefas">
+            <button type="button" data-tarefa="resumir">Summarize a document</button>
+            <button type="button" data-tarefa="conta">Solve a math problem</button>
+            <button type="button" data-tarefa="grafico">Make a chart</button>
+            <button type="button" data-tarefa="revisar">Proofread a text</button>
+            <button type="button" data-tarefa="traduzir">Translate</button>
+            <button type="button" data-tarefa="mensagem">Write a message</button>
           </div>
-          <ul class="wh-stats" aria-label="Platform numbers">
-            <li class="wh-anim wh-d4"><span class="wh-ico" aria-hidden="true">?</span><b data-wh-count="5" data-wh-dec="0" data-wh-suf="" data-wh-limit>5</b><span>Free questions to try it out</span></li>
-            <li class="wh-anim wh-d5"><span class="wh-ico" aria-hidden="true">+</span><b data-wh-count="3" data-wh-dec="0" data-wh-suf="">3</b><span>Free days of the WhatsApp agent</span></li>
-            <li class="wh-anim wh-d6"><span class="wh-ico" aria-hidden="true">#</span><b data-wh-count="3" data-wh-dec="0" data-wh-suf="">3</b><span>Files per message</span></li>
-            <li class="wh-anim wh-d7"><span class="wh-ico" aria-hidden="true">*</span><b data-wh-count="24" data-wh-dec="0" data-wh-suf="/7">24/7</b><span>Support</span></li>
-          </ul>
-          <p class="wh-credit">Font made from <a href="https://www.onlinewebfonts.com/fonts" target="_blank" rel="noopener">Web Fonts</a> is licensed by CC BY 4.0.</p>
+          <p class="atalhos-aviso" data-atalhos-aviso role="status" hidden></p>
         </section>
         <div class="trust-strip">
           <p class="aviso-conteudo" role="note"><strong>*This model does not create pornographic photos, videos, or files; however, it can write pornographic and erotic stories and free sexual ideas, whether straight or gay, with no restriction or any prior censorship. The model is free to answer the widest range of questions on this topic.</strong></p>

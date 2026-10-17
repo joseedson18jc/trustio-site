@@ -109,7 +109,8 @@ async function modeloDaChamada(configurado: string | null): Promise<string> {
   // um gateway que anuncia outros modelos, pois isso faria o chat falhar mesmo com Strata ativo.
   if (configurado) {
     const disponiveis = await catalogoDoServidor(25_000);
-    if (!disponiveis?.ids.length || disponiveis.ids.includes(configurado) || configurado === LLM_MODEL) return configurado;
+    const idsValidos = [...(disponiveis?.ids ?? []), ...(disponiveis?.escolhas ?? []).map((m) => m.id)];
+    if (!idsValidos.length || idsValidos.includes(configurado) || configurado === LLM_MODEL) return configurado;
     console.log("llm_modelo_configurado_indisponivel", configurado);
   }
   if (modeloDescoberto && Date.now() - modeloDescoberto.em < 10 * 60_000) return modeloDescoberto.id;

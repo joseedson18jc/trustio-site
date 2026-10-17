@@ -107,6 +107,9 @@
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
   function tex(src, display) {
+    // O modelo às vezes escreve a vírgula decimal como {,\} (deveria ser {,}): o "\}" escapado deixa a chave
+    // aberta e o KaTeX recusa a fórmula inteira (visto em 17 out 2026: "2{,\}5").
+    src = src.replace(/\{,\\\}/g, "{,}");
     if (window.katex && typeof window.katex.renderToString === "function") {
       try {
         var html = window.katex.renderToString(src, { displayMode: display, output: "mathml", throwOnError: false,

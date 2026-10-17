@@ -18,6 +18,9 @@
 #   EVOLUTION_NUMERO       número conectado à instância, se for o próprio Agentio    opcional
 #   HERMES_SEGREDO         segredo do sincronizador do Mac (~/.trustio-hermes-sync-key) para liberar números no Hermes
 #   ADMIN_EMAILS           e-mails dos administradores do CRM, separados por vírgula
+#   VOZ_XAI_API_KEY        chave da xAI só para a voz (principal, pt-BR); XAI_VOICE_ID opcional (padrão rex)
+#   ELEVENLABS_API_KEY     voz de reserva, com ELEVENLABS_VOICE_ID; ELEVENLABS_MODEL opcional
+#   VOZ_LIMITE_DIARIO      caracteres por assinante por dia (padrão 60000); VOZ_DEMO, demonstração única do teste (padrão 1500)
 name: Supabase
 
 on:
@@ -172,6 +175,29 @@ jobs:
           SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: python3 scripts/verify-email-tracking.py
+
+      - name: Publicar função de voz das respostas
+        run: supabase functions deploy voz --project-ref "$PROJECT_REF"
+
+      - name: Definir segredos da voz
+        env:
+          VOZ_XAI_API_KEY: ${{ secrets.VOZ_XAI_API_KEY }}
+          XAI_VOICE_ID: ${{ secrets.XAI_VOICE_ID }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+          ELEVENLABS_MODEL: ${{ secrets.ELEVENLABS_MODEL }}
+          VOZ_LIMITE_DIARIO: ${{ secrets.VOZ_LIMITE_DIARIO }}
+          VOZ_DEMO: ${{ secrets.VOZ_DEMO }}
+        run: |
+          # Sem nenhuma chave, a voz fica desligada (a função responde 503 voz_nao_configurada); o deploy segue.
+          f=$(mktemp); chmod 600 "$f"; trap 'rm -f "$f"' EXIT
+          for v in VOZ_XAI_API_KEY XAI_VOICE_ID ELEVENLABS_API_KEY ELEVENLABS_VOICE_ID ELEVENLABS_MODEL VOZ_LIMITE_DIARIO VOZ_DEMO; do
+            val="${!v}"; [ -n "$val" ] || continue
+            val="${val//\\/\\\\}"; val="${val//\"/\\\"}"
+            printf '%s="%s"\n' "$v" "$val" >> "$f"
+          done
+          [ -s "$f" ] || { echo "Nenhum segredo da voz definido; a voz fica desligada."; exit 0; }
+          supabase secrets set --env-file "$f" --project-ref "$PROJECT_REF"
 
       - name: Publicar função de números autorizados do Hermes
         run: supabase functions deploy hermes-autorizados --no-verify-jwt --project-ref "$PROJECT_REF"

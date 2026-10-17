@@ -148,6 +148,10 @@
     "Mais opções da conversa": "More conversation options",
     "Mais opções": "More options",
     "Escreva sua mensagem…": "Write your message…",
-    "Compare os modelos": "Compare the models"
+    "Compare os modelos": "Compare the models",
+    "Anexar foto, PDF, Word ou áudio (até 3)": "Attach a photo, PDF, Word, or audio (up to 3)",
+    "*Este modelo não cria fotos, vídeos ou arquivos pornográficos, porém ele é capaz de criar de forma escrita e responder as mais diversas questões sobre este tema.": "*This model does not create pornographic photos, videos, or files, but it can write about this topic and answer the widest range of questions on it.",
+    "Escreva, pesquise ou envie até 3 fotos, PDFs, documentos do Word ou áudios por mensagem. Você tem 5 perguntas grátis para testar; depois, escolha um plano para continuar.": "Write, research, or send up to 3 photos, PDFs, Word documents, or audio files per message. You get 5 free questions to try it; after that, pick a plan to continue.",
+    "Arquivos por mensagem": "Files per message"
   }
 }

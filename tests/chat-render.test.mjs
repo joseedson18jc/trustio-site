@@ -91,4 +91,11 @@ t("streaming: todo prefixo das respostas reais do Qwen renderiza sem erro", () =
   assert.ok(calls > 300);
 });
 
+t("vírgula decimal escrita errado pelo modelo ({,\\}) ainda vira fórmula", () => {
+  // 17 out 2026: o modelo escreveu $(2{,\}5,\; -0{,\}25)$ em vez de 2{,}5; o KaTeX recusava a fórmula inteira
+  const out = R.html("vértice em $(2{,\\}5,\\; -0{,\\}25)$ fim", true);
+  assert.ok(out.includes("<math"), out);
+  assert.ok(!/katex-error|merror|ParseError/.test(out), out);
+});
+
 console.log(`\n${n} testes passaram`);

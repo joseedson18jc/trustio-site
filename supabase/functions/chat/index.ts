@@ -241,7 +241,7 @@ Deno.serve(async (req) => {
 
   const requestSize = Number(req.headers.get("content-length") ?? 0);
   if (requestSize > MAX_CHAT_REQUEST) return json(413, { error: "mensagem_longa" }, origin);
-  let body: { conversation_id?: string; message?: string; imagens?: unknown; modelo?: unknown };
+  let body: { conversation_id?: string; message?: string; imagens?: unknown; modelo?: unknown; fala?: unknown };
   let audio: File | null = null;
   let audioLanguage: "pt" | "en" = "pt";
   const contentType = req.headers.get("content-type") ?? "";
@@ -261,6 +261,8 @@ Deno.serve(async (req) => {
         message: String(form.get("message") ?? ""),
         imagens,
         modelo: String(form.get("modelo") ?? ""),
+        // Gravação do microfone do chat (assets/voz.js): "1" = fala; "conversa" = conversa por voz.
+        fala: String(form.get("fala") ?? ""),
       };
     } else {
       body = await req.json();
@@ -284,6 +286,10 @@ Deno.serve(async (req) => {
       return json(400, { error: "audio_formato_invalido" }, origin);
     }
   }
+  // Fala gravada no chat: a transcrição É a mensagem (não um anexo a analisar). "conversa" pede
+  // também respostas curtas, em tom de conversa, porque elas serão lidas em voz alta.
+  const fala = body.fala === "conversa" ? "conversa" : body.fala === "1" ? "1" : "";
+  const semTextoDigitado = !message;
   if (!message && (audio || imagens.length)) message = "Analise o conteúdo do anexo.";
   if (!message) return json(400, { error: "mensagem_vazia" }, origin);
 
@@ -348,7 +354,8 @@ Deno.serve(async (req) => {
         return json(422, { error: "audio_sem_fala" }, origin);
       }
       const nome = (audio.name || "áudio").replace(/[^\p{L}\p{N}._ -]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 120) || "áudio";
-      message += `\n\n[[anexo: Áudio — ${nome} · transcrição automática]]\n${transcricaoAudio}\n[[/anexo]]`;
+      if (fala) message = semTextoDigitado ? transcricaoAudio : `${message}\n\n${transcricaoAudio}`;
+      else message += `\n\n[[anexo: Áudio — ${nome} · transcrição automática]]\n${transcricaoAudio}\n[[/anexo]]`;
       if (message.length > 40000) {
         await release();
         return json(413, { error: "mensagem_longa" }, origin);
@@ -395,6 +402,7 @@ Deno.serve(async (req) => {
       pref,
     ),
     "Priorize a precisão factual. Não invente dados, fontes ou detalhes; não apresente inferências como fatos; indique incerteza quando houver e evite afirmações absolutas sem fundamento.",
+    ...(fala === "conversa" ? ["A pessoa está conversando com você por voz e a sua resposta será lida em voz alta. Responda em tom de conversa, curto (de duas a quatro frases), sem listas, tabelas, código, fórmulas nem Markdown."] : []),
   ].join("\n\n");
 
   const anteriores = [

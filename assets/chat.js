@@ -253,6 +253,7 @@
   }
 
   function renderMe() {
+    if (window.TrustioVoz) window.TrustioVoz.atualizarPlano();
     var meta = state.user.user_metadata || {};
     var name = (state.lead && state.lead.nome) || meta.nome || state.user.email;
     $("[data-me-name]").textContent = name;
@@ -576,6 +577,7 @@
     var body = el.querySelector(".msg-body");
     if (role === "user") body.innerHTML = renderUsuario(content); else { body.innerHTML = render(content); desenhar(body); }
     inner.appendChild(el);
+    if (role !== "user") { el._texto = content || ""; if (content && window.TrustioVoz) window.TrustioVoz.decorar(el); }
     return el;
   }
 
@@ -629,7 +631,9 @@
   }
 
   // ---------------------------------------------------------------- envio
-  function send(text) {
+  // opcoes (assets/voz.js): { fala: "1" | "conversa", modelo } para gravações do microfone.
+  function send(text, opcoes) {
+    opcoes = opcoes || {};
     text = String(text || "").trim();
     if (state.sending || state.sessaoCheia) return;
     if (anexos.some(function (a) { return a.estado === "lendo"; })) {
@@ -675,7 +679,7 @@
       input.value = rascunho.texto; autosize();
       anexos = rascunho.anexos; renderAnexos();
     }
-    var pending = appendMessage("assistant", "", state.modelos.length >= 2 ? modeloAtual() : null);
+    var pending = appendMessage("assistant", "", state.modelos.length >= 2 ? (opcoes.modelo || modeloAtual()) : null);
     pending.classList.add("msg-pending");
     var body = pending.querySelector(".msg-body");
     var full = "", avisado = false;
@@ -727,7 +731,8 @@
         payload.append("message", text);
         if (state.conversationId) payload.append("conversation_id", state.conversationId);
         if (imagens.length) payload.append("imagens", JSON.stringify(imagens));
-        if (state.modelos.length >= 2) payload.append("modelo", modeloAtual() || "");
+        if (state.modelos.length >= 2) payload.append("modelo", opcoes.modelo || modeloAtual() || "");
+        if (opcoes.fala) payload.append("fala", opcoes.fala);
         payload.append("audio_language", EN ? "en" : "pt");
         payload.append("audio", audio.file, audio.nome);
       } else {
@@ -807,6 +812,9 @@
               // caberia), não a resposta ter batido no teto de tokens por resposta.
               if (d.contexto && d.janela && d.contexto >= d.janela * 0.95) sessaoCheia(d.janela);
               afterDone(d);
+              // Voz: o botão "Ouvir" aparece na resposta; na conversa por voz, ela é lida em voz alta.
+              pending._texto = full;
+              if (full && !interrompida && window.TrustioVoz) window.TrustioVoz.respostaPronta(pending);
             }
           });
           return pump();
@@ -880,18 +888,20 @@
     return /^audio\/(mpeg|mp4|wav|x-wav|ogg|flac|webm|aac|3gpp)$/i.test(f.type || "") ||
       /\.(mp3|m4a|wav|ogg|oga|flac|webm|aac|3gp)$/i.test(f.name || "");
   }
-  function tipoAceito(f) { return ehPdf(f) || ehAudio(f) || /^image\/(png|jpe?g|webp|gif|bmp)$/i.test(f.type || ""); }
+  function ehDocx(f) { return !!window.TrustioDocx && window.TrustioDocx.ehDocx(f); }
+  function tipoAceito(f) { return ehPdf(f) || ehDocx(f) || ehAudio(f) || /^image\/(png|jpe?g|webp|gif|bmp)$/i.test(f.type || ""); }
 
   function adicionarArquivos(lista) {
     var avisos = [];
     Array.prototype.slice.call(lista || []).forEach(function (f) {
       var nome = f.name || T("imagem", "image");
       if (anexos.length >= MAX_ANEXOS) { avisos.push(T("Máximo de 3 arquivos por envio.", "Up to 3 files per message.")); return; }
-      if (!tipoAceito(f)) { avisos.push(nome + ": " + T("envie foto, PDF ou áudio (MP3, M4A, WAV, OGG, FLAC).", "send a photo, PDF, or audio (MP3, M4A, WAV, OGG, FLAC).")); return; }
+      if (window.TrustioDocx && window.TrustioDocx.ehDocAntigo(f)) { avisos.push(nome + ": " + T("é um .doc antigo. No Word, use Arquivo › Salvar como › .docx e envie de novo.", "is an old .doc file. In Word, use File › Save As › .docx and send it again.")); return; }
+      if (!tipoAceito(f)) { avisos.push(nome + ": " + T("envie foto, PDF, Word (.docx) ou áudio (MP3, M4A, WAV, OGG, FLAC).", "send a photo, PDF, Word (.docx), or audio (MP3, M4A, WAV, OGG, FLAC).")); return; }
       if (f.size > MAX_BYTES) { avisos.push(nome + ": " + T("passa de 10 MB.", "is over 10 MB.")); return; }
       var audio = ehAudio(f);
       if (audio && anexos.some(function (x) { return x.audio; })) { avisos.push(T("Envie um áudio por vez.", "Send one audio file at a time.")); return; }
-      var a = { id: ++seqAnexo, file: f, nome: nome, pdf: ehPdf(f), audio: audio, estado: "lendo", progresso: 0 };
+      var a = { id: ++seqAnexo, file: f, nome: nome, pdf: ehPdf(f), docx: ehDocx(f), audio: audio, estado: "lendo", progresso: 0 };
       anexos.push(a);
       lerAnexo(a);
     });
@@ -902,6 +912,19 @@
 
   function lerAnexo(a) {
     if (a.audio) { a.estado = "pronto"; renderAnexos(); return; }
+    if (a.docx) {
+      // Word: texto extraído no navegador (assets/docx.js), como nos PDFs.
+      window.TrustioDocx.extrair(a.file).then(function (r) {
+        if (anexos.indexOf(a) < 0) return;
+        a.texto = r.texto; a.info = r; a.estado = r.texto ? "pronto" : "vazio";
+        renderAnexos();
+      }).catch(function (err) {
+        console.error("docx", err);
+        if (anexos.indexOf(a) < 0) return;
+        a.estado = "erro"; renderAnexos();
+      });
+      return;
+    }
     if (!window.TrustioOCR) { a.estado = "erro"; renderAnexos(); return; }
     window.TrustioOCR.extrair(a.file, function (p) {
       a.progresso = p;
@@ -935,6 +958,7 @@
     if (a.estado === "erro") return T("não foi possível ler", "couldn't read it");
     if (a.estado === "vazio") return T("sem texto legível", "no readable text");
     if (a.audio) return T("áudio · transcrição no envio", "audio · transcribed when sent");
+    if (a.docx) return T("documento · ", "document · ") + (a.texto || "").length.toLocaleString(LOCAL) + T(" caracteres", " characters");
     var n = (a.texto || "").length, pags = a.pdf && a.info ? a.info.paginas : 0;
     if (!a.pdf) return n ? T("foto · ", "photo · ") + n.toLocaleString(LOCAL) + T(" caracteres", " characters") : T("foto", "photo");
     return (pags ? pags + (pags === 1 ? T(" página · ", " page · ") : T(" páginas · ", " pages · ")) : "") + n.toLocaleString(LOCAL) + T(" caracteres", " characters");
@@ -944,14 +968,14 @@
     anexosEl.hidden = !anexos.length;
     anexosEl.innerHTML = anexos.map(function (a) {
       return "<div class=\"anexo-chip is-" + a.estado + "\" data-anexo-id=\"" + a.id + "\">" +
-        "<span class=\"anexo-ico\" aria-hidden=\"true\">" + (a.audio ? "AUD" : a.pdf ? "PDF" : "IMG") + "</span>" +
+        "<span class=\"anexo-ico\" aria-hidden=\"true\">" + (a.audio ? "AUD" : a.pdf ? "PDF" : a.docx ? "DOC" : "IMG") + "</span>" +
         "<span class=\"anexo-txt\"><b>" + esc(a.nome) + "</b><small class=\"anexo-estado\">" + esc(descricaoAnexo(a)) + "</small></span>" +
         "<button type=\"button\" class=\"anexo-x\" data-anexo-remove aria-label=\"" + esc(T("Remover ", "Remove ") + a.nome) + "\">×</button></div>";
     }).join("");
     // Os botões ficam sobre a caixa de texto; a fileira de anexos acima dela os empurra junto.
     composer.style.setProperty("--anexos-h", (anexos.length ? anexosEl.offsetHeight + 8 : 0) + "px");
     attachBtn.disabled = anexos.length >= MAX_ANEXOS;
-    attachBtn.title = anexos.length >= MAX_ANEXOS ? T("Máximo de 3 arquivos por envio", "Up to 3 files per message") : T("Anexar foto, PDF ou áudio (até 3)", "Attach a photo, PDF, or audio (up to 3)");
+    attachBtn.title = anexos.length >= MAX_ANEXOS ? T("Máximo de 3 arquivos por envio", "Up to 3 files per message") : T("Anexar foto, PDF, Word ou áudio (até 3)", "Attach a photo, PDF, Word, or audio (up to 3)");
   }
 
   // Blocos que vão para o modelo, com teto por anexo e no total (o contexto do modelo é finito).
@@ -967,7 +991,7 @@
       if (cortado) txt = txt.slice(0, teto);
       usado += txt.length;
       var pags = a.pdf && a.info ? a.info.paginas : 0;
-      var titulo = a.nome.replace(/[\[\]\n]/g, " ") + (a.pdf ? "" : T(" · foto", " · photo")) + (pags ? " · " + pags + (pags === 1 ? T(" página", " page") : T(" páginas", " pages")) : "") + (cortado ? T(" · texto cortado", " · text truncated") : "");
+      var titulo = a.nome.replace(/[\[\]\n]/g, " ") + (a.pdf || a.docx ? "" : T(" · foto", " · photo")) + (pags ? " · " + pags + (pags === 1 ? T(" página", " page") : T(" páginas", " pages")) : "") + (cortado ? T(" · texto cortado", " · text truncated") : "");
       out += "\n\n[[anexo: " + titulo + "]]\n" + txt + "\n[[/anexo]]";
     });
     return out;
@@ -1552,6 +1576,13 @@
   document.addEventListener("trustio:tema", function (e) { pintarTema(e.detail); });
   toggle.setAttribute("aria-pressed", document.documentElement.getAttribute("data-theme") === "light" ? "true" : "false");
   paintThemeColor(document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
+
+  // Voz (assets/voz.js): microfone, "Ouvir" nas respostas e conversa por voz (estes dois, só assinantes).
+  if (window.TrustioVoz) window.TrustioVoz.iniciar({
+    sb: sb, CFG: CFG, T: T, EN: EN, input: input, semCota: semCota, showNotice: showNotice,
+    adicionarArquivos: adicionarArquivos, enviar: send, ocupado: function () { return !!state.sending; },
+    planosUrl: "../planos.html"
+  });
 
   boot();
 })();

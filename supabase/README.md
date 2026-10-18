@@ -188,3 +188,12 @@ O workflow ativa abertura/cliques nos domínios `trustio.com.br` e subdomínios 
 A migração `20261010180000_crm_email_tracking.sql` grava metadados por mensagem/destinatário, com RLS exclusiva de admin, deduplicação e merge de eventos fora de ordem. Publica `crm_emails` no Realtime. O painel lista os envios de todos os remetentes Trustio, com busca, status e mostrar mais; a ficha mostra os últimos 50, com acesso à lista completa. Atualiza por eventos e a cada minuto como recuperação/renovação da janela de 48h.
 
 Estados: enviado, entregue ao servidor, abertura registrada, clique registrado, sem interação registrada após 48h, atraso, rejeição, falha e spam. Ausência de abertura não prova que a pessoa ignorou; filtros de segurança podem abrir/clicar automaticamente. Eventos de mensagem com múltiplos destinatários não identificam quem interagiu e têm aviso explícito. Não grava corpo, IP/user-agent, query ou fragmento dos links (que poderiam conter tokens de login). Abrange eventos a partir da ativação; histórico antigo não é reconstruído.
+
+## Prospecção (criadores e mídia)
+
+A migração `20261017200000_crm_prospeccao.sql` traz para o CRM a planilha "Trustio Outreach Tracker" (17/10/2026) e abre a aba `/crm/prospeccao.html`:
+
+- `crm_prospects`: quem a equipe vai abordar — criadores (afiliados B2C) e newsletters/imprensa. Separado de `crm_leads` (cadastros do site, e-mail obrigatório): aqui muitos contatos são só DM, WhatsApp ou formulário. O banco recusa status fora do funil de cada segmento — criadores `a_contatar → enviado → respondeu → testando → ativado → publicou → primeira_venda` (ou `recusou` / `sem_resposta`); mídia `a_contatar → enviado → respondeu → fechado → publicou` (ou `recusou` / `sem_resposta`). Ao virar `enviado` sem data, o primeiro contato recebe o dia de hoje (Brasília); `followups_feitos` conta os toques (criadores D+3/D+7/D+14, mídia D+5). `afiliado_id` liga o criador ao afiliado depois que ele entra no programa.
+- `crm_prospect_eventos`: histórico (status, prioridade, datas, toques, contato, vínculo), gravado só por gatilho.
+- `crm_prospect_modelos`: os 7 modelos de mensagem da planilha; a tela troca `{nome}`, `{NOME}`, `{newsletter}` e `{seu nome}` e deixa o resto entre chaves para personalizar.
+- RLS: equipe (`is_staff()`) lê, cria e edita; só admin apaga. A carga inicial (18 criadores + 14 veículos/jornalistas) é idempotente e confere as contagens ao final.

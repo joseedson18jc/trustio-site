@@ -12,7 +12,6 @@
 // prioridade: muda na hora, sem esperar a propagação dos segredos nem o workflow que os regrava.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { abreviarHistorico } from "./historico.ts";
 import {
   FERRAMENTA_BUSCA, NOME_FERRAMENTA, SEM_BUSCA, type Resultado,
   buscarNaWeb, instrucoesDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo, semNarracaoDeBusca,
@@ -451,7 +450,7 @@ Deno.serve(async (req) => {
 
   const anteriores = [
     { role: "system", content: systemPrompt },
-    ...abreviarHistorico((history ?? []).reverse().map((m) => ({ role: m.role as string, content: m.role === "assistant" ? semNarracaoDeBusca(m.content) : m.content }))),
+    ...(history ?? []).reverse().map((m) => ({ role: m.role, content: m.role === "assistant" ? semNarracaoDeBusca(m.content) : m.content })),
   ];
   type OpcoesDaChamada = { semRaciocinio?: boolean; maxTokens?: number };
   const pedirModelo = (mensagens: unknown[], comBusca: boolean, opcoes: OpcoesDaChamada = {}) => fetch(`${LLM_BASE_URL}/chat/completions`, {

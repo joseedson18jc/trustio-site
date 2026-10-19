@@ -28,7 +28,7 @@ name: Supabase
 on:
   push:
     branches: [main]
-    paths: ["supabase/**", ".github/workflows/supabase.yml", "scripts/configure-email-tracking.py", "scripts/verify-email-tracking.py", "scripts/configure-admin-notifications.py"]
+    paths: ["supabase/**", ".github/workflows/supabase.yml", "scripts/configure-email-tracking.py", "scripts/verify-email-tracking.py", "scripts/configure-admin-notifications.py", "scripts/verificar-exa.ts"]
   workflow_dispatch:
 
 concurrency:
@@ -278,3 +278,14 @@ jobs:
             -c "insert into public.admins (user_id) select id from auth.users where lower(email) in ($list) on conflict do nothing;" \
             -c "select email from auth.users where lower(email) in ($list);"
           echo "Contas que ainda não existem no Auth só viram admin depois de se cadastrarem; rode o workflow de novo."
+
+      # Por último, para uma falha aqui nunca impedir os passos de deploy acima.
+      - name: Preparar Deno (verificação da busca)
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.x
+
+      - name: Verificar a busca na web (Exa)
+        env:
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
+        run: deno run --allow-net=api.exa.ai --allow-env=EXA_API_KEY --no-lock scripts/verificar-exa.ts

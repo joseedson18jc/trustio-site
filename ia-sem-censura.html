@@ -147,18 +147,18 @@
     <div>
       <p class="kicker rv"><span class="n">01</span> O que é</p>
       <h2 class="h2 rv d1">Sem censura é tirar o filtro. <span class="soft">Não é tirar a responsabilidade.</span></h2>
-      <p class="sub rv d2">Os chats mais conhecidos passam cada pergunta por camadas de filtro antes de responder. Quando uma delas dispara, você recebe uma recusa genérica, mesmo que a pergunta seja legítima. Na Trustio, essas camadas saem. A lei continua em volta de tudo.</p>
+      <p class="sub rv d2">Muitos assistentes de IA passam a pergunta por camadas de filtro definidas pelo fornecedor do modelo. Quando uma delas dispara, a resposta pode virar uma recusa genérica, mesmo que a pergunta seja legítima. Na Trustio, essas camadas saem. A lei continua em volta de tudo.</p>
       <ul class="points rv d3">
-        <li><span class="k">A</span><div><b>Sem moderação por palavra-chave</b><span>Termos como “dose”, “golpe” ou “lavagem” não derrubam a conversa sozinhos.</span></div></li>
+        <li><span class="k">A</span><div><b>Sem moderação por palavra-chave</b><span>Termos como “golpe”, “fraude” ou “lavagem” não derrubam a conversa sozinhos.</span></div></li>
         <li><span class="k">B</span><div><b>Sem instruções ocultas de recusa</b><span>Nenhuma regra invisível manda o modelo dizer “não posso ajudar com isso”.</span></div></li>
         <li><span class="k">C</span><div><b>Com modelos abertos, rodando no Brasil</b><span>Os mesmos modelos que a Trustio roda para empresas, em ambiente privado e local.</span></div></li>
       </ul>
     </div>
     <div class="card pipe rv d2" id="pipe" data-mode="generic">
       <div class="pipe-head">
-        <span class="label">Caminho da pergunta</span>
-        <div class="seg" role="group" aria-label="Escolher o tipo de IA">
-          <button type="button" data-set="generic" aria-pressed="true">IA comum</button>
+        <span class="label">Caminho da pergunta · exemplo ilustrativo</span>
+        <div class="seg" role="group" aria-label="Escolher o caminho">
+          <button type="button" data-set="generic" aria-pressed="true">Com filtro do fornecedor</button>
           <button type="button" data-set="trustio" aria-pressed="false">Trustio</button>
         </div>
       </div>
@@ -167,12 +167,12 @@
         <div class="track">
           <span class="rail" aria-hidden="true"></span>
           <span class="packet" aria-hidden="true"></span>
-          <div class="pn q"><div><b>Sua pergunta</b><small>“Qual dose de paracetamol já é risco?”</small></div><span class="st">enviada</span></div>
+          <div class="pn q"><div><b>Sua pergunta</b><small>“Como funciona o golpe do falso advogado?”</small></div><span class="st">enviada</span></div>
           <div class="pn gate"><div><b>Moderação do fornecedor</b><small>bloqueia por palavra-chave</small></div><span class="st"></span></div>
           <div class="pn gate"><div><b>Instruções ocultas</b><small>regras que você não vê</small></div><span class="st"></span></div>
           <div class="pn gate"><div><b>Treino de recusa</b><small>“não posso ajudar com isso”</small></div><span class="st"></span></div>
           <div class="pn model"><div><b>Modelo</b><small>quem de fato sabe responder</small></div><span class="st">pronto</span></div>
-          <div class="pn out"><div><span class="wait">aguardando a pergunta…</span><b class="og">Recusa genérica</b><b class="ot">Resposta completa, com riscos e próximos passos</b></div></div>
+          <div class="pn out"><div><span class="wait">aguardando a pergunta…</span><b class="og">Pode virar recusa genérica</b><b class="ot">Resposta completa, com riscos e próximos passos</b></div></div>
         </div>
       </div>
       <p class="pipe-cap" id="pipe-cap" aria-live="polite"></p>
@@ -185,27 +185,23 @@
   <div class="wrap">
     <div class="sec-head">
       <p class="kicker rv"><span class="n">02</span> Na prática</p>
-      <h2 class="h2 rv d1">A mesma pergunta. <span class="soft">Duas respostas bem diferentes.</span></h2>
-      <p class="sub rv d2">Perguntas reais de quem trabalha com temas sensíveis. Escolha um caso e compare. As respostas são exemplos ilustrativos.</p>
+      <h2 class="h2 rv d1">Perguntas de quem trabalha com tema sensível. <span class="soft">A resposta, você vê no chat.</span></h2>
+      <p class="sub rv d2">Escolha um caso para ver a pergunta e o que conferir na resposta. Aqui não tem resposta pronta: faça a pergunta você mesmo. O modelo pode errar.</p>
     </div>
     <div class="tabs rv" id="tabs" role="tablist" aria-label="Casos de uso"></div>
     <div id="cmp-panel" class="rv d1" role="tabpanel" tabindex="0">
       <div class="prompt">
-        <span class="av" id="p-av" aria-hidden="true">EN</span>
+        <span class="av" id="p-av" aria-hidden="true">AD</span>
         <div><span class="label" id="p-who"></span><div class="q" id="p-q"></div></div>
       </div>
-      <div class="versus">
-        <article class="win g" aria-label="Resposta de uma IA comum">
-          <div class="win-bar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>IA comum<span class="st">recusou</span></div>
-          <div class="win-body" id="a-g"></div>
-          <div class="win-foot" id="f-g"></div>
-        </article>
-        <article class="win t" aria-label="Resposta da Trustio">
-          <div class="win-bar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>Trustio · sem censura*<span class="st">respondeu</span></div>
-          <div class="win-body" id="a-t" aria-busy="false"></div>
+      <div class="versus uma">
+        <article class="win t" aria-label="O que conferir na resposta">
+          <div class="win-bar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>O que conferir na resposta<span class="st">no chat</span></div>
+          <div class="win-body" id="a-t"></div>
           <div class="win-foot" id="f-t"></div>
         </article>
       </div>
+      <p class="cmp-cta"><a class="btn btn-primary" href="cadastro.html">Fazer esta pergunta <span class="ico"><svg><use href="#i-arrow"/></svg></span></a><span>5 perguntas grátis, uma vez por conta, após confirmar o e-mail. Sem cartão.</span></p>
     </div>
   </div>
 </section>
@@ -307,7 +303,7 @@
       <div class="card rv">
         <span class="label text-ok">O que muda</span>
         <ul class="checks ok">
-          <li><svg><use href="#i-check"/></svg>Perguntas sobre saúde, direito e segurança recebem resposta, não sermão.</li>
+          <li><svg><use href="#i-check"/></svg>Perguntas sobre saúde, direito e segurança recebem resposta, não sermão. Para estudo e conferência; a decisão é sua.</li>
           <li><svg><use href="#i-check"/></svg>Ficção pode tratar de violência e temas pesados quando a história pede.</li>
           <li><svg><use href="#i-check"/></svg>Você pede opinião direta e recebe opinião direta.</li>
           <li><svg><use href="#i-check"/></svg>Nenhuma palavra solta derruba a conversa.</li>
@@ -335,9 +331,9 @@
       <h2 class="h2 rv d1">Para quem trabalha com assunto sério <span class="soft">e cansou de ouvir “não posso ajudar”.</span></h2>
     </div>
     <div class="grid3">
-      <article class="card persona rv d1"><span class="pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M6 21h12M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></svg></span><h3 class="h3">Advogados e estudantes</h3><p>Tipos penais, teses de defesa e cláusulas analisadas, sem “não posso opinar”.</p><span class="tag">Direito</span></article>
+      <article class="card persona rv d1"><span class="pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M6 21h12M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></svg></span><h3 class="h3">Advogados e estudantes</h3><p>Tipos penais, teses de defesa e cláusulas analisadas, sem “não posso opinar”. Para estudo e conferência; a decisão é sua.</p><span class="tag">Direito</span></article>
       <article class="card persona rv d2"><span class="pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><h3 class="h3">Times de segurança e TI</h3><p>Como golpes e ataques funcionam, para treinar pessoas e fechar brechas.</p><span class="tag">Defesa</span></article>
-      <article class="card persona rv"><span class="pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg></span><h3 class="h3">Escritores e roteiristas</h3><p>Conflito, violência e temas pesados quando a história pede.</p><span class="tag">Ficção adulta</span></article>
+      <article class="card persona rv"><span class="pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg></span><h3 class="h3">Escritores e roteiristas</h3><p>Conflito, violência e temas pesados quando a história pede.</p><span class="tag">Criação</span></article>
       <article class="card persona rv d1"><span class="pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg></span><h3 class="h3">Jornalistas e pesquisadores</h3><p>Temas sensíveis investigados com profundidade, sem a conversa travar no meio.</p><span class="tag">Investigação</span></article>
       <article class="card persona rv d2"><span class="pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h3 class="h3">Quem não quer ser produto</h3><p>Conversas guardadas no Brasil, que nunca são usadas para treinar modelos.</p><span class="tag">Privacidade</span></article>
     </div>
@@ -353,7 +349,7 @@
       <p class="sub rv d2">Tirar o filtro resolve a recusa. Não resolve tudo. Estes são os limites que valem para qualquer modelo de linguagem, com ou sem censura.</p>
     </div>
     <div class="rows rv d1">
-      <div class="row"><span class="n">01</span><div><b>Pode errar</b><p>É um modelo de linguagem. Confira números, doses e artigos de lei antes de usar.</p><code>sem filtro ≠ sem erro</code></div></div>
+      <div class="row"><span class="n">01</span><div><b>Pode errar</b><p>É um modelo de linguagem. Confira números, datas e artigos de lei antes de usar.</p><code>sem filtro ≠ sem erro</code></div></div>
       <div class="row"><span class="n">02</span><div><b>Não substitui profissional</b><p>Ajuda a entender e a preparar perguntas melhores. A decisão continua com médico, advogado ou especialista.</p><code>informação ≠ atendimento</code></div></div>
       <div class="row"><span class="n">03</span><div><b>Você responde pelo uso</b><p>Quem envia as perguntas responde pelo conteúdo delas e pelo uso que faz das respostas, nos termos da lei.</p><code>responsabilidade: de quem pergunta</code></div></div>
       <div class="row"><span class="n">04</span><div><b>Uso justo, não infinito</b><p>Os planos não contam tokens, mas têm limite de uso justo.</p><code>limite = uso justo, não contagem</code></div></div>

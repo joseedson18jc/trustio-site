@@ -319,9 +319,9 @@ button.me:hover .me-gear { stroke: var(--ice); }
 .starters { margin-top: 0; }
 .starters button { display: flex; flex-direction: column; gap: 8px; }
 .starter-tag { align-self: flex-start; padding: 3px 9px; border-radius: 999px; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; line-height: 1.4; }
-.starter-tag.t-health { color: #7ee2a8; background: rgba(61, 220, 151, .12); border: 1px solid rgba(61, 220, 151, .35); }
-.starter-tag.t-adult { color: #ff9ab5; background: rgba(255, 122, 168, .12); border: 1px solid rgba(255, 122, 168, .35); }
-.starter-tag.t-drugs { color: #b454ff; background: rgba(180, 84, 255, .12); border: 1px solid rgba(180, 84, 255, .35); }
+.starter-tag.t-health, .starter-tag.t-law { color: #7ee2a8; background: rgba(61, 220, 151, .12); border: 1px solid rgba(61, 220, 151, .35); }
+.starter-tag.t-adult, .starter-tag.t-fic { color: #ff9ab5; background: rgba(255, 122, 168, .12); border: 1px solid rgba(255, 122, 168, .35); }
+.starter-tag.t-drugs, .starter-tag.t-sec { color: #b454ff; background: rgba(180, 84, 255, .12); border: 1px solid rgba(180, 84, 255, .35); }
 .starter-tag.t-nofilter { color: #5ea7ff; background: rgba(94, 167, 255, .12); border: 1px solid rgba(94, 167, 255, .35); }
 .starters button:hover .starter-tag { filter: brightness(1.2); }
 

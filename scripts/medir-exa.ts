@@ -7,12 +7,11 @@ if (!chave) { console.log("EXA_API_KEY não definida."); Deno.exit(0); }
 type Variante = { nome: string; corpo: Record<string, unknown> };
 const base = { numResults: 5, userLocation: "BR" };
 const variantes: Variante[] = [
-  { nome: "atual: fast + texto 1500 + maxAgeHours 1", corpo: { ...base, type: "fast", contents: { text: { maxCharacters: 1500 }, maxAgeHours: 1, livecrawlTimeout: 5000 } } },
-  { nome: "fast + texto 1500 (cache)", corpo: { ...base, type: "fast", contents: { text: { maxCharacters: 1500 } } } },
-  { nome: "instant + texto 1500 (cache)", corpo: { ...base, type: "instant", contents: { text: { maxCharacters: 1500 } } } },
-  { nome: "instant + highlights (cache)", corpo: { ...base, type: "instant", contents: { highlights: true } } },
-  { nome: "fast + highlights + maxAgeHours 24", corpo: { ...base, type: "fast", contents: { highlights: true, maxAgeHours: 24, livecrawlTimeout: 3000 } } },
-  { nome: "instant + texto 800 (cache)", corpo: { ...base, type: "instant", contents: { text: { maxCharacters: 800 } } } },
+  { nome: "fast + texto 900 + maxAgeHours 1 + livecrawl 2500", corpo: { ...base, numResults: 4, type: "fast", contents: { text: { maxCharacters: 900 }, maxAgeHours: 1, livecrawlTimeout: 2500 } } },
+  { nome: "instant + texto 900", corpo: { ...base, numResults: 4, type: "instant", contents: { text: { maxCharacters: 900 } } } },
+  { nome: "instant + highlights maxCharacters 600", corpo: { ...base, numResults: 4, type: "instant", contents: { highlights: { maxCharacters: 600 } } } },
+  { nome: "instant + highlights numSentences 3 x2", corpo: { ...base, numResults: 4, type: "instant", contents: { highlights: { numSentences: 3, highlightsPerUrl: 2 } } } },
+  { nome: "fast + highlights maxCharacters 600 + maxAgeHours 1 + livecrawl 2500", corpo: { ...base, numResults: 4, type: "fast", contents: { highlights: { maxCharacters: 600 }, maxAgeHours: 1, livecrawlTimeout: 2500 } } },
 ];
 const consultas = ["cotação do dólar hoje", "resultado último jogo do Flamengo"];
 
@@ -35,6 +34,9 @@ for (const v of variantes) {
       const hosts = rs.slice(0, 3).map((x: { url: string }) => new URL(x.url).hostname).join(", ");
       const avisos = (j.warnings ?? []).map((w: { code: string; path: string }) => `${w.code} ${w.path}`).join("; ");
       console.log(`${v.nome} | "${q}" | ${ms} ms (Exa ${j.searchTime ?? "?"} ms) | ${rs.length} res, ${chars} chars | US$ ${j.costDollars?.total ?? "?"} | ${hosts}${avisos ? " | avisos: " + avisos : ""}`);
+      const p0 = rs[0] ?? {};
+      const amostra = (p0.highlights?.length ? p0.highlights.join(" … ") : (p0.text ?? "")).replace(/\s+/g, " ").slice(0, 260);
+      console.log(`    amostra [1] ${amostra}`);
     } catch (err) {
       console.log(`${v.nome} | "${q}" | falhou em ${Math.round(performance.now() - t0)} ms: ${err instanceof Error ? err.message : String(err)}`);
     }

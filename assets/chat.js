@@ -303,7 +303,9 @@
     var limitEl = $("[data-ob-limit]"), bar = $("[data-ob-bar]"), txt = $("[data-ob-quota]");
     if (!limitEl) return;
     if (semCota() || !state.limit) {
-      limitEl.textContent = "∞"; bar.style.width = "100%";
+      var titulo = $("[data-ob-titulo]");
+      if (titulo) titulo.textContent = T("Uso justo", "Fair use");
+      bar.style.width = "100%";
       txt.textContent = semCota() ? T("Plano ativo: uso justo, sem contar perguntas.", "Plan active: fair use, no question count.") : T("Sem cota de perguntas neste ambiente.", "No question quota in this environment.");
       return;
     }

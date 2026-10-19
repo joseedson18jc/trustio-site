@@ -276,7 +276,11 @@
     "O modelo de voz é da xAI, e o áudio da conversa é processado por ela, nos EUA. A Trustio orquestra a chamada, aplica guardrails e registra cada evento.": "The voice model is xAI’s, and the conversation audio is processed by xAI, in the US. Trustio orchestrates the call, applies guardrails and logs every event.",
     "Retenção de gravações definida em contrato": "Recording retention set by contract",
     "Preços dos modelos xAI conforme tabela pública da xAI; o plano Trustio inclui orquestração, telefonia e hospedagem — veja": "xAI model prices per xAI’s public price list; the Trustio plan includes orchestration, telephony and hosting — see",
-    "Agentes Omnichannel de voz e texto (telefone, WhatsApp, Telegram, e-mail, SMS, iMessage e agenda) com modelos Grok Voice da xAI, orquestrados pela Trustio.": "Omnichannel voice and text agents (phone, WhatsApp, Telegram, email, SMS, iMessage and calendar) with xAI’s Grok Voice models, orchestrated by Trustio."
+    "Agentes Omnichannel de voz e texto (telefone, WhatsApp, Telegram, e-mail, SMS, iMessage e agenda) com modelos Grok Voice da xAI, orquestrados pela Trustio.": "Omnichannel voice and text agents (phone, WhatsApp, Telegram, email, SMS, iMessage and calendar) with xAI’s Grok Voice models, orchestrated by Trustio.",
+    "Um agente, todos os canais: voz, WhatsApp, Telegram, e-mail, SMS e agenda. Em português do Brasil.": "One agent, every channel: voice, WhatsApp, Telegram, email, SMS and calendar. In Brazilian Portuguese.",
+    "das chamadas gravadas, transcritas e auditáveis": "of calls recorded, transcribed and auditable",
+    "Áudio e contexto passam pela camada Trustio antes e depois do modelo. Só o necessário para cada resposta segue para o modelo da xAI, nos EUA; logs e ferramentas ficam no seu ambiente.": "Audio and context pass through the Trustio layer before and after the model. Only what each answer needs goes to xAI’s model, in the US; logs and tools stay in your environment.",
+    "Empresa brasileira": "Brazilian company"
   },
   "raw": [
     [

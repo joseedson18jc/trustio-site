@@ -304,7 +304,17 @@
     "Chat privado sem censura* e agente de IA para você. Infraestrutura privada, VoiceAI e Omnichannel para a sua empresa. Conta e histórico armazenados no Brasil.": "Private, uncensored* chat and an AI agent for you. Private infrastructure, VoiceAI and Omnichannel for your business. Account and history stored in Brazil.",
     "em até 10x no cartão": "in up to 10 card installments",
     "Agentio incluído, no Telegram ou no WhatsApp": "Agentio included, on Telegram or WhatsApp",
-    "Agentes de voz em português, com os modelos Grok Voice da xAI orquestrados pela Trustio: telefonia, ferramentas e guardrails. O áudio é processado pela xAI, nos EUA.": "Voice agents in Portuguese, with xAI’s Grok Voice models orchestrated by Trustio: telephony, tools and guardrails. The audio is processed by xAI, in the US."
+    "Agentes de voz em português, com os modelos Grok Voice da xAI orquestrados pela Trustio: telefonia, ferramentas e guardrails. O áudio é processado pela xAI, nos EUA.": "Voice agents in Portuguese, with xAI’s Grok Voice models orchestrated by Trustio: telephony, tools and guardrails. The audio is processed by xAI, in the US.",
+    "Infraestrutura dedicada de IA para a sua empresa: modelos, agentes, OCR e Omnichannel no seu perímetro, hospedados no Brasil, e VoiceAI com os modelos de voz da xAI (EUA). LGPD desde o projeto, sem lock-in.": "Dedicated AI infrastructure for your business: models, agents, OCR and Omnichannel inside your perimeter, hosted in Brazil, and VoiceAI with xAI’s voice models (US). LGPD built in from the start, no lock-in.",
+    "Chat privado sem censura* e agente de IA para você. Infraestrutura privada, VoiceAI e Omnichannel para a sua empresa. Empresa brasileira.": "Private, uncensored* chat and an AI agent for you. Private infrastructure, VoiceAI and Omnichannel for your business. A Brazilian company.",
+    "Modelos, agentes e OCR em ambiente dedicado, hospedado no Brasil, e VoiceAI com os modelos de voz da xAI (EUA), tudo integrado aos sistemas que a sua operação já usa. Acesso, retenção e descarte seguem a política da sua empresa — e a arquitetura evita aprisionamento por fornecedor.": "Models, agents and OCR in a dedicated environment hosted in Brazil, and VoiceAI with xAI’s voice models (US), all integrated with the systems your operation already uses. Access, retention and disposal follow your company’s policy — and the architecture avoids vendor lock-in.",
+    "IA local, OCR, VoiceAI e agentes Omnichannel, sob o seu controle.": "Local AI, OCR, VoiceAI and Omnichannel agents, under your control.",
+    "IA local com LGPD desde o projeto, trilha de auditoria e governança incorporada": "Local AI with LGPD built in from the start, a full audit trail and governance included",
+    "NÚCLEO": "CORE",
+    "BASE DE CONHECIMENTO": "KNOWLEDGE BASE",
+    "AUTOMAÇÃO": "AUTOMATION",
+    "DOCUMENTOS COM IA": "DOCUMENT AI",
+    "Inferência dos modelos abertos e registros em infraestrutura nacional. A voz do VoiceAI é processada pela xAI, nos EUA.": "Open-model inference and logs on Brazilian infrastructure. VoiceAI audio is processed by xAI, in the US."
   },
   "raw": [
     [

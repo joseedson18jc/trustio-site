@@ -17,7 +17,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const B2C = ["index.html", "ia-sem-censura.html", "cadastro.html", "entrar.html", "planos.html", "seats.html",
   "espera.html", "obrigado.html", "afiliados.html", "agentio.html", "app/index.html", "modelos.html", "fundador.html",
   "privacidade.html", "manifesto.html"];
-const B2B = ["empresas.html", "voice.html", "juridico/index.html", "console/index.html", "404.html"];
+const B2B = ["empresas.html", "voice.html", "juridico/index.html", "console/index.html", "404.html", "planos-teste.html"];
 const VOZ = ["voice.html", "console/index.html"];
 
 const AVISO_TEXTO = "Quem envia as perguntas responde pelo conteúdo delas e pelo uso que faz das respostas, nos termos da lei";
@@ -35,7 +35,7 @@ function textos(html) {
     const t = decod(parte).replace(/\s+/g, " ").trim();
     if (t) out.push(t);
   }
-  for (const m of html.matchAll(/<meta\s+(?:name|property)="(description|og:description|og:title|twitter:title|twitter:description)"\s+content="([^"]*)"/gi)) {
+  for (const m of html.matchAll(/<meta\s+(?:name|property)="(description|og:description|og:title|og:image:alt|twitter:title|twitter:description)"\s+content="([^"]*)"/gi)) {
     out.push(decod(m[2]));
   }
   return out;
@@ -59,7 +59,12 @@ const PROIBIDOS = [
   [2, /\b\d[\d.]*\s*(usuários|pessoas inscritas|inscritos|clientes satisfeitos)\b/i],
 ];
 const SAUDE = /\b(doses?|dosagem|interaç(ão|ões)|paracetamol|tramadol|ibuprofeno|MDMA|LSD)\b/i;
-const OUTRA_IA = /\b(ChatGPT|Gemini|IA comum|GPT[- ]?\d|Claude)\b/;
+const OUTRA_IA = /\b(ChatGPT|Gemini|IA comum|GPT(?:[- ]?\d)?|Claude|Kimi)\b/i;
+// Inglês visível (item 17). Nomes de produto (VoiceAI powered by xAI, Heavy Thinking, Omnichannel) ficam.
+const INGLES = /\b(by design|uncensored|seats?|knowledge|legal intelligence|document ai|monitor live|templates uncensored)\b/i;
+// Voz, busca ou Agentio no mesmo texto que "guardado/hospedado/servidores… no Brasil" (item 6).
+const VOZ_BUSCA = /(VoiceAI|\bvoz\b|busca na web|Agentio|grava[çc][õo]es)/i;
+const NO_BRASIL = /(armazenad|guardad|hospedad|servidores|infraestrutura nacional|permanecem|no seu perímetro|nunca deixam)[^.]{0,60}(Brasil|nacional|perímetro|ambiente)?/i;
 
 for (const pagina of [...B2C, ...B2B]) {
   let html;
@@ -97,7 +102,18 @@ for (const pagina of [...B2C, ...B2B]) {
     if (s && ehB2C) falha(pagina, 7, `saúde: …${trecho(t, s.index)}…`);
   }
 
-  // 6. peça de voz sem "dados no Brasil"
+  // 17. texto em PT-BR
+  for (const t of ts) {
+    const m = t.match(INGLES);
+    if (m) falha(pagina, 17, `inglês: …${trecho(t, m.index)}…`);
+  }
+
+  // 6. voz, busca e Agentio sem "no Brasil" no mesmo texto (a menos que o texto diga que sai para os EUA)
+  for (const t of ts) {
+    if (!VOZ_BUSCA.test(t) || /EUA/.test(t)) continue;
+    const m = t.match(NO_BRASIL);
+    if (m && /Brasil|nacional|perímetro|ambiente/i.test(m[0])) falha(pagina, 6, `voz/busca/Agentio com dado no Brasil: …${trecho(t, m.index)}…`);
+  }
   if (VOZ.includes(pagina)) {
     for (const t of ts) {
       const m = t.match(/(dados|grava[çc][õo]es|registros|transcri[çc][õo]es)[^.]{0,40}no Brasil|hospedad[oa]s? no Brasil|br-sao-1/i);
@@ -121,7 +137,10 @@ for (const pagina of [...B2C, ...B2B]) {
   // 9. nunca /chat (dá 404)
   if (/href="[^"]*\/chat(["/?#])/.test(html) || /trustio\.com\.br\/chat\b/.test(tudo)) falha(pagina, 9, "link ou menção a /chat");
 
-  // 10. nenhum script de terceiros
+  // 10. nenhum script nem folha de estilo de terceiros
+  for (const m of html.matchAll(/<link\b[^>]*\bhref="(https?:\/\/(?!trustio\.com\.br)[^"]+)"[^>]*>/gi)) {
+    if (/rel="(stylesheet|preconnect|preload)"/i.test(m[0])) falha(pagina, 10, `recurso de terceiro: ${m[1]}`);
+  }
   for (const m of html.matchAll(/<script\b[^>]*\bsrc="(https?:\/\/[^"]+)"/gi)) falha(pagina, 10, `script de terceiro: ${m[1]}`);
   const csp = html.match(/Content-Security-Policy" content="([^"]*)"/);
   if (csp) {
@@ -134,6 +153,13 @@ for (const pagina of [...B2C, ...B2B]) {
     const m = t.match(/3 dias[^.]{0,60}(WhatsApp|agente|Agentio)|(WhatsApp|Agentio)[^.]{0,40}3 dias/i);
     if (m) falha(pagina, 16, `oferta de 3 dias do agente: …${trecho(t, m.index)}…`);
   }
+}
+
+// 7. a biblioteca de templates do app é produto (o usuário abre de propósito), não peça de campanha: só AVISO
+{
+  const js = await readFile(join(ROOT, "assets/chat-templates.js"), "utf8");
+  const n = (js.match(new RegExp(SAUDE.source, "gi")) || []).length;
+  if (n) aviso("assets/chat-templates.js", 7, `${n} menções de dose/interação/droga na biblioteca de templates do app (decisão de produto)`);
 }
 
 // 15. regras de divulgação no programa de afiliados

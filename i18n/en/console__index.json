@@ -127,6 +127,7 @@
     "// token efêmero emitido pelo backend Trustio": "// ephemeral token issued by the Trustio backend",
     "Ambiente de demonstração · voz processada pela xAI, nos EUA": "Demo environment · voice processed by xAI, in the US",
     "Cinco agentes de exemplo neste ambiente de demonstração. Selecione um para editar o playbook, as ferramentas e testar ao vivo.": "Five sample agents in this demo environment. Pick one to edit its playbook and tools and test it live.",
-    "retidas por": "retained for"
+    "retidas por": "retained for",
+    "transferências a humano": "handoffs to a human"
   }
 }

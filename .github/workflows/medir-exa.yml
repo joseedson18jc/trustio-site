@@ -1,0 +1,20 @@
+# Mede a latência da Exa com variações do pedido da busca do chat. Só roda à mão
+# (gh workflow run medir-exa.yml); não publica nada. Usa o segredo EXA_API_KEY.
+name: Medir Exa
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  medir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.x
+      - name: Medir variações
+        env:
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
+        run: deno run --allow-net=api.exa.ai --allow-env=EXA_API_KEY --no-lock scripts/medir-exa.ts

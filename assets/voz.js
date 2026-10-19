@@ -151,6 +151,18 @@
   // A resposta é falada enquanto chega: cada frase completa já vai virar áudio (os pedidos correm
   // em paralelo) e toca na ordem. Antes, a voz esperava a resposta inteira e o MP3 inteiro.
   var fila = null;
+  // Enquanto a busca na web roda, um "Só um instante" curto evita o silêncio (19 out 2026). O áudio é
+  // gerado uma vez quando a conversa por voz liga (só para assinantes: não gasta a demonstração).
+  var audioEspera = null, esperaTocando = null;
+  var FRASE_ESPERA = "Só um instante, estou pesquisando.";
+  function prepararEspera() {
+    if (audioEspera || !assinante()) return;
+    buscarAudio(T(FRASE_ESPERA, "One moment, I'm looking it up.")).then(function (b) { audioEspera = b; }, function () { /* sem frase de espera */ });
+  }
+  function buscando() {
+    if (!conversa || !audioEspera || esperaTocando || (fila && fila.geracao === geracao)) return;
+    esperaTocando = tocarBlob(audioEspera).then(function () { esperaTocando = null; }, function () { esperaTocando = null; });
+  }
   var FIM_FRASE = /[.!?…:;](?=\s)/g;     // fim de frase seguido de espaço: a frase acabou de verdade
   var MIN_TRECHO = 25;                   // evita pedidos minúsculos ("Sim." vai junto com a próxima)
 
@@ -175,8 +187,10 @@
   function trecho(el, texto) {
     if (!conversa || !configurada || !podeOuvir() || !el) return;
     if (!fila || fila.el !== el) {
-      pararFala();
-      fila = { el: el, usado: 0, cadeia: Promise.resolve(), geracao: geracao, erro: null, semCortes: false, botao: null };
+      // A frase de espera termina antes da resposta começar (não é cortada no meio).
+      var espera = esperaTocando;
+      if (!espera) pararFala();
+      fila = { el: el, usado: 0, cadeia: espera ? espera.then(function () {}) : Promise.resolve(), geracao: geracao, erro: null, semCortes: false, botao: null };
     }
     var f = fila;
     if (f.semCortes || f.erro || f.geracao !== geracao) return;
@@ -293,6 +307,7 @@
     conversaBtn.setAttribute("aria-pressed", conversa ? "true" : "false");
     if (conversa) {
       ctx.showNotice(T("Conversa por voz ligada: fale, e eu respondo em voz alta. Toque de novo para desligar.", "Voice conversation on: speak and I'll answer out loud. Tap again to turn it off."));
+      prepararEspera();
       if (!gravador && !ctx.ocupado()) gravar();
     } else { if (gravador) gravador.parar("toque"); pararFala(); }
   }
@@ -370,5 +385,5 @@
     });
   }
 
-  window.TrustioVoz = { iniciar: iniciar, decorar: decorar, respostaPronta: respostaPronta, trecho: trecho, atualizarPlano: atualizarPlano, parar: pararFala };
+  window.TrustioVoz = { iniciar: iniciar, decorar: decorar, respostaPronta: respostaPronta, trecho: trecho, buscando: buscando, atualizarPlano: atualizarPlano, parar: pararFala };
 })();

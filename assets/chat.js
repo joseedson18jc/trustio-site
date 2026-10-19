@@ -304,7 +304,7 @@
     if (!limitEl) return;
     if (semCota() || !state.limit) {
       limitEl.textContent = "∞"; bar.style.width = "100%";
-      txt.textContent = semCota() ? T("Plano ativo: sem limite de prompts.", "Plan active: no prompt limit.") : T("Sem limite de prompts neste ambiente.", "No prompt limit in this environment.");
+      txt.textContent = semCota() ? T("Plano ativo: uso justo, sem contar perguntas.", "Plan active: fair use, no question count.") : T("Sem cota de perguntas neste ambiente.", "No question quota in this environment.");
       return;
     }
     limitEl.textContent = state.limit;
@@ -1408,7 +1408,7 @@
     $("[data-conta-plano]").textContent = $("[data-me-plan]").textContent;
     var usados = Number(l.mensagens_usadas || 0);
     $("[data-conta-uso]").textContent = semCota() || !state.limit
-      ? T("Sem limite de perguntas.", "No question limit.")
+      ? T("Uso justo, sem contar perguntas.", "Fair use, no question count.")
       : EN ? Math.max(0, state.limit - usados) + " of " + state.limit + " free questions left" : Math.max(0, state.limit - usados) + " de " + state.limit + " perguntas grátis restantes";
     // Preferências
     var f = $("[data-pref-form]");

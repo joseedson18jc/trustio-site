@@ -340,7 +340,7 @@
     var P = {
       chat: [
         { k: "Passe · 7 dias", v: 24.9, u: "por 7 dias", d: 7, note: "Pagamento único · não renova sozinho" },
-        { k: "Mensal", v: 79, u: "/mês", d: 30, note: "Renova todo mês · cancele quando quiser", badge: "Recomendado" },
+        { k: "Mensal", v: 79, u: "/mês", d: 30, note: "Renova todo mês · cancele quando quiser" },
         { k: "Anual", v: 790, u: "/ano", d: 365, note: "Equivale a R$ 65,83 por mês · dois meses grátis" }
       ]
     };

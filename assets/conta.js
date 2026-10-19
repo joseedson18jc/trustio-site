@@ -101,6 +101,8 @@
   // ---------------------------------------------------------------- Google
   // O Google devolve para esta mesma página (com o ?next= original); o getSession acima
   // termina o trabalho. Erro ou cancelamento chega como #error_description=… na volta.
+  // Atribuição: o Google não passa pelo signUp (sem metadata nem signup_start), mas a ida e a
+  // volta ficam no mesmo navegador; o funil.js lê o primeiro toque do localStorage no /app.
   var oauthStatus = document.querySelector("[data-oauth-status]");
   var erroOauth = new URLSearchParams(location.hash.slice(1)).get("error_description");
   if (erroOauth && oauthStatus) {
@@ -165,12 +167,17 @@
             tipo: tipoEl ? tipoEl.dataset.tipo : "b2c",
             empresa: String(f.get("empresa") || "").trim(),
             segmento: String(f.get("segmento") || "").trim(),
-            origem: EN ? "en/cadastro.html" : "cadastro.html"
+            origem: EN ? "en/cadastro.html" : "cadastro.html",
+            // Primeiro toque (atribuicao.js) vai com a conta: a confirmação costuma abrir em outro
+            // navegador, sem este localStorage. Chave aninhada; o handle_new_user a ignora.
+            atribuicao: (window.TRUSTIO_ATRIB && window.TRUSTIO_ATRIB.ler()) || undefined
           }
         }
       }).then(function (r) {
         if (r.error) throw r.error;
-        if (window.TRUSTIO_FUNIL) window.TRUSTIO_FUNIL.inicio();
+        var user = r.data && r.data.user;
+        var contaExistente = Boolean(user && Array.isArray(user.identities) && user.identities.length === 0);
+        if (window.TRUSTIO_FUNIL) window.TRUSTIO_FUNIL.inicio({ conta_existente: contaExistente });
         if (r.data && r.data.session) { irParaDestino(r.data.session); return; }
         // Mesma resposta para e-mail novo e para e-mail que já tem conta (o Supabase devolve
         // identities vazio nesse caso, sem erro): dizer "já tem conta" num formulário público

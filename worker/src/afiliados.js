@@ -10,7 +10,8 @@
  *                            afiliado recebe por e-mail e WhatsApp o link https://trustio.com.br/?ref=CUPOM
  *                            e o cupom (ex.: LUISC10), criado na Stripe nessa hora.
  *   POST /stripe/webhook     checkout.session.completed → registrar_comissao (cupom vence link,
- *                            tetos no banco) → avisa o afiliado por e-mail e WhatsApp.
+ *                            tetos no banco) → registrar_trial_activated (funil, com as UTMs do
+ *                            cadastro) → avisa o afiliado por e-mail e WhatsApp.
  */
 
 import { assinaturaValida, criarCupomAfiliado, lerSessao, promoDaSessao } from "./stripe.js";
@@ -269,16 +270,17 @@ export async function webhookStripe(req, env, { rpc, json, escapar }) {
     return json(200, { ok: true, ignorado: "nao_pago" });
   }
 
-  let registro;
+  let registro, sessao, preco, comprador;
   try {
-    const sessao = env.STRIPE_SECRET_KEY ? await lerSessao(env, resumo.id) : resumo;
-    const preco = sessao.line_items?.data?.[0]?.price?.id || null;
+    sessao = env.STRIPE_SECRET_KEY ? await lerSessao(env, resumo.id) : resumo;
+    preco = sessao.line_items?.data?.[0]?.price?.id || null;
+    comprador = sessao.customer_details?.email || sessao.customer_email || null;
     registro = await rpc(env, "registrar_comissao", {
       p_evento: evento.id,
       p_sessao: sessao.id,
       p_ref: sessao.client_reference_id || null,
       p_promo_id: promoDaSessao(sessao),
-      p_email_comprador: sessao.customer_details?.email || sessao.customer_email || null,
+      p_email_comprador: comprador,
       p_valor_venda: Number(sessao.amount_subtotal ?? 0),
       p_price_id: preco,
       p_payment_intent: typeof sessao.payment_intent === "string" ? sessao.payment_intent : null,
@@ -286,6 +288,20 @@ export async function webhookStripe(req, env, { rpc, json, escapar }) {
   } catch (err) {
     console.error("comissao_falhou", err.message);
     return json(500, { ok: false, error: "tente_de_novo" });
+  }
+
+  // Funil: o pagamento vira trial_activated com as UTMs do cadastro do comprador. O banco acha a
+  // conta pelo e-mail e não o grava. Melhor esforço: a medição nunca derruba a comissão (nem faz
+  // a Stripe reenviar); uma falha fica no log e aparece na conferência semanal contra a Stripe.
+  try {
+    await rpc(env, "registrar_trial_activated", {
+      p_sessao: sessao.id,
+      p_email_comprador: comprador,
+      p_price_id: preco,
+      p_valor_centavos: Number(sessao.amount_total ?? sessao.amount_subtotal ?? 0),
+    });
+  } catch (err) {
+    console.error("trial_activated_falhou", err.message);
   }
 
   if (registro?.registrada && registro.valor_comissao > 0) {

@@ -1435,8 +1435,8 @@
     $("[data-modelo-dica]").textContent = state.modelos.length
       ? T("O modelo escolhido vale para as próximas mensagens, em todas as conversas.", "The model you pick applies to your next messages, in every conversation.")
       : T("Por enquanto há um modelo disponível. Quando houver outros, eles aparecem aqui.", "For now there is one model available. When there are others, they'll show up here.");
-    // Automático, a não ser que a pessoa tenha fixado Claro ou Escuro aqui.
-    var tema = window.TrustioTema && window.TrustioTema.modo() === "fixo" ? window.TrustioTema.atual() : "auto";
+    // Escuro é o padrão; Automático (pelo horário) só quando a pessoa escolheu aqui.
+    var tema = window.TrustioTema ? (window.TrustioTema.modo() === "automatico" ? "auto" : window.TrustioTema.atual()) : "dark";
     f.querySelectorAll("input[name=tema]").forEach(function (r) { r.checked = r.value === tema; });
     f.querySelectorAll("input[name=fonte]").forEach(function (r) { r.checked = r.value === (state.pref.fonte || "normal"); });
     f.enter_envia.checked = state.pref.enter_envia !== false;
@@ -1594,14 +1594,14 @@
     paintThemeColor(t);
     toggle.setAttribute("aria-pressed", t === "light" ? "true" : "false");
   }
-  // Botão de tema: vale até a próxima troca de horário. fixo (Minha conta): vale sempre.
+  // Botão de tema e Minha conta: a escolha fica guardada até a pessoa trocar.
   function applyTheme(t, fixo) {
     pintarTema(t);
     if (window.TrustioTema) window.TrustioTema.escolher(t, fixo);
     else try { localStorage.setItem("trustio-theme", t); } catch (e) { /* sem storage */ }
   }
   toggle.addEventListener("click", function () { applyTheme(document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light"); });
-  // Troca automática de horário (05:00 claro, 19:01 escuro) com o chat aberto.
+  // Troca de horário (05:00 claro, 19:01 escuro) com o chat aberto, só no modo Automático.
   document.addEventListener("trustio:tema", function (e) { pintarTema(e.detail); });
   toggle.setAttribute("aria-pressed", document.documentElement.getAttribute("data-theme") === "light" ? "true" : "false");
   paintThemeColor(document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");

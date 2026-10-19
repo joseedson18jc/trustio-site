@@ -751,7 +751,7 @@ Deno.serve(async (req) => {
         } else {
           try {
             const inicioDaBusca = Date.now();
-            const rs = await buscarNaWeb(consulta, agora, EXA_API_KEY);
+            const rs = await buscarNaWeb(consulta, agora, EXA_API_KEY, fetch, { curta: fala === "conversa" });
             console.log("busca_ok", rs.length, vaga.demo ? "demo" : "livre", Date.now() - inicioDaBusca, "ms", agora ? "agora" : "cache");
             resultadosUsados.push(...rs);
             conteudo = resultadosParaModelo(consulta, rs);

@@ -793,6 +793,7 @@
               item.textContent = T("Pesquisando na web: ", "Searching the web: ") + "“" + item.dataset.consulta + "”";
               selo.appendChild(item);
               progTxt.textContent = T("Pesquisando na web…", "Searching the web…");
+              if (window.TrustioVoz && window.TrustioVoz.buscando) window.TrustioVoz.buscando();
             }
             if (typeof d.busca_resultados === "number") {
               var ativa = pending.querySelector(".msg-busca-item.is-ativa");

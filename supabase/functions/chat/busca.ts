@@ -72,18 +72,20 @@ function urlSegura(u: unknown): string | null {
   } catch { return null; }
 }
 
+// Na conversa por voz a resposta é curta: 3 resultados com trechos de até 400 caracteres bastam e
+// o modelo lê menos antes de começar a falar (19 out 2026).
 export async function buscarNaWeb(consulta: string, atual: boolean, chave: string,
-                                  fetchFn: typeof fetch = fetch): Promise<Resultado[]> {
+                                  fetchFn: typeof fetch = fetch, opcoes: { curta?: boolean } = {}): Promise<Resultado[]> {
   const r = await fetchFn("https://api.exa.ai/search", {
     method: "POST",
     headers: { "x-api-key": chave, "Content-Type": "application/json" },
     body: JSON.stringify({
       query: consulta,
       type: "fast",
-      numResults: NUM_RESULTADOS,
+      numResults: opcoes.curta ? 3 : NUM_RESULTADOS,
       userLocation: "BR",
       contents: {
-        highlights: { maxCharacters: MAX_TRECHO },
+        highlights: { maxCharacters: opcoes.curta ? 400 : MAX_TRECHO },
         // "Agora": página com mais de 1 hora no cache é buscada de novo, com no máximo 2,5 s por
         // página (antes 5 s). Sem isso, "último jogo" voltava páginas velhas do cache.
         ...(atual ? { maxAgeHours: 1, livecrawlTimeout: 2500 } : {}),

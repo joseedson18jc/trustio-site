@@ -97,4 +97,11 @@ await t("histórico: tira a narração 'Vou pesquisar…' do começo, mantém o 
   assert.equal(semNarracaoDeBusca("Vou pesquisar isso."), "Vou pesquisar isso.");
 });
 
+await t("conversa por voz: 3 resultados com trechos de 400", async () => {
+  await buscarNaWeb("dólar", true, "k", exa([]), { curta: true });
+  assert.equal(exa.ultima.body.numResults, 3);
+  assert.deepEqual(exa.ultima.body.contents.highlights, { maxCharacters: 400 });
+  assert.equal(exa.ultima.body.contents.maxAgeHours, 1);
+});
+
 console.log(`\n${n} testes passaram`);

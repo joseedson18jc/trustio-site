@@ -710,13 +710,13 @@
         var p = Math.min(99, Math.floor(tokens / limite * 100));
         progFill.style.width = p + "%";
         prog.setAttribute("aria-valuenow", String(p));
-        progTxt.textContent = fase + " " + p + "% · " + tokens + T(" de até ", " of up to ") + limite + " tokens";
+        progTxt.textContent = fase + " " + p + "%";
       } else {
         prog.classList.add("is-open");
         prog.removeAttribute("aria-valuenow");
-        progTxt.textContent = fase + " " + tokens + " tokens";
+        progTxt.textContent = fase;
       }
-      thinkSum.textContent = T("Raciocínio", "Reasoning") + " · " + tokensPensando + " tokens";
+      thinkSum.textContent = T("Raciocínio", "Reasoning");
     }
     mostrarProgresso();
     scrollBottom();

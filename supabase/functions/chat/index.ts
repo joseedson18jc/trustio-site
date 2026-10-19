@@ -14,7 +14,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   FERRAMENTA_BUSCA, NOME_FERRAMENTA, SEM_BUSCA, type Resultado,
-  buscarNaWeb, instrucoesDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo,
+  buscarNaWeb, instrucoesDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo, semNarracaoDeBusca,
 } from "./busca.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -134,7 +134,14 @@ const HISTORY = 30;
 const EXA_API_KEY = (Deno.env.get("EXA_API_KEY") ?? "").trim();
 const BUSCA_LIMITE_DIARIO = Math.max(1, Number(Deno.env.get("BUSCA_LIMITE_DIARIO") ?? "100") || 100);
 const BUSCA_DEMO = Math.max(0, Number(Deno.env.get("BUSCA_DEMO") ?? "3") || 0);
-const MAX_BUSCAS_POR_MENSAGEM = 2;
+// 19 out 2026: era 2; o modelo dizia "vou tentar mais buscas" e parava. Cada busca ainda conta na cota.
+const MAX_BUSCAS_POR_MENSAGEM = 5;
+// Triagem da busca (19 out 2026): antes da chamada normal, uma chamada SEM raciocínio decide se a
+// pergunta pede busca. Pediu: a busca começa sem o modelo ter pensado à toa (sem os fatos). Começou a
+// responder: a leitura para no primeiro texto e a pergunta segue para a chamada normal, com raciocínio.
+const MAX_TOKENS_TRIAGEM = 160;
+// Modelos que respondem com os resultados da busca sem raciocínio (o Heavy continua pensando).
+const MODELOS_SEM_RACIOCINIO_APOS_BUSCA = new Set(["trustio-flash"]);
 // Teto de tokens por resposta, opcional e explícito: só com o segredo LLM_MAX_TOKENS a
 // função limita o modelo, e só então o chat mostra a porcentagem da resposta (contra esse
 // teto, porque o tamanho final não é conhecido de antemão). Sem o segredo, não há teto.
@@ -443,23 +450,31 @@ Deno.serve(async (req) => {
 
   const anteriores = [
     { role: "system", content: systemPrompt },
-    ...(history ?? []).reverse().map((m) => ({ role: m.role, content: m.content })),
+    ...(history ?? []).reverse().map((m) => ({ role: m.role, content: m.role === "assistant" ? semNarracaoDeBusca(m.content) : m.content })),
   ];
-  const pedirModelo = (mensagens: unknown[], comBusca: boolean) => fetch(`${LLM_BASE_URL}/chat/completions`, {
+  type OpcoesDaChamada = { semRaciocinio?: boolean; maxTokens?: number };
+  const pedirModelo = (mensagens: unknown[], comBusca: boolean, opcoes: OpcoesDaChamada = {}) => fetch(`${LLM_BASE_URL}/chat/completions`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: modelo, messages: mensagens, stream: true, temperature: 0.2,
       ...(comBusca ? { tools: [FERRAMENTA_BUSCA] } : {}),
       stream_options: { include_usage: true },
-      ...(LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
+      ...(opcoes.maxTokens ? { max_tokens: opcoes.maxTokens } : LLM_MAX_TOKENS ? { max_tokens: LLM_MAX_TOKENS } : {}),
       ...(LLAMA_TIMINGS ? { timings_per_token: true } : {}),
       ...(contextoDoServidor ? { trustio_plano: plano } : {}),
       // Conversa por voz: o servidor da Trustio responde sem raciocínio, para a fala começar na hora.
       ...(contextoDoServidor && fala === "conversa" ? { trustio_voz: true } : {}),
+      // Triagem e respostas do Flash depois da busca: sem raciocínio (o gateway da Trustio entende o campo).
+      ...(contextoDoServidor && opcoes.semRaciocinio ? { trustio_sem_raciocinio: true } : {}),
     }),
   });
   const chamarModelo = (ultima: unknown) => pedirModelo([...anteriores, { role: "user", content: ultima }], buscaLigada);
+  // Triagem só com busca ligada (que já exige o servidor da Trustio e nenhuma foto) e fora da conversa
+  // por voz, que já responde sem raciocínio. Se a chamada de triagem falhar, cai para a normal.
+  let triagemAtiva = buscaLigada && fala !== "conversa";
+  const chamarTriagem = () => pedirModelo([...anteriores, { role: "user", content: message }], true,
+    { semRaciocinio: true, maxTokens: MAX_TOKENS_TRIAGEM });
 
   let upstream!: Response;
   let detail = "";
@@ -477,7 +492,7 @@ Deno.serve(async (req) => {
         console.error("llm_sem_imagem", upstream.status, detail.slice(0, 300));
       }
     } else {
-      upstream = await chamarModelo(message);
+      upstream = triagemAtiva ? await chamarTriagem() : await chamarModelo(message);
     }
   };
   try {
@@ -498,6 +513,15 @@ Deno.serve(async (req) => {
           modelo = novo;
           await tentar();
         }
+      }
+    }
+    // A triagem falhou por outro motivo (não contexto cheio): tenta a chamada normal antes de desistir.
+    if ((!upstream.ok || !upstream.body) && triagemAtiva) {
+      if (!detail) detail = await upstream.text().catch(() => "");
+      if (!ehContextoCheio(upstream.status, detail)) {
+        console.error("triagem_falhou", upstream.status, detail.slice(0, 200));
+        triagemAtiva = false;
+        await tentar();
       }
     }
   } catch (err) {
@@ -560,6 +584,9 @@ Deno.serve(async (req) => {
     let erroRodada: string | null = null;
     const resultadosUsados: Resultado[] = [];
     const conversaDaBusca: unknown[] = [...anteriores, { role: "user", content: message }];
+    let rodadaDeTriagem = triagemAtiva;
+    const inicioDoTrabalho = Date.now();
+    let inicioDoFinal = 0;   // a narração antes de uma busca aparece na tela, mas não vai para o histórico
     let pensando = false;
     let interrompido = false;
     let fim: string | null = null;
@@ -596,9 +623,10 @@ Deno.serve(async (req) => {
     let buffer = "";
     const chamadas: { id: string; nome: string; args: string }[] = [];
     const inicioDaRodada = full.length;
+    let triagemRespondeu = false;
     fim = null;
     try {
-      while (true) {
+      leitura: while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
@@ -624,6 +652,13 @@ Deno.serve(async (req) => {
                 if (typeof tc.function?.name === "string") c.nome += tc.function.name;
                 if (typeof tc.function?.arguments === "string") c.args += tc.function.arguments;
               }
+            }
+            // Triagem: nada dela vai ao navegador nem conta tokens. Texto antes de qualquer pedido de
+            // busca = a pergunta não pede busca: para de ler e vai para a chamada normal.
+            if (rodadaDeTriagem) {
+              if (Number(pedaco.usage?.prompt_tokens) > 0 && tokensPrompt === null) tokensPrompt = Number(pedaco.usage.prompt_tokens);
+              if (typeof d.content === "string" && d.content.trim() && !chamadas.length) { triagemRespondeu = true; break leitura; }
+              continue;
             }
             const raciocinio = d.reasoning_content || d.reasoning;
             if (d.content || raciocinio) trechos++;
@@ -664,6 +699,30 @@ Deno.serve(async (req) => {
       console.error("stream_error", err);
     }
     const pedidos = chamadas.filter((c) => c && c.nome);
+    if (rodadaDeTriagem) {
+      rodadaDeTriagem = false;
+      if (triagemRespondeu || interrompido || !pedidos.length) {
+        // Sem busca: fecha a triagem (o servidor para de gerar) e faz a chamada normal, com raciocínio.
+        await reader.cancel().catch(() => {});
+        interrompido = false;
+        console.log("triagem_direta", Date.now() - inicioDoTrabalho, "ms");
+        try {
+          atual = await pedirModelo(conversaDaBusca, buscaLigada);
+        } catch (err) {
+          console.error("llm_fetch_error_triagem", err);
+          erroRodada = "modelo_indisponivel";
+          break rodadas;
+        }
+        if (!atual.ok || !atual.body) {
+          const det = await atual.text().catch(() => "");
+          console.error("llm_error_triagem", atual.status, det.slice(0, 300));
+          erroRodada = ehContextoCheio(atual.status, det) ? "contexto_cheio" : "modelo_indisponivel";
+          break rodadas;
+        }
+        continue rodadas;
+      }
+      console.log("triagem_busca", Date.now() - inicioDoTrabalho, "ms");
+    }
     if (interrompido || !pedidos.length) break rodadas;
 
     // O modelo pediu busca. A leitura acima já terminou (o servidor da Trustio atende um pedido por vez).
@@ -672,6 +731,9 @@ Deno.serve(async (req) => {
       role: "assistant", content: full.slice(inicioDaRodada),
       tool_calls: lista.map((c) => ({ id: c.id, type: "function", function: { name: c.nome, arguments: c.args } })),
     });
+    // Texto escrito antes do pedido de busca ("Vou pesquisar…") fica separado do que vem depois.
+    if (full.length > inicioDaRodada && !/\n\s*$/.test(full)) { full += "\n\n"; send({ delta: "\n\n", n: tokens }); }
+    inicioDoFinal = full.length;
     for (const c of lista) {
       let conteudo: string;
       if (c.nome !== NOME_FERRAMENTA) conteudo = "Ferramenta desconhecida.";
@@ -688,8 +750,9 @@ Deno.serve(async (req) => {
             : "Não foi possível pesquisar agora (limite de buscas). Responda com o que você sabe e avise isso.";
         } else {
           try {
+            const inicioDaBusca = Date.now();
             const rs = await buscarNaWeb(consulta, agora, EXA_API_KEY);
-            console.log("busca_ok", rs.length, vaga.demo ? "demo" : "livre");
+            console.log("busca_ok", rs.length, vaga.demo ? "demo" : "livre", Date.now() - inicioDaBusca, "ms", agora ? "agora" : "cache");
             resultadosUsados.push(...rs);
             conteudo = resultadosParaModelo(consulta, rs);
             send({ busca_resultados: rs.length });
@@ -705,7 +768,8 @@ Deno.serve(async (req) => {
     }
     // Próxima rodada: com a ferramenta só se ainda couber outra busca; senão ele tem de responder.
     try {
-      atual = await pedirModelo(conversaDaBusca, buscasFeitas < MAX_BUSCAS_POR_MENSAGEM);
+      atual = await pedirModelo(conversaDaBusca, buscasFeitas < MAX_BUSCAS_POR_MENSAGEM,
+        { semRaciocinio: MODELOS_SEM_RACIOCINIO_APOS_BUSCA.has(modelo) });
     } catch (err) {
       console.error("llm_fetch_error_busca", err);
       erroRodada = "modelo_indisponivel";
@@ -728,7 +792,7 @@ Deno.serve(async (req) => {
     }
 
     if (full) {
-      await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full, model: modelo });
+      await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full.slice(inicioDoFinal).trim() || full, model: modelo });
       await admin.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
       if (interrompido) send({ error: "stream_interrompido" });
       // A segunda rodada (depois da busca) falhou, mas a primeira já tinha escrito algo: avisa.

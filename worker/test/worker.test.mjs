@@ -651,18 +651,20 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
   const hook = (corpo, assinatura) => worker.fetch(new Request("https://api.trustio.com.br/stripe/webhook", {
     method: "POST", headers: { "content-type": "application/json", "stripe-signature": assinatura }, body: corpo }), envS);
   const evento = JSON.stringify({ id: "evt_1", type: "checkout.session.completed", data: { object: { id: "cs_1", payment_status: "paid" } } });
-  respostas.sessao = { id: "cs_1", client_reference_id: "LUISCO10", amount_subtotal: 79000, customer_details: { email: "cliente@y.com" },
+  respostas.sessao = { id: "cs_1", client_reference_id: "LUISCO10", amount_subtotal: 79000, amount_total: 71100, customer_details: { email: "cliente@y.com" },
     payment_intent: "pi_1", line_items: { data: [{ price: { id: "price_anual" } }] },
     total_details: { breakdown: { discounts: [{ discount: { promotion_code: "promo_OUTRO10" } }] } } };
   respostas.registrar_comissao = { ok: true, registrada: true, valor_comissao: 20000, valor_venda: 79000,
     afiliado: { nome: "Luis Costa", email: "luis@x.com", whatsapp: "11987654321" } };
 
+  rpcs = [];
   r = await hook(evento, "t=1,v1=errada");
   ok(r.status === 400, "webhook: assinatura inválida → 400");
   r = await hook(evento, assinar(evento, "whsec_outro"));
   ok(r.status === 400, "webhook: segredo errado → 400");
   r = await hook(evento, assinar(evento, "whsec_teste", Math.floor(Date.now() / 1000) - 3600));
   ok(r.status === 400, "webhook: assinatura velha (replay) → 400");
+  ok(!rpcs.length, "webhook: sem assinatura válida, nem comissão nem trial_activated");
 
   rpcs = []; zaps = []; emails = [];
   r = await hook(evento, assinar(evento));
@@ -672,6 +674,10 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
   ok(rc?.p_evento === "evt_1" && rc.p_sessao === "cs_1" && rc.p_ref === "LUISCO10" && rc.p_promo_id === "promo_OUTRO10"
      && rc.p_valor_venda === 79000 && rc.p_price_id === "price_anual" && rc.p_email_comprador === "cliente@y.com",
      "webhook: manda ao banco link, cupom usado, valor de tabela e comprador", JSON.stringify(rc));
+  const tr = rpcs.find((x) => x.nome === "registrar_trial_activated")?.args;
+  ok(rpcs.map((x) => x.nome).join() === "registrar_comissao,registrar_trial_activated"
+     && tr?.p_sessao === "cs_1" && tr.p_price_id === "price_anual" && tr.p_valor_centavos === 71100 && tr.p_email_comprador === "cliente@y.com",
+     "webhook: depois da comissão, registra trial_activated (sessão, preço, valor pago) para o funil", JSON.stringify(tr));
   ok(emails.some((e) => e.to[0] === "luis@x.com" && /R\$\s?200,00/.test(e.subject)) && zaps.some((z) => /R\$\s?200,00/.test(z.corpo.text)),
      "webhook: afiliado avisado da comissão por e-mail e WhatsApp");
 
@@ -681,14 +687,21 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
   ok(r.status === 200 && !rpcs.length, "webhook: renovação (invoice.paid) não paga comissão de novo");
 
   respostas.registrar_comissao = { ok: true, registrada: false, motivo: "sem_afiliado" };
-  zaps = []; emails = [];
+  zaps = []; emails = []; rpcs = [];
   r = await hook(evento, assinar(evento));
   ok(r.status === 200 && !zaps.length && !emails.length, "webhook: venda sem afiliado → 200, ninguém avisado");
+  ok(rpcs.some((x) => x.nome === "registrar_trial_activated" && x.args.p_sessao === "cs_1"),
+     "webhook: venda sem afiliado também vira trial_activated no funil");
 
   const fetchMock = globalThis.fetch;
+  rpcs = [];
   globalThis.fetch = (u, o) => String(u).includes("/rpc/registrar_comissao") ? Promise.resolve(new Response("erro", { status: 500 })) : fetchMock(u, o);
   r = await hook(evento, assinar(evento));
   ok(r.status === 500, "webhook: banco fora do ar → 500 (a Stripe tenta de novo)");
+  ok(!rpcs.some((x) => x.nome === "registrar_trial_activated"), "webhook: comissão falhou → trial_activated espera o reenvio da Stripe");
+  globalThis.fetch = (u, o) => String(u).includes("/rpc/registrar_trial_activated") ? Promise.resolve(new Response("nao existe", { status: 404 })) : fetchMock(u, o);
+  r = await hook(evento, assinar(evento));
+  ok(r.status === 200, "webhook: falha ao gravar trial_activated não derruba a venda (200, sem reenvio)");
   globalThis.fetch = fetchMock;
 
   r = await worker.fetch(req("GET", "/saude"), envS);

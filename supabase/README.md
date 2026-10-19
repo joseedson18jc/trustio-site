@@ -24,6 +24,14 @@ GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toqu
 6. Cada mensagem passa pela função `chat`: só e-mail confirmado; cota `free_message_limit` (padrão 5;
    `0` = sem limite) reservada de forma atômica; status vira `ativo` e, ao esgotar, `trial_esgotado`.
    Status `assinante` ignora a cota.
+   **O teste de 3 dias do WhatsApp está desligado desde 19/10/2026** (`20261019130000_desliga_teste_whatsapp.sql`,
+   revisão legal G2: o Agentio roda em Baileys). Com `app_settings.whatsapp_teste_aberto = false`:
+   - `request_whatsapp_trial` devolve `teste_encerrado`;
+   - a confirmação do e-mail não começa o teste;
+   - o banco recusa qualquer escrita que leve o teste para `solicitado` ou `ativo`, o que inclui os itens 7 e 8.
+
+   Testes já ativos vão até o fim do prazo, e encerrar continua possível. Para reabrir:
+   `update public.app_settings set value = 'true'::jsonb, updated_at = now() where key = 'whatsapp_teste_aberto';`
 7. No `/crm/`, "Ativar 3 dias" chama `activate_whatsapp_trial(lead_id, 3)` (vale para quem pediu e para
    quem só deixou telefone no cadastro). Trocar o seletor para "Ativo" tem o mesmo efeito: o período
    começa na hora e dura `hermes_trial_dias`.

@@ -335,51 +335,29 @@
   (function () {
     var wrap = $("#plans"); if (!wrap) return;
     var FEAT = {
-      chat: ["Modelo sem censura e sem filtro do fornecedor", "Conversas nunca usadas para treinar", "Conta e conversas guardadas no Brasil", "3 dias de Agentio para testar"],
-      agentio: ["Agente no WhatsApp ou Telegram", "Pesquisa, escrita e resumos", "Rotinas e lembretes", "Confirma antes de ações irreversíveis"],
-      combo: ["Chat sem censura no site", "Agentio no WhatsApp ou Telegram", "Mesma conta, mesmo modelo privado", "Mais barato que os dois separados"]
+      chat: ["Modelo sem censura e sem filtro do fornecedor", "Conversas nunca usadas para treinar", "Conta e conversas guardadas no Brasil"]
     };
     var P = {
       chat: [
         { k: "Passe · 7 dias", v: 24.9, u: "por 7 dias", d: 7, note: "Pagamento único · não renova sozinho" },
         { k: "Mensal", v: 79, u: "/mês", d: 30, note: "Renova todo mês · cancele quando quiser", badge: "Recomendado" },
         { k: "Anual", v: 790, u: "/ano", d: 365, note: "Equivale a R$ 65,83 por mês · dois meses grátis" }
-      ],
-      agentio: [
-        { k: "Semanal", v: 39.9, u: "por 7 dias", d: 7, note: "Pagamento único · não renova sozinho" },
-        { k: "Mensal", v: 129, u: "/mês", d: 30, note: "Renova todo mês · cancele quando quiser", badge: "Mais escolhido" },
-        { k: "Anual", v: 1190, u: "/ano", d: 365, note: "Equivale a R$ 99,17 por mês · economize 23%" }
-      ],
-      combo: [
-        { k: "Semanal", v: 54.9, u: "por 7 dias", d: 7, note: "Separados: R$ 64,80 · economize 15%" },
-        { k: "Mensal", v: 179, u: "/mês", d: 30, note: "Separados: R$ 208 · economize 14%", badge: "Melhor custo" },
-        { k: "Anual", v: 1690, u: "/ano", d: 365, note: "Equivale a R$ 140,83 por mês · economize 15%" }
       ]
     };
     function brl(v, cents) { return "R$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }); }
     function render(prod) {
       wrap.innerHTML = P[prod].map(function (p, i) {
         var feat = i === 1;
-        var extra = prod !== "chat" && i === 2 ? '<li><svg><use href="#i-check"/></svg>Também há plano semestral</li>' : "";
         return '<article class="card plan' + (feat ? " feat" : "") + '">' +
           '<div class="top"><span class="label">' + p.k + "</span>" + (p.badge ? '<span class="tag">' + p.badge + "</span>" : "") + "</div>" +
           '<div class="price"><strong>' + brl(p.v, p.v % 1 !== 0) + "</strong><span>" + p.u + "</span></div>" +
           '<div class="note">' + p.note + "</div>" +
           '<div class="perday">≈ ' + brl(p.v / p.d, true) + " por dia</div>" +
-          "<ul>" + FEAT[prod].map(function (f) { return '<li><svg><use href="#i-check"/></svg>' + f + "</li>"; }).join("") + extra + "</ul>" +
-          '<a class="btn ' + (feat ? "btn-primary" : "btn-ghost") + '" href="planos.html#' + (prod === "chat" ? "pessoal" : prod) + '">Assinar ' + p.k.toLowerCase() + ' <span class="ico"><svg><use href="#i-arrow"/></svg></span></a>' +
+          "<ul>" + FEAT[prod].map(function (f) { return '<li><svg><use href="#i-check"/></svg>' + f + "</li>"; }).join("") + "</ul>" +
+          '<a class="btn ' + (feat ? "btn-primary" : "btn-ghost") + '" href="planos.html#pessoal">Assinar ' + p.k.toLowerCase() + ' <span class="ico"><svg><use href="#i-arrow"/></svg></span></a>' +
           "</article>";
       }).join("");
     }
-    var segBtns = $$("#prod button");
-    segBtns.forEach(function (b) {
-      b.addEventListener("click", function () {
-        segBtns.forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
-        if (reduce) { render(b.dataset.p); return; }
-        wrap.classList.add("swap");
-        setTimeout(function () { render(b.dataset.p); requestAnimationFrame(function () { wrap.classList.remove("swap"); }); }, 200);
-      });
-    });
     render("chat");
   })();
 })();

@@ -88,7 +88,7 @@
       <p class="eyebrow"><span class="status-dot"></span> Privacy</p>
       <h1 id="priv-title">How we handle your data.<span>In plain English, no runaround.</span></h1>
       <p class="lead">This page says exactly what Trustio collects, why, who we share it with, how long we keep it and how you delete it all. If any line here doesn't match what you see in the product, write to us — the line is wrong, not you.</p>
-      <p class="legal-data">Last updated: 15 October 2026 · Controller: JCSC BRAZIL MANAGEMENT LTDA (Trustio), company number 58.451.617/0001-03 · Channel for data subjects and the data protection officer: <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off--></p>
+      <p class="legal-data">Last updated: [FILL IN: publication date] · Controller: JCSC BRAZIL MANAGEMENT LTDA (Trustio), CNPJ 58.451.617/0001-03 · Data protection officer: [FILL IN: officer's name] · Channel for data subjects and the officer: <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off--></p>
     </div>
   </section>
 
@@ -112,7 +112,8 @@
       <h3>2. When you create an account</h3>
       <ul class="legal-lista">
         <li><b>Name, email and password</b> — these are your account. The password is stored as a hash: nobody at Trustio can read it, not even us.</li>
-        <li><b>Phone</b> — <b>optional</b>. It exists for one reason only: to turn on the WhatsApp agent, which works on exactly that number. Without a phone, the chat on the site works just the same.</li>
+        <li><b>Phone</b> — <b>optional</b>, and it is not requested at sign-up. You only provide it if you want to, in the account settings in the app. It exists for one reason only: to activate the WhatsApp agent, which answers on exactly that number. Without a phone, the chat on the website works the same.</li>
+        <li><b>If you sign in with Google</b> — we receive basic profile data from Google, such as your name and email, to create or open your account. Your Google password never goes through Trustio.</li>
         <li><b>Usage record</b> — how many questions you've asked, when you last signed in, your plan and the status of the 3-day trial. It's what makes the quota work and lets support understand your case.</li>
         <li><b>Where you came from</b> — on your first visit, the site stores in your browser, for 90 days, the campaign parameters in the address (utm_source and the like, when present), the domain of the page you came from (the domain only) and the first page you opened. When you create an account, this is linked to it, and to a purchase if you make one. It is used only to learn where sign-ups and subscriptions come from, in aggregate reports; it is not used for advertising.</li>
       </ul>
@@ -121,7 +122,10 @@
       <ul class="legal-lista">
         <li><b>The text of your conversations</b> — questions and answers are kept in your account so you have a history and can pick up where you left off.</li>
         <li><b>Attached photos and PDFs</b> — the original file never leaves your device: the text is read in your browser and sent with your question. For photos, a reduced copy is also sent to the model provider, only to generate that answer; it is not stored. Only the text stays in your history.</li>
-        <li><b>Your conversations train no model at all</b>, neither Trustio's nor anyone else's.</li>
+        <li><b>Audio recorded in the chat</b> — the recording is sent to the model provider only to be transcribed. The transcript becomes your message and stays in your history; Trustio does not keep the recording.</li>
+        <li><b>Listening to answers and talking by voice</b> — the text of the answer is sent to <b>xAI</b> (United States) to be turned into speech. If xAI fails, it goes to <b>ElevenLabs</b>, as a fallback. Trustio does not keep the generated audio.</li>
+        <li><b>Web search</b> — when an answer needs current information, the model writes a search query based on your question, and that query is sent to <b>Exa</b> (United States). The model is instructed not to put personal data in the query, but it reflects the subject of your question. The full conversation is not sent.</li>
+        <li><b>Trustio does not use your conversations to train models.</b> [TO CONFIRM: data-use terms of xAI, ElevenLabs, Exa and the chat model provider, before stating the same about third parties.]</li>
         <li>Trustio administrators can access conversations for support and to investigate abuse. It's not routine, and it's stated here so you know before you write, not after.</li>
       </ul>
 
@@ -136,21 +140,50 @@
 
       <h2 id="processamento">Where your conversations are processed</h2>
       <p>Your account, your sign-up details and the text of your conversations are stored in a Trustio database hosted in <b>São Paulo, Brazil</b> (region <code>sa-east-1</code>), with access restricted by policies in the database itself: each person can see only their own conversations.</p>
-      <p>To generate the answer, the text of your question and the recent conversation history are processed by the <b>language model Trustio operates on infrastructure in Brazil</b>. The content of your conversations is not sent to model providers abroad. If that changes, this notice will be updated beforehand, naming the provider, the country and the safeguard covering the international transfer.</p>
+      <!-- Revisão: o código da função chat usa LLM_BASE_URL, com padrão https://api.x.ai/v1 (xAI, EUA). Conferir o valor em produção. Se for o servidor da Trustio no Brasil, trocar o marcador por "pelo modelo de linguagem que a Trustio opera em infraestrutura no Brasil". Se for a xAI ou outro provedor no exterior, nomear o provedor e o país aqui e incluí-lo nas listas de operadores e de transferência internacional. -->
+      <p>To generate the answer, the text of your question and the recent conversation history are processed by the chat language model: [TO CONFIRM: who operates the chat model and in which country].</p>
+      <p>Some features send part of the content outside Brazil, and only when you use them:</p>
+      <ul class="legal-lista">
+        <li><b>Listening to answers and talking by voice</b> — the text of the answer goes to <b>xAI</b>, in the United States, to be turned into speech; if xAI fails, it goes to <b>ElevenLabs</b> [TO CONFIRM: country].</li>
+        <li><b>Web search</b> — the search query goes to <b>Exa</b>, in the United States.</li>
+        <li><b>Signing in with Google</b> — authentication happens at <b>Google</b>, in the United States.</li>
+      </ul>
+      <p>The safeguards behind these transfers are described under <a href="#transferencia">International transfer</a>.</p>
       <p>For anyone who needs a contractual guarantee that nothing leaves the country, there's the private environment for businesses, where inference runs on dedicated infrastructure. <a href="planos.html#empresas">See plans for businesses</a>.</p>
 
       <h2 id="terceiros">Who we share with</h2>
       <ul class="legal-lista">
-        <li><b>Supabase</b> — hosts your account's database and authentication, in the São Paulo region (<code>sa-east-1</code>).</li>
-        <li><b>Stripe</b> — processes payments. Your card details go straight to Stripe and <b>never pass through Trustio's servers</b>. We only get back the confirmation and the contact details needed to release access. When you arrive through an affiliate link, that person's code travels with the purchase, in the reference field and in the coupon field (see item 4 above).</li>
-        <li><b>Resend</b> — delivers account confirmation and password recovery emails, and responses to contact requests.</li>
-        <li><b>Cloudflare</b> — delivers the website and contact request API and counts visits in aggregate (Web Analytics), without cookies or identifying individuals.</li>
+        <li><b>Supabase</b> — hosts the database, your account authentication and the functions that call the providers below, in the São Paulo region (<code>sa-east-1</code>).</li>
+        <li><b>Chat model provider</b> — generates the answers, transcribes recorded audio and reads the reduced copy of photos. [TO CONFIRM: name and country.]</li>
+        <li><b>xAI</b> — turns the text of answers into speech when you ask to listen or talk by voice. United States.</li>
+        <li><b>ElevenLabs</b> — fallback to xAI for speech: it only receives the text of the answer if xAI fails. [TO CONFIRM: country.]</li>
+        <li><b>Google</b> — authenticates people who choose to sign in with Google and returns basic profile data to us, such as name and email. United States.</li>
+        <li><b>Stripe</b> [TO CONFIRM: Stripe entity that processes purchases, and country] — processes payments. Your card details go straight to Stripe and <b>never pass through Trustio's servers</b>. We only get back the confirmation and the contact details needed to release access. When you arrive through an affiliate link, that person's code travels with the purchase, in the reference field and in the coupon field (see item 4 above).</li>
+        <li><b>Resend</b> — delivers account confirmation and password recovery emails and replies to contact requests. United States.</li>
+        <li><b>Cloudflare</b> — serves the website and the contact request API and measures visits in aggregate (Web Analytics), without cookies and without identifying anyone. A United States company with a network in many countries. It also keeps old waitlist sign-ups from before the move to the São Paulo database. [TO CONFIRM: location of that storage.]</li>
         <li><b>Ahrefs</b> — measures visits to the website, the app and the console (Ahrefs Web Analytics), without cookies. It receives the address of the page visited (the path only, without parameters), the page you came from, your browser and device type, language, screen size, country and city, and the addresses of links you click — in the app, this includes links that appear in chat answers. Country and city are inferred from your IP address, which is discarded and not stored. An identifier that changes every 24 hours counts unique visitors without following anyone from one day to the next. Ahrefs stores this data in the United States.</li>
-        <li><b>GitHub Pages</b> — hosts the website files and, like any server, logs technical access data such as the IP address.</li>
-        <li><b>Exa</b> — When Trustio searches the web, only the search terms are sent to Exa (USA); your conversations are not.</li>
+        <li><b>GitHub Pages</b> — hosts the website files and, like any server, logs technical access data such as the IP address. United States.</li>
+        <li><b>Exa</b> — runs the web search. It only receives the search query, written by the model based on your question; the full conversation is not sent. United States.</li>
         <li><b>WhatsApp and Telegram</b> — when you use the agent, messages travel through these platforms, under their own terms.</li>
       </ul>
       <p>Beyond these processors, no one else: no social media pixels, no remarketing and no list selling.</p>
+
+      <h2 id="transferencia">International transfer</h2>
+      <p>Some of the processors above handle data outside Brazil, mainly in the United States: xAI, Exa, Google, Ahrefs, Resend, Cloudflare and GitHub, and also ElevenLabs, Stripe and the chat model provider, depending on the country confirmed above. Each transfer serves to provide the feature you use or to run the website, and carries only what that requires.</p>
+      <p>[LEGAL REVIEW: for each provider, state the LGPD art. 33 ground that supports the transfer and the safeguard adopted. Do not publish this notice without that text.]</p>
+
+      <h2 id="bases-legais">Legal bases</h2>
+      <p>[LEGAL REVIEW: proposed bases, to be confirmed before publishing.]</p>
+      <ul class="legal-lista">
+        <li><b>Creating and maintaining your account, answering in the chat, transcribing audio, reading answers aloud, searching the web and managing your quota</b> — performance of the contract with you (LGPD, art. 7, V).</li>
+        <li><b>Answering contact requests</b> — pre-contractual steps at your request (art. 7, V).</li>
+        <li><b>Billing, invoices and payment records</b> — performance of the contract and compliance with a legal obligation (art. 7, V and II).</li>
+        <li><b>Measuring visits in aggregate and attributing sales to affiliates</b> — legitimate interest (art. 7, IX).</li>
+        <li><b>Security, abuse prevention and administrator access to conversations to investigate abuse</b> — legitimate interest and the regular exercise of rights (art. 7, IX and VI).</li>
+      </ul>
+
+      <h2 id="encarregado">Data protection officer</h2>
+      <p>Trustio's data protection officer is [FILL IN: officer's name]. Reach them at <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off-->.</p>
 
       <h2 id="prazo">How long we keep it</h2>
       <ul class="legal-lista">
@@ -187,10 +220,9 @@
     <div class="container footer-bottom">
       <p>© <span data-year>2026</span> Trustio. All rights reserved.</p>
       <div class="iso-badge">
-        <picture><source srcset="/assets/iso-27001.webp" type="image/webp"><img src="/assets/iso-27001.png" alt="ISO 27001 certification" width="120" height="120"></picture>
         <picture><source srcset="/assets/lgpd.webp" type="image/webp"><img src="/assets/lgpd.png" alt="LGPD — Brazil's General Data Protection Law" width="240" height="120"></picture>
         <div class="iso-badge-text">
-          <span>ISO 27001 certification · LGPD compliance</span>
+          <span>LGPD compliance</span>
           <a href="https://github.com/joseedson18jc/trustio-site/blob/main/SECURITY.md" target="_blank" rel="noopener">Security tracking</a>
         </div>
       </div>
@@ -207,6 +239,6 @@
       </address>
     </div>
   </footer>
-  <a class="wa-float" href="https://wa.me/5511918750333" target="_blank" rel="noopener" aria-label="24/7 support on WhatsApp: +55 11 91875-0333 (opens in a new tab)" title="24/7 support on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg><span class="wa-float-texto">24/7 support</span></a>
+  <a class="wa-float" href="https://wa.me/5511918750333" target="_blank" rel="noopener" aria-label="Support on WhatsApp: +55 11 91875-0333 (opens in a new tab)" title="Support on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg><span class="wa-float-texto">Support</span></a>
 </body>
 </html>

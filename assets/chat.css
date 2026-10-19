@@ -172,6 +172,11 @@
 .onboard-note { font-family: var(--mono); font-size: var(--label); letter-spacing: 0.1em; text-transform: uppercase; color: var(--label-color); }
 .welcome[data-mode="returning"] .onboard-actions, .welcome[data-mode="returning"] .widget-how { display: none; }
 .welcome[data-mode="returning"] .onboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Sem o widget do Agentio (conta que nunca pediu o teste), a grade fica com as colunas que sobram. */
+@media (min-width: 901px) {
+  .onboard-grid:has(> .widget-wa[hidden]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .welcome[data-mode="returning"] .onboard-grid:has(> .widget-wa[hidden]) { grid-template-columns: 1fr; }
+}
 @media (max-width: 900px) { .onboard-grid, .welcome[data-mode="returning"] .onboard-grid { grid-template-columns: 1fr; } .widget-form { flex-direction: column; } .widget-form .btn { width: 100%; } }
 
 /* ── Fundo do chat: cinza-escuro liso, sem grade, linhas ou brilho. Só no chat (admin e CRM

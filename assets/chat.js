@@ -313,17 +313,17 @@
     txt.textContent = used === 0 ? T("Você ainda não usou nenhum.", "You haven't used any yet.") : left === 0 ? T("Você usou todos. Escolha um plano para continuar.", "You've used them all. Choose a plan to continue.") : EN ? "You've used " + used + ". " + left + " left." : "Você usou " + used + ". Restam " + left + ".";
   }
 
+  // O teste de 3 dias do agente no WhatsApp não é mais oferecido a conta nova (checklist da campanha,
+  // item 16, e o portão G2 da revisão legal). Quem já pediu continua vendo o estado do próprio teste.
   function renderWhatsapp() {
-    var form = $("[data-wa-form]"), st = $("[data-wa-status]"), num = $("#wa-num");
-    if (!form) return;
+    var box = $("[data-wa-widget]"), st = $("[data-wa-status]"), form = $("[data-wa-form]");
+    if (!box || !st) return;
     var l = state.lead || {};
     var status = l.whatsapp_trial_status || "nao_solicitado";
-    if (status === "nao_solicitado") {
-      form.hidden = false; st.hidden = true;
-      if (!num.value) num.value = fmtPhone(l.whatsapp_numero || l.telefone || "");
-      return;
-    }
-    form.hidden = true; st.hidden = false; st.className = "";
+    if (status === "nao_solicitado") { box.hidden = true; return; }
+    box.hidden = false;
+    if (form) form.hidden = true;
+    st.hidden = false; st.className = "";
     if (status === "solicitado") {
       st.classList.add("is-ok");
       st.textContent = T("Pedido recebido", "Request received") + (l.whatsapp_trial_requested_at ? T(" em ", " on ") + fmtDate(l.whatsapp_trial_requested_at) : "") + T(". Vamos ativar e chamar você no ", ". We'll turn it on and message you at ") + fmtPhone(l.whatsapp_numero) + ".";

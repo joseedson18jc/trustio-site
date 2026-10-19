@@ -658,3 +658,7 @@ h1 .l { display: block; }
 
 /* Texto mínimo de 12 px na tela (out/2026): no celular o diagrama encolhe (~0,81×), então os rótulos crescem em unidades do SVG. */
 @media (max-width: 600px) { .rings text { font-size: 14.8px; } .rings .core-t { font-size: 15px; } }
+
+/* Nota do caminho da pergunta: o que sai do país (voz e busca). */
+.flow-nota { margin: 14px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--muted); }
+.flow-nota a { color: var(--accent-text); text-decoration: underline; text-underline-offset: 2px; }

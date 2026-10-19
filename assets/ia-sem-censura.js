@@ -266,7 +266,7 @@
       { on: ["perim", "env"], t: "Entra no perímetro, no Brasil", p: "Ambiente privado, hospedado no Brasil. Os modelos rodam em ambiente privado e local, na infraestrutura da Trustio." },
       { on: ["perim", "env", "nofilter", "model"], t: "Um modelo aberto responde", p: "Um dos modelos abertos que a Trustio roda para empresas, sem o filtro de conteúdo imposto pelo fornecedor." },
       { on: ["perim", "model", "back", "answer"], t: "A resposta volta completa", p: "Com contexto, riscos e próximos passos, em vez de um “não posso ajudar com isso”." },
-      { on: ["perim", "model", "save", "store", "train", "bigtech"], t: "Fica na sua conta. Não vira treino.", p: "Histórico, arquivos e busca guardados no Brasil. Suas conversas nunca são usadas para treinar modelos." }
+      { on: ["perim", "model", "save", "store", "train", "bigtech"], t: "Fica na sua conta. Não vira treino.", p: "Histórico e arquivos guardados no Brasil. A Trustio não usa suas conversas para treinar modelos. Voz e busca na web saem do país: veja a nota abaixo." }
     ];
     var els = $$("[data-k]", card), dots = $("#st-dots"), txt = $("#st-text");
     var tN = $("#st-n"), tT = $("#st-t"), tP = $("#st-p"), play = $("#st-play");
@@ -335,7 +335,7 @@
   (function () {
     var wrap = $("#plans"); if (!wrap) return;
     var FEAT = {
-      chat: ["Modelo sem censura e sem filtro do fornecedor", "Conversas nunca usadas para treinar", "Conta e conversas guardadas no Brasil"]
+      chat: ["Modelo sem censura* e sem filtro do fornecedor", "A Trustio não treina modelos com suas conversas", "Conta e conversas guardadas no Brasil"]
     };
     var P = {
       chat: [

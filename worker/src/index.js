@@ -442,6 +442,126 @@ const CONFIRMACAO = {
   },
 };
 
+// ─────────────────────────────────────────────────────────────── funil WhatsApp
+// Etapas do cadastro pelo Agentio e toques de reativação, reportados pelo bot ao CRM.
+// Autentica por chave compartilhada (FUNIL_KEY) — é um endpoint de máquina, não de navegador.
+const ETAPAS_FUNIL = new Set([
+  "iniciado", "email_coletado", "confirmado_numero", "nome_coletado", "cadastrado",
+  "reativacao_toque1", "reativacao_toque2", "reativacao_toque3",
+]);
+
+function chaveFunilValida(env, req) {
+  const esperada = String(env.FUNIL_KEY || "");
+  if (!esperada) return false;
+  const recebida = String(req.headers.get("x-trustio-funil-key") || "");
+  if (recebida.length !== esperada.length) return false;
+  // comparação em tempo constante: uma igualdade simples vaza timing
+  let diff = 0;
+  for (let i = 0; i < esperada.length; i++) diff |= esperada.charCodeAt(i) ^ recebida.charCodeAt(i);
+  return diff === 0;
+}
+
+async function etapaFunil(req, env, origin, { json }) {
+  if (!chaveFunilValida(env, req)) return json(401, { ok: false, error: "chave_invalida" }, origin);
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    return json(503, { ok: false, error: "indisponivel" }, origin);
+  }
+  let dados = {};
+  try { dados = await req.json(); } catch { return json(400, { ok: false, error: "corpo_invalido" }, origin); }
+
+  const telefone = String(dados.telefone || "").replace(/\D/g, "");
+  const etapa = String(dados.etapa || "").trim();
+  const email = String(dados.email || "").trim().toLowerCase();
+  const limpar = Boolean(dados.limpar);
+
+  if (!limpar) {
+    if (telefone.length < 10 || telefone.length > 15) return json(400, { ok: false, error: "telefone_invalido" }, origin);
+    if (!ETAPAS_FUNIL.has(etapa)) return json(400, { ok: false, error: "etapa_invalida" }, origin);
+    if (email && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+      return json(400, { ok: false, error: "email_invalido" }, origin);
+    }
+  }
+
+  const cab = cabecalhosServico(env.SUPABASE_SERVICE_ROLE_KEY);
+  cab["Content-Type"] = "application/json";
+  cab.Prefer = "return=representation";
+
+  // procura o lead por telefone (mais novo primeiro) e, se não achar, por e-mail
+  const cabBusca = { ...cab };
+  delete cabBusca.Prefer;
+  delete cabBusca["Content-Type"];
+  let leads = null;
+  const buscaPor = async (query) => {
+    const r = await fetch(`${env.SUPABASE_URL}/rest/v1/crm_leads?${query}&select=id,notas&order=created_at.desc&limit=1`, { headers: cabBusca });
+    if (!r.ok) {
+      console.error("funil_busca_falhou", r.status, (await r.text()).slice(0, 200));
+      throw new Error("busca_falhou");
+    }
+    return r.json();
+  };
+  try {
+    if (limpar && dados.mais_recente) {
+      // alvo opcional: o lead mais recente de todos (uso operacional, chave protege)
+      leads = await buscaPor("");
+    } else if (limpar) {
+      leads = await buscaPor(`telefone=eq.${telefone}`);
+      if ((!leads || !leads.length) && email) leads = await buscaPor(`email=eq.${email}`);
+    } else {
+      leads = await buscaPor(`telefone=eq.${telefone}`);
+      if ((!leads || !leads.length) && email) leads = await buscaPor(`email=eq.${email}`);
+    }
+  } catch {
+    return json(502, { ok: false, error: "indisponivel" }, origin);
+  }
+  const agora = new Date();
+  const carimbo = agora.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const linha = `[WA funil] ${etapa} — ${carimbo}`;
+
+  if (leads && leads.length) {
+    const lead = leads[0];
+    let notas = String(lead.notas || "");
+    if (limpar) {
+      const restantes = notas.split("\n").filter((l) => !l.startsWith("[WA funil]")).join("\n").trim();
+      if (restantes === notas.trim()) return json(200, { ok: true, acao: "nada_a_limpar" }, origin);
+      notas = restantes;
+    } else {
+      notas = [notas.trim(), linha].filter(Boolean).join("\n").slice(-1000);
+    }
+    const upd = await fetch(`${env.SUPABASE_URL}/rest/v1/crm_leads?id=eq.${lead.id}`, {
+      method: "PATCH", headers: cab, body: JSON.stringify({ notas }),
+    });
+    if (!upd.ok) {
+      console.error("funil_patch_falhou", upd.status, (await upd.text()).slice(0, 200));
+      return json(502, { ok: false, error: "indisponivel" }, origin);
+    }
+    return json(200, { ok: true, acao: limpar ? "limpo" : "atualizado", lead: lead.id }, origin);
+  }
+
+  // lead novo: só entra no CRM se já temos e-mail (a coluna é not null).
+  // Sem e-mail, é um contato no começo do funil — fica no pipeline local do bot.
+  if (!email) return json(200, { ok: true, acao: "ignorado", motivo: "sem_lead_sem_email" }, origin);
+  const ins = await fetch(`${env.SUPABASE_URL}/rest/v1/crm_leads`, {
+    method: "POST", headers: cab,
+    body: JSON.stringify({
+      email,
+      telefone,
+      status: etapa === "cadastrado" ? "ativo" : "novo",
+      nome: String(dados.nome || "").trim().slice(0, 200) || null,
+      tipo: "b2c",
+      origem: "whatsapp-agentio",
+      notas: linha,
+    }),
+  });
+  if (!ins.ok) {
+    const corpo = await ins.text();
+    // duplicata de e-mail (corrida com o /signup): não é erro para o bot.
+    if (ins.status === 409) return json(200, { ok: true, acao: "ja_existia" }, origin);
+    console.error("funil_insert_falhou", ins.status, corpo.slice(0, 200));
+    return json(502, { ok: false, error: "indisponivel" }, origin);
+  }
+  return json(200, { ok: true, acao: "criado" }, origin);
+}
+
 // ─────────────────────────────────────────────────────────────── rotas
 export default {
   async fetch(req, env) {
@@ -461,6 +581,11 @@ export default {
         afiliados: statusIntegracoes(env),
         exemplo_de_link: linkDeConfirmacao(env, "TOKEN_DE_EXEMPLO"),
       }, origin);
+    }
+
+    // ---- funil WhatsApp: etapas do cadastro e toques de reativação (só o bot)
+    if (url.pathname === "/funil" && req.method === "POST") {
+      return etapaFunil(req, env, origin, { json });
     }
 
     // ---- inscrição

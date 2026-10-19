@@ -585,6 +585,11 @@ Deno.serve(async (req) => {
     const resultadosUsados: Resultado[] = [];
     const conversaDaBusca: unknown[] = [...anteriores, { role: "user", content: message }];
     let rodadaDeTriagem = triagemAtiva;
+    // Se o servidor do modelo cair no meio de uma rodada sem ter escrito nada (sem finish_reason), a
+    // função espera ele voltar (relança sozinho em ~10 s) e repete a mesma chamada uma vez (19 out 2026).
+    let refazerRodada: (() => Promise<Response>) | null = imagens.length ? null
+      : triagemAtiva ? chamarTriagem : () => chamarModelo(message);
+    let jaRefez = false;
     const inicioDoTrabalho = Date.now();
     let inicioDoFinal = 0;   // a narração antes de uma busca aparece na tela, mas não vai para o histórico
     let pensando = false;
@@ -706,6 +711,7 @@ Deno.serve(async (req) => {
         await reader.cancel().catch(() => {});
         interrompido = false;
         console.log("triagem_direta", Date.now() - inicioDoTrabalho, "ms");
+        refazerRodada = () => pedirModelo(conversaDaBusca, buscaLigada);
         try {
           atual = await pedirModelo(conversaDaBusca, buscaLigada);
         } catch (err) {
@@ -722,6 +728,24 @@ Deno.serve(async (req) => {
         continue rodadas;
       }
       console.log("triagem_busca", Date.now() - inicioDoTrabalho, "ms");
+    }
+    if (!pedidos.length && !fim && full.length === inicioDaRodada && refazerRodada && !jaRefez) {
+      jaRefez = true;
+      console.error("modelo_caiu_na_rodada", interrompido ? "interrompido" : "sem_fim", Date.now() - inicioDoTrabalho, "ms");
+      await reader.cancel().catch(() => {});
+      for (let i = 0; i < 20; i++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const ok = await fetch(`${LLM_BASE_URL}/models`, { headers: { "Authorization": `Bearer ${LLM_API_KEY}` }, signal: AbortSignal.timeout(3000) })
+          .then((r) => r.ok).catch(() => false);
+        if (ok) break;
+      }
+      try {
+        atual = await refazerRodada();
+        if (atual.ok && atual.body) { interrompido = false; console.log("modelo_refeito"); continue rodadas; }
+        console.error("modelo_refeito_falhou", atual.status);
+      } catch (err) { console.error("modelo_refeito_erro", err); }
+      erroRodada = "modelo_indisponivel";
+      break rodadas;
     }
     if (interrompido || !pedidos.length) break rodadas;
 
@@ -767,9 +791,11 @@ Deno.serve(async (req) => {
       conversaDaBusca.push({ role: "tool", tool_call_id: c.id, content: conteudo });
     }
     // Próxima rodada: com a ferramenta só se ainda couber outra busca; senão ele tem de responder.
+    const comBuscaAinda = buscasFeitas < MAX_BUSCAS_POR_MENSAGEM;
+    const conversaAgora = [...conversaDaBusca];
+    refazerRodada = () => pedirModelo(conversaAgora, comBuscaAinda, { semRaciocinio: MODELOS_SEM_RACIOCINIO_APOS_BUSCA.has(modelo) });
     try {
-      atual = await pedirModelo(conversaDaBusca, buscasFeitas < MAX_BUSCAS_POR_MENSAGEM,
-        { semRaciocinio: MODELOS_SEM_RACIOCINIO_APOS_BUSCA.has(modelo) });
+      atual = await refazerRodada();
     } catch (err) {
       console.error("llm_fetch_error_busca", err);
       erroRodada = "modelo_indisponivel";

@@ -87,7 +87,7 @@
       <p class="eyebrow"><span class="status-dot"></span> Privacidade</p>
       <h1 id="priv-title">Como tratamos os seus dados.<span>Em português, sem rodeio.</span></h1>
       <p class="lead">Esta página diz exatamente o que a Trustio coleta, por que coleta, com quem compartilha, por quanto tempo guarda e como você apaga tudo. Se alguma linha aqui não bater com o que você vê no produto, escreva para nós — a linha está errada, não você.</p>
-      <p class="legal-data">Última atualização: [PREENCHER: data de publicação] · Controladora: JCSC BRAZIL MANAGEMENT LTDA (Trustio), CNPJ 58.451.617/0001-03 · Encarregado: [PREENCHER: nome do encarregado] · Canal do titular e do encarregado: <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off--></p>
+      <p class="legal-data">Última atualização: 19 de outubro de 2026 · Controladora: JCSC BRAZIL MANAGEMENT LTDA (Trustio), CNPJ 58.451.617/0001-03 · Encarregado: José Edson · Canal do titular e do encarregado: <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off--></p>
     </div>
   </section>
 
@@ -120,11 +120,11 @@
       <h3>3. Quando você conversa no chat</h3>
       <ul class="legal-lista">
         <li><b>O texto das suas conversas</b> — perguntas e respostas ficam guardadas na sua conta para que você tenha histórico e possa continuar de onde parou.</li>
-        <li><b>Fotos e PDFs anexados</b> — o arquivo original não sai do seu aparelho: o texto é lido no seu navegador e vai junto da pergunta. Das fotos, uma cópia reduzida também é enviada ao provedor do modelo, só para gerar aquela resposta; ela não é guardada. Fica no histórico apenas o texto.</li>
-        <li><b>Áudios gravados no chat</b> — a gravação é enviada ao provedor do modelo só para ser transcrita. A transcrição vira a sua mensagem e fica no histórico; a gravação não é guardada pela Trustio.</li>
+        <li><b>Fotos e PDFs anexados</b> — o arquivo original não sai do seu aparelho: o texto é lido no seu navegador e vai junto da pergunta. Das fotos, uma cópia reduzida também é enviada ao modelo do chat, só para gerar aquela resposta; ela não é guardada. Fica no histórico apenas o texto.</li>
+        <li><b>Áudios gravados no chat</b> — a gravação é enviada ao modelo do chat só para ser transcrita. A transcrição vira a sua mensagem e fica no histórico; a gravação não é guardada pela Trustio.</li>
         <li><b>Ouvir as respostas e conversar por voz</b> — o texto da resposta é enviado à <b>xAI</b> (Estados Unidos) para virar fala. Se a xAI falhar, vai à <b>ElevenLabs</b>, de reserva. O áudio gerado não é guardado pela Trustio.</li>
         <li><b>Busca na web</b> — quando a resposta precisa de informação atual, o modelo escreve uma consulta de busca a partir da sua pergunta, e essa consulta é enviada à <b>Exa</b> (Estados Unidos). O modelo é instruído a não colocar dados pessoais na consulta, mas ela reflete o assunto da sua pergunta. A conversa inteira não vai junto.</li>
-        <li><b>A Trustio não usa as suas conversas para treinar modelos.</b> [CONFIRMAR: termos de uso de dados da xAI, da ElevenLabs, da Exa e do provedor do modelo do chat, antes de afirmar o mesmo sobre terceiros.]</li>
+        <li><b>A Trustio não usa as suas conversas para treinar modelos.</b> Fora a voz e a busca na web, o texto das suas conversas é processado só pelo modelo que a própria Trustio opera, e nenhuma outra empresa o recebe para treinar modelos. A voz envia o texto da resposta à xAI (e, de reserva, à ElevenLabs) e a busca envia a consulta à Exa, todas nos Estados Unidos. Segundo os termos publicados por essas empresas, consultados em 19/10/2026, a xAI não usa esse conteúdo para treinar modelos e, em regra, o apaga em até 30 dias; a ElevenLabs e a Exa podem usá-lo para melhorar os próprios serviços, inclusive para treinar modelos.</li>
         <li>Administradores da Trustio conseguem acessar conversas para suporte e para investigar abuso. Não é rotina, e está dito aqui para você saber antes de escrever, não depois.</li>
       </ul>
 
@@ -139,11 +139,10 @@
 
       <h2 id="processamento">Onde as suas conversas são processadas</h2>
       <p>Sua conta, seus dados de cadastro e o texto das suas conversas ficam armazenados em banco de dados da Trustio hospedado em <b>São Paulo, no Brasil</b> (região <code>sa-east-1</code>), com acesso restrito por políticas no próprio banco: cada pessoa só enxerga as próprias conversas.</p>
-      <!-- Revisão: o código da função chat usa LLM_BASE_URL, com padrão https://api.x.ai/v1 (xAI, EUA). Conferir o valor em produção. Se for o servidor da Trustio no Brasil, trocar o marcador por "pelo modelo de linguagem que a Trustio opera em infraestrutura no Brasil". Se for a xAI ou outro provedor no exterior, nomear o provedor e o país aqui e incluí-lo nas listas de operadores e de transferência internacional. -->
-      <p>Para gerar a resposta, o texto da sua pergunta e o histórico recente da conversa são processados pelo modelo de linguagem do chat: [CONFIRMAR: quem opera o modelo do chat e em que país].</p>
+      <p>Para gerar a resposta, o texto da sua pergunta e o histórico recente da conversa são processados pelo modelo de linguagem do chat, que a própria Trustio opera em equipamento no Brasil. A conexão até esse equipamento passa pela rede da <b>Cloudflare</b> (ver <a href="#terceiros">Com quem compartilhamos</a>).</p>
       <p>Alguns recursos enviam parte do conteúdo para fora do Brasil, e só quando você os usa:</p>
       <ul class="legal-lista">
-        <li><b>Ouvir as respostas e conversar por voz</b> — o texto da resposta vai à <b>xAI</b>, nos Estados Unidos, para virar fala; se a xAI falhar, vai à <b>ElevenLabs</b> [CONFIRMAR: país].</li>
+        <li><b>Ouvir as respostas e conversar por voz</b> — o texto da resposta vai à <b>xAI</b>, nos Estados Unidos, para virar fala; se a xAI falhar, vai à <b>ElevenLabs</b>, também nos Estados Unidos.</li>
         <li><b>Busca na web</b> — a consulta de busca vai à <b>Exa</b>, nos Estados Unidos.</li>
         <li><b>Entrar com o Google</b> — a autenticação acontece no <b>Google</b>, nos Estados Unidos.</li>
       </ul>
@@ -153,13 +152,13 @@
       <h2 id="terceiros">Com quem compartilhamos</h2>
       <ul class="legal-lista">
         <li><b>Supabase</b> — hospeda o banco de dados, a autenticação da sua conta e as funções que chamam os provedores abaixo, na região de São Paulo (<code>sa-east-1</code>).</li>
-        <li><b>Provedor do modelo do chat</b> — gera as respostas, transcreve os áudios gravados e lê a cópia reduzida das fotos. [CONFIRMAR: nome e país.]</li>
+        <li><b>Modelo do chat</b> — gera as respostas, transcreve os áudios gravados e lê a cópia reduzida das fotos. É operado pela própria Trustio, em equipamento no Brasil; nenhuma empresa terceira faz esse papel.</li>
         <li><b>xAI</b> — converte o texto das respostas em fala, quando você pede para ouvir ou conversa por voz. Estados Unidos.</li>
-        <li><b>ElevenLabs</b> — reserva da xAI para a fala: só recebe o texto da resposta se a xAI falhar. [CONFIRMAR: país.]</li>
+        <li><b>ElevenLabs</b> — reserva da xAI para a fala: só recebe o texto da resposta se a xAI falhar. Estados Unidos.</li>
         <li><b>Google</b> — autentica quem escolhe entrar com o Google e nos devolve os dados básicos do perfil, como nome e e-mail. Estados Unidos.</li>
-        <li><b>Stripe</b> [CONFIRMAR: entidade da Stripe que processa as compras e país] — processa os pagamentos. Os dados do seu cartão vão direto para a Stripe e <b>nunca passam pelos servidores da Trustio</b>. Recebemos de volta só a confirmação e os dados de contato necessários para liberar o acesso. Quando você chega por um link de afiliado, o código dessa pessoa vai junto da compra, no campo de referência e no do cupom (ver o item 4 acima).</li>
+        <li><b>Stripe</b> (Stripe Brasil Soluções de Pagamento – Instituição de Pagamento Ltda., no Brasil, com a Stripe, LLC, dos Estados Unidos, como parte no tratamento dos dados pessoais) — processa os pagamentos. Os dados do seu cartão vão direto para a Stripe e <b>nunca passam pelos servidores da Trustio</b>. Recebemos de volta só a confirmação e os dados de contato necessários para liberar o acesso. Quando você chega por um link de afiliado, o código dessa pessoa vai junto da compra, no campo de referência e no do cupom (ver o item 4 acima).</li>
         <li><b>Resend</b> — entrega os e-mails de confirmação de conta, de recuperação de senha e as respostas às solicitações de contato. Estados Unidos.</li>
-        <li><b>Cloudflare</b> — entrega o site e a API de solicitações de contato e mede o número de visitas de forma agregada (Web Analytics), sem cookies e sem identificar pessoas. Empresa dos Estados Unidos, com rede em vários países. Também guarda as inscrições antigas da lista de espera, de antes da mudança para o banco em São Paulo. [CONFIRMAR: local desse armazenamento.]</li>
+        <li><b>Cloudflare</b> — entrega o site e a API de solicitações de contato e mede o número de visitas de forma agregada (Web Analytics), sem cookies e sem identificar pessoas. Empresa dos Estados Unidos, com rede em vários países. Também guarda as inscrições antigas da lista de espera, de antes da mudança para o banco em São Paulo: num banco da Cloudflare (D1) com a cópia principal no leste da América do Norte e cópias de leitura em outras regiões, e num armazenamento chave-valor da Cloudflare replicado na rede global. A Cloudflare também liga o endereço do modelo do chat ao equipamento da Trustio, e por isso as perguntas e as respostas do chat passam pela rede dela.</li>
         <li><b>GitHub Pages</b> — hospeda os arquivos do site e, como qualquer servidor, registra dados técnicos de acesso, como o endereço IP. Estados Unidos.</li>
         <li><b>Exa</b> — faz a busca na web. Recebe só a consulta de busca, escrita pelo modelo a partir da sua pergunta; a conversa inteira não vai junto. Estados Unidos.</li>
         <li><b>WhatsApp e Telegram</b> — quando você usa o agente, as mensagens trafegam por essas plataformas, segundo os termos delas.</li>
@@ -167,7 +166,7 @@
       <p>Além desses operadores, ninguém mais: não há pixel de rede social, remarketing nem venda de lista.</p>
 
       <h2 id="transferencia">Transferência internacional</h2>
-      <p>Parte dos operadores acima trata dados fora do Brasil, principalmente nos Estados Unidos: xAI, Exa, Google, Resend, Cloudflare e GitHub, e também ElevenLabs, Stripe e o provedor do modelo do chat, conforme o país confirmado acima. Cada transferência serve para prestar o recurso que você usa ou para operar o site, e só leva o necessário para isso.</p>
+      <p>Parte dos operadores acima trata dados fora do Brasil, principalmente nos Estados Unidos: xAI, Exa, Google, Resend, Cloudflare e GitHub, e também ElevenLabs e a Stripe, LLC, que participa do tratamento dos dados de pagamento. Cada transferência serve para prestar o recurso que você usa ou para operar o site, e só leva o necessário para isso.</p>
       <p>[REVISÃO JURÍDICA: para cada provedor, indicar a hipótese do art. 33 da LGPD que ampara a transferência e a garantia adotada. Não publicar este aviso sem esse texto.]</p>
 
       <h2 id="bases-legais">Bases legais</h2>
@@ -181,7 +180,7 @@
       </ul>
 
       <h2 id="encarregado">Encarregado</h2>
-      <p>O encarregado pelo tratamento de dados pessoais da Trustio é [PREENCHER: nome do encarregado]. Fale com ele pelo <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off-->.</p>
+      <p>O encarregado pelo tratamento de dados pessoais da Trustio é José Edson. Fale com ele pelo <!--email_off--><a href="mailto:contato@trustio.com.br">contato@trustio.com.br</a><!--/email_off-->.</p>
 
       <h2 id="prazo">Por quanto tempo guardamos</h2>
       <ul class="legal-lista">

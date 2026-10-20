@@ -1,5 +1,5 @@
 // Tema da página "IA sem censura" antes da primeira pintura: o mesmo do resto do site
-// (assets/theme.js: claro das 05:00 às 19:00, escuro à noite, ou a escolha de quem visita).
+// (assets/theme.js: escuro por padrão, ou a escolha de quem visita).
 // Esta página usa data-theme="dark" explícito (data-tema-explicito no <html>).
 (function () {
   var t = window.TrustioTema ? window.TrustioTema.atual() : "dark";

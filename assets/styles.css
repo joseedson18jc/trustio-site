@@ -119,7 +119,7 @@
   --accent-text: #9dc8ff;
   --ok: #3ddc97;
   --warn: #ffb454;
-  --danger: #ff9ab8;
+  --danger: #ff6b6b;
   --surface-footer: #040609;
   --surface-band: #070a10;
   --chip-rgb: 8, 11, 17;
@@ -211,7 +211,7 @@
   --accent-text: #9dc8ff;
   --ok: #3ddc97;
   --warn: #ffb454;
-  --danger: #ff9ab8;
+  --danger: #ff6b6b;
   color: var(--ice);
   color-scheme: dark;
 }
@@ -3256,3 +3256,7 @@ h3 { letter-spacing: -0.018em; }
   padding-block: clamp(28px, 4vw, 56px);
   background: linear-gradient(180deg, #030918 0%, #040a20 50%, #050b1c 100%);
 }
+
+/* Aviso do asterisco de "sem censura", em toda página com rodapé (checklist da campanha, item 1). */
+.footer-nota { padding-top: 12px; padding-bottom: 2px; color: var(--label-color); font-size: 12px; line-height: 1.6; }
+.footer-nota p { margin: 0; }

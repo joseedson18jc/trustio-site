@@ -294,7 +294,6 @@
     welcome.dataset.mode = first ? "first" : "returning";
     ob.hidden = false;
     renderOnboardQuota();
-    renderWhatsapp();
   }
 
   function renderOnboardQuota() {
@@ -303,8 +302,10 @@
     var limitEl = $("[data-ob-limit]"), bar = $("[data-ob-bar]"), txt = $("[data-ob-quota]");
     if (!limitEl) return;
     if (semCota() || !state.limit) {
-      limitEl.textContent = "∞"; bar.style.width = "100%";
-      txt.textContent = semCota() ? T("Plano ativo: sem limite de prompts.", "Plan active: no prompt limit.") : T("Sem limite de prompts neste ambiente.", "No prompt limit in this environment.");
+      var titulo = $("[data-ob-titulo]");
+      if (titulo) titulo.textContent = T("Uso justo", "Fair use");
+      bar.style.width = "100%";
+      txt.textContent = semCota() ? T("Plano ativo: uso justo, sem contar perguntas.", "Plan active: fair use, no question count.") : T("Sem cota de perguntas neste ambiente.", "No question quota in this environment.");
       return;
     }
     limitEl.textContent = state.limit;
@@ -313,48 +314,7 @@
     txt.textContent = used === 0 ? T("Você ainda não usou nenhum.", "You haven't used any yet.") : left === 0 ? T("Você usou todos. Escolha um plano para continuar.", "You've used them all. Choose a plan to continue.") : EN ? "You've used " + used + ". " + left + " left." : "Você usou " + used + ". Restam " + left + ".";
   }
 
-  function renderWhatsapp() {
-    var form = $("[data-wa-form]"), st = $("[data-wa-status]"), num = $("#wa-num");
-    if (!form) return;
-    var l = state.lead || {};
-    var status = l.whatsapp_trial_status || "nao_solicitado";
-    if (status === "nao_solicitado") {
-      form.hidden = false; st.hidden = true;
-      if (!num.value) num.value = fmtPhone(l.whatsapp_numero || l.telefone || "");
-      return;
-    }
-    form.hidden = true; st.hidden = false; st.className = "";
-    if (status === "solicitado") {
-      st.classList.add("is-ok");
-      st.textContent = T("Pedido recebido", "Request received") + (l.whatsapp_trial_requested_at ? T(" em ", " on ") + fmtDate(l.whatsapp_trial_requested_at) : "") + T(". Vamos ativar e chamar você no ", ". We'll turn it on and message you at ") + fmtPhone(l.whatsapp_numero) + ".";
-    } else if (status === "ativo") {
-      var ends = l.whatsapp_trial_ends_at ? new Date(l.whatsapp_trial_ends_at) : null;
-      var hours = ends ? Math.max(0, Math.round((ends - Date.now()) / 36e5)) : null;
-      st.classList.add("is-ok");
-      st.textContent = T("Agente ativo no ", "Agent active on ") + fmtPhone(l.whatsapp_numero) + (ends ? T(" até ", " until ") + fmtDate(ends) + (hours !== null ? T(" (faltam ", " (") + (hours >= 48 ? Math.round(hours / 24) + T(" dias", " days") : hours + " h") + T(")", " left)") : "") : "") + ".";
-    } else {
-      st.textContent = T("Seus 3 dias no WhatsApp terminaram. Para continuar com o agente, escolha um plano.", "Your 3 days on WhatsApp are over. To keep the agent, choose a plan.");
-    }
-  }
 
-  var waForm = $("[data-wa-form]");
-  if (waForm) waForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-    var btn = $("[data-wa-submit]"), st = $("[data-wa-status]"), num = $("#wa-num").value;
-    if (num.replace(/\D/g, "").length < 10) { st.hidden = false; st.className = "is-error"; st.textContent = T("Digite o número com DDD.", "Enter the number with the area code."); return; }
-    btn.disabled = true; btn.textContent = T("Enviando…", "Sending…");
-    sb.rpc("request_whatsapp_trial", { p_numero: num }).then(function (r) {
-      if (r.error) throw r.error;
-      var d = r.data || {};
-      if (!d.ok) throw new Error(d.error || "erro");
-      if (state.lead) { state.lead.whatsapp_trial_status = d.status; state.lead.whatsapp_numero = d.numero; state.lead.whatsapp_trial_requested_at = d.requested_at; state.lead.whatsapp_trial_started_at = d.started_at; state.lead.whatsapp_trial_ends_at = d.ends_at; }
-      renderWhatsapp();
-    }).catch(function (err) {
-      btn.disabled = false; btn.textContent = T("Quero os 3 dias", "I want the 3 days");
-      st.hidden = false; st.className = "is-error";
-      st.textContent = String(err.message || "").indexOf("numero_invalido") >= 0 ? T("Número inválido. Use DDD + número.", "Invalid number. Use area code + number.") : T("Não foi possível registrar agora. Tente de novo.", "We couldn't register that right now. Try again.");
-    });
-  });
 
   var obStart = $("[data-ob-start]");
   if (obStart) obStart.addEventListener("click", function () {
@@ -1408,7 +1368,7 @@
     $("[data-conta-plano]").textContent = $("[data-me-plan]").textContent;
     var usados = Number(l.mensagens_usadas || 0);
     $("[data-conta-uso]").textContent = semCota() || !state.limit
-      ? T("Sem limite de perguntas.", "No question limit.")
+      ? T("Uso justo, sem contar perguntas.", "Fair use, no question count.")
       : EN ? Math.max(0, state.limit - usados) + " of " + state.limit + " free questions left" : Math.max(0, state.limit - usados) + " de " + state.limit + " perguntas grátis restantes";
     // Preferências
     var f = $("[data-pref-form]");
@@ -1433,8 +1393,8 @@
     $("[data-modelo-dica]").textContent = state.modelos.length
       ? T("O modelo escolhido vale para as próximas mensagens, em todas as conversas.", "The model you pick applies to your next messages, in every conversation.")
       : T("Por enquanto há um modelo disponível. Quando houver outros, eles aparecem aqui.", "For now there is one model available. When there are others, they'll show up here.");
-    // Automático, a não ser que a pessoa tenha fixado Claro ou Escuro aqui.
-    var tema = window.TrustioTema && window.TrustioTema.modo() === "fixo" ? window.TrustioTema.atual() : "auto";
+    // Escuro é o padrão; Automático (pelo horário) só quando a pessoa escolheu aqui.
+    var tema = window.TrustioTema ? (window.TrustioTema.modo() === "automatico" ? "auto" : window.TrustioTema.atual()) : "dark";
     f.querySelectorAll("input[name=tema]").forEach(function (r) { r.checked = r.value === tema; });
     f.querySelectorAll("input[name=fonte]").forEach(function (r) { r.checked = r.value === (state.pref.fonte || "normal"); });
     f.enter_envia.checked = state.pref.enter_envia !== false;
@@ -1592,14 +1552,14 @@
     paintThemeColor(t);
     toggle.setAttribute("aria-pressed", t === "light" ? "true" : "false");
   }
-  // Botão de tema: vale até a próxima troca de horário. fixo (Minha conta): vale sempre.
+  // Botão de tema e Minha conta: a escolha fica guardada até a pessoa trocar.
   function applyTheme(t, fixo) {
     pintarTema(t);
     if (window.TrustioTema) window.TrustioTema.escolher(t, fixo);
     else try { localStorage.setItem("trustio-theme", t); } catch (e) { /* sem storage */ }
   }
   toggle.addEventListener("click", function () { applyTheme(document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light"); });
-  // Troca automática de horário (05:00 claro, 19:01 escuro) com o chat aberto.
+  // Troca de horário (05:00 claro, 19:01 escuro) com o chat aberto, só no modo Automático.
   document.addEventListener("trustio:tema", function (e) { pintarTema(e.detail); });
   toggle.setAttribute("aria-pressed", document.documentElement.getAttribute("data-theme") === "light" ? "true" : "false");
   paintThemeColor(document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");

@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="noindex, nofollow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://analytics.ahrefs.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://analytics.ahrefs.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Voice agents · Trustio Console</title>
   <meta name="description" content="The Trustio Console: create, tune and deploy private voice agents — model, voice, playbook, tools and guardrails, with live testing in the browser.">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
@@ -16,14 +16,13 @@
   <link rel="preload" href="/assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/styles.css?v=228a9ffa">
+  <link rel="stylesheet" href="/assets/styles.css?v=9c81a5eb">
   <link rel="stylesheet" href="/assets/console.css?v=580052a4">
   <script defer src="/assets/orb.js?v=2a1bad38"></script>
   <script defer src="/assets/console.js?v=f8156cb9"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/console/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/console/">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/console/"><!--/i18n:alt-->
-  <script src="https://analytics.ahrefs.com/analytics.js" data-key="zDuxtGMCAZZ/U3QDncvk7w" data-page-location="/en/console/" async></script>
 </head>
 <body class="console-page">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -61,7 +60,7 @@
         <button type="button" class="is-on" data-env="prod">Production</button>
         <button type="button" data-env="sandbox">Sandbox</button>
       </div>
-      <p class="side-note"><i></i> Region <b>br-sao-1</b> · data in Brazil</p>
+      <p class="side-note"><i></i> Demo environment · voice processed by xAI, in the US</p>
     </div>
   </aside>
 
@@ -83,13 +82,13 @@
       <div class="page-head">
         <div>
           <h1>Voice agents</h1>
-          <p>Five agents in production in the <b>br-sao-1</b> perimeter. Select one to edit its playbook and tools and to test it live.</p>
+          <p>Five sample agents in this demo environment. Pick one to edit its playbook and tools and test it live.</p>
         </div>
         <div class="stat-row">
           <div class="stat"><b>1,284</b><small>calls · 24 h</small></div>
           <div class="stat"><b>412<em>ms</em></b><small>p95 latency</small></div>
           <div class="stat"><b>92<em>%</em></b><small>resolved without a human</small></div>
-          <div class="stat"><b>0</b><small>bytes outside the perimeter</small></div>
+          <div class="stat"><b>38</b><small>handoffs to a human</small></div>
         </div>
       </div>
 
@@ -192,7 +191,7 @@ LIMITS
             <div class="card-h"><h2>Guardrails</h2><span>LGPD by design</span></div>
             <ul class="guards">
               <li><span class="dot ok"></span><b>PII masking</b> before leaving the perimeter <em>required</em></li>
-              <li><span class="dot ok"></span><b>Recording and transcription</b> retained in br-sao-1 <em>90 days</em></li>
+              <li><span class="dot ok"></span><b>Recording and transcription</b> retained for <em>90 days</em></li>
               <li><span class="dot ok"></span><b>Human approval</b> over R$ 500 <em>active</em></li>
               <li><span class="dot warn"></span><b>Blocked words</b> brand list <em>3 terms</em></li>
             </ul>
@@ -220,7 +219,7 @@ LIMITS
           <div class="test-card">
             <div class="card-h"><h2>Events</h2><span>realtime</span></div>
             <pre class="events" id="tEvents">session.update      · voice=ara, vad=server_vad
-session.created     · br-sao-1
+session.created     · demo
 </pre>
           </div>
 

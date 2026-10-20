@@ -302,8 +302,10 @@
     var limitEl = $("[data-ob-limit]"), bar = $("[data-ob-bar]"), txt = $("[data-ob-quota]");
     if (!limitEl) return;
     if (semCota() || !state.limit) {
-      limitEl.textContent = "∞"; bar.style.width = "100%";
-      txt.textContent = semCota() ? T("Plano ativo: sem limite de prompts.", "Plan active: no prompt limit.") : T("Sem limite de prompts neste ambiente.", "No prompt limit in this environment.");
+      var titulo = $("[data-ob-titulo]");
+      if (titulo) titulo.textContent = T("Uso justo", "Fair use");
+      bar.style.width = "100%";
+      txt.textContent = semCota() ? T("Plano ativo: uso justo, sem contar perguntas.", "Plan active: fair use, no question count.") : T("Sem cota de perguntas neste ambiente.", "No question quota in this environment.");
       return;
     }
     limitEl.textContent = state.limit;
@@ -1366,7 +1368,7 @@
     $("[data-conta-plano]").textContent = $("[data-me-plan]").textContent;
     var usados = Number(l.mensagens_usadas || 0);
     $("[data-conta-uso]").textContent = semCota() || !state.limit
-      ? T("Sem limite de perguntas.", "No question limit.")
+      ? T("Uso justo, sem contar perguntas.", "Fair use, no question count.")
       : EN ? Math.max(0, state.limit - usados) + " of " + state.limit + " free questions left" : Math.max(0, state.limit - usados) + " de " + state.limit + " perguntas grátis restantes";
     // Preferências
     var f = $("[data-pref-form]");
@@ -1391,8 +1393,8 @@
     $("[data-modelo-dica]").textContent = state.modelos.length
       ? T("O modelo escolhido vale para as próximas mensagens, em todas as conversas.", "The model you pick applies to your next messages, in every conversation.")
       : T("Por enquanto há um modelo disponível. Quando houver outros, eles aparecem aqui.", "For now there is one model available. When there are others, they'll show up here.");
-    // Automático, a não ser que a pessoa tenha fixado Claro ou Escuro aqui.
-    var tema = window.TrustioTema && window.TrustioTema.modo() === "fixo" ? window.TrustioTema.atual() : "auto";
+    // Escuro é o padrão; Automático (pelo horário) só quando a pessoa escolheu aqui.
+    var tema = window.TrustioTema ? (window.TrustioTema.modo() === "automatico" ? "auto" : window.TrustioTema.atual()) : "dark";
     f.querySelectorAll("input[name=tema]").forEach(function (r) { r.checked = r.value === tema; });
     f.querySelectorAll("input[name=fonte]").forEach(function (r) { r.checked = r.value === (state.pref.fonte || "normal"); });
     f.enter_envia.checked = state.pref.enter_envia !== false;
@@ -1550,14 +1552,14 @@
     paintThemeColor(t);
     toggle.setAttribute("aria-pressed", t === "light" ? "true" : "false");
   }
-  // Botão de tema: vale até a próxima troca de horário. fixo (Minha conta): vale sempre.
+  // Botão de tema e Minha conta: a escolha fica guardada até a pessoa trocar.
   function applyTheme(t, fixo) {
     pintarTema(t);
     if (window.TrustioTema) window.TrustioTema.escolher(t, fixo);
     else try { localStorage.setItem("trustio-theme", t); } catch (e) { /* sem storage */ }
   }
   toggle.addEventListener("click", function () { applyTheme(document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light"); });
-  // Troca automática de horário (05:00 claro, 19:01 escuro) com o chat aberto.
+  // Troca de horário (05:00 claro, 19:01 escuro) com o chat aberto, só no modo Automático.
   document.addEventListener("trustio:tema", function (e) { pintarTema(e.detail); });
   toggle.setAttribute("aria-pressed", document.documentElement.getAttribute("data-theme") === "light" ? "true" : "false");
   paintThemeColor(document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");

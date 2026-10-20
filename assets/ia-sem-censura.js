@@ -123,7 +123,7 @@
     var btns = $$("[data-set]", box), cap = $("#pipe-cap");
     var mode = "generic", auto = !reduce, visible = false, timer = 0, anim = null;
     var CAP = {
-      generic: "<b>IA comum:</b> a pergunta é legítima, mas uma das camadas de filtro dispara antes de chegar ao modelo. Resultado: recusa genérica.",
+      generic: "<b>Com filtro do fornecedor (exemplo ilustrativo):</b> a pergunta é legítima, mas uma das camadas de filtro pode disparar antes de chegar ao modelo. Aí a resposta vira uma recusa genérica.",
       trustio: "<b>Trustio:</b> as camadas de filtro do fornecedor saem. A pergunta chega ao modelo e volta com resposta completa. A lei continua em volta."
     };
     function mid(el) { return el.offsetTop + el.offsetHeight / 2; }
@@ -169,45 +169,38 @@
     watch(box, function (v) { visible = v; if (v) cycle(); else clear(); }, 0.35);
   })();
 
-  /* ---------- 02 · Comparação ---------- */
+  /* ---------- 02 · Na prática ---------- */
+  // Só a pergunta e o que conferir na resposta. Sem resposta inventada e sem comparação com outra IA
+  // (checklist da campanha, itens 5, 7 e 12): a resposta de verdade a pessoa vê no chat.
   (function () {
     var ICONS = {
-      saude: '<path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v3a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="12" r="2"/>',
       direito: '<path d="M12 3v18M6 21h12M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/>',
       seg: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
       ficcao: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
       opiniao: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.5"/>'
     };
     var cases = [
-      { id: "saude", label: "Saúde", av: "EN", who: "Enfermeira · plantão",
-        q: "A partir de qual dose o paracetamol vira risco de hepatotoxicidade, e o que eu monitoro?",
-        g: "<p>Não posso fornecer informações sobre doses perigosas de medicamentos. Se você ou alguém estiver em risco, procure atendimento médico ou ligue para o CVV (188).</p>",
-        t: "<p>Em adultos, ingestão aguda acima de <b>~150 mg/kg</b> (ou 7,5–10 g) é o limiar clássico para avaliar risco.</p><ol><li>Dose o paracetamol sérico <b>a partir de 4 h</b> da ingestão e plote no nomograma de Rumack-Matthew.</li><li>Monitore TGO/TGP, INR, creatinina e glicemia.</li><li>Se indicado, <b>N-acetilcisteína</b>, com maior eficácia nas primeiras 8 h.</li></ol><p>Acione o CIATox da sua região para ajustar a conduta.</p>",
-        tg: ["recusa genérica", "sem próximo passo"], tt: ["limiar", "monitoramento", "quem acionar"] },
       { id: "direito", label: "Direito", av: "AD", who: "Advogado · defesa criminal",
         q: "Quais indícios a acusação costuma usar para caracterizar lavagem de dinheiro via empresa de fachada?",
-        g: "<p>Desculpe, não posso ajudar com assuntos relacionados a lavagem de dinheiro ou outras atividades ilegais.</p>",
-        t: "<p>Os indícios mais recorrentes nas denúncias são:</p><ol><li><b>Faturamento incompatível</b> com a estrutura física e o quadro de funcionários.</li><li><b>Sócios sem capacidade econômica</b>, os chamados “laranjas”.</li><li>Movimentações <b>fracionadas</b> para evitar comunicação ao COAF.</li><li>Notas fiscais <b>sem lastro</b> em entrega real.</li></ol><p>Para a defesa, o ponto central é o <b>dolo</b>: a Lei 9.613/98 exige conhecimento da origem ilícita dos valores.</p>",
-        tg: ["palavra-chave disparou", "tema bloqueado"], tt: ["indícios", "base legal", "tese de defesa"] },
+        t: "<ol><li>Se a resposta separa <b>indício</b> de <b>prova</b>.</li><li>Se cita a <b>Lei 9.613/98</b> e o que ela exige sobre o dolo.</li><li>Se o artigo citado bate com a lei seca.</li></ol><p>Para estudo e conferência: o caso concreto se confere com quem atua nele. A decisão é sua.</p>",
+        tt: ["estudo e conferência", "confira a lei seca"] },
       { id: "seg", label: "Segurança", av: "TI", who: "Gestor · time financeiro",
-        q: "Quero treinar minha equipe. Como costuma funcionar o golpe do falso comprovante de Pix?",
-        g: "<p>Não posso fornecer detalhes sobre como golpes são realizados, pois essas informações podem ser usadas para fraudes.</p>",
-        t: "<p>O roteiro típico: o golpista compra algo e envia um <b>comprovante editado</b> ou de um <b>Pix agendado</b> (que ainda não foi liquidado), e pressiona pela liberação rápida.</p><p>Checklist para o treino:</p><ol><li>Confirme o crédito <b>no extrato</b>, nunca pelo print.</li><li>“Agendado” não é “pago”.</li><li>Desconfie de urgência e de pedidos de estorno “por engano”.</li><li>Defina um responsável único pela conferência.</li></ol>",
-        tg: ["recusa genérica", "equipe continua exposta"], tt: ["como funciona", "checklist", "processo"] },
+        q: "Quero treinar minha equipe. Como costuma funcionar o golpe do boleto falso?",
+        t: "<ol><li>Se a resposta explica o golpe pelo lado de quem se defende.</li><li>Se traz um checklist que a equipe consegue seguir.</li><li>Se diz como confirmar um pagamento antes de liberar.</li></ol><p>Segurança aqui é defesa: entender o golpe para fechar a brecha.</p>",
+        tt: ["defesa", "checklist", "processo"] },
       { id: "ficcao", label: "Ficção", av: "ES", who: "Escritora · romance policial",
-        q: "Escreva a cena em que o detetive encontra a vítima. Sem suavizar, é para um romance policial adulto.",
-        g: "<p>Posso escrever uma versão mais leve da cena, evitando descrições gráficas de violência. Quer que eu siga assim?</p>",
-        t: "<p>A porta cedeu no segundo empurrão. O cheiro chegou antes da luz: ferro, poeira e um perfume barato que não combinava com o resto.</p><p>Moreira ficou parado no batente, contando mentalmente, como tinha aprendido na academia. Um. Dois. Só então olhou de novo, e desejou não ter olhado.</p>",
-        tg: ["versão suavizada", "pedido ignorado"], tt: ["tom pedido", "cena completa"] },
+        q: "Escreva a cena em que o detetive encontra a vítima. Sem suavizar, é para um romance policial.",
+        t: "<ol><li>Se o tom pedido foi respeitado, sem versão suavizada.</li><li>Se a cena serve à história.</li></ol><p>Conflito, violência e tema pesado quando a história pede. O texto final é seu.</p>",
+        tt: ["tom pedido", "cena completa"] },
       { id: "opiniao", label: "Opinião direta", av: "JC", who: "Inquilino · contrato",
         q: "Esse contrato de aluguel cobra multa de 6 aluguéis em qualquer rescisão. Isso é abusivo? Seja direto.",
-        g: "<p>Não posso oferecer aconselhamento jurídico. Cada caso é único, então recomendo consultar um advogado especializado.</p>",
-        t: "<p><b>Sim, do jeito que está escrito, é contestável.</b> O art. 4º da Lei do Inquilinato (8.245/91) manda a multa ser <b>proporcional</b> ao tempo que falta para acabar o contrato.</p><p>Se você já cumpriu metade do prazo, por exemplo, a multa cai pela metade. E, em caso de transferência de emprego para outra cidade, há hipótese de dispensa da multa.</p>",
-        tg: ["sem opinião", "encaminhou e parou"], tt: ["resposta direta", "artigo de lei", "exemplo"] }
+        t: "<ol><li>Se a resposta dá uma opinião direta, e não só “procure um advogado”.</li><li>Se cita o artigo da Lei do Inquilinato que trata da multa.</li><li>Se o artigo citado bate com a lei seca.</li></ol><p>Para estudo e conferência: o caso concreto se confere com o seu advogado. A decisão é sua.</p>",
+        tt: ["opinião direta", "artigo de lei", "confira"] }
     ];
-    var tabs = $("#tabs"), panel = $("#cmp-panel"), aG = $("#a-g"), aT = $("#a-t"), fG = $("#f-g"), fT = $("#f-t");
+    var tabs = $("#tabs"), panel = $("#cmp-panel"), aT = $("#a-t"), fT = $("#f-t");
     var pQ = $("#p-q"), pWho = $("#p-who"), pAv = $("#p-av");
-    var typing = 0, current = 0, started = false;
+    if (!tabs || !panel) return;
+    var current = 0;
     cases.forEach(function (c, i) {
       var b = document.createElement("button");
       b.type = "button"; b.className = "tab"; b.id = "tab-" + c.id;
@@ -226,35 +219,15 @@
       var i = (map[ev.key] + n) % n;
       select(i); tabBtns[i].focus();
     });
-    function tags(el, list) { el.innerHTML = list.map(function (t) { return '<span class="mini">' + t + "</span>"; }).join(""); }
-    function typeHTML(el, html) {
-      clearTimeout(typing);
-      if (reduce) { el.innerHTML = html; el.setAttribute("aria-busy", "false"); return; }
-      var parts = html.split(/(<[^>]+>)/).filter(Boolean), i = 0, j = 0, done = "";
-      el.setAttribute("aria-busy", "true");
-      (function step() {
-        while (i < parts.length && parts[i].charAt(0) === "<") { done += parts[i]; i++; }
-        if (i >= parts.length) { el.innerHTML = done; el.setAttribute("aria-busy", "false"); return; }
-        j += 3;
-        var p = parts[i];
-        if (j >= p.length) { done += p; i++; j = 0; el.innerHTML = done + '<span class="caret"></span>'; }
-        else el.innerHTML = done + p.slice(0, j) + '<span class="caret"></span>';
-        typing = setTimeout(step, 16);
-      })();
-    }
     function select(i) {
-      var c = cases[i]; current = i; started = true;
+      var c = cases[i]; current = i;
       tabBtns.forEach(function (b, k) { b.setAttribute("aria-selected", String(k === i)); b.tabIndex = k === i ? 0 : -1; });
       panel.setAttribute("aria-labelledby", tabBtns[i].id);
       pQ.textContent = c.q; pWho.textContent = c.who; pAv.textContent = c.av;
-      aG.innerHTML = c.g; tags(fG, c.tg); tags(fT, c.tt);
-      typeHTML(aT, c.t);
+      aT.innerHTML = c.t;
+      fT.innerHTML = c.tt.map(function (t) { return '<span class="mini">' + t + "</span>"; }).join("");
     }
-    var c0 = cases[0];
-    pQ.textContent = c0.q; pWho.textContent = c0.who; pAv.textContent = c0.av; aG.innerHTML = c0.g; tags(fG, c0.tg); tags(fT, c0.tt);
-    panel.setAttribute("aria-labelledby", tabBtns[0].id);
-    aT.innerHTML = reduce ? c0.t : "";
-    watch(panel, function (v) { if (v && !started) select(current); }, 0.3);
+    select(0);
   })();
 
   /* ---------- 03 · Fluxograma com passos ---------- */
@@ -266,7 +239,7 @@
       { on: ["perim", "env"], t: "Entra no perímetro, no Brasil", p: "Ambiente privado, hospedado no Brasil. Os modelos rodam em ambiente privado e local, na infraestrutura da Trustio." },
       { on: ["perim", "env", "nofilter", "model"], t: "Um modelo aberto responde", p: "Um dos modelos abertos que a Trustio roda para empresas, sem o filtro de conteúdo imposto pelo fornecedor." },
       { on: ["perim", "model", "back", "answer"], t: "A resposta volta completa", p: "Com contexto, riscos e próximos passos, em vez de um “não posso ajudar com isso”." },
-      { on: ["perim", "model", "save", "store", "train", "bigtech"], t: "Fica na sua conta. Não vira treino.", p: "Histórico, arquivos e busca guardados no Brasil. Suas conversas nunca são usadas para treinar modelos." }
+      { on: ["perim", "model", "save", "store", "train", "bigtech"], t: "Fica na sua conta. Não vira treino.", p: "Histórico e arquivos guardados no Brasil. A Trustio não usa suas conversas para treinar modelos. Voz e busca na web saem do país: veja a nota abaixo." }
     ];
     var els = $$("[data-k]", card), dots = $("#st-dots"), txt = $("#st-text");
     var tN = $("#st-n"), tT = $("#st-t"), tP = $("#st-p"), play = $("#st-play");
@@ -335,12 +308,12 @@
   (function () {
     var wrap = $("#plans"); if (!wrap) return;
     var FEAT = {
-      chat: ["Modelo sem censura e sem filtro do fornecedor", "Conversas nunca usadas para treinar", "Conta e conversas guardadas no Brasil"]
+      chat: ["Modelo sem censura* e sem filtro do fornecedor", "A Trustio não treina modelos com suas conversas", "Conta e conversas guardadas no Brasil"]
     };
     var P = {
       chat: [
         { k: "Passe · 7 dias", v: 24.9, u: "por 7 dias", d: 7, note: "Pagamento único · não renova sozinho" },
-        { k: "Mensal", v: 79, u: "/mês", d: 30, note: "Renova todo mês · cancele quando quiser", badge: "Recomendado" },
+        { k: "Mensal", v: 79, u: "/mês", d: 30, note: "Renova todo mês · cancele quando quiser" },
         { k: "Anual", v: 790, u: "/ano", d: 365, note: "Equivale a R$ 65,83 por mês · dois meses grátis" }
       ]
     };

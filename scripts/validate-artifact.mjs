@@ -84,10 +84,9 @@ for (const [path, expectedLocation] of [
 // worker e a da própria página do chat) precisa liberar o script e o envio, senão o chat some
 // das estatísticas sem nenhum outro sinal.
 const ANALYTICS = [["script-src", "https://static.cloudflareinsights.com"], ["connect-src", "https://cloudflareinsights.com"]];
-// A abertura do chat (/app/) usa vídeo do CloudFront e fontes de CDN.
+// O chat (/app/) ainda libera mídia do CloudFront. As fontes de CDN saíram: a Geist vem do próprio site
+// (checklist da campanha, item 10: nenhuma tag de terceiro).
 const HERO = [
-  ["style-src", "https://fonts.googleapis.com"], ["style-src", "https://db.onlinewebfonts.com"],
-  ["font-src", "https://fonts.gstatic.com"], ["font-src", "https://db.onlinewebfonts.com"],
   ["media-src", "https://d8j0ntlcm91z4.cloudfront.net"]
 ];
 const diretiva = (csp, nome) => (csp.split(";").map((d) => d.trim()).find((d) => d.startsWith(nome + " ")) ?? "").split(/\s+/);

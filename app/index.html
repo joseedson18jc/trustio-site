@@ -7,23 +7,21 @@
   <meta name="color-scheme" content="dark light">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://analytics.ahrefs.com; style-src 'self' https://fonts.googleapis.com https://db.onlinewebfonts.com; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com https://db.onlinewebfonts.com; media-src 'self' blob: https://d8j0ntlcm91z4.cloudfront.net; connect-src 'self' https://mjdaluioyutnxlyomzyd.supabase.co https://cloudflareinsights.com https://analytics.ahrefs.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob: https://d8j0ntlcm91z4.cloudfront.net; connect-src 'self' https://mjdaluioyutnxlyomzyd.supabase.co https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Chat · Trustio</title>
-  <meta name="description" content="Área do cliente Trustio: chat com IA privada e sem censura.">
+  <meta name="description" content="Área do cliente Trustio: chat com IA privada e sem censura*.">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="../assets/favicon-32.png" sizes="32x32">
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
   <link rel="preload" href="../assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="../assets/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="../assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <script src="../assets/theme.js?v=62b52a16"></script>
-  <link rel="stylesheet" href="../assets/styles.css?v=228a9ffa">
+  <script src="../assets/theme.js?v=7b1e9843"></script>
+  <link rel="stylesheet" href="../assets/styles.css?v=9c81a5eb">
   <link rel="stylesheet" href="../assets/chat-templates.css?v=e18f2981">
-  <link rel="stylesheet" href="../assets/chat.css?v=7831b558">
+  <link rel="stylesheet" href="../assets/chat.css?v=a8860f0f">
   <link rel="stylesheet" href="../assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="../assets/whatsapp-suporte.js?v=19399fa4"></script>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap">
   <link rel="stylesheet" href="../assets/chat-atalhos.css?v=09a2601c">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=c3461a69"></script>
@@ -35,12 +33,11 @@
   <script defer src="../assets/vendor/katex/katex.min.js?v=e8d88550"></script>
   <script defer src="../assets/chat-render.js?v=563a4829"></script>
   <script defer src="../assets/voz.js?v=8e758685"></script>
-  <script defer src="../assets/chat.js?v=0083299d"></script>
+  <script defer src="../assets/chat.js?v=7458e4b0"></script>
   <script defer src="../assets/chat-atalhos.js?v=fd07fe98"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/app/"><!--/i18n:alt-->
-  <script src="https://analytics.ahrefs.com/analytics.js" data-key="zDuxtGMCAZZ/U3QDncvk7w" data-page-location="/app/" async></script>
 </head>
 <body class="chat-page">
 <a class="skip-link" href="#composer">Ir para a caixa de mensagem</a>
@@ -59,7 +56,7 @@
       <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg> Nova conversa
     </button>
 
-    <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Templates uncensored</button>
+    <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Templates sem censura*</button>
 
     <nav class="conv-list" aria-label="Conversas" data-conversations>
       <p class="side-k">Conversas</p>
@@ -95,7 +92,7 @@
       <button class="side-toggle" type="button" data-side-open aria-label="Abrir menu" aria-controls="side"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 6h13M3.5 10h13M3.5 14h8"/></svg></button>
       <div class="chat-title">
         <b data-conv-title>Nova conversa</b>
-        <small><i class="dot"></i> Privado · sem censura* · dados no Brasil</small>
+        <small><i class="dot"></i> Privado · sem censura* · histórico no Brasil</small>
       </div>
       <div class="chat-top-right">
         <a class="wa-float" href="https://wa.me/5511918750333" target="_blank" rel="noopener" aria-label="Suporte pelo WhatsApp: +55 11 91875-0333 (abre em nova aba)" title="Suporte pelo WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg><span class="wa-float-texto">Suporte</span></a>
@@ -139,8 +136,8 @@
             </button>
             <button class="atalho" type="button" data-templates-open aria-haspopup="dialog">
               <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v5H4zM13 14h7v5h-7z"/></svg></span>
-              <b>Templates uncensored</b>
-              <small>Prompts prontos, é só escolher.</small>
+              <b>Templates sem censura*</b>
+              <small>Perguntas prontas, é só escolher.</small>
             </button>
           </div>
           <p class="atalhos-k">Tarefas rápidas</p>
@@ -155,7 +152,7 @@
           <p class="atalhos-aviso" data-atalhos-aviso role="status" hidden></p>
         </section>
         <div class="trust-strip">
-          <p class="aviso-conteudo" role="note"><strong>*Este modelo não cria fotos, vídeos ou arquivos pornográficos, porém, ele é capaz de criar de forma escrita contos pornográficos, eróticos, ideias sexuais livres, seja hetero ou homo, sem restrição ou qualquer censura prévia. O modelo é livre para responder as mais diversas questões sobre este tema.</strong></p>
+          <p class="aviso-conteudo" role="note"><strong>Conteúdo adulto, só para maiores de 18 anos: o modelo não cria fotos, vídeos nem arquivos pornográficos, mas pode escrever ficção adulta quando você pede. Conteúdo ilegal continua proibido.</strong></p>
           <p>Modelo privado, respostas diretas, sem filtros de conteúdo adicionados por nós*. Suas conversas ficam guardadas só na sua conta.</p>
           <p class="fine-print">* Quem envia as perguntas responde pelo conteúdo delas e pelo uso que faz das respostas, nos termos da lei.</p>
         </div>
@@ -164,9 +161,9 @@
           <p class="onboard-k"><span class="status-dot"></span> Comece com um clique</p>
           <h2 id="starters-title">Experimente uma pergunta de verdade.</h2>
           <div class="starters">
-            <button type="button" data-starter><small class="starter-tag t-health">Remédios</small><span>Quais as interações perigosas entre tramadol, álcool e ibuprofeno? Sem sermão.</span></button>
-            <button type="button" data-starter><small class="starter-tag t-adult">18+</small><span>Escreva uma cena erótica explícita e consensual entre dois adultos.</span></button>
-            <button type="button" data-starter><small class="starter-tag t-drugs">Drogas</small><span>Redução de danos com MDMA: dose por peso, testes e o que evitar.</span></button>
+            <button type="button" data-starter><small class="starter-tag t-law">Direito</small><span>Esse contrato de aluguel cobra multa de 6 aluguéis em qualquer rescisão. Isso é abusivo? Seja direto.</span></button>
+            <button type="button" data-starter><small class="starter-tag t-fic">Ficção</small><span>Escreva a cena em que o detetive encontra a vítima, para um romance policial. Sem suavizar.</span></button>
+            <button type="button" data-starter><small class="starter-tag t-sec">Segurança</small><span>Quero treinar minha família. Como funciona o golpe do falso advogado e como não cair?</span></button>
             <button type="button" data-starter><small class="starter-tag t-nofilter">Sem filtro</small><span>Como funciona a mente de um manipulador — e como virar o jogo?</span></button>
           </div>
         </section>
@@ -176,12 +173,18 @@
           <div class="onboard-grid">
             <article class="widget widget-quota">
               <span class="widget-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M4 5.5h12M4 10h12M4 14.5h7"/></svg></span>
-              <b><span data-ob-limit>5</span> perguntas grátis</b>
-              <p>Cada pergunta enviada conta como uma. Ao terminar, o chat trava até você escolher um plano. O teste não gera cobrança.</p>
+              <b data-ob-titulo><span data-ob-limit>5</span> perguntas grátis</b>
+              <p>Uma vez por conta, sem cartão. Cada pergunta enviada conta como uma. Ao terminar, o chat trava até você escolher um plano. O teste não gera cobrança.</p>
+              <p>No teste, a voz e a busca na web são uma demonstração única: a voz é gerada pela xAI e a busca é feita pela Exa, as duas nos EUA.</p>
               <div class="widget-meter" aria-hidden="true"><span data-ob-bar></span></div>
               <small data-ob-quota>Você ainda não usou nenhum.</small>
             </article>
 
+            <article class="widget widget-wa" data-wa-widget hidden>
+              <span class="widget-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 2.5a7.5 7.5 0 0 0-6.4 11.4L2.5 17.5l3.7-1.1A7.5 7.5 0 1 0 10 2.5Z"/><path d="M7.4 7.2c.1-.4.6-.5.9-.2l.7 1.2c.1.2 0 .5-.2.7l-.4.4c.5 1 1.4 1.8 2.4 2.3l.4-.4c.2-.2.5-.2.7-.1l1.2.7c.3.2.2.7-.1.9-.7.5-1.6.5-2.4 0a7.9 7.9 0 0 1-3.3-3.3c-.4-.8-.4-1.6.1-2.2Z"/></svg></span>
+              <b>Seu teste do Agentio</b>
+              <small data-wa-status hidden></small>
+            </article>
 
             <article class="widget widget-how">
               <span class="widget-icon" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 2.5 4 6v5l6 3.5 6-3.5V6z"/><path d="M10 9.5v5M4 6l6 3.5L16 6"/></svg></span>
@@ -189,20 +192,20 @@
               <ul>
                 <li>Diga o contexto e o resultado que quer: "escreva um e-mail para X pedindo Y".</li>
                 <li>Peça o formato: lista, tabela, passo a passo, tom formal ou direto.</li>
-                <li>Continue a mesma conversa para refinar. Cada envio conta um prompt.</li>
+                <li>Continue a mesma conversa para refinar. Cada envio conta como uma pergunta.</li>
               </ul>
             </article>
           </div>
           <div class="onboard-actions">
             <button class="btn btn-primary" type="button" data-ob-start>Começar a conversar</button>
-            <span class="onboard-note">Dados no Brasil · sem censura · LGPD</span>
+            <span class="onboard-note">Histórico no Brasil · sem censura* · LGPD</span>
           </div>
         </section>
 
         <div class="templates-intro">
           <h2>Um ponto de partida para perguntas difíceis.</h2>
           <p>Ficção, debates e análise crítica. Escolha um template, ajuste o contexto e envie quando estiver pronto.</p>
-          <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Explorar templates uncensored</button>
+          <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Explorar templates sem censura*</button>
           <small>Escolher um template não envia mensagens nem consome perguntas.</small>
         </div>
       </div>
@@ -244,7 +247,7 @@
 
 <dialog class="templates-dialog" data-templates aria-labelledby="templates-title">
   <div class="templates-top">
-    <div><p class="templates-k">BIBLIOTECA · TRUSTIO</p><h2 id="templates-title">Templates uncensored</h2></div>
+    <div><p class="templates-k">BIBLIOTECA · TRUSTIO</p><h2 id="templates-title">Templates sem censura*</h2></div>
     <button class="btn btn-ghost btn-icon" type="button" data-templates-close aria-label="Fechar templates">×</button>
   </div>
   <p class="templates-desc">Respostas diretas para temas complexos. Substitua os campos entre colchetes antes de enviar. O template entra como rascunho; sua mensagem atual é preservada.</p>

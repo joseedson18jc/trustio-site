@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="noindex, nofollow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://analytics.ahrefs.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://analytics.ahrefs.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Agentes de voz · Trustio Console</title>
   <meta name="description" content="Console da Trustio: crie, ajuste e implante agentes de voz privados — modelo, voz, playbook, ferramentas e guardrails, com testes ao vivo no navegador.">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
@@ -16,14 +16,13 @@
   <link rel="preload" href="../assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="../assets/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="../assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="../assets/styles.css?v=228a9ffa">
+  <link rel="stylesheet" href="../assets/styles.css?v=9c81a5eb">
   <link rel="stylesheet" href="../assets/console.css?v=580052a4">
   <script defer src="../assets/orb.js?v=2a1bad38"></script>
   <script defer src="../assets/console.js?v=f8156cb9"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/console/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/console/">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/console/"><!--/i18n:alt-->
-  <script src="https://analytics.ahrefs.com/analytics.js" data-key="zDuxtGMCAZZ/U3QDncvk7w" data-page-location="/console/" async></script>
 </head>
 <body class="console-page">
 <a class="skip-link" href="#main">Ir para o conteúdo</a>
@@ -61,7 +60,7 @@
         <button type="button" class="is-on" data-env="prod">Produção</button>
         <button type="button" data-env="sandbox">Sandbox</button>
       </div>
-      <p class="side-note"><i></i> Região <b>br-sao-1</b> · dados no Brasil</p>
+      <p class="side-note"><i></i> Ambiente de demonstração · voz processada pela xAI, nos EUA</p>
     </div>
   </aside>
 
@@ -83,13 +82,13 @@
       <div class="page-head">
         <div>
           <h1>Agentes de voz</h1>
-          <p>Cinco agentes em produção no perímetro <b>br-sao-1</b>. Selecione um para editar o playbook, as ferramentas e testar ao vivo.</p>
+          <p>Cinco agentes de exemplo neste ambiente de demonstração. Selecione um para editar o playbook, as ferramentas e testar ao vivo.</p>
         </div>
         <div class="stat-row">
           <div class="stat"><b>1.284</b><small>chamadas · 24 h</small></div>
           <div class="stat"><b>412<em>ms</em></b><small>latência p95</small></div>
           <div class="stat"><b>92<em>%</em></b><small>resolvidas sem humano</small></div>
-          <div class="stat"><b>0</b><small>bytes fora do perímetro</small></div>
+          <div class="stat"><b>38</b><small>transferências a humano</small></div>
         </div>
       </div>
 
@@ -189,10 +188,10 @@ LIMITES
           </div>
 
           <div class="card">
-            <div class="card-h"><h2>Guardrails</h2><span>LGPD by design</span></div>
+            <div class="card-h"><h2>Guardrails</h2><span>LGPD desde o projeto</span></div>
             <ul class="guards">
               <li><span class="dot ok"></span><b>Mascaramento de PII</b> antes de sair do perímetro <em>obrigatório</em></li>
-              <li><span class="dot ok"></span><b>Gravação e transcrição</b> retidas em br-sao-1 <em>90 dias</em></li>
+              <li><span class="dot ok"></span><b>Gravação e transcrição</b> retidas por <em>90 dias</em></li>
               <li><span class="dot ok"></span><b>Aprovação humana</b> acima de R$ 500 <em>ativo</em></li>
               <li><span class="dot warn"></span><b>Palavras bloqueadas</b> lista da marca <em>3 termos</em></li>
             </ul>
@@ -220,7 +219,7 @@ LIMITES
           <div class="test-card">
             <div class="card-h"><h2>Eventos</h2><span>realtime</span></div>
             <pre class="events" id="tEvents">session.update      · voice=ara, vad=server_vad
-session.created     · br-sao-1
+session.created     · demo
 </pre>
           </div>
 

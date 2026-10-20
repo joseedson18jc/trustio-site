@@ -169,6 +169,16 @@
     "Você responde pelo conteúdo que envia e pelo uso que faz das respostas, nos termos da lei. Confira informações importantes: a IA pode errar.": "You are responsible for what you send and how you use the answers, under the law. Double-check what matters: AI can be wrong.",
     "Experimentar grátis": "Try it free",
     "Ver os planos": "See the plans",
-    "Para empresas · Modelos de Fronteira": "For companies · Frontier models"
+    "Para empresas · Modelos de Fronteira": "For companies · Frontier models",
+    "Trustio Flash e Trustio Heavy Thinking: os modelos próprios da Trustio, sem censura* e rodando no Brasil. Para empresas, também GPT-6 Astra, Claude Fable 5.1 e Opus 5.1 e Kimi K3.1 dentro do seu perímetro.": "Trustio Flash and Trustio Heavy Thinking: Trustio’s own models, uncensored* and running in Brazil. For businesses, also GPT-6 Astra, Claude Fable 5.1 and Opus 5.1 and Kimi K3.1 inside your perimeter.",
+    "Trustio Flash, para respostas na hora, e Trustio Heavy Thinking, que pensa antes de responder. Sem o filtro do fornecedor, rodando no Brasil.": "Trustio Flash, for instant answers, and Trustio Heavy Thinking, which thinks before it answers. No vendor filter, running in Brazil.",
+    "Dois modelos próprios no chat da Trustio: o Flash, que responde na hora, e o Heavy Thinking, que pensa antes de responder. Sem o filtro do fornecedor e rodando no Brasil. Para empresas, os modelos de fronteira dos maiores laboratórios, dentro do seu perímetro.": "Two in-house models in the Trustio chat: Flash, which answers instantly, and Heavy Thinking, which thinks before it answers. No vendor filter, running in Brazil. For businesses, frontier models from the largest labs, inside your perimeter.",
+    "Os dois modelos do chat da Trustio. Rodam na infraestrutura própria da Trustio, no Brasil, sem o filtro de conteúdo do fornecedor e sem usar suas conversas para treinar modelos. Você escolhe qual responde, a cada mensagem, logo abaixo da caixa de texto.": "The two models in the Trustio chat. They run on Trustio’s own infrastructure, in Brazil, with no vendor content filter and without using your conversations to train models. You pick which one answers, on every message, right below the text box.",
+    "Sem o filtro do fornecedor": "No vendor filter",
+    "42 de 42": "42 of 42",
+    "teste interno, 10/10/2026": "internal test, 10/10/2026",
+    "Rodam na infraestrutura da Trustio, no Brasil. A Trustio não usa suas conversas para treinar modelos.": "They run on Trustio’s infrastructure, in Brazil. Trustio does not use your conversations to train models.",
+    "5 perguntas, uma vez por conta": "5 questions, once per account",
+    "5 perguntas grátis, uma vez por conta, após confirmar o e-mail. Sem cartão.": "5 free questions, once per account, after you confirm your email. No card."
   }
 }

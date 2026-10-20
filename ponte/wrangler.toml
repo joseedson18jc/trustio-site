@@ -1,0 +1,14 @@
+# Ponte temporária (20/10/2026): o certificado do GitHub Pages para trustio.com.br venceu
+# e o Cloudflare em "Full (strict)" passou a responder 526. Esta ponte serve o site direto
+# dos arquivos do main (raw.githubusercontent.com), sem passar pela origem do Pages.
+# Remover quando o SSL da zona estiver em "Full": apagar estas rotas e o binding PONTE do porteiro.
+name = "trustio-ponte"
+main = "src/index.js"
+compatibility_date = "2026-10-07"
+routes = [
+  { pattern = "trustio.com.br/*", zone_name = "trustio.com.br" },
+  { pattern = "www.trustio.com.br/*", zone_name = "trustio.com.br" },
+]
+
+[observability]
+enabled = true

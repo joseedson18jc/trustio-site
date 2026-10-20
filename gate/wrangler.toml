@@ -22,3 +22,9 @@ SUPABASE_PUBLISHABLE_KEY = "sb_publishable_mmbbWAm8vvNMsvSle89ITg_DkVcmDHW"
 
 [observability]
 enabled = true
+
+# Ponte temporária (20/10/2026, certificado do GitHub Pages vencido): a origem vem do
+# worker trustio-ponte. Remover este bloco quando o SSL da zona estiver em "Full".
+[[services]]
+binding = "PONTE"
+service = "trustio-ponte"

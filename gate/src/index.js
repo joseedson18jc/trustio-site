@@ -170,11 +170,17 @@ function semAcesso(url) {
   return new Response(html, { status: 403, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
 }
 
+// Origem do site: com o binding PONTE (ponte temporária enquanto o certificado do
+// GitHub Pages está vencido), o conteúdo vem do worker trustio-ponte; sem ele, da origem.
+function origemDe(req, env) {
+  return env && env.PONTE ? env.PONTE.fetch(req) : fetch(req);
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     const rota = ROTAS.find((r) => r.caminho.test(url.pathname));
-    if (!rota) return fetch(req);
+    if (!rota) return origemDe(req, env);
 
     const token = lerCookie(req.headers.get("cookie"), COOKIE);
     const sessao = token && (await verificarToken(token, env));
@@ -182,7 +188,7 @@ export default {
 
     if (rota.papeis && !rota.papeis.includes(await papelDe(token, sessao.sub, env))) return semAcesso(url);
 
-    const origem = await fetch(req);
+    const origem = await origemDe(req, env);
     const resposta = new Response(origem.body, origem);
     resposta.headers.set("Cache-Control", "private, no-store");
     return resposta;

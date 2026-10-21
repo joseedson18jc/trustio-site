@@ -267,3 +267,89 @@ test('email tracking deduplica eventos, preserva engajamento fora de ordem e lim
     }
   }finally{await db.close();}
 });
+
+// Teste do agente no WhatsApp desligado (G2): a migração entra só nestes testes, para os
+// anteriores continuarem cobrindo o mecanismo de ativação.
+async function setupTesteWhatsapp() {
+  const ctx = await setup();
+  const { db } = ctx;
+  await db.exec(`alter table auth.users add raw_user_meta_data jsonb default '{}'::jsonb;`);
+  await db.exec(definition(migration('20260920120500_whatsapp_trial_guard_bypass.sql'), 'request_whatsapp_trial'));
+  await db.exec(definition(migration('20260929150000_agentio_automatico.sql'), 'handle_user_confirmed'));
+  await db.exec(`create trigger on_auth_user_confirmed after update on auth.users for each row execute function handle_user_confirmed();`);
+  await db.exec(migration('20261019130000_desliga_teste_whatsapp.sql'));
+  const lead = async n => (await db.query('select * from crm_leads where id=$1', [uid(n)])).rows[0];
+  const chave = async valor => { await db.exec('reset role'); await db.query("update app_settings set value=$1::jsonb where key='whatsapp_teste_aberto'", [valor]); };
+  return { ...ctx, lead, chave };
+}
+test('teste do WhatsApp fechado: a pessoa não consegue pedir o teste', async () => {
+  const {db,actor,lead}=await setupTesteWhatsapp();
+  try {
+    assert.equal((await db.query("select value from app_settings where key='whatsapp_teste_aberto'")).rows[0].value,false);
+    await actor(2);
+    const r=(await db.query("select request_whatsapp_trial('11 99999-9999') r")).rows[0].r;
+    assert.deepEqual(r,{ok:false,error:'teste_encerrado'});
+    await db.exec('reset role');
+    assert.equal((await lead(2)).whatsapp_trial_status,'nao_solicitado');
+  }finally{await db.close();}
+});
+test('teste do WhatsApp fechado: confirmar o e-mail com telefone no cadastro não começa o teste nem falha', async () => {
+  const {db,lead}=await setupTesteWhatsapp();
+  try {
+    await db.query(`insert into auth.users(id,email,email_confirmed_at,banned_until,raw_user_meta_data) values($1,'tel@test',null,null,'{"telefone":"(11) 99999-9999"}')`,[uid(6)]);
+    await db.query("insert into crm_leads(id,user_id,email,status) values($1,$1,'tel@test','novo')",[uid(6)]);
+    await db.query('update auth.users set email_confirmed_at=now() where id=$1',[uid(6)]);
+    const l=await lead(6);
+    assert.equal(l.status,'email_confirmado');
+    assert.equal(l.whatsapp_trial_status,'nao_solicitado');
+    assert.equal(l.whatsapp_numero,null);
+  }finally{await db.close();}
+});
+test('teste do WhatsApp fechado: a equipe não ativa, nem pela RPC nem editando o lead', async () => {
+  const {db,actor,lead}=await setupTesteWhatsapp();
+  try {
+    await actor(1);
+    await assert.rejects(db.query('select activate_whatsapp_trial($1,3)',[uid(2)]),/teste do agente no WhatsApp está desligado/);
+    await assert.rejects(db.query("update crm_leads set whatsapp_trial_status='ativo' where id=$1",[uid(2)]),/teste do agente no WhatsApp está desligado/);
+    await assert.rejects(db.query("update crm_leads set whatsapp_trial_status='solicitado', whatsapp_numero='11999999999' where id=$1",[uid(2)]),/teste do agente no WhatsApp está desligado/);
+    await db.exec('reset role');
+    await assert.rejects(db.query("insert into crm_leads(id,user_id,email,whatsapp_trial_status) values($1,$1,'novo@test','ativo')",[uid(7)]),/teste do agente no WhatsApp está desligado/);
+    assert.equal((await lead(2)).whatsapp_trial_status,'nao_solicitado');
+  }finally{await db.close();}
+});
+test('teste do WhatsApp fechado: testes ativos e pedidos pendentes ainda podem ser encerrados', async () => {
+  const {db,actor,lead,chave}=await setupTesteWhatsapp();
+  try {
+    await chave('true');
+    await db.query("update crm_leads set whatsapp_trial_status='ativo', whatsapp_numero='11999999999' where id=$1",[uid(2)]);
+    await db.query("update crm_leads set whatsapp_trial_status='solicitado', whatsapp_numero='11988888888' where id=$1",[uid(3)]);
+    await chave('false');
+    await actor(1);
+    await db.query("update crm_leads set whatsapp_trial_status='encerrado' where id in ($1,$2)",[uid(2),uid(3)]);
+    await db.exec('reset role');
+    assert.equal((await lead(2)).whatsapp_trial_status,'encerrado');
+    assert.equal((await lead(3)).whatsapp_trial_status,'encerrado');
+    await actor(1);
+    await assert.rejects(db.query("update crm_leads set whatsapp_trial_status='ativo' where id=$1",[uid(2)]),/teste do agente no WhatsApp está desligado/);
+  }finally{await db.close();}
+});
+test('teste do WhatsApp: com a chave em true volta a funcionar; valor inválido conta como fechado', async () => {
+  const {db,actor,lead,chave}=await setupTesteWhatsapp();
+  try {
+    await chave('true');
+    await actor(2);
+    const r=(await db.query("select request_whatsapp_trial('11 99999-9999') r")).rows[0].r;
+    assert.equal(r.ok,true);assert.equal(r.status,'solicitado');
+    await actor(1);
+    await db.query('select activate_whatsapp_trial($1,3)',[uid(2)]);
+    await db.exec('reset role');
+    assert.equal((await lead(2)).whatsapp_trial_status,'ativo');
+    await chave('"talvez"');
+    await db.query(`insert into auth.users(id,email,email_confirmed_at,banned_until,raw_user_meta_data) values($1,'tel@test',null,null,'{"telefone":"11999999999"}')`,[uid(6)]);
+    await db.query("insert into crm_leads(id,user_id,email,status) values($1,$1,'tel@test','novo')",[uid(6)]);
+    await db.query('update auth.users set email_confirmed_at=now() where id=$1',[uid(6)]);
+    assert.equal((await lead(6)).whatsapp_trial_status,'nao_solicitado');
+    await actor(3);
+    assert.deepEqual((await db.query("select request_whatsapp_trial('11977777777') r")).rows[0].r,{ok:false,error:'teste_encerrado'});
+  }finally{await db.close();}
+});

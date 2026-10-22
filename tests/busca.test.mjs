@@ -1,7 +1,7 @@
 // Testes da busca na web do chat (supabase/functions/chat/busca.ts): pedido à Exa, limpeza dos
 // resultados, argumentos do modelo (não confiáveis) e a linha de fontes.
 import assert from "node:assert/strict";
-import { buscarNaWeb, instrucoesDeBusca, semNarracaoDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo, MAX_CONSULTA } from "../supabase/functions/chat/busca.ts";
+import { buscarNaWeb, instrucoesDeBusca, semNarracaoDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo, MAX_CONSULTA, aceitaPedidosDeBusca, MAX_RODADAS, rodadaSemResposta } from "../supabase/functions/chat/busca.ts";
 
 let n = 0;
 const t = async (name, fn) => { await fn(); n++; console.log("ok -", name); };
@@ -102,6 +102,27 @@ await t("conversa por voz: 3 resultados com trechos de 400", async () => {
   assert.equal(exa.ultima.body.numResults, 3);
   assert.deepEqual(exa.ultima.body.contents.highlights, { maxCharacters: 400 });
   assert.equal(exa.ultima.body.contents.maxAgeHours, 1);
+});
+
+await t("pedido de busca só vale numa rodada que ofereceu a ferramenta e antes do teto de rodadas", async () => {
+  assert.equal(aceitaPedidosDeBusca(true, 1), true);
+  assert.equal(aceitaPedidosDeBusca(true, MAX_RODADAS - 1), true);
+  // Depois do limite de buscas a rodada vai sem a ferramenta: um pedido que o modelo escreva assim mesmo
+  // não abre outra rodada (21 out 2026: a mesma narração e o mesmo pedido, 28 vezes seguidas).
+  assert.equal(aceitaPedidosDeBusca(false, 2), false);
+  assert.equal(aceitaPedidosDeBusca(true, MAX_RODADAS), false);
+  assert.equal(aceitaPedidosDeBusca(true, MAX_RODADAS + 20), false);
+});
+
+await t("rodada com pedido de busca ignorado e só a narração não pode parecer resposta pronta", async () => {
+  assert.equal(rodadaSemResposta(true, ""), true);
+  assert.equal(rodadaSemResposta(true, "  \n "), true);
+  // A frase exata de 21 out 2026, escrita junto com o pedido de busca em cada rodada.
+  assert.equal(rodadaSemResposta(true, "Dei uma olhada nas pesquisas mais recentes e já tenho os números pra você."), true);
+  const respostaLonga = "O dólar comercial fechou a R$ 5,40 nesta terça, alta de 0,8%. ".repeat(5);
+  assert.equal(rodadaSemResposta(true, respostaLonga), false);
+  assert.equal(rodadaSemResposta(false, ""), false);
+  assert.equal(rodadaSemResposta(false, "Dei uma olhada nas pesquisas mais recentes e já tenho os números pra você."), false);
 });
 
 console.log(`\n${n} testes passaram`);

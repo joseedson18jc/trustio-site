@@ -5,6 +5,23 @@
 
 export const NOME_FERRAMENTA = "buscar_na_web";
 export const MAX_CONSULTA = 300;
+// Teto de rodadas de uma mensagem: triagem + 5 buscas + a resposta, com folga de uma. 21 out 2026: com o
+// limite de buscas atingido, a rodada seguinte ia sem a ferramenta, mas o modelo (sem amostragem) escreveu
+// a mesma narração e o mesmo pedido de busca 28 vezes, e cada pedido abria outra rodada.
+export const MAX_RODADAS = 8;
+
+// Um pedido de busca só abre outra rodada se a rodada atual ofereceu a ferramenta e o teto não foi atingido.
+export function aceitaPedidosDeBusca(ferramentaNaRodada: boolean, rodada: number): boolean {
+  return ferramentaNaRodada && rodada < MAX_RODADAS;
+}
+
+// A rodada terminou com um pedido de busca ignorado e, no máximo, uma frase curta: é a narração antes da busca
+// ("já tenho os números pra você"), não uma resposta. Não pode ser entregue como pronta; o usuário recebe o
+// aviso de resposta interrompida. Um texto longo junto do pedido ainda conta como resposta.
+const MAX_NARRACAO = 200;
+export function rodadaSemResposta(pedidoIgnorado: boolean, textoDaRodada: string): boolean {
+  return pedidoIgnorado && textoDaRodada.trim().length < MAX_NARRACAO;
+}
 // 19 out 2026, medido na Exa de verdade (workflow medir-exa.yml): 4 resultados com trechos relevantes
 // (highlights) somam ~2.700 caracteres, contra 5–6 mil com 5 textos de 1.500. O modelo lê o prompt a
 // ~250 tokens/s, então isso tira ~4 s da resposta. O texto da página entra só se não houver trecho.

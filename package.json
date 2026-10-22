@@ -22,6 +22,7 @@
     "test:crm-audit": "node --test tests/crm-audit.test.mjs",
     "test:auth": "node tests/auth-config.test.mjs",
     "test:chat-render": "node tests/chat-render.test.mjs",
+    "test:skills": "node tests/skills-chat.test.mjs",
     "test:docx": "node tests/docx.test.mjs",
     "test:voz": "node tests/voz-texto.test.mjs && node tests/voz-provedores.test.mjs",
     "test:atribuicao": "node --test tests/atribuicao.test.mjs tests/eventos-funil-db.test.mjs",

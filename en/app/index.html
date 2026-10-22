@@ -19,7 +19,7 @@
   <script src="/assets/theme.js?v=7b1e9843"></script>
   <link rel="stylesheet" href="/assets/styles.css?v=9c81a5eb">
   <link rel="stylesheet" href="/assets/chat-templates.css?v=e18f2981">
-  <link rel="stylesheet" href="/assets/chat-skills.css?v=1057cd68">
+  <link rel="stylesheet" href="/assets/chat-skills.css?v=267330af">
   <link rel="stylesheet" href="/assets/chat.css?v=a8860f0f">
   <link rel="stylesheet" href="/assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="/assets/whatsapp-suporte.js?v=19399fa4"></script>
@@ -31,11 +31,11 @@
   <script defer src="/assets/ocr.js?v=333c1492"></script>
   <script defer src="/assets/docx.js?v=6706fb84"></script>
   <script defer src="/assets/chat-templates.js?v=09aa860d"></script>
-  <script defer src="/assets/chat-skills.js?v=016fb7a9"></script>
+  <script defer src="/assets/chat-skills.js?v=8732ec7c"></script>
   <script defer src="/assets/vendor/katex/katex.min.js?v=e8d88550"></script>
   <script defer src="/assets/chat-render.js?v=563a4829"></script>
   <script defer src="/assets/voz.js?v=8e758685"></script>
-  <script defer src="/assets/chat.js?v=7458e4b0"></script>
+  <script defer src="/assets/chat.js?v=bd342a1c"></script>
   <script defer src="/assets/chat-atalhos.js?v=fd07fe98"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
@@ -59,7 +59,7 @@
     </button>
 
     <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Uncensored* templates</button>
-    <button class="btn btn-ghost" type="button" data-skills-open aria-haspopup="dialog">Skills to download</button>
+    <button class="btn btn-ghost" type="button" data-skills-open aria-haspopup="dialog">Skills</button>
 
     <nav class="conv-list" aria-label="Conversations" data-conversations>
       <p class="side-k">Conversations</p>
@@ -144,8 +144,8 @@
             </button>
             <button class="atalho" type="button" data-skills-open aria-haspopup="dialog">
               <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg></span>
-              <b>Skills to download</b>
-              <small>15 ready-made skills for AI agents.</small>
+              <b>Skills</b>
+              <small>15 skills to use right here in the chat or download.</small>
             </button>
           </div>
           <p class="atalhos-k">Quick tasks</p>
@@ -228,6 +228,12 @@
     </div>
 
     <form class="composer" id="composer" data-composer action="/en/app/">
+      <div class="skill-ativa" data-skill-ativa hidden>
+        <span class="skill-ativa-k">Active skill</span>
+        <b data-skill-nome></b>
+        <button class="skill-ativa-btn" type="button" data-skill-trocar aria-haspopup="dialog">Change</button>
+        <button class="skill-ativa-x" type="button" data-skill-tirar aria-label="Turn off the skill">×</button>
+      </div>
       <div class="composer-box">
         <div class="anexos" data-anexos hidden aria-live="polite"></div>
         <div class="composer-row">
@@ -269,12 +275,13 @@
 
 <dialog class="templates-dialog skills-dialog" data-skills aria-labelledby="skills-title">
   <div class="templates-top">
-    <div><p class="templates-k">LIBRARY · TRUSTIO</p><h2 id="skills-title">Skills to download</h2></div>
+    <div><p class="templates-k">LIBRARY · TRUSTIO</p><h2 id="skills-title">Skills</h2></div>
     <button class="btn btn-ghost btn-icon" type="button" data-skills-close aria-label="Close skills">×</button>
   </div>
-  <p class="templates-desc">A skill is a folder of instructions that teaches an AI agent to do a task the right way. These 15 were picked and tested by Trustio's founder. Download the .zip and install it in the agent you use.</p>
+  <p class="templates-desc">A skill is a folder of instructions that teaches an AI agent to do a task the right way. These 15 were picked and tested by Trustio's founder. Use any of them right here in the chat with one click, or download the .zip for the agent you use.</p>
+  <p class="templates-desc skills-chat-nota">In the chat, the skill guides the conversation's answers until you change or turn it off. Scripts and files inside the .zip only run in your own agent.</p>
   <details class="skills-como">
-    <summary>How to install</summary>
+    <summary>How to install outside Trustio</summary>
     <ul>
       <li><b>Chat apps with Skills:</b> upload the .zip, without unzipping it, in the Skills area of the settings.</li>
       <li><b>Coding agents in the terminal:</b> unzip into the agent's skills folder. Each skill sits in its own folder, with the <code>SKILL.md</code> inside.</li>

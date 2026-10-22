@@ -497,8 +497,17 @@
     lembrarConversa(null);
     convTitle.textContent = T("Nova conversa", "New conversation");
     botoesDaConversa(false);
+    skillCarregando = null;
+    definirSkill("");
     renderConversations();
   }
+
+  // Skill ativa (assets/chat-skills.js). null = o script de skills não carregou: não manda o campo,
+  // e a função mantém a skill que a conversa já tinha.
+  // Enquanto a skill salva da conversa carrega, também não manda (senão "" apagaria a skill dela).
+  var skillCarregando = null;
+  function skillAtual() { return window.trustioSkills && !skillCarregando ? window.trustioSkills.atual() : null; }
+  function definirSkill(id) { if (window.trustioSkills) window.trustioSkills.definir(id); }
 
   function openConversation(id) {
     if (state.sending) return;
@@ -513,6 +522,13 @@
     var inner = ensureThreadInner();
     inner.innerHTML = "<p class=\"msg-meta\">" + T("Carregando…", "Loading…") + "</p>";
     renderConversations();
+    // Skill salva na conversa (assets/chat-skills.js mostra a barra acima da caixa de mensagem).
+    definirSkill("");
+    skillCarregando = id;
+    sb.from("conversations").select("skill").eq("id", id).maybeSingle().then(function (r) {
+      if (skillCarregando === id) skillCarregando = null;
+      if (state.conversationId === id && r && r.data && r.data.skill) definirSkill(r.data.skill);
+    }, function () { if (skillCarregando === id) skillCarregando = null; });
     sb.from("messages").select("role,content,created_at,model").eq("conversation_id", id).order("created_at", { ascending: true })
       .then(function (r) {
         // O usuário pode ter trocado de conversa enquanto esta carregava: só renderiza se ainda for a ativa.
@@ -694,13 +710,15 @@
         if (imagens.length) payload.append("imagens", JSON.stringify(imagens));
         if (state.modelos.length >= 2) payload.append("modelo", opcoes.modelo || modeloAtual() || "");
         if (opcoes.fala) payload.append("fala", opcoes.fala);
+        if (skillAtual() !== null) payload.append("skill", skillAtual());
         payload.append("audio_language", EN ? "en" : "pt");
         payload.append("audio", audio.file, audio.nome);
       } else {
         headers["Content-Type"] = "application/json";
         payload = JSON.stringify(Object.assign({ conversation_id: state.conversationId, message: text },
           imagens.length ? { imagens: imagens } : {},
-          state.modelos.length >= 2 ? { modelo: modeloAtual() || "" } : {}));
+          state.modelos.length >= 2 ? { modelo: modeloAtual() || "" } : {},
+          skillAtual() !== null ? { skill: skillAtual() } : {}));
       }
       return fetch(CFG.chatEndpoint, {
         method: "POST",
@@ -722,6 +740,8 @@
             if (!line) return;
             var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
             if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; lembrarConversa(d.conversation_id); }
+            // A função confirma a skill que valeu nesta mensagem (null = nenhuma).
+            if ("skill" in d) definirSkill(d.skill || "");
             if (typeof d.mensagem_usuario === "string") {
               var userBody = userEl.querySelector(".msg-body");
               if (userBody) userBody.innerHTML = renderUsuario(d.mensagem_usuario);

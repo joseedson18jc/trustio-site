@@ -14,7 +14,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   FERRAMENTA_BUSCA, NOME_FERRAMENTA, SEM_BUSCA, type Resultado,
-  buscarNaWeb, instrucoesDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo, semNarracaoDeBusca,
+  aceitaPedidosDeBusca, buscarNaWeb, instrucoesDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo, rodadaSemResposta,
+  semNarracaoDeBusca,
 } from "./busca.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -585,6 +586,9 @@ Deno.serve(async (req) => {
     const resultadosUsados: Resultado[] = [];
     const conversaDaBusca: unknown[] = [...anteriores, { role: "user", content: message }];
     let rodadaDeTriagem = triagemAtiva;
+    // A rodada atual ofereceu a ferramenta de busca? Só então um pedido de busca do modelo vale (21 out 2026).
+    let ferramentaNaRodada = buscaLigada;
+    let rodada = 0;
     // Se o servidor do modelo cair no meio de uma rodada sem ter escrito nada (sem finish_reason), a
     // função espera ele voltar (relança sozinho em ~10 s) e repete a mesma chamada uma vez (19 out 2026).
     let refazerRodada: (() => Promise<Response>) | null = imagens.length ? null
@@ -624,11 +628,13 @@ Deno.serve(async (req) => {
       }
     };
     rodadas: while (true) {
+    rodada++;
     const reader = atual.body!.getReader();
     let buffer = "";
     const chamadas: { id: string; nome: string; args: string }[] = [];
     const inicioDaRodada = full.length;
     let triagemRespondeu = false;
+    let pedidoIgnorado = false;
     fim = null;
     try {
       leitura: while (true) {
@@ -648,7 +654,7 @@ Deno.serve(async (req) => {
             const d = escolha.delta ?? {};
             if (escolha.finish_reason) fim = escolha.finish_reason;
             // Pedido de busca chega em pedaços (id e nome no primeiro, argumentos espalhados).
-            if (buscaLigada && Array.isArray(d.tool_calls)) {
+            if (aceitaPedidosDeBusca(ferramentaNaRodada, rodada) && Array.isArray(d.tool_calls)) {
               for (const tc of d.tool_calls) {
                 const i = Number.isInteger(tc?.index) ? tc.index : 0;
                 if (i < 0 || i > 7) continue;
@@ -657,6 +663,8 @@ Deno.serve(async (req) => {
                 if (typeof tc.function?.name === "string") c.nome += tc.function.name;
                 if (typeof tc.function?.arguments === "string") c.args += tc.function.arguments;
               }
+            } else if (buscaLigada && Array.isArray(d.tool_calls) && d.tool_calls.length) {
+              pedidoIgnorado = true;
             }
             // Triagem: nada dela vai ao navegador nem conta tokens. Texto antes de qualquer pedido de
             // busca = a pergunta não pede busca: para de ler e vai para a chamada normal.
@@ -712,6 +720,7 @@ Deno.serve(async (req) => {
         interrompido = false;
         console.log("triagem_direta", Date.now() - inicioDoTrabalho, "ms");
         refazerRodada = () => pedirModelo(conversaDaBusca, buscaLigada);
+        ferramentaNaRodada = buscaLigada;
         try {
           atual = await pedirModelo(conversaDaBusca, buscaLigada);
         } catch (err) {
@@ -746,6 +755,10 @@ Deno.serve(async (req) => {
       } catch (err) { console.error("modelo_refeito_erro", err); }
       erroRodada = "modelo_indisponivel";
       break rodadas;
+    }
+    if (!interrompido && !pedidos.length && rodadaSemResposta(pedidoIgnorado, full.slice(inicioDaRodada))) {
+      console.error("busca_pedido_ignorado_sem_resposta", rodada);
+      erroRodada = "modelo_indisponivel";
     }
     if (interrompido || !pedidos.length) break rodadas;
 
@@ -792,6 +805,7 @@ Deno.serve(async (req) => {
     }
     // Próxima rodada: com a ferramenta só se ainda couber outra busca; senão ele tem de responder.
     const comBuscaAinda = buscasFeitas < MAX_BUSCAS_POR_MENSAGEM;
+    ferramentaNaRodada = comBuscaAinda;
     const conversaAgora = [...conversaDaBusca];
     refazerRodada = () => pedirModelo(conversaAgora, comBuscaAinda, { semRaciocinio: MODELOS_SEM_RACIOCINIO_APOS_BUSCA.has(modelo) });
     try {
@@ -812,7 +826,7 @@ Deno.serve(async (req) => {
 
     // Fontes: se a resposta usou a busca e não citou nenhum link, a linha de fontes entra no fim
     // (e fica salva no histórico). Na conversa por voz, não: links não se falam.
-    if (full && resultadosUsados.length && fala !== "conversa") {
+    if (full && resultadosUsados.length && fala !== "conversa" && !erroRodada) {
       const fontes = linhaDeFontes(full, resultadosUsados);
       if (fontes) { full += fontes; send({ delta: fontes, n: tokens }); }
     }

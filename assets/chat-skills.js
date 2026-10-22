@@ -1,4 +1,5 @@
-/* Skills para baixar: catálogo estático. Os .zip ficam em app/skills/ e não passam pelo chat. */
+/* Skills: usar no chat (o navegador manda só o id; o texto da skill fica na função de chat,
+   supabase/functions/chat/skills.ts) ou baixar o .zip (app/skills/). */
 (function () {
   "use strict";
   var dialog = document.querySelector('[data-skills]');
@@ -51,15 +52,28 @@
       var title = document.createElement('h3'); title.textContent = item[2];
       var desc = document.createElement('p'); desc.textContent = item[3];
       var langs = { pt: t('em português', 'in Portuguese'), en: t('em inglês', 'in English'), 'pt-en': t('em português e inglês', 'in Portuguese and English') };
-      var req = document.createElement('span'); req.className = 'skill-req'; req.textContent = t('Requer: ', 'Needs: ') + item[4] + ' ' + t('Skill ', 'Skill written ') + langs[item[6]] + '.';
+      var req = document.createElement('span'); req.className = 'skill-req'; req.textContent = t('Fora do chat, requer: ', 'Outside the chat, needs: ') + item[4] + ' ' + t('Skill ', 'Skill written ') + langs[item[6]] + '.';
       var meta = document.createElement('div'); meta.className = 'skill-meta';
+      var ativa = item[0] === atual;
+      if (ativa) card.classList.add('is-ativa');
+      var usar = document.createElement('button'); usar.type = 'button';
+      usar.className = ativa ? 'btn btn-ghost' : 'btn btn-primary';
+      usar.textContent = ativa ? t('Ativa no chat · desativar', 'Active in chat · turn off') : t('Usar no chat', 'Use in chat');
+      usar.setAttribute('aria-pressed', String(ativa));
+      usar.setAttribute('aria-label', (ativa ? t('Desativar no chat a skill ', 'Turn off in chat the skill ') : t('Usar no chat a skill ', 'Use in chat the skill ')) + item[2]);
+      usar.addEventListener('click', function () {
+        definir(ativa ? '' : item[0]);
+        if (dialog.open) dialog.close();
+        var input = document.querySelector('#prompt');
+        if (input && !input.disabled) input.focus();
+      });
       var link = document.createElement('a'); link.className = 'btn btn-ghost';
       link.href = new URL(item[0] + '.zip', base).href;
       link.setAttribute('download', item[0] + '.zip');
       link.textContent = t('Baixar .zip', 'Download .zip');
       link.setAttribute('aria-label', t('Baixar a skill ', 'Download the skill ') + item[2] + ' (.zip, ' + item[5] + ' KB)');
       var size = document.createElement('small'); size.textContent = item[0] + '.zip · ' + item[5] + ' KB';
-      meta.append(link, size);
+      meta.append(usar, link, size);
       card.append(label, title, desc, req, meta); list.appendChild(card);
     });
   }
@@ -81,6 +95,31 @@
     });
   });
   dialog.querySelector('[data-skills-close]').addEventListener('click', function () { dialog.close(); });
+
+  // Skill ativa no chat. assets/chat.js manda atual() em cada mensagem e chama definir() ao abrir
+  // uma conversa (a skill salva nela) ou começar uma nova (nenhuma).
+  var atual = '';
+  var barra = document.querySelector('[data-skill-ativa]');
+  var nomeAtivo = barra && barra.querySelector('[data-skill-nome]');
+  var porId = function (id) { return skills.filter(function (s) { return s[0] === id; })[0] || null; };
+  function definir(id) {
+    var item = porId(id || '');
+    atual = item ? item[0] : '';
+    if (barra) {
+      barra.hidden = !item;
+      if (item) nomeAtivo.textContent = item[2];
+    }
+    if (dialog.open) render();
+  }
+  if (barra) {
+    barra.querySelector('[data-skill-tirar]').addEventListener('click', function () {
+      definir('');
+      var input = document.querySelector('#prompt');
+      if (input && !input.disabled) input.focus();
+    });
+    barra.querySelector('[data-skill-trocar]').addEventListener('click', function () { render(); dialog.showModal(); search.focus(); });
+  }
+  window.trustioSkills = { atual: function () { return atual; }, definir: definir };
   search.addEventListener('input', render);
   render();
 })();

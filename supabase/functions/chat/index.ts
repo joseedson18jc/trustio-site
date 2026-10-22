@@ -17,6 +17,7 @@ import {
   aceitaPedidosDeBusca, buscarNaWeb, instrucoesDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo, rodadaSemResposta,
   semNarracaoDeBusca,
 } from "./busca.ts";
+import { SKILLS, blocoDaSkill, skillDoPedido } from "./skills.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -259,7 +260,7 @@ Deno.serve(async (req) => {
 
   const requestSize = Number(req.headers.get("content-length") ?? 0);
   if (requestSize > MAX_CHAT_REQUEST) return json(413, { error: "mensagem_longa" }, origin);
-  let body: { conversation_id?: string; message?: string; imagens?: unknown; modelo?: unknown; fala?: unknown };
+  let body: { conversation_id?: string; message?: string; imagens?: unknown; modelo?: unknown; fala?: unknown; skill?: unknown };
   let audio: File | null = null;
   let audioLanguage: "pt" | "en" = "pt";
   const contentType = req.headers.get("content-type") ?? "";
@@ -281,6 +282,8 @@ Deno.serve(async (req) => {
         modelo: String(form.get("modelo") ?? ""),
         // Gravação do microfone do chat (assets/voz.js): "1" = fala; "conversa" = conversa por voz.
         fala: String(form.get("fala") ?? ""),
+        // Skill ativa (Skills para baixar): só o id; ausente = mantém a da conversa.
+        ...(form.has("skill") ? { skill: String(form.get("skill") ?? "") } : {}),
       };
     } else {
       body = await req.json();
@@ -386,17 +389,29 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Skill pedida nesta mensagem: "" = nenhuma; id do catálogo = essa; ausente ou id desconhecido = mantém a da conversa.
+  const skillPedida = skillDoPedido(body.skill);
+  let skillAtiva: string | null = null;
   // Conversa (cria se necessário; confere que pertence ao usuário).
   let conversationId = body.conversation_id ?? null;
   if (conversationId) {
-    const { data: conv } = await admin.from("conversations").select("id").eq("id", conversationId).eq("user_id", user.id).maybeSingle();
+    const { data: conv } = await admin.from("conversations").select("id,skill").eq("id", conversationId).eq("user_id", user.id).maybeSingle();
     if (!conv) conversationId = null;
+    else {
+      const salva = typeof conv.skill === "string" && Object.hasOwn(SKILLS, conv.skill) ? conv.skill : null;
+      skillAtiva = skillPedida === undefined ? salva : skillPedida;
+      if (skillPedida !== undefined && skillPedida !== (conv.skill ?? null)) {
+        const { error } = await admin.from("conversations").update({ skill: skillPedida }).eq("id", conversationId);
+        if (error) console.error("skill_conversa", error);
+      }
+    }
   }
   if (!conversationId) {
     // Título pelo que a pessoa escreveu, sem o texto dos anexos.
     const base = message.split("\n\n[[anexo: ")[0].trim() || message;
     const title = base.length > 60 ? base.slice(0, 57).trimEnd() + "…" : base;
-    const { data: conv, error } = await admin.from("conversations").insert({ user_id: user.id, title }).select("id").single();
+    skillAtiva = skillPedida ?? null;
+    const { data: conv, error } = await admin.from("conversations").insert({ user_id: user.id, title, skill: skillAtiva }).select("id").single();
     if (error || !conv) { await release(); return json(500, { error: "conversa_nao_criada" }, origin); }
     conversationId = conv.id;
   }
@@ -445,6 +460,7 @@ Deno.serve(async (req) => {
       pref,
     ),
     "Priorize a precisão factual. Não invente dados, fontes ou detalhes; não apresente inferências como fatos; indique incerteza quando houver e evite afirmações absolutas sem fundamento.",
+    ...(skillAtiva ? [blocoDaSkill(skillAtiva)] : []),
     ...(buscaLigada ? [instrucoesDeBusca(hoje, fala === "conversa")] : buscaSituacao?.acesso === "teste" ? [SEM_BUSCA] : []),
     ...(fala === "conversa" ? ["A pessoa está conversando com você por voz e a sua resposta será lida em voz alta. Responda em tom de conversa, curto (de duas a quatro frases), sem listas, tabelas, código, fórmulas nem Markdown."] : []),
   ].join("\n\n");
@@ -570,7 +586,7 @@ Deno.serve(async (req) => {
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
       saida = controller;
-      send({ conversation_id: convId, limite: LLM_MAX_TOKENS, modelo,
+      send({ conversation_id: convId, limite: LLM_MAX_TOKENS, modelo, skill: skillAtiva,
         ...(transcricaoAudio ? { mensagem_usuario: message } : {}) });
     },
     // Navegador foi embora: só para de enviar; a leitura do modelo segue.

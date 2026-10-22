@@ -10,3 +10,14 @@
 .skill-meta small { font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: none; letter-spacing: 0; }
 .skills-aviso { margin: 18px 0 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
 .skills-dialog .templates-k, .skill-card > small { font-size: 12px; }
+.skills-chat-nota { margin-top: -6px; font-size: 13px; }
+.skill-card.is-ativa { border-color: var(--blue-signal); }
+/* Skill ativa, acima da caixa de mensagem. */
+.skill-ativa { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: 0 0 8px; padding: 8px 10px 8px 14px; border: 1px solid var(--blue-signal); border-radius: 12px; background: var(--surface); font-size: 13px; color: var(--ice); }
+.skill-ativa[hidden] { display: none; }
+.skill-ativa-k { font-family: var(--mono); font-size: 12px; color: var(--blue-signal); text-transform: uppercase; letter-spacing: .05em; }
+.skill-ativa b { flex: 1 1 80px; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.skill-ativa-btn, .skill-ativa-x { min-height: 32px; padding: 0 10px; border: 1px solid var(--line-bright); border-radius: 8px; background: transparent; color: var(--ice); font: inherit; font-size: 12px; cursor: pointer; }
+.skill-ativa-x { min-width: 32px; padding: 0; font-size: 16px; line-height: 1; }
+.skill-ativa-btn:hover, .skill-ativa-x:hover { border-color: var(--blue-signal); }
+.skill-ativa :focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 2px; }

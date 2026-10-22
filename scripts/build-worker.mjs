@@ -20,6 +20,7 @@ const mimeTypes = {
   ".webmanifest": "application/manifest+json; charset=utf-8",
   ".woff2": "font/woff2",
   ".xml": "application/xml; charset=utf-8",
+  ".zip": "application/zip",
 };
 
 const textExtensions = new Set([".css", ".html", ".js", ".mjs", ".json", ".svg", ".txt", ".webmanifest", ".xml"]);
@@ -55,6 +56,8 @@ const sourceFiles = [
   "cadastro.html",
   "entrar.html",
   "app/index.html",
+  // Skills para baixar (app/skills/*.zip), listadas no app por assets/chat-skills.js.
+  ...((await walk(join(root, "app", "skills"))).map((file) => relative(root, file))),
   "crm/index.html",
   "crm/prospeccao.html",
   "admin/index.html",

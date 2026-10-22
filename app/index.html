@@ -19,6 +19,7 @@
   <script src="../assets/theme.js?v=7b1e9843"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=9c81a5eb">
   <link rel="stylesheet" href="../assets/chat-templates.css?v=e18f2981">
+  <link rel="stylesheet" href="../assets/chat-skills.css?v=1057cd68">
   <link rel="stylesheet" href="../assets/chat.css?v=a8860f0f">
   <link rel="stylesheet" href="../assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="../assets/whatsapp-suporte.js?v=19399fa4"></script>
@@ -30,6 +31,7 @@
   <script defer src="../assets/ocr.js?v=333c1492"></script>
   <script defer src="../assets/docx.js?v=6706fb84"></script>
   <script defer src="../assets/chat-templates.js?v=09aa860d"></script>
+  <script defer src="../assets/chat-skills.js?v=016fb7a9"></script>
   <script defer src="../assets/vendor/katex/katex.min.js?v=e8d88550"></script>
   <script defer src="../assets/chat-render.js?v=563a4829"></script>
   <script defer src="../assets/voz.js?v=8e758685"></script>
@@ -57,6 +59,7 @@
     </button>
 
     <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Templates sem censura*</button>
+    <button class="btn btn-ghost" type="button" data-skills-open aria-haspopup="dialog">Skills para baixar</button>
 
     <nav class="conv-list" aria-label="Conversas" data-conversations>
       <p class="side-k">Conversas</p>
@@ -138,6 +141,11 @@
               <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v5H4zM13 14h7v5h-7z"/></svg></span>
               <b>Templates sem censura*</b>
               <small>Perguntas prontas, é só escolher.</small>
+            </button>
+            <button class="atalho" type="button" data-skills-open aria-haspopup="dialog">
+              <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg></span>
+              <b>Skills para baixar</b>
+              <small>15 skills prontas para agentes de IA.</small>
             </button>
           </div>
           <p class="atalhos-k">Tarefas rápidas</p>
@@ -257,6 +265,27 @@
   <p class="templates-count" role="status" aria-live="polite" data-template-count></p>
   <div class="templates-grid" data-template-list></div>
   <p class="templates-feedback" role="status" data-template-feedback></p>
+</dialog>
+
+<dialog class="templates-dialog skills-dialog" data-skills aria-labelledby="skills-title">
+  <div class="templates-top">
+    <div><p class="templates-k">BIBLIOTECA · TRUSTIO</p><h2 id="skills-title">Skills para baixar</h2></div>
+    <button class="btn btn-ghost btn-icon" type="button" data-skills-close aria-label="Fechar skills">×</button>
+  </div>
+  <p class="templates-desc">Uma skill é uma pasta de instruções que ensina um agente de IA a fazer uma tarefa do jeito certo. Estas 15 foram selecionadas e testadas pelo fundador da Trustio. Baixe o .zip e instale no agente que você usa.</p>
+  <details class="skills-como">
+    <summary>Como instalar</summary>
+    <ul>
+      <li><b>Apps de chat com Skills:</b> envie o .zip, sem descompactar, na área de Skills das configurações.</li>
+      <li><b>Agentes de código no terminal:</b> descompacte na pasta de skills do agente. Cada skill fica na sua própria pasta, com o <code>SKILL.md</code> dentro.</li>
+    </ul>
+  </details>
+  <label class="vh" for="skills-search">Buscar skills</label>
+  <input id="skills-search" type="search" placeholder="Buscar por tema ou tarefa" autocomplete="off" data-skills-search>
+  <div class="templates-filters" role="group" aria-label="Categorias de skills" data-skills-filters></div>
+  <p class="templates-count" role="status" aria-live="polite" data-skills-count></p>
+  <div class="templates-grid" data-skills-list></div>
+  <p class="skills-aviso">As skills de direito, perícia e saúde são ferramentas de apoio: não substituem advogado, perito ou médico. Uma skill roda no seu agente, com as permissões dele: leia o <code>SKILL.md</code> antes de instalar.</p>
 </dialog>
 
 <dialog class="conta" data-conta aria-labelledby="conta-titulo">

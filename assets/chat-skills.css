@@ -1,0 +1,12 @@
+/* Skills para baixar: reusa a base visual da biblioteca de templates (chat-templates.css). */
+.skills-como { margin: 0 0 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--abyss); }
+.skills-como summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ice); }
+.skills-como ul { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 8px; }
+.skills-como li { font-size: 13px; line-height: 1.6; color: var(--muted-strong); }
+.skills-dialog code { font-family: var(--mono); font-size: 12px; color: var(--ice); overflow-wrap: anywhere; }
+.skill-req { display: block; font-size: 12px; line-height: 1.55; color: var(--muted); }
+.skill-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: auto; width: 100%; }
+.skill-meta .btn { white-space: normal; text-align: left; }
+.skill-meta small { font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: none; letter-spacing: 0; }
+.skills-aviso { margin: 18px 0 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.skills-dialog .templates-k, .skill-card > small { font-size: 12px; }

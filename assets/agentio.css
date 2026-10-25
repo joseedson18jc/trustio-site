@@ -145,3 +145,10 @@
   .ag-msg { animation: none; opacity: 1; transform: none; }
   .ag-wave i, .ag-typing i { animation: none; }
 }
+
+/* ---------- Trustio 3.0 · passada Impeccable (out/2026) ----------
+   Título em cor sólida, CTA final sem halo azul nem holofote verde, texto técnico com medida de leitura. */
+.ag-copy h1 span { background: none; color: var(--blue-signal); }
+[data-theme="light"] .ag-copy h1 span { background: none; color: #1d5fd6; }
+.ag-cta { background: linear-gradient(135deg, #1a49b8, #0b1730 75%); box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.6); }
+.ag-tech p:not(.section-kicker) { max-width: 62ch; }

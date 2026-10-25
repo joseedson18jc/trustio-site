@@ -680,3 +680,28 @@ h1 .l { display: block; }
 .foot .iso-badge-text a:hover { color: var(--text-strong); text-decoration-color: var(--blue-signal); }
 .nav a small { font-size: 11px; color: var(--muted); margin-left: 4px; }
 @media (max-width: 720px) { .foot-dir { justify-items: start; text-align: left; } }
+
+/* ---------- Trustio 3.0 · passada Impeccable (out/2026) ----------
+   Botões planos, sem halo azul; texto em gradiente vira cor sólida; o ponto do selo
+   do hero para de pulsar; cartões em destaque ganham sombra neutra no lugar do brilho. */
+:root, :root[data-theme="light"] { --cta-gradient: #2563eb; }
+:root {
+  --shadow-cta: inset 0 1px 0 rgba(255,255,255,.16), 0 1px 2px rgba(0,0,0,.4);
+  --shadow-cta-hover: inset 0 1px 0 rgba(255,255,255,.2), 0 4px 12px -4px rgba(0,0,0,.5);
+}
+:root[data-theme="light"] {
+  --shadow-cta: inset 0 1px 0 rgba(255,255,255,.18), 0 1px 2px rgba(10,29,61,.18);
+  --shadow-cta-hover: inset 0 1px 0 rgba(255,255,255,.22), 0 4px 12px -4px rgba(10,29,61,.28);
+}
+.btn-primary:hover { background: #2e6bf0; }
+.grad, .br h2 span { background: none; color: var(--blue-signal); animation: none; }
+.eyebrow .dot { box-shadow: 0 0 0 3px rgba(94,167,255,.16); animation: none; }
+.win.t { box-shadow: 0 30px 80px -30px rgba(0,0,0,.6); }
+.fn.on { box-shadow: 0 0 0 1px var(--plasma), 0 20px 44px -14px rgba(0,0,0,.6); }
+.persona:hover { box-shadow: 0 30px 70px -30px rgba(0,0,0,.6); }
+.plan.feat { box-shadow: 0 40px 90px -40px rgba(0,0,0,.7); }
+.win-bar .st::before, .perim-label i, .legend button[aria-pressed="true"]::before { box-shadow: none; }
+.packet { box-shadow: 0 0 0 5px rgba(83,205,254,.18); }
+:root[data-theme="light"] .persona:hover,
+:root[data-theme="light"] .win.t,
+:root[data-theme="light"] .plan.feat { box-shadow: 0 24px 60px -30px rgba(10,29,61,.3); }

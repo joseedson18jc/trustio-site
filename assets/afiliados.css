@@ -471,3 +471,7 @@
 }
 .afil-aviso p + p { margin-top: var(--space-8); }
 .afil-aviso b { color: var(--text-strong); }
+
+/* Trustio 3.0 · passada Impeccable (out/2026): valores em cor sólida, sem texto em gradiente. */
+.afil-big,
+.afil-sim-val { background: none; color: var(--text-gradient-end); }

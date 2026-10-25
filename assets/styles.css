@@ -3260,3 +3260,98 @@ h3 { letter-spacing: -0.018em; }
 /* Aviso do asterisco de "sem censura", em toda página com rodapé (checklist da campanha, item 1). */
 .footer-nota { padding-top: 12px; padding-bottom: 2px; color: var(--label-color); font-size: 12px; line-height: 1.6; }
 .footer-nota p { margin: 0; }
+
+/* ==========================================================================
+   Trustio 3.0 · passada Impeccable (out/2026)
+   Auditoria com o detector do Impeccable (pbakaus/impeccable) em 13 páginas.
+   Direção da marca 3.0: menos cor, sem brilhos nem texto em gradiente,
+   botões planos. Fica no fim do arquivo para prevalecer sobre as camadas
+   anteriores. Mantidos de propósito (escolhas da marca): Geist, kickers em
+   mono com tracking aberto e passos numerados.
+   ========================================================================== */
+
+/* 1) Botões planos: o gradiente e o halo azul saem; a sombra vira profundidade neutra. */
+:root,
+:root[data-theme="light"] {
+  --cta-gradient: #2563eb;
+  --cta-gradient-hover: #2e6bf0;
+  --cta-gradient-pressed: #1e4fc8;
+}
+:root {
+  --shadow-cta: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-cta-hover: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 12px -4px rgba(0, 0, 0, 0.5);
+}
+:root[data-theme="light"] {
+  --shadow-cta: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 1px 2px rgba(10, 29, 61, 0.18);
+  --shadow-cta-hover: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 4px 12px -4px rgba(10, 29, 61, 0.28);
+}
+.button-primary:active { box-shadow: inset 0 2px 4px rgba(3, 8, 30, 0.35); }
+/* O reflexo que atravessa o botão no hover era decoração; o hover agora é só a cor. */
+.button-primary::before { display: none; }
+
+/* 2) Ponto de status: estático, sem halo e sem pulsar para sempre (aparece no cabeçalho de quase todas as páginas). */
+.status-dot,
+[data-theme="light"] .status-dot {
+  box-shadow: 0 0 0 3px rgba(94, 167, 255, 0.16);
+  animation: none;
+}
+[data-theme="light"] .status-dot { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14); }
+
+/* 3) Texto em gradiente vira cor sólida. A ênfase fica no tamanho e no peso. */
+.text-gradient,
+.home-page .hero h1 span,
+.seats-banner h1 span,
+.seats-banner h2 span {
+  background: none;
+  color: var(--text-gradient-end);
+}
+.manifesto-hero h1,
+.error-content h1,
+.founder-hero h1,
+.metric-value {
+  background: none;
+  color: var(--text-gradient-start);
+}
+.hero-lead,
+.metric-value { text-shadow: none; }
+
+/* 4) Brilhos decorativos azuis: viram contorno fino ou somem. */
+.capability-card li::before,
+.manifesto-signals i,
+.stack-connector i,
+.reading-progress span { box-shadow: none; }
+.nodes-visual i { box-shadow: 0 0 0 3px rgba(94, 167, 255, 0.14); }
+.layer-control { box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32), inset 0 1px rgba(var(--on-surface-rgb), 0.1); }
+
+/* 5) Destaques com barra lateral grossa: viram um quadro de 1 px (mesma informação, sem a "aba"). */
+.omni-def-points li { border-left-width: 1px; }
+.vc-note,
+.model-note {
+  border: 1px solid var(--line-bright);
+  border-radius: 12px;
+}
+
+/* 6) Medida de leitura: parágrafos longos ficam entre ~60 e 75 caracteres por linha. */
+.home-page .hero-acesso { max-width: 60ch; }
+.manifesto-intro { max-width: 58ch; }
+.vc-note p,
+.vc-src,
+.acesso-estado { max-width: 66ch; }
+.home-page .contact-card-inner.contact-lean > p:not(.section-kicker) { max-width: 60ch; }
+
+/* 7) /empresas.html: o bloco de contato não tinha margem lateral e o texto encostava na borda da tela
+      (no celular e no desktop). Ganha o mesmo container das outras seções. */
+.empresas-page .contact-card .contact-card-inner {
+  width: var(--container);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+.empresas-page .contact-card-inner > p:not(.section-kicker) { max-width: 60ch; }
+
+/* 8) Placeholders dos formulários: o cinza padrão do navegador (#757575) dava 4,0:1 no campo escuro. */
+input::placeholder,
+textarea::placeholder {
+  color: var(--label-color);
+  opacity: 1;
+}

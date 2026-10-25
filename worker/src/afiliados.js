@@ -15,6 +15,7 @@
  */
 
 import { assinaturaValida, criarCupomAfiliado, lerSessao, promoDaSessao } from "./stripe.js";
+import { ativarCompra, atualizarAssinatura, reembolsar } from "./liberacao.js";
 import { brl, enviarWhatsapp, MENSAGENS, normalizarWhatsapp, whatsappConfigurado } from "./whatsapp.js";
 
 const CANAIS = new Set([
@@ -250,10 +251,12 @@ export function emailComissao(nome, valorComissao, valorVenda, escapar) {
 }
 
 /**
- * POST /stripe/webhook. Só checkout.session.completed gera comissão (é a primeira compra;
- * renovações chegam como invoice.* e não pagam comissão de novo). Responde 2xx a todo evento
- * que não gera comissão, para a Stripe não reenviar; 5xx só em falha real, e a Stripe tenta
- * de novo por até 3 dias.
+ * POST /stripe/webhook. A primeira compra (checkout.session.completed, ou
+ * async_payment_succeeded quando o pagamento confirma depois) gera comissão e libera o plano
+ * pessoal; renovações chegam como invoice.* e não pagam comissão de novo. Assinatura alterada
+ * ou encerrada e reembolso total ajustam o acesso (liberacao.js). Responde 2xx a todo evento
+ * sem efeito, para a Stripe não reenviar; 5xx só em falha real, e a Stripe tenta de novo por
+ * até 3 dias (o banco ignora o que já aplicou).
  */
 export async function webhookStripe(req, env, { rpc, json, escapar }) {
   const corpo = await req.text();
@@ -263,18 +266,44 @@ export async function webhookStripe(req, env, { rpc, json, escapar }) {
   }
   let evento;
   try { evento = JSON.parse(corpo); } catch { return json(400, { ok: false, error: "corpo_invalido" }); }
-  if (evento.type !== "checkout.session.completed") return json(200, { ok: true, ignorado: evento.type });
+  if (["customer.subscription.updated", "customer.subscription.deleted", "charge.refunded"].includes(evento.type)) {
+    try {
+      const r = evento.type === "charge.refunded" ? await reembolsar(env, rpc, evento) : await atualizarAssinatura(env, rpc, evento);
+      return json(200, { ok: true, ...r });
+    } catch (err) {
+      console.error("liberacao_falhou", evento.type, err.message);
+      return json(500, { ok: false, error: "tente_de_novo" });
+    }
+  }
+  if (!["checkout.session.completed", "checkout.session.async_payment_succeeded"].includes(evento.type)) {
+    return json(200, { ok: true, ignorado: evento.type });
+  }
 
   const resumo = evento.data?.object || {};
   if (resumo.payment_status && resumo.payment_status !== "paid" && resumo.payment_status !== "no_payment_required") {
     return json(200, { ok: true, ignorado: "nao_pago" });
   }
 
-  let registro, sessao, preco, comprador;
+  let registro, sessao, preco, comprador, liberacao;
   try {
     sessao = env.STRIPE_SECRET_KEY ? await lerSessao(env, resumo.id) : resumo;
     preco = sessao.line_items?.data?.[0]?.price?.id || null;
     comprador = sessao.customer_details?.email || sessao.customer_email || null;
+  } catch (err) {
+    console.error("sessao_falhou", err.message);
+    return json(500, { ok: false, error: "tente_de_novo" });
+  }
+
+  // Primeiro libera o plano pessoal (Chat, Agentio, Combo), depois a comissão: se a comissão
+  // falhar, o reenvio da Stripe acha a liberação como "repetido" e ainda avisa o afiliado.
+  try {
+    liberacao = await ativarCompra(env, rpc, sessao);
+  } catch (err) {
+    console.error("liberacao_falhou", sessao.id, err.message);
+    return json(500, { ok: false, error: "tente_de_novo" });
+  }
+
+  try {
     registro = await rpc(env, "registrar_comissao", {
       p_evento: evento.id,
       p_sessao: sessao.id,
@@ -310,7 +339,8 @@ export async function webhookStripe(req, env, { rpc, json, escapar }) {
     catch (err) { console.error("email_comissao_falhou", err.message); }
     await enviarWhatsapp(env, a.whatsapp, MENSAGENS.comissao(a.nome, registro.valor_comissao, registro.valor_venda));
   }
-  return json(200, { ok: true, registrada: Boolean(registro?.registrada), motivo: registro?.motivo || null });
+  return json(200, { ok: true, registrada: Boolean(registro?.registrada), motivo: registro?.motivo || null,
+    liberado: Boolean(liberacao?.ativado), pendente: Boolean(liberacao?.pendente) });
 }
 
 export async function ativarAssinaturaNoBanco(env, email, centavos) {

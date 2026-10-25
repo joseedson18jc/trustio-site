@@ -25,3 +25,12 @@ test('WhatsApp pagina todas as contas e falha com segurança se a consulta falha
   assert.equal((await request(rows,{fail:true})).response.status,500);
   assert.equal((await request(rows,{secret:'wrong'})).response.status,401);
 });
+test('WhatsApp libera quem pagou Agentio ou Combo na Stripe enquanto o período vale, e o bloqueio prevalece',async()=>{
+  const rows=[row(1,'11999990001',{status:'ativo',pago_agentio_ate:'infinity',whatsapp_numero:null}),
+    row(2,'11999990002',{status:'trial_esgotado',pago_agentio_ate:'2099-01-01T00:00:00+00:00'}),
+    row(3,'11999990003',{status:'ativo',pago_agentio_ate:'2000-01-01T00:00:00+00:00'}),
+    row(4,'11999990004',{status:'ativo',pago_agentio_ate:'infinity',acesso_modo:'revogado'})];
+  const data=await (await request(rows)).response.json();
+  assert.deepEqual(data.numeros,['5511999990001','5511999990002']);
+  assert.deepEqual(data.negados,['5511999990004']);
+});

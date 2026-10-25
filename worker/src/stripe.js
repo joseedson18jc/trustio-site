@@ -96,6 +96,14 @@ export async function lerSessao(env, id) {
   return r.dados;
 }
 
+/** Assinatura da fatura (reembolso de cobrança de assinatura: a cobrança só traz a fatura). */
+export async function assinaturaDaFatura(env, faturaId) {
+  const r = await stripe(env, "GET", `invoices/${encodeURIComponent(faturaId)}`);
+  if (r.status !== 200) throw new Error(`stripe invoice ${r.status}: ${r.dados?.error?.message || ""}`);
+  const sub = r.dados?.subscription ?? r.dados?.parent?.subscription_details?.subscription;
+  return (sub && typeof sub === "object" ? sub.id : sub) || null;
+}
+
 /** ID do código promocional (promo_…) usado na sessão, se houver. */
 export function promoDaSessao(sessao) {
   const ids = [

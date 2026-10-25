@@ -15,6 +15,7 @@
     "indexnow": "node scripts/indexnow.mjs --all",
     "i18n": "node scripts/i18n.mjs",
     "i18n:check": "node scripts/i18n.mjs --check",
+    "test": "npm run test:worker && npm run test:mac && npm run test:gate && npm run test:crm-admin && npm run test:crm-audit && npm run test:auth && npm run test:chat-render && npm run test:docx && npm run test:voz && npm run test:atribuicao",
     "test:worker": "node worker/test/worker.test.mjs",
     "test:mac": "node mac/test/hermes-autorizados.test.mjs && node mac/test/whatsapp.test.mjs",
     "test:gate": "node gate/test/gate.test.mjs",

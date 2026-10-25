@@ -1084,7 +1084,7 @@ p {
   margin: var(--space-36) auto 30px;
   font-size: clamp(52.5px, min(9.68vw, 11.07vh), 139.4px);
   letter-spacing: -.05em;
-  line-height: .88;
+  line-height: 1.02;
   text-shadow: 0 0 90px rgba(37,99,235,.12);
 }
 
@@ -1961,6 +1961,7 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   .site-header .header-login { padding: 8px 12px; font-size: 13px; }
   .site-header .header-cta { padding: 8px 14px; font-size: 13px; }
   .menu-toggle { display: none; }
+  .mobile-nav { display: none !important; }
 }
 
 /* ── Tier 2: Tablet (768px - 1023px) ─────────────────────────────────────── */
@@ -2013,7 +2014,7 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   .mobile-nav { height: calc(100svh - 72px); }
   .hero { padding: 122px 16px var(--space-28) 16px; box-sizing: border-box; }
   .hero > .container { padding-inline: 0; }
-  .hero h1 { margin-top: var(--space-20); font-size: clamp(36.9px, 11.48vw, 55.8px); }
+  .hero h1 { margin-top: var(--space-20); font-size: clamp(36.9px, 11.48vw, 55.8px); line-height: 1.02; letter-spacing: -0.035em; }
   .hero-lead { font-size: 17px; }
   .hero-actions { align-items: stretch; flex-direction: column; gap: var(--space-20); }
   .hero-actions .button { width: 100%; }
@@ -2028,7 +2029,7 @@ html { scrollbar-color: var(--scroll-thumb) var(--abyss); }
   .hero-foot { grid-template-columns: 1fr auto; }
   .hero-foot > p:first-child { display: none; }
   .home-page .hero { min-height: 880px; padding: var(--space-120) 16px var(--space-68) 16px; box-sizing: border-box; }
-  .home-page .hero h1 { margin-top: 30px; font-size: clamp(44.3px, 12.4vw, 67.2px); line-height: .9; } /* 12.4vw: em 390px "IA pessoal e empresarial." cabe sem vazar 5px (RA7) */
+  .home-page .hero h1 { margin-top: 30px; font-size: clamp(44.3px, 12.4vw, 67.2px); line-height: 1.02; letter-spacing: -0.035em; } /* 12.4vw: em 390px "IA pessoal e empresarial." cabe sem vazar 5px (RA7) */
   .home-page .hero-lead { margin-top: var(--space-36); font-size: 17px; }
   .hero-signals { gap: var(--space-8); margin-top: var(--space-36); }
   .home-scroll-hint { grid-template-columns: auto 1fr; }
@@ -2985,7 +2986,8 @@ h3 { letter-spacing: -0.018em; }
 .button-ghost:has(> span[aria-hidden="true"]) { padding-right: 4px; }
 .button-ghost > span[aria-hidden="true"] { background: rgba(148, 178, 230, 0.12); box-shadow: none; color: var(--accent-text); }
 .button-ghost:hover { border-color: var(--line-bright); background: rgba(94, 167, 255, 0.1); }
-[data-theme="light"] .button-ghost { border-color: rgba(10, 29, 61, 0.18); box-shadow: none; }
+[data-theme="light"] .button-ghost { border-color: rgba(10, 29, 61, 0.18); box-shadow: none; color: #0a1d3d; }
+[data-theme="light"] .button-ghost:hover { border-color: rgba(37, 99, 235, 0.45); background: rgba(37, 99, 235, 0.08); color: #0a1d3d; }
 [data-theme="light"] .button-ghost > span[aria-hidden="true"] { background: rgba(10, 29, 61, 0.06); color: var(--blue-signal); }
 .button-ghost small { margin-left: 0; font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: 0.1em; }
 
@@ -3043,11 +3045,19 @@ h3 { letter-spacing: -0.018em; }
 .site-header .lang-switch,
 .site-header .theme-toggle { border-color: rgba(160, 179, 211, 0.24); background: var(--glass-gradient); }
 .site-header .lang-switch { font-size: 12px; font-weight: 500; letter-spacing: 0.1em; }
+[data-theme="light"] .site-header .desktop-nav a { color: #0a1d3d; }
+[data-theme="light"] .site-header .desktop-nav a:hover,
+[data-theme="light"] .site-header .desktop-nav a[aria-current="page"],
+[data-theme="light"] .site-header .desktop-nav a.is-active { color: #05070b; }
+[data-theme="light"] .header-login { border-color: rgba(10, 29, 61, 0.22); color: #0a1d3d; }
+[data-theme="light"] .header-login:hover { border-color: rgba(37, 99, 235, 0.45); background: rgba(37, 99, 235, 0.08); color: #0a1d3d; }
 [data-theme="light"] .theme-toggle,
 [data-theme="light"] .menu-toggle,
 [data-theme="light"] .lang-switch,
 [data-theme="light"] .site-header .lang-switch,
-[data-theme="light"] .site-header .theme-toggle { border-color: rgba(10, 29, 61, 0.18); }
+[data-theme="light"] .site-header .theme-toggle { border-color: rgba(10, 29, 61, 0.18); color: #0a1d3d; }
+[data-theme="light"] .site-header .lang-switch:hover,
+[data-theme="light"] .site-header .theme-toggle:hover { border-color: var(--line-bright); background: rgba(37, 99, 235, 0.08); color: #05070b; }
 
 /* Link de texto: accent-text com sublinhado fino e afastado */
 .text-link {

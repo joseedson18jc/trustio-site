@@ -86,9 +86,10 @@ begin
       raise exception 'O acesso pago só muda pelos pagamentos da Stripe' using errcode = '42501';
     end if;
   end if;
-  -- Com o Agentio pago, o telefone do cadastro é o número liberado: o cliente não o troca sozinho.
+  -- Com o Agentio pago, o telefone do cadastro é o número liberado: o cliente não o troca sozinho
+  -- (o primeiro, se a conta ainda não tem, ele informa).
   if tg_op = 'UPDATE' and auth.uid() is not null and not public.is_staff()
-     and coalesce(old.pago_agentio_ate > now(), false) then
+     and old.telefone is not null and coalesce(old.pago_agentio_ate > now(), false) then
     new.telefone := old.telefone;
   end if;
   return new;
@@ -107,6 +108,9 @@ declare
   anterior text := current_setting('trustio.pago_rpc', true);
 begin
   if p_lead is null then return; end if;
+  -- Trava a conta: duas atualizações ao mesmo tempo recalculam uma depois da outra, e a segunda
+  -- já enxerga o direito que a primeira mudou (nada de resumo calculado sobre foto velha).
+  perform 1 from public.crm_leads where id = p_lead for update;
   select max(coalesce(d.fim, 'infinity')) filter (where 'chat' = any(d.produtos)),
          max(coalesce(d.fim, 'infinity')) filter (where 'agentio' = any(d.produtos))
     into v_chat, v_agentio
@@ -120,9 +124,12 @@ begin
   perform set_config('trustio.pago_rpc', 'on', true);
   update public.crm_leads
      set pago_chat_ate = v_chat, pago_agentio_ate = v_agentio, pago_plano = v_plano,
-         plano = coalesce(v_plano, plano)
+         -- plano escrito à mão pela equipe fica; só troca vazio ou nome de plano pessoal.
+         plano = case when v_plano is not null and (plano is null or plano in (select nome from public.stripe_planos))
+                      then v_plano else plano end
    where id = p_lead
      and (pago_chat_ate, pago_agentio_ate, pago_plano) is distinct from (v_chat, v_agentio, v_plano);
+  -- (se só o plano mudaria e o resumo é igual, nada é gravado: o histórico não ganha linha à toa)
   perform set_config('trustio.pago_rpc', coalesce(anterior, ''), true);
 end $$;
 revoke all on function public.pago_sincronizar(uuid) from public, anon, authenticated, service_role;
@@ -178,6 +185,32 @@ revoke all on function public.pago_ao_vincular_conta() from public, anon, authen
 create trigger crm_leads_pago_pendente after update of user_id, confirmed_at, email on public.crm_leads
   for each row execute function public.pago_ao_vincular_conta();
 
+-- 5b. Evento que chega antes da compra (o checkout falhou e a Stripe ainda vai reenviar): o
+--     cancelamento ou reembolso fica guardado e é aplicado assim que a compra for gravada.
+create table public.stripe_eventos_antecipados (
+  chave text primary key,               -- 'sub:<id>' ou 'pi:<id>'
+  fim timestamptz,
+  encerrar boolean not null default false,
+  motivo text check (motivo in ('cancelado', 'reembolso')),
+  evento_em timestamptz,
+  criado_em timestamptz not null default now()
+);
+alter table public.stripe_eventos_antecipados enable row level security;
+revoke all on public.stripe_eventos_antecipados from anon, authenticated;
+
+-- Trava por pagamento e por assinatura (até o fim da transação).
+create or replace function public.stripe_travar(p_payment_intent text, p_subscription text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if nullif(trim(coalesce(p_payment_intent, '')), '') is not null then
+    perform pg_advisory_xact_lock(hashtext('trustio.stripe.pi.' || trim(p_payment_intent)));
+  end if;
+  if nullif(trim(coalesce(p_subscription, '')), '') is not null then
+    perform pg_advisory_xact_lock(hashtext('trustio.stripe.sub.' || trim(p_subscription)));
+  end if;
+end $$;
+revoke all on function public.stripe_travar(text, text) from public, anon, authenticated, service_role;
+
 -- 6. Compra paga (checkout.session.completed ou async_payment_succeeded). Idempotente pela sessão.
 create or replace function public.stripe_ativar_compra(
   p_sessao text,
@@ -194,6 +227,7 @@ declare
   v_email text := lower(nullif(trim(coalesce(p_email, '')), ''));
   p public.stripe_planos;
   l public.crm_leads;
+  e public.stripe_eventos_antecipados;
   v_aplicados integer;
 begin
   if v_sessao is null then return jsonb_build_object('ok', false, 'motivo', 'sem_sessao'); end if;
@@ -210,6 +244,8 @@ begin
   if exists (select 1 from public.direitos_pagos where stripe_session = v_sessao) then
     return jsonb_build_object('ok', true, 'ativado', false, 'motivo', 'repetido');
   end if;
+  -- Mesma trava do reembolso e da assinatura: um não grava "antecipado" enquanto a compra grava.
+  perform public.stripe_travar(p_payment_intent, p_subscription);
 
   insert into public.crm_leads (email, tipo, origem, status) values (v_email, 'b2c', 'stripe', 'novo')
   on conflict (lower(email)) do nothing;
@@ -221,7 +257,25 @@ begin
           nullif(trim(coalesce(p_subscription, '')), ''), nullif(trim(coalesce(p_customer, '')), ''),
           nullif(trim(coalesce(p_payment_intent, '')), ''), p_valor_centavos);
 
+  -- Cancelamento/reembolso que chegou antes desta compra.
+  select * into e from public.stripe_eventos_antecipados where chave = 'pi:' || nullif(trim(coalesce(p_payment_intent, '')), '');
+  if not found then
+    select * into e from public.stripe_eventos_antecipados where chave = 'sub:' || nullif(trim(coalesce(p_subscription, '')), '');
+  end if;
+  if found then
+    update public.direitos_pagos
+       set fim = case when e.motivo = 'reembolso' then now() else e.fim end,
+           encerrado_em = case when e.encerrar then now() end,
+           encerrado_motivo = case when e.encerrar then e.motivo end,
+           stripe_evento_em = e.evento_em
+     where stripe_session = v_sessao;
+    delete from public.stripe_eventos_antecipados where chave = e.chave;
+  end if;
+
   v_aplicados := public.pago_aplicar_pendentes(l.id);
+  if v_aplicados = 0 and exists (select 1 from public.direitos_pagos where stripe_session = v_sessao and encerrado_motivo is not null) then
+    return jsonb_build_object('ok', true, 'ativado', false, 'motivo', 'encerrado_antes', 'tier', p.tier, 'lead_id', l.id);
+  end if;
   return jsonb_build_object('ok', true, 'ativado', v_aplicados > 0, 'pendente', v_aplicados = 0,
                             'tier', p.tier, 'lead_id', l.id);
 end $$;
@@ -243,6 +297,7 @@ begin
   if nullif(trim(coalesce(p_subscription, '')), '') is null then
     return jsonb_build_object('ok', false, 'motivo', 'sem_assinatura');
   end if;
+  perform public.stripe_travar(null, p_subscription);
   for r in
     update public.direitos_pagos
        set fim = p_fim,
@@ -258,24 +313,35 @@ begin
     perform public.pago_sincronizar(r.lead_id);
     n := n + 1;
   end loop;
+  if n = 0 and not exists (select 1 from public.direitos_pagos where subscription_id = p_subscription) then
+    insert into public.stripe_eventos_antecipados (chave, fim, encerrar, motivo, evento_em)
+    values ('sub:' || p_subscription, p_fim, coalesce(p_encerrar, false), case when p_encerrar then 'cancelado' end, p_evento_em)
+    on conflict (chave) do update set fim = excluded.fim, encerrar = excluded.encerrar, motivo = excluded.motivo,
+      evento_em = excluded.evento_em
+      where stripe_eventos_antecipados.motivo is distinct from 'reembolso'
+        and (excluded.evento_em is null or stripe_eventos_antecipados.evento_em is null
+             or excluded.evento_em >= stripe_eventos_antecipados.evento_em);
+  end if;
   return jsonb_build_object('ok', true, 'atualizadas', n);
 end $$;
 revoke all on function public.stripe_atualizar_assinatura(text, timestamptz, boolean, timestamptz) from public, anon, authenticated;
 grant execute on function public.stripe_atualizar_assinatura(text, timestamptz, boolean, timestamptz) to service_role;
 
--- 8. Reembolso total (charge.refunded): corta na hora. Acha a compra pelo pagamento; sem ele
---    (renovação de assinatura), pelas assinaturas em dia do mesmo cliente da Stripe.
+-- 8. Reembolso total (charge.refunded): corta na hora. Passe: pela compra (payment_intent).
+--    Assinatura: pela assinatura da fatura reembolsada. Reenvio do evento não acha nada novo e
+--    não cai em outra regra (nada de procurar "qualquer assinatura do cliente").
 create or replace function public.stripe_reembolso(
   p_payment_intent text,
-  p_customer text default null
+  p_subscription text default null
 ) returns jsonb language plpgsql security definer set search_path = public as $$
 declare
   r record;
   n integer := 0;
   v_pi text := nullif(trim(coalesce(p_payment_intent, '')), '');
-  v_cliente text := nullif(trim(coalesce(p_customer, '')), '');
+  v_sub text := nullif(trim(coalesce(p_subscription, '')), '');
 begin
-  if v_pi is not null then
+  perform public.stripe_travar(v_pi, v_sub);
+  if v_pi is not null and exists (select 1 from public.direitos_pagos where payment_intent = v_pi) then
     for r in
       update public.direitos_pagos
          set fim = case when fim is null or fim > now() then now() else fim end,
@@ -286,18 +352,22 @@ begin
       perform public.pago_sincronizar(r.lead_id);
       n := n + 1;
     end loop;
-  end if;
-  if n = 0 and v_cliente is not null then
+  elsif v_sub is not null and exists (select 1 from public.direitos_pagos where subscription_id = v_sub) then
     for r in
       update public.direitos_pagos
          set fim = case when fim is null or fim > now() then now() else fim end,
              encerrado_em = now(), encerrado_motivo = 'reembolso', atualizado_em = now()
-       where customer_id = v_cliente and subscription_id is not null and encerrado_motivo is null
+       where subscription_id = v_sub and encerrado_motivo is distinct from 'reembolso'
       returning lead_id
     loop
       perform public.pago_sincronizar(r.lead_id);
       n := n + 1;
     end loop;
+  elsif coalesce(v_pi, v_sub) is not null then
+    -- Compra ainda não gravada (ou cobrança de empresa, que nunca será): guarda para a compra.
+    insert into public.stripe_eventos_antecipados (chave, fim, encerrar, motivo)
+    values (case when v_sub is not null then 'sub:' || v_sub else 'pi:' || v_pi end, now(), true, 'reembolso')
+    on conflict (chave) do update set fim = excluded.fim, encerrar = true, motivo = 'reembolso';
   end if;
   return jsonb_build_object('ok', true, 'encerradas', n);
 end $$;
@@ -376,8 +446,8 @@ begin
                       else greatest(0, v_limit - v_lead.mensagens_usadas) end
   );
 end $$;
-revoke all on function public.reserve_chat_message(uuid) from public, anon;
-grant execute on function public.reserve_chat_message(uuid) to authenticated, service_role;
+revoke all on function public.reserve_chat_message(uuid) from public, anon, authenticated;
+grant execute on function public.reserve_chat_message(uuid) to service_role;
 
 create or replace function public.voz_acesso_livre(p_user_id uuid)
 returns text language plpgsql stable security definer set search_path = public as $$

@@ -1394,7 +1394,7 @@
     var l = state.lead || {};
     $("#conta-nome").value = nomeAtual() === state.user.email ? "" : nomeAtual();
     $("#conta-tel").value = fmtPhone(l.telefone || "");
-    var telTravado = l.status === "assinante" || (!!l.pago_agentio_ate && (l.pago_agentio_ate === "infinity" || Date.parse(l.pago_agentio_ate) > Date.now()));
+    var telTravado = l.status === "assinante" || (!!l.telefone && !!l.pago_agentio_ate && (l.pago_agentio_ate === "infinity" || Date.parse(l.pago_agentio_ate) > Date.now()));
     $("#conta-tel").disabled = telTravado; $("[data-tel-travado]").hidden = !telTravado;
     $("#conta-email").value = state.user.email || "";
     $("[data-conta-plano]").textContent = $("[data-me-plan]").textContent;

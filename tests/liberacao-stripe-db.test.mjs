@@ -172,20 +172,21 @@ test('assinatura: cancelada vale até o fim do período, evento atrasado é igno
   assert.equal((await atualiza(null, false, t(4))).atualizadas, 0, 'depois de encerrada, nada reabre');
 });
 
-test('reembolso total corta na hora: passe pelo pagamento, assinatura pelo cliente', async () => {
+test('reembolso total corta na hora: passe pela compra, assinatura pela fatura; reenvio não derruba outra', async () => {
   const { db, compra, lead, comoServico } = await ctx();
   await compra('cs_p', 'user@test', LINK.passe, { pi: 'pi_p', cus: 'cus_1' });
   await compra('cs_s', 'user@test', LINK.agentio, { sub: 'sub_1', cus: 'cus_1', valor: 12900 });
-  const reembolso = async (pi, cus) => { await comoServico();
-    const r = (await db.query('select stripe_reembolso($1,$2) r', [pi, cus])).rows[0].r; await db.exec('reset role'); return r; };
-  assert.equal((await reembolso('pi_p', 'cus_1')).encerradas, 1);
+  const reembolso = async (pi, sub) => { await comoServico();
+    const r = (await db.query('select stripe_reembolso($1,$2) r', [pi, sub])).rows[0].r; await db.exec('reset role'); return r; };
+  assert.equal((await reembolso('pi_p', null)).encerradas, 1);
   let l = await lead('user@test');
   assert.equal(l.pago_chat_ate, null, 'passe reembolsado não conta mais');
-  assert.equal(l.ag_txt, 'infinity', 'o pagamento identificado não derruba a assinatura do mesmo cliente');
-  assert.equal((await reembolso('pi_renovacao', 'cus_1')).encerradas, 1, 'renovação: acha a assinatura pelo cliente');
-  l = await lead('user@test');
-  assert.equal(l.pago_agentio_ate, null);
-  assert.equal((await reembolso('pi_outro', 'cus_b2b')).encerradas, 0);
+  assert.equal(l.ag_txt, 'infinity', 'a assinatura do mesmo cliente continua');
+  assert.equal((await reembolso('pi_p', null)).encerradas, 0, 'reenvio do mesmo reembolso: nada muda');
+  assert.equal((await lead('user@test')).ag_txt, 'infinity', 'reenvio não cai em outra regra nem derruba a assinatura');
+  assert.equal((await reembolso('pi_renovacao', 'sub_1')).encerradas, 1, 'cobrança de assinatura: acha pela assinatura da fatura');
+  assert.equal((await lead('user@test')).pago_agentio_ate, null);
+  assert.equal((await reembolso('pi_b2b', null)).encerradas, 0, 'cobrança que não é compra pessoal não mexe em nada');
   const d = (await db.query("select encerrado_motivo m from direitos_pagos order by criado_em")).rows.map((x) => x.m);
   assert.deepEqual(d, ['reembolso', 'reembolso']);
 });
@@ -196,6 +197,7 @@ test('segurança: cliente não grava acesso pago nem chama as funções; bloquei
   await assert.rejects(db.query(`update crm_leads set pago_chat_ate='infinity' where user_id='${uid(2)}'`), /só muda pelos pagamentos/);
   await assert.rejects(db.query("select stripe_ativar_compra('cs_f','user@test',$1)", [LINK.mensal]), /permission denied/);
   await assert.rejects(db.query("select stripe_reembolso('pi')"), /permission denied/);
+  await assert.rejects(db.query('select reserve_chat_message($1)', [uid(5)]), /permission denied/, 'cliente não gasta a cota de outra conta');
   await db.exec('reset role');
   await db.exec(`set role anon`);
   await assert.rejects(db.query("select stripe_atualizar_assinatura('sub',null)"), /permission denied/);
@@ -210,3 +212,35 @@ test('segurança: cliente não grava acesso pago nem chama as funções; bloquei
   assert.equal((await reserva(2)).error, 'acesso_revogado', 'revogação do admin vale por cima do pagamento');
   assert.equal((await db.query('select voz_acesso_livre($1) v', [uid(2)])).rows[0].v, 'revogado');
 });
+
+test('evento antes da compra: cancelamento ou reembolso guardado vale quando o checkout é gravado', async () => {
+  const { db, compra, lead, comoServico } = await ctx();
+  const sql = async (q, args) => { await comoServico(); const r = (await db.query(q, args)).rows[0].r; await db.exec('reset role'); return r; };
+  // Assinatura encerrada antes de o checkout (que falhou) voltar da Stripe.
+  assert.equal((await sql('select stripe_atualizar_assinatura($1,$2,$3,$4) r', ['sub_x', new Date(Date.now() - 60e3).toISOString(), true, new Date().toISOString()])).atualizadas, 0);
+  const r1 = await compra('cs_x', 'user@test', LINK.mensal, { sub: 'sub_x', valor: 7900 });
+  assert.equal(r1.motivo, 'encerrado_antes');
+  assert.equal((await lead('user@test')).pago_chat_ate === null || (await lead('user@test')).pago_chat_ate < new Date(), true, 'não libera assinatura já encerrada');
+  // Passe reembolsado antes do checkout gravado.
+  assert.equal((await sql('select stripe_reembolso($1,$2) r', ['pi_y', null])).encerradas, 0);
+  await compra('cs_y', 'user@test', LINK.passe, { pi: 'pi_y' });
+  const l = await lead('user@test');
+  assert.ok(l.pago_chat_ate === null || l.pago_chat_ate < new Date(), 'passe reembolsado antes não libera');
+  assert.equal((await db.query('select count(*)::int n from stripe_eventos_antecipados')).rows[0].n, 0, 'guardados são consumidos');
+});
+
+test('Agentio pago: telefone travado só quando já existe (o primeiro o cliente informa); plano à mão fica', async () => {
+  const { db, actor, compra, lead } = await ctx();
+  await db.query('update crm_leads set telefone=null where id=$1', [uid(2)]);
+  await compra('cs_a', 'user@test', LINK.agentio, { sub: 'sub_a', valor: 12900 });
+  await actor(2);
+  await db.query("update crm_leads set telefone='11999990000' where user_id=$1", [uid(2)]);
+  await db.query("update crm_leads set telefone='11888880000' where user_id=$1", [uid(2)]);
+  await actor(0);
+  assert.equal((await lead('user@test')).telefone, '11999990000');
+  await db.query("update crm_leads set plano='Contrato especial' where id=$1", [uid(5)]);
+  await compra('cs_p5', 'paid@test', LINK.passe, { pi: 'pi_5' });
+  assert.equal((await lead('paid@test')).plano, 'Contrato especial');
+  assert.equal((await lead('user@test')).plano, 'Agentio · mensal');
+});
+

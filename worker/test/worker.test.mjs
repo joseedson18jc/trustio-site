@@ -621,6 +621,8 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
         return new Response(JSON.stringify({ id: "promo_" + code }), { status: 200 });
       }
       if (u.includes("/checkout/sessions/")) return new Response(JSON.stringify(respostas.sessao), { status: 200 });
+      if (u.includes("/invoices/in_1")) return new Response(JSON.stringify({ id: "in_1", subscription: "sub_1" }), { status: 200 });
+      if (u.includes("/invoices/")) return new Response(JSON.stringify({ error: { message: "sem permissão" } }), { status: 403 });
     }
     if (u.includes("evo.exemplo")) { zaps.push({ u, corpo: JSON.parse(o.body), apikey: o.headers.apikey }); return new Response("{}", { status: 201 }); }
     if (u.includes("api.resend.com")) { emails.push(JSON.parse(o.body)); return new Response("{}", { status: 200 }); }
@@ -733,6 +735,8 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
   ok(s1.args?.p_fim === null && s1.args.p_encerrar === false, "webhook: cancelamento desfeito → volta a valer sem data");
   s1 = await enviaSub("customer.subscription.deleted", { status: "canceled", ended_at: agoraS });
   ok(s1.args?.p_encerrar === true && s1.args.p_fim === new Date(agoraS * 1000).toISOString(), "webhook: assinatura encerrada → acaba");
+  s1 = await enviaSub("customer.subscription.updated", { status: "unpaid" });
+  ok(s1.args?.p_encerrar === false && !!s1.args.p_fim, "webhook: fatura em aberto (unpaid) suspende sem encerrar: volta se pagar");
   s1 = await enviaSub("customer.subscription.updated", { status: "incomplete" });
   ok(s1.status === 200 && !s1.args, "webhook: assinatura incompleta não mexe no acesso");
 
@@ -742,7 +746,17 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
   let c1 = reemb({ refunded: true, payment_intent: "pi_1", customer: "cus_1" });
   r = await hook(c1, assinar(c1));
   const rr = rpcs.find((x) => x.nome === "stripe_reembolso")?.args;
-  ok(r.status === 200 && rr?.p_payment_intent === "pi_1" && rr.p_customer === "cus_1", "webhook: reembolso total corta o acesso");
+  ok(r.status === 200 && rr?.p_payment_intent === "pi_1" && rr.p_subscription === null && !("p_customer" in rr),
+     "webhook: reembolso total de passe corta pela compra", JSON.stringify(rr));
+  rpcs = [];
+  c1 = reemb({ refunded: true, payment_intent: "pi_ren", customer: "cus_1", invoice: "in_1" });
+  r = await hook(c1, assinar(c1));
+  ok(r.status === 200 && rpcs.find((x) => x.nome === "stripe_reembolso")?.args.p_subscription === "sub_1",
+     "webhook: reembolso de cobrança de assinatura acha a assinatura pela fatura");
+  rpcs = [];
+  c1 = reemb({ refunded: true, payment_intent: "pi_ren", invoice: "in_negada" });
+  r = await hook(c1, assinar(c1));
+  ok(r.status === 500 && !rpcs.length, "webhook: sem ler a fatura → 500, a Stripe tenta de novo (não corta às cegas)");
   rpcs = [];
   c1 = reemb({ refunded: false, amount_refunded: 500, payment_intent: "pi_1" });
   r = await hook(c1, assinar(c1));

@@ -27,6 +27,12 @@ GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toqu
    e, até lá, as perguntas são ilimitadas. Depois do fim, status vira `trial_esgotado`. Só as RPCs do teste
    gravam `teste_fim` (gatilho `crm_leads_guard_teste`). Equipe, cliente, assinante e plano pago ignoram o teste.
    `free_message_limit` não é mais lido pelo chat (`20261025210000_teste_gratis_3_dias.sql`).
+   Ritmo do teste (`20261025230000_ritmo_do_teste.sql`), sem contar perguntas: uma pergunta por vez
+   (`em_andamento_ate`, trava de 180 s solta por `fim_chat_message` no fim da resposta ou por
+   `release_chat_message` na falha) e 5 s entre perguntas (`ultima_pergunta_em`). A função responde 429
+   `aguarde_resposta` / `aguarde_intervalo` com `retry_after` no corpo. Pagos, liberados, assinantes e
+   equipe não têm ritmo. A função manda `X-Trustio-Plano: pago|teste` ao modelo; o gateway do Mac
+   (`~/bin/trustio_fila.py`) atende sempre os pagantes antes de quem está no teste.
    **O teste de 3 dias do WhatsApp está desligado desde 19/10/2026** (`20261019130000_desliga_teste_whatsapp.sql`,
    revisão legal G2: o Agentio roda em Baileys). Com `app_settings.whatsapp_teste_aberto = false`:
    - `request_whatsapp_trial` devolve `teste_encerrado`;

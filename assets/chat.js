@@ -133,6 +133,9 @@
   }
 
   function showNotice(html) { notice.innerHTML = html; notice.hidden = !html; }
+  // Fila do servidor: pagantes são atendidos antes de quem está no teste grátis.
+  function linkPlanos() { return " <a href=\"" + esc(CFG.planosUrl) + "\">" + T("Ver planos", "See plans") + "</a>"; }
+  var DICA_FILA_MS = 12000;
   function initials(name, email) {
     var base = (name || email || "?").trim();
     var p = base.split(/\s+/);
@@ -691,7 +694,7 @@
     var pending = appendMessage("assistant", "", state.modelos.length >= 2 ? (opcoes.modelo || modeloAtual()) : null);
     pending.classList.add("msg-pending");
     var body = pending.querySelector(".msg-body");
-    var full = "", avisado = false;
+    var full = "", avisado = false, dicaFila = null;
 
     // Raciocínio do modelo (à parte, recolhível) e progresso da resposta. O tamanho
     // final não é conhecido de antemão: a porcentagem é contra o teto de tokens que a
@@ -752,6 +755,11 @@
           state.modelos.length >= 2 ? { modelo: modeloAtual() || "" } : {},
           skillAtual() !== null ? { skill: skillAtual() } : {}));
       }
+      // Teste grátis esperando a vez na fila: avisa que assinantes têm prioridade.
+      if (!semCota()) dicaFila = setTimeout(function () {
+        if (!full) showNotice(esc(T("Sua pergunta ainda não começou a ser respondida. Assinantes têm prioridade na fila do servidor e não esperam entre uma pergunta e outra.",
+          "Your question hasn't started being answered yet. Subscribers get priority in the server queue and don't wait between questions.")) + linkPlanos());
+      }, DICA_FILA_MS);
       return fetch(CFG.chatEndpoint, {
         method: "POST",
         headers: headers,
@@ -785,6 +793,7 @@
               else if (avAtual && avAtual.classList.contains("tem-modelo")) { avAtual.classList.remove("tem-modelo"); avAtual.textContent = "T"; avAtual.removeAttribute("title"); }
             }
             if (d.limite) { limite = Number(d.limite) || 0; prog.classList.remove("is-open"); mostrarProgresso(); }
+            if ((d.raciocinio || d.delta || d.buscando) && dicaFila) { clearTimeout(dicaFila); dicaFila = null; showNotice(""); }
             if (d.raciocinio) {
               contar(d);
               // Tokens só do raciocínio ("nr", da função); sem ele, o total até a resposta começar.
@@ -882,9 +891,14 @@
       else if (code === "audio_formato_invalido") { pending.remove(); showNotice(T("Este formato de áudio não é aceito. Use MP3, M4A, WAV, OGG ou FLAC.", "This audio format isn't supported. Use MP3, M4A, WAV, OGG, or FLAC.")); }
       else if (code === "imagem_invalida") { pending.remove(); showNotice(T("Uma das imagens não pôde ser lida. Remova-a e envie de novo.", "One of the images couldn't be read. Remove it and send again.")); }
       else if (code === "imagem_indisponivel") { pending.remove(); showNotice(T("A leitura de imagens está indisponível. A imagem voltou para o rascunho; tente novamente em instantes.", "Image understanding is unavailable. The image was returned to your draft; try again shortly.")); }
+      else if (code === "aguarde_resposta") { pending.remove(); showNotice(esc(T("Sua pergunta anterior ainda está sendo respondida. No teste grátis, uma pergunta por vez; quem assina não precisa esperar uma terminar para mandar a próxima.",
+        "Your previous question is still being answered. On the free trial it's one question at a time; subscribers don't have to wait for one to finish before sending the next.")) + linkPlanos()); }
+      else if (code === "aguarde_intervalo") { pending.remove(); showNotice(esc(T("Aguarde " + ((err.data && err.data.retry_after) || 5) + " s para mandar a próxima pergunta.",
+        "Wait " + ((err.data && err.data.retry_after) || 5) + " s before sending the next question."))); }
       else if (code === "modelo_indisponivel") { pending.remove(); showNotice(T("O modelo não respondeu agora. Tente novamente em instantes.", "The model didn't respond just now. Try again in a moment.")); }
       else { pending.remove(); showNotice(esc(T("Não foi possível enviar", "We couldn't send that") + (code && code !== "Failed to fetch" && code !== "Load failed" ? " (" + code + ")" : "") + T(". Tente de novo em instantes.", ". Try again in a moment."))); console.error(err); }
     }).then(function () {
+      if (dicaFila) { clearTimeout(dicaFila); dicaFila = null; }
       pending.classList.remove("msg-pending");
       if (!prog.classList.contains("is-done")) prog.remove();
       if (!body.innerHTML && pending.parentNode) pending.remove();

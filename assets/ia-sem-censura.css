@@ -723,3 +723,15 @@ h1 .l { display: block; }
 .mnav .aud-menu { display: flex; gap: 8px; padding: 4px 0 14px; border: 0; border-radius: 0; border-bottom: 1px solid var(--line); }
 .mnav .aud-menu a { flex: 1 1 0; justify-content: center; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 999px; font-size: 16px; font-weight: 600; }
 .mnav .aud-menu a[aria-current] { border-color: var(--line-bright); }
+
+/* ---------- Preços consistentes (layout + polish Impeccable, out/2026) ----------
+   O cartão de plano é o mesmo de planos.html: superfície plana, 1 px de linha, raio de 20 px; o plano em
+   destaque só muda a borda (azul, 2 px) e a superfície (um tom acima), sem selo de texto. Ordem dos
+   blocos: rótulo, preço, custo por dia, renovação. Ordem dos cards: passe → mensal → anual. */
+.plan { padding: 28px 26px; border-radius: 20px; background: var(--surface); box-shadow: none; }
+.plan.feat, :root[data-theme="light"] .plan.feat { border-color: var(--blue-signal); background: var(--surface-raised); box-shadow: inset 0 0 0 1px var(--blue-signal); }
+.plan .top .label { color: var(--blue-signal); }
+.plan .price { margin: 22px 0 4px; }
+.plan .price strong { font-size: clamp(32px, 2.8vw, 40px); font-variant-numeric: tabular-nums; }
+.plan .perday { margin: 4px 0 8px; padding: 0; border: 0; border-radius: 0; font-size: 12.5px; letter-spacing: .02em; font-variant-numeric: tabular-nums; color: var(--accent-text); }
+.plan .note { margin-bottom: 22px; font-size: 14px; line-height: 1.5; color: var(--muted-strong); }

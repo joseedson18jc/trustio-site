@@ -25,10 +25,10 @@
   <link rel="stylesheet" href="assets/whatsapp-suporte.css?v=63736be5">
   <script defer src="assets/atribuicao.js?v=eb741257"></script>
   <script defer src="assets/whatsapp-suporte.js?v=19399fa4"></script>
-  <link rel="stylesheet" href="assets/planos.css?v=c94f7afc">
+  <link rel="stylesheet" href="assets/planos.css?v=5b182592">
   <link rel="stylesheet" href="assets/voice.css?v=e849d6e7">
   <script type="module" src="assets/app.js?v=f1793b39"></script>
-  <script defer src="assets/planos.js?v=29b05bf9"></script>
+  <script defer src="assets/planos.js?v=25ec24f7"></script>
   <script defer src="assets/optin.js?v=0c0020f4"></script>
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"OfferCatalog","name":"Planos Trustio","url":"https://trustio.com.br/planos.html","itemListElement":[
@@ -166,6 +166,7 @@
       <div class="compare">
         <p class="section-kicker">Comparativo · empresas</p>
         <h2 id="compare-empresas">O que muda entre Starter, Pro e Dedicado.</h2>
+        <p class="scroll-dica" aria-hidden="true">Deslize para o lado para ver todos os planos <svg viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></p>
         <div class="tablewrap table-scroll-wrapper" tabindex="0" role="region" aria-labelledby="compare-empresas" aria-label="Comparativo de planos para empresas"><table>
           <thead><tr><th>Recurso</th><th>Starter</th><th>Pro</th><th>Dedicado</th></tr></thead>
           <tbody>
@@ -202,7 +203,7 @@
           <ol class="como-funciona" aria-label="Como funciona a assinatura">
             <li><b>Crie a conta e teste.</b> 5 perguntas gr&aacute;tis, uma vez por conta, ap&oacute;s confirmar o e-mail. Sem cart&atilde;o.</li>
             <li><b>Pague com o e-mail da sua conta.</b> &Eacute; por ele que achamos a sua conta e liberamos o plano.<span class="conta-email" data-conta-email hidden> Voc&ecirc; est&aacute; conectado como <b></b>, e o pagamento j&aacute; vem com esse e-mail.</span></li>
-            <li><b>Acesso liberado em at&eacute; 1 dia &uacute;til</b> ap&oacute;s a confirma&ccedil;&atilde;o do pagamento. O passe de 7 dias conta a partir da libera&ccedil;&atilde;o.</li>
+            <li><b>Acesso liberado automaticamente</b> ap&oacute;s a confirma&ccedil;&atilde;o do pagamento (pague com o e-mail da sua conta). O passe de 7 dias conta a partir da libera&ccedil;&atilde;o.</li>
           </ol>
           <p class="b2c-garantias">Desista em at&eacute; 7 dias e receba o valor de volta (direito de arrependimento, art. 49 do C&oacute;digo de Defesa do Consumidor). <a href="#arrependimento">Como desistir</a></p>
         </div>
@@ -215,34 +216,38 @@
 
         <div class="sub-panel" id="pessoal-chat" role="tabpanel" aria-labelledby="sub-chat">
         <div class="plan-grid b2c-grid">
-          <article class="plan featured">
-            <p class="k">Pessoal &middot; mensal</p>
-            <h2>Acesso completo</h2>
-            <p class="desc">Chat privado e sem censura*, com os modelos Trustio Flash e Trustio Heavy Thinking, por um pre&ccedil;o fixo por m&ecirc;s.</p>
-            <div class="price"><small>R$</small><b>79</b><small>/m&ecirc;s</small></div>
-            <p class="note">Renova todo m&ecirc;s &middot; cancele quando quiser</p>
-            <ul><li>Modelo sem censura* e sem filtro do fornecedor</li><li>A Trustio não treina modelos com suas conversas</li><li>Conta e conversas guardadas no Brasil</li><li>Uso justo generoso, sem contar tokens</li><li>Hist&oacute;rico e arquivos</li><li>Busca na web, feita pela Exa (EUA)</li><li>Pre&ccedil;o em reais, sem IOF</li></ul>
-            <a class="button button-primary" href="https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08" rel="noopener">Assinar mensal <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-          </article>
           <article class="plan" id="passe">
             <p class="k">Passe &middot; 7 dias</p>
             <h2>Experimente uma semana</h2>
             <p class="desc">Sete dias de acesso completo, pagos uma vez. Sem renova&ccedil;&atilde;o autom&aacute;tica, sem cart&atilde;o preso.</p>
             <div class="price"><small>R$</small><b>24<i>,90</i></b><small>por 7 dias</small></div>
+            <p class="perday">≈ R$ 3,56 por dia</p>
             <p class="note">Pagamento &uacute;nico &middot; n&atilde;o renova sozinho</p>
             <ul><li>Tudo do plano mensal, por 7 dias</li><li>Ideal para testar antes de assinar</li><li>Pagamento &uacute;nico no cart&atilde;o</li></ul>
             <a class="button button-outline" href="https://buy.stripe.com/8x228rgiKetN2LRfRl5wI09" rel="noopener">Comprar passe de 7 dias <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+          </article>
+          <article class="plan featured">
+            <p class="k">Pessoal &middot; mensal</p>
+            <h2>Acesso completo</h2>
+            <p class="desc">Chat privado e sem censura*, com os modelos Trustio Flash e Trustio Heavy Thinking, por um pre&ccedil;o fixo por m&ecirc;s.</p>
+            <div class="price"><small>R$</small><b>79</b><small>/m&ecirc;s</small></div>
+            <p class="perday">≈ R$ 2,63 por dia</p>
+            <p class="note">Renova todo m&ecirc;s &middot; cancele quando quiser</p>
+            <ul><li>Modelo sem censura* e sem filtro do fornecedor</li><li>A Trustio não treina modelos com suas conversas</li><li>Conta e conversas guardadas no Brasil</li><li>Uso justo generoso, sem contar tokens</li><li>Hist&oacute;rico e arquivos</li><li>Busca na web, feita pela Exa (EUA)</li><li>Pre&ccedil;o em reais, sem IOF</li></ul>
+            <a class="button button-primary" href="https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08" rel="noopener">Assinar mensal <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
           </article>
           <article class="plan b2c-annual">
             <p class="k">Anual</p>
             <h2>Dois meses gr&aacute;tis</h2>
             <p class="desc">Doze meses pelo pre&ccedil;o de dez. Para quem j&aacute; sabe que vai usar.</p>
             <div class="price"><small>R$</small><b>790</b><small>/ano</small></div>
+            <p class="perday">≈ R$ 2,16 por dia</p>
             <p class="note">Equivale a R$ 65,83 por m&ecirc;s &middot; renova a cada 12 meses</p>
             <ul><li>Tudo do plano mensal</li><li>Pre&ccedil;o travado por 12 meses</li><li>Cart&atilde;o, Apple Pay ou Google Pay</li></ul>
             <a class="button button-outline" href="https://buy.stripe.com/cNifZhd6yfxR9afgVp5wI0a" rel="noopener">Assinar anual <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
           </article>
         </div>
+        <p class="perday-nota">Custo por dia arredondado: m&ecirc;s de 30 dias, ano de 365.</p>
         <p class="b2c-aviso">* Quem envia as perguntas responde pelo conte&uacute;do delas e pelo uso que faz das respostas, nos termos da lei.</p>
         </div>
 
@@ -258,6 +263,7 @@
               <h2>Semanal</h2>
               <p class="desc">Uma semana inteira de agente, paga uma vez. N&atilde;o renova sozinho.</p>
               <div class="price"><small>R$</small><b>39<i>,90</i></b><small>por 7 dias</small></div>
+              <p class="perday">≈ R$ 5,70 por dia</p>
               <p class="note">Pagamento &uacute;nico &middot; n&atilde;o renova sozinho</p>
               <ul><li>Agente no WhatsApp ou Telegram</li><li>Tarefas, pesquisa, escrita e resumos</li><li>Rotinas e lembretes</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/9B6fZh5E6gBVbinax15wI0b" rel="noopener">Comprar 7 dias <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
@@ -267,6 +273,7 @@
               <h2>Mensal</h2>
               <p class="desc">O agente trabalhando por voc&ecirc; o m&ecirc;s todo, por pre&ccedil;o fixo.</p>
               <div class="price"><small>R$</small><b>129</b><small>/m&ecirc;s</small></div>
+              <p class="perday">≈ R$ 4,30 por dia</p>
               <p class="note">Renova todo m&ecirc;s &middot; cancele quando quiser</p>
               <ul><li>Tudo do semanal</li><li>Mem&oacute;ria das suas prefer&ecirc;ncias e rotinas</li><li>Uso justo, sem contar tokens</li></ul>
               <a class="button button-primary" href="https://buy.stripe.com/bJe5kD2rU5Xhbin48D5wI0c" rel="noopener">Assinar mensal <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
@@ -276,6 +283,7 @@
               <h2>Semestral</h2>
               <p class="desc">Seis meses com desconto, cobrados de uma vez.</p>
               <div class="price"><small>R$</small><b>649</b><small>/6 meses</small></div>
+              <p class="perday">≈ R$ 3,61 por dia</p>
               <p class="note">Equivale a R$ 108,17 por m&ecirc;s &middot; <span class="save">economize 16%</span> &middot; renova a cada 6 meses</p>
               <ul><li>Tudo do mensal</li><li>Pre&ccedil;o travado por 6 meses</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/6oU8wPc2uetN5Y37kP5wI0d" rel="noopener">Assinar semestral <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
@@ -285,11 +293,13 @@
               <h2>Anual</h2>
               <p class="desc">O menor pre&ccedil;o por m&ecirc;s. Para quem j&aacute; delegou a rotina.</p>
               <div class="price"><small>R$</small><b>1.190</b><small>/ano</small></div>
+              <p class="perday">≈ R$ 3,26 por dia</p>
               <p class="note">Equivale a R$ 99,17 por m&ecirc;s &middot; <span class="save">economize 23%</span> &middot; renova a cada 12 meses</p>
               <ul><li>Tudo do mensal</li><li>Pre&ccedil;o travado por 12 meses</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/fZu28rfeG71l1HNfRl5wI0e" rel="noopener">Assinar anual <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
             </article>
           </div>
+          <p class="perday-nota">Custo por dia arredondado: m&ecirc;s de 30 dias, semestre de 180 e ano de 365.</p>
           <p class="sub-nota">O Hermes Agent &eacute; o framework de agentes de c&oacute;digo aberto da Nous Research; o Agentio &eacute; operado pela Trustio, com o modelo rodando na infraestrutura da Trustio. Quer tamb&eacute;m o chat sem censura* no site? O <a href="#combo" data-sub-link="combo">Combo</a> sai mais barato que os dois separados.</p>
         </div>
 
@@ -305,6 +315,7 @@
               <h2>Semanal</h2>
               <p class="desc">Chat + Agentio por uma semana. Pagamento &uacute;nico.</p>
               <div class="price"><small>R$</small><b>54<i>,90</i></b><small>por 7 dias</small></div>
+              <p class="perday">≈ R$ 7,84 por dia</p>
               <p class="note">Separados: R$ 64,80 &middot; <span class="save">economize 15%</span></p>
               <ul><li>Chat sem censura* no site</li><li>Agentio no Telegram ou WhatsApp</li><li>N&atilde;o renova sozinho</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/4gM8wP2rUgBVcmr6gL5wI0f" rel="noopener">Comprar 7 dias <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
@@ -314,6 +325,7 @@
               <h2>Mensal</h2>
               <p class="desc">Tudo da Trustio para voc&ecirc;, todo m&ecirc;s.</p>
               <div class="price"><small>R$</small><b>179</b><small>/m&ecirc;s</small></div>
+              <p class="perday">≈ R$ 5,97 por dia</p>
               <p class="note">Separados: R$ 208 &middot; <span class="save">economize 14%</span> &middot; renova todo m&ecirc;s</p>
               <ul><li>Chat sem censura*, uso justo</li><li>Agentio com mem&oacute;ria e rotinas</li><li>Hist&oacute;rico do chat guardado no Brasil</li><li>Cancele quando quiser</li></ul>
               <a class="button button-primary" href="https://buy.stripe.com/7sY14ngiK2L5fyD9sX5wI0g" rel="noopener">Assinar Combo mensal <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
@@ -323,6 +335,7 @@
               <h2>Semestral</h2>
               <p class="desc">Seis meses de chat + agente, cobrados de uma vez.</p>
               <div class="price"><small>R$</small><b>899</b><small>/6 meses</small></div>
+              <p class="perday">≈ R$ 4,99 por dia</p>
               <p class="note">Equivale a R$ 149,83 por m&ecirc;s &middot; <span class="save">economize 16%</span> sobre o mensal &middot; renova a cada 6 meses</p>
               <ul><li>Tudo do Combo mensal</li><li>Pre&ccedil;o travado por 6 meses</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/3cIaEX3vYetNgCH5cH5wI0h" rel="noopener">Assinar semestral <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
@@ -332,11 +345,14 @@
               <h2>Anual</h2>
               <p class="desc">O pacote completo pelo menor pre&ccedil;o.</p>
               <div class="price"><small>R$</small><b>1.690</b><small>/ano</small></div>
+              <p class="perday">≈ R$ 4,63 por dia</p>
               <p class="note">Equivale a R$ 140,83 por m&ecirc;s &middot; separados: R$ 1.980 &middot; <span class="save">economize 15%</span> &middot; renova a cada 12 meses</p>
               <ul><li>Tudo do Combo mensal</li><li>Pre&ccedil;o travado por 12 meses</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/3cIdR94A299t86bbB55wI0i" rel="noopener">Assinar anual <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
             </article>
           </div>
+          <p class="perday-nota">Custo por dia arredondado: m&ecirc;s de 30 dias, semestre de 180 e ano de 365.</p>
+          <p class="scroll-dica" aria-hidden="true">Deslize para o lado para ver todos os planos <svg viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></p>
           <div class="tablewrap sub-compare table-scroll-wrapper" tabindex="0" role="region" aria-labelledby="compare-pessoal" aria-label="Comparativo de planos individuais"><table>
             <caption id="compare-pessoal" class="visually-hidden">Comparativo: Chat sem censura*, Agentio e Combo</caption>
             <thead><tr><th>O que est&aacute; incluso</th><th>Chat sem censura*</th><th>Agentio</th><th>Combo</th></tr></thead>
@@ -351,22 +367,23 @@
           </table></div>
         </div>
 
-        <div class="lista" id="lista"><div><p class="section-kicker">Comece pelo chat</p><h2>Crie sua conta. Confirme o e-mail. Converse.</h2><p>Você recebe 5 perguntas grátis, uma vez por conta, sem cartão. Para continuar, escolha Chat, Agentio ou o Combo e pague pelo link do plano. O acesso pago é ativado em até 1 dia útil após a confirmação do pagamento.</p></div><div class="hero-actions"><a class="button button-primary" href="cadastro.html">Criar conta grátis</a><a class="button button-outline" href="entrar.html">Já tenho conta</a><a class="text-link" href="espera.html">Ajuda para escolher um plano</a></div></div>
+        <div class="lista lista-cta" id="lista"><div><p class="section-kicker">Comece pelo chat</p><h2>Crie sua conta. Confirme o e-mail. Converse.</h2><p>Você recebe 5 perguntas grátis, uma vez por conta, sem cartão. Para continuar, escolha Chat, Agentio ou o Combo e pague pelo link do plano. O acesso pago é liberado automaticamente após a confirmação do pagamento (pague com o e-mail da sua conta).</p></div><div class="hero-actions"><a class="button button-primary" href="cadastro.html">Criar conta grátis</a><a class="button button-outline" href="entrar.html">Já tenho conta</a><a class="text-link" href="#qual-plano">Ajuda para escolher um plano</a></div></div>
 
         <div class="compare">
           <p class="section-kicker">Comparativo &middot; para voc&ecirc;</p>
           <h2 id="compare-chat">O que muda entre os tr&ecirc;s acessos ao chat.</h2>
+          <p class="scroll-dica" aria-hidden="true">Deslize para o lado para ver todos os planos <svg viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></p>
           <div class="tablewrap table-scroll-wrapper" tabindex="0" role="region" aria-labelledby="compare-chat" aria-label="Comparativo de acessos ao chat"><table>
-            <thead><tr><th>O que importa</th><th>Mensal &middot; R$ 79</th><th>Passe 7 dias &middot; R$ 24,90</th><th>Anual &middot; R$ 790</th></tr></thead>
+            <thead><tr><th>O que importa</th><th>Passe 7 dias &middot; R$ 24,90</th><th>Mensal &middot; R$ 79</th><th>Anual &middot; R$ 790</th></tr></thead>
             <tbody>
-              <tr><td>Per&iacute;odo de acesso</td><td>1 m&ecirc;s</td><td>7 dias corridos</td><td>12 meses</td></tr>
-              <tr><td>Come&ccedil;a quando</td><td>em até 1 dia útil após a confirmação do pagamento</td><td>Na ativação, em até 1 dia útil após a confirmação do pagamento</td><td>em até 1 dia útil após a confirmação do pagamento</td></tr>
-              <tr><td>Renova sozinho?</td><td class="ok">&check; Sim, todo m&ecirc;s, at&eacute; voc&ecirc; cancelar</td><td>N&atilde;o. Acaba e pronto</td><td class="ok">&check; Sim, a cada 12 meses</td></tr>
-              <tr><td>Como cancelar</td><td>A qualquer momento; vale at&eacute; o fim do m&ecirc;s pago</td><td>Nada a cancelar</td><td>A qualquer momento; vale at&eacute; o fim do ano pago</td></tr>
+              <tr><td>Per&iacute;odo de acesso</td><td>7 dias corridos</td><td>1 m&ecirc;s</td><td>12 meses</td></tr>
+              <tr><td>Come&ccedil;a quando</td><td>Na ativa&ccedil;&atilde;o: liberado automaticamente ap&oacute;s a confirma&ccedil;&atilde;o do pagamento (pague com o e-mail da sua conta)</td><td>Liberado automaticamente ap&oacute;s a confirma&ccedil;&atilde;o do pagamento (pague com o e-mail da sua conta)</td><td>Liberado automaticamente ap&oacute;s a confirma&ccedil;&atilde;o do pagamento (pague com o e-mail da sua conta)</td></tr>
+              <tr><td>Renova sozinho?</td><td>N&atilde;o. Acaba e pronto</td><td>Sim, todo m&ecirc;s, at&eacute; voc&ecirc; cancelar</td><td>Sim, a cada 12 meses</td></tr>
+              <tr><td>Como cancelar</td><td>Nada a cancelar</td><td>A qualquer momento; vale at&eacute; o fim do m&ecirc;s pago</td><td>A qualquer momento; vale at&eacute; o fim do ano pago</td></tr>
               <tr><td>Cart&atilde;o, Apple Pay, Google Pay</td><td class="ok">&check;</td><td class="ok">&check;</td><td class="ok">&check;</td></tr>
               <tr><td>Chat sem censura* no site</td><td class="ok">&check; Uso justo, sem contar tokens</td><td class="ok">&check; Uso justo, sem contar tokens</td><td class="ok">&check; Uso justo, sem contar tokens</td></tr>
               <tr><td>Agentio no WhatsApp ou Telegram</td><td>S&oacute; com Agentio ou Combo</td><td>S&oacute; com Agentio ou Combo</td><td>S&oacute; com Agentio ou Combo</td></tr>
-              <tr><td>Quando acaba</td><td>O chat trava at&eacute; voc&ecirc; renovar</td><td>O chat trava no 8&ordm; dia</td><td>O chat trava at&eacute; voc&ecirc; renovar</td></tr>
+              <tr><td>Quando acaba</td><td>O chat trava no 8&ordm; dia</td><td>O chat trava at&eacute; voc&ecirc; renovar</td><td>O chat trava at&eacute; voc&ecirc; renovar</td></tr>
               <tr><td>Hist&oacute;rico das conversas</td><td class="ok">&check; Fica guardado na sua conta</td><td class="ok">&check; Fica guardado na sua conta</td><td class="ok">&check; Fica guardado na sua conta</td></tr>
             </tbody>
           </table></div>
@@ -376,11 +393,12 @@
         <div class="faq">
           <div><p class="section-kicker">D&uacute;vidas frequentes &middot; para voc&ecirc;</p><h2>Cobran&ccedil;a, pagamento e o que acontece depois do teste.</h2></div>
           <div>
+            <details id="qual-plano"><summary>Qual plano escolher?</summary><p>Comece pelas 5 perguntas gr&aacute;tis. Se quiser usar por poucos dias, o passe de 7 dias sai por ≈ R$ 3,56 por dia e n&atilde;o renova sozinho. Se o chat vai entrar na rotina, o mensal sai por ≈ R$ 2,63 por dia e o anual, por ≈ R$ 2,16. Quer tamb&eacute;m o agente no WhatsApp ou no Telegram? Veja as abas Agentio e Combo, mais acima.</p></details>
             <details><summary>Quais formas de pagamento os planos pessoais aceitam?</summary><p>Cart&atilde;o de cr&eacute;dito, Apple Pay e Google Pay, em todos os planos pessoais &mdash; chat, Agentio e Combo. Nos planos empresariais o pagamento funciona de outro jeito, explicado na aba &ldquo;Para empresas&rdquo;.</p></details>
             <details><summary>O plano mensal renova sozinho?</summary><p>No cart&atilde;o, sim: ele renova todo m&ecirc;s at&eacute; voc&ecirc; cancelar, e o cancelamento vale at&eacute; o fim do m&ecirc;s que voc&ecirc; j&aacute; pagou &mdash; sem multa. O Passe de 7 dias nunca renova sozinho, em nenhuma forma de pagamento.</p></details>
             <details><summary>O que acontece depois das 5 perguntas gr&aacute;tis?</summary><p>O chat trava e nada &eacute; cobrado. Suas conversas continuam na conta, e voc&ecirc; escolhe um plano quando quiser &mdash; ou simplesmente n&atilde;o escolhe. As 5 perguntas s&atilde;o uma vez por conta, n&atilde;o por m&ecirc;s.</p></details>
             <details><summary>O agente no WhatsApp e no Telegram est&aacute; incluso?</summary><p>O agente agora &eacute; o <b>Agentio</b>, vendido em planos pr&oacute;prios &mdash; semanal, mensal, semestral e anual &mdash; ou junto com o chat no <b>Combo</b>, mais barato que os dois separados. Os planos do chat n&atilde;o incluem o Agentio. O agente atende <b>somente no seu Telegram ou no seu WhatsApp</b>, no n&uacute;mero que voc&ecirc; cadastrar, nunca por computador ou terminal.</p></details>
-            <details><summary>Quando posso usar o plano pago?</summary><p>O acesso pessoal é liberado em até 1 dia útil após a confirmação do pagamento pelo Stripe. Use no pagamento o mesmo e-mail da sua conta Trustio. O passe de 7 dias começa na ativação. Para testar antes de pagar, crie sua conta, confirme o e-mail e use as 5 perguntas grátis.</p></details>
+            <details><summary>Quando posso usar o plano pago?</summary><p>O acesso pessoal é liberado automaticamente após a confirmação do pagamento pelo Stripe (pague com o e-mail da sua conta). O passe de 7 dias começa na ativação. Para testar antes de pagar, crie sua conta, confirme o e-mail e use as 5 perguntas grátis.</p></details>
             <details id="arrependimento"><summary>Posso desistir da compra?</summary><p>Sim. Pelo art. 49 do C&oacute;digo de Defesa do Consumidor, quem compra pela internet pode desistir em at&eacute; 7 dias, contados da compra ou da libera&ccedil;&atilde;o do acesso, e recebe de volta os valores pagos. Vale para todos os planos pessoais: chat, Agentio e Combo. Para desistir, escreva para <!--email_off--><a href="mailto:contato@trustio.com.br?subject=Arrependimento%20de%20compra">contato@trustio.com.br</a><!--/email_off--> a partir do e-mail usado no pagamento.</p></details>
             <details><summary>Preciso dar meu telefone?</summary><p>N&atilde;o. Para o chat no site bastam nome, e-mail e senha. O telefone s&oacute; &eacute; necess&aacute;rio se voc&ecirc; quiser o agente no WhatsApp, porque ele atende exatamente nesse n&uacute;mero.</p></details>
           </div>

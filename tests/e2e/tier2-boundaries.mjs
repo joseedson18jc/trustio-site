@@ -701,22 +701,29 @@ export async function runTier2Tests(context) {
   }
 
   // T2.4.3: Strict Media Query Scan across ALL `.css` files in `assets/`
+  // Lê só as condições de @media (comentários removidos). Valores de propriedades como
+  // `max-width: 720px` num parágrafo não são breakpoints e não entram na conta.
+  // - @media: toda condição de largura precisa estar na matriz de 4 níveis (767/768, 1023/1024, 1439/1440 px).
+  //   Condições de altura, orientação, hover, print e prefers-* ficam fora da matriz (que é de largura).
+  // - @container fica fora: mede o componente, não a tela, então não tem como seguir a matriz de viewport.
   {
     const start = Date.now();
     const assetsDir = path.join(rootDir, 'assets');
     const cssFiles = fs.readdirSync(assetsDir).filter((f) => f.endsWith('.css'));
     const arbitraryFound = [];
 
-    const arbitraryThresholds = [
-      '420px', '520px', '560px', '600px', '640px', '680px', '700px', '719px', '720px',
-      '760px', '900px', '960px', '1040px', '1060px', '1100px', '1300px', '1301px', '1539px', '1700px'
-    ];
+    const matrixWidths = new Set([767, 768, 1023, 1024, 1439, 1440]);
+    // Cada condição entre parênteses que fala de largura ((max-width: …), (width < …), (768px <= width < 1024px)…).
+    const widthFeature = /\(([^()]*\bwidth\b[^()]*)\)/gi;
+    const lengthValue = /(-?\d*\.?\d+)([a-z%]*)/gi;
 
     for (const f of cssFiles) {
-      const content = fs.readFileSync(path.join(assetsDir, f), 'utf8');
-      for (const t of arbitraryThresholds) {
-        if (content.includes(t)) {
-          arbitraryFound.push(`${f} (${t})`);
+      const content = fs.readFileSync(path.join(assetsDir, f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+      for (const m of content.matchAll(/@media\b([^{;]*)/gi)) {
+        const prelude = m[1].replace(/\s+/g, ' ').trim();
+        const values = [...prelude.matchAll(widthFeature)].flatMap((c) => [...c[1].matchAll(lengthValue)]);
+        if (values.some(([, num, unit]) => unit.toLowerCase() !== 'px' || !matrixWidths.has(Number(num)))) {
+          arbitraryFound.push(`${f} (@media ${prelude})`);
         }
       }
     }

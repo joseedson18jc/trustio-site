@@ -139,8 +139,8 @@
 .voice-cta .orb{--size:150px;justify-self:center}
 .voice-cta .acts{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px;position:relative;z-index:1}
 .disclaimer{font-size:12px;color:var(--muted);margin-top:24px;max-width:80ch}
-@media(max-width:960px){.voice-hero-grid,.vsec .head,.usecase-panel,.bench,.perim{grid-template-columns:1fr}.voices{grid-template-columns:repeat(2,1fr)}.feat-grid,.playbook{grid-template-columns:1fr}.suite{grid-template-columns:repeat(2,1fr)}.latency{grid-template-columns:1fr}.voice-cta{grid-template-columns:1fr}.orb-stage{min-height:0;order:-1;gap:18px}.stage-orb{--size:min(220px,58vw)}.stage-orb .orb{--size:min(220px,58vw)}.orb-glyph{width:44px;height:44px}.orb-live{font-size:15px}}
-@media(max-width:520px){.voices,.suite{grid-template-columns:1fr}}
+@media (max-width: 1023px){.voice-hero-grid,.vsec .head,.usecase-panel,.bench,.perim{grid-template-columns:1fr}.voices{grid-template-columns:repeat(2,1fr)}.feat-grid,.playbook{grid-template-columns:1fr}.suite{grid-template-columns:repeat(2,1fr)}.latency{grid-template-columns:1fr}.voice-cta{grid-template-columns:1fr}.orb-stage{min-height:0;order:-1;gap:18px}.stage-orb{--size:min(220px,58vw)}.stage-orb .orb{--size:min(220px,58vw)}.orb-glyph{width:44px;height:44px}.orb-live{font-size:15px}}
+@media (max-width: 767px){.voices,.suite{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.orb,.orb::before,.orb::after,.orb i,.orb .ring,.orb-state i,.bars i{animation:none!important;opacity:1;transform:none}}
 
 /* --- Omnichannel --- */
@@ -160,8 +160,8 @@
 .br-strip div{padding:16px 18px;border-left:2px solid var(--line-bright,rgba(94,167,255,.38));border-radius:0 12px 12px 0;background:rgba(94,167,255,.05)}
 .br-strip b{display:block;font-size:14.5px;color:var(--ice,#f4f6fa);margin-bottom:5px}
 .br-strip span{color:var(--muted,#a9b4c6);font-size:13px;line-height:1.5}
-@media(max-width:960px){.channels{grid-template-columns:repeat(2,1fr)}.omni-brain{grid-template-columns:1fr}.br-strip{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:520px){.channels,.br-strip{grid-template-columns:1fr}}
+@media (max-width: 1023px){.channels{grid-template-columns:repeat(2,1fr)}.omni-brain{grid-template-columns:1fr}.br-strip{grid-template-columns:repeat(2,1fr)}}
+@media (max-width: 767px){.channels,.br-strip{grid-template-columns:1fr}}
 
 /* Passe tipográfico: números e rótulos da página de voz */
 .powered b,.ch b,.br-strip b{letter-spacing:-.015em}
@@ -207,8 +207,8 @@
 .ch-facts-list dd{margin:0;color:var(--muted-strong);line-height:1.5}
 .ch-cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
 .ch-cta .button{min-height:46px;font-size:14px}
-@media(max-width:960px){.ch-detail-body{grid-template-columns:1fr}.ch-facts-list div{grid-template-columns:96px 1fr}}
-@media(max-width:520px){.ch-detail{padding:20px 16px}.ch-detail-head{flex-direction:column;gap:10px}.ch-facts-list div{grid-template-columns:1fr;gap:3px}}
+@media (max-width: 1023px){.ch-detail-body{grid-template-columns:1fr}.ch-facts-list div{grid-template-columns:96px 1fr}}
+@media (max-width: 767px){.ch-detail{padding:20px 16px}.ch-detail-head{flex-direction:column;gap:10px}.ch-facts-list div{grid-template-columns:1fr;gap:3px}}
 @media(prefers-reduced-motion:reduce){.ch-more,.ch-detail,.ch-hint::after{transition:none!important;animation:none!important}}
 @media(hover:none){.ch-more{display:none}}
 
@@ -225,8 +225,8 @@
 .tech-proof dt{font-family:var(--mono,ui-monospace);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .tech-proof dd{margin:4px 0 0;font-family:var(--mono,ui-monospace);font-size:13px;color:var(--ice,#f4f6fa);font-weight:500;letter-spacing:-.01em}
 .tech-proof dd small{display:block;margin-top:2px;font-family:var(--body,sans-serif);font-weight:400;font-size:12px;color:var(--muted);letter-spacing:0;line-height:1.35}
-@media(max-width:960px){.tech-proof{max-width:none}}
-@media(max-width:520px){.tech-proof dl{grid-template-columns:repeat(2,minmax(0,1fr))}.tech-proof dl div:nth-child(3n){border-right:1px solid var(--line,rgba(160,179,211,.16))}.tech-proof dl div:nth-child(2n){border-right:0}.tech-proof dl div:nth-last-child(-n+3){border-bottom:1px solid var(--line,rgba(160,179,211,.16))}.tech-proof dl div:nth-last-child(-n+2){border-bottom:0}}
+@media (max-width: 1023px){.tech-proof{max-width:none}}
+@media (max-width: 767px){.tech-proof dl{grid-template-columns:repeat(2,minmax(0,1fr))}.tech-proof dl div:nth-child(3n){border-right:1px solid var(--line,rgba(160,179,211,.16))}.tech-proof dl div:nth-child(2n){border-right:0}.tech-proof dl div:nth-last-child(-n+3){border-bottom:1px solid var(--line,rgba(160,179,211,.16))}.tech-proof dl div:nth-last-child(-n+2){border-bottom:0}}
 
 /* ── Ajustes de responsividade (out/2026) ──
    a) Em telas de toque não há hover e a camada .ch-more ficava oculta: os cards abrem o painel de
@@ -235,7 +235,7 @@
    b) Vozes (Ara, Eve, Leo…) em duas colunas no celular, em vez de cinco cards empilhados.
    c) Marca da xAI é branca: no tema claro ficava invisível sobre o card claro. */
 @media (hover:none){.ch-more{display:block;height:auto;margin-top:4px;opacity:1;transform:none}.ch-more .ch-facts{display:none}}
-@media(max-width:520px){
+@media (max-width: 767px){
   .voices{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .voice{padding:18px 10px 14px;gap:10px}
   .voice .orb{--size:84px}

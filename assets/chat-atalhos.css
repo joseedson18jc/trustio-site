@@ -30,8 +30,8 @@
 .atalhos-tarefas button:focus-visible { outline: 2px solid var(--chat-accent, #5ea7ff); outline-offset: 2px; }
 .welcome .atalhos-aviso { margin: 12px 0 0; max-width: none; font-size: 13px; color: var(--muted); }
 
-@media (max-width: 900px) { .atalhos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) {
+@media (max-width: 1023px) { .atalhos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 767px) {
   .atalhos { margin-inline: 4px; }
   .atalho { min-height: 0; }
 }

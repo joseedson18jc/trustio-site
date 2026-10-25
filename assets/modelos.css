@@ -130,10 +130,10 @@
   .tm-cap-grid { grid-template-columns: repeat(2, 1fr); }
   .tm-plans { grid-template-columns: 1fr; }
 }
-@media (max-width: 860px) {
+@media (max-width: 1023px) {
   .tm-grid { grid-template-columns: 1fr; }
 }
-@media (max-width: 560px) {
+@media (max-width: 767px) {
   .tm-cap-grid { grid-template-columns: 1fr; }
   .tm-specs > div { grid-template-columns: 1fr; gap: 4px; }
   .tm-name { flex-wrap: wrap; }

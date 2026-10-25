@@ -33,7 +33,7 @@
 .wa-float:focus-visible { outline: 3px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 6px #128c7e; }
 
 /* No celular, só o ícone: o texto vai no aria-label. */
-@media (max-width: 719px) {
+@media (max-width: 767px) {
   .wa-float { width: 56px; padding: 0; }
   .wa-float-texto { display: none; }
 }

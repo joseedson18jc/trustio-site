@@ -125,8 +125,8 @@
 .ag-cta .button-outline { border-color: rgba(255, 255, 255, 0.35); color: #ffffff; }
 
 /* ── Responsivo ──────────────────────────────────────────────────── */
-@media (max-width: 1180px) { .ag-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ag-card-wide { grid-column: span 2; } }
-@media (max-width: 1000px) {
+@media (max-width: 1023px) { .ag-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ag-card-wide { grid-column: span 2; } }
+@media (max-width: 1023px) {
   .ag-hero-grid { grid-template-columns: 1fr; }
   .ag-phone { justify-self: start; }
   .ag-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -134,7 +134,7 @@
   .ag-card-wide p { grid-column: 1 / -1; }
   .ag-head { grid-template-columns: 1fr; }
 }
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .ag-grid, .ag-steps, .ag-proof { grid-template-columns: 1fr; }
   .ag-card-wide { grid-column: auto; }
   .ag-phone { justify-self: stretch; }

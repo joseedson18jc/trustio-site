@@ -3433,3 +3433,33 @@ textarea::placeholder {
   .drawer-acoes,
   .drawer-util { display: none; }
 }
+
+/* ── Público: Para você | Empresas (out/2026) ─────────────────────────────────
+   Um seletor só, em todas as páginas: no topo a partir de 1024 px e no começo do
+   menu no celular. Substitui o selo "para empresas" que ficava dentro do VoiceAI. */
+.audiencia { display: none; }
+@media (min-width: 1024px) {
+  .site-header .audiencia { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; }
+}
+.audiencia a { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 999px; color: var(--muted); font-size: 13px; font-weight: 560; line-height: 1.2; white-space: nowrap; text-decoration: none; transition: color 180ms ease, background-color 180ms ease; }
+.audiencia a:hover { color: var(--text-strong); }
+.audiencia a[aria-current] { background: var(--surface-blue); color: var(--text-strong); }
+.mobile-nav .audiencia-menu { display: flex; gap: 8px; padding: 4px 0 18px; border-bottom: 1px solid var(--line); }
+.mobile-nav .audiencia-menu a { flex: 1 1 0; justify-content: center; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line); font-family: var(--body); font-size: 16px; font-weight: 600; }
+.mobile-nav .audiencia-menu a[aria-current] { border-color: var(--line-bright); }
+/* Linha do cabeçalho com menos de 1100 px (telas de 1024 a 1179): o seletor de público
+   e o idioma ficam mais justos para o tema caber. */
+@media (min-width: 1024px) {
+  @container (max-width: 1099px) {
+    .site-header .audiencia a { padding-inline: 8px; font-size: 12.5px; }
+    .site-header .lang-switch .lang-switch-troca { display: none; }
+    .site-header .lang-switch { padding-inline: 8px; }
+  }
+}
+/* Páginas de empresas (menu mais longo + "Falar com um arquiteto"): entre 1024 e 1179 px,
+   "Implantação" sai do topo; continua na página e no rodapé. */
+@media (min-width: 1024px) {
+  @container (max-width: 1099px) {
+    .site-header .desktop-nav a[href$="#implantacao"] { display: none; }
+  }
+}

@@ -712,3 +712,14 @@ h1 .l { display: block; }
 :root[data-theme="light"] .persona:hover,
 :root[data-theme="light"] .win.t,
 :root[data-theme="light"] .plan.feat { box-shadow: 0 24px 60px -30px rgba(10,29,61,.3); }
+
+/* Público: Para você | Empresas — o mesmo seletor das outras páginas (out/2026). */
+.aud { display: inline-flex; flex: none; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; }
+.aud a { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 999px; color: var(--muted); font-size: 13px; font-weight: 560; line-height: 1.2; white-space: nowrap; text-decoration: none; transition: color .2s, background-color .2s; }
+.aud a:hover { color: var(--text-strong); }
+.aud a[aria-current] { background: var(--line); color: var(--text-strong); }
+.hdr-in > .aud { margin-right: -10px; }
+@media (max-width: 1023px) { .hdr-in > .aud { display: none; } }
+.mnav .aud-menu { display: flex; gap: 8px; padding: 4px 0 14px; border: 0; border-radius: 0; border-bottom: 1px solid var(--line); }
+.mnav .aud-menu a { flex: 1 1 0; justify-content: center; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 999px; font-size: 16px; font-weight: 600; }
+.mnav .aud-menu a[aria-current] { border-color: var(--line-bright); }

@@ -61,7 +61,7 @@
 .tb-copy { position: relative; z-index: 3; max-width: 44cqw; }
 .tb-brand { display: flex; align-items: center; gap: 1.2cqw; opacity: 0; animation: tb-up 1s cubic-bezier(.2, .7, .2, 1) .5s forwards; }
 .tb-mark { width: 5.2cqw; height: auto; aspect-ratio: 1; flex: none; filter: drop-shadow(0 .6cqw 1.8cqw rgba(46, 107, 240, .45)); }
-.tb-wordmark { font-size: 5cqw; font-weight: 700; letter-spacing: -.045em; line-height: 1; color: #fff; }
+.tb-wordmark { font-size: 5cqw; font-weight: 700; letter-spacing: -.0225em; line-height: 1; color: #fff; }
 .tb-brand .tb-flag { width: 3.4cqw; height: auto; aspect-ratio: 10 / 7; border-radius: 14%; margin-left: .4cqw; animation-delay: .9s; }
 
 .tb-tagline { --tb-bar: 7cqw; margin-top: 1.2cqw; font-size: clamp(12px, .9cqw, 16px); letter-spacing: .42em; color: var(--tb-muted); font-weight: 500; opacity: 0; animation: tb-up 1s cubic-bezier(.2, .7, .2, 1) .9s forwards; }

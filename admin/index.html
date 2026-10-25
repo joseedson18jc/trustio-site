@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="../assets/admin.css?v=dbbd4c01">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=c3461a69"></script>
-  <script defer src="../assets/admin.js?v=5bc048f1"></script>
+  <script defer src="../assets/admin.js?v=50040fe9"></script>
 </head>
 <body class="chat-page crm-page admin-page">
 <a class="skip-link" href="#painel">Ir para o painel</a>
@@ -76,9 +76,9 @@
 
         <div class="admin-row">
           <div>
-            <label class="admin-label" for="limite">Prompts grátis por conta</label>
-            <input id="limite" type="number" min="0" step="1" data-set="free_message_limit">
-            <small class="admin-hint">0 = sem limite. Assinantes nunca são limitados.</small>
+            <label class="admin-label" for="limite">Dias de teste grátis por conta</label>
+            <input id="limite" type="number" min="0" step="1" data-set="free_trial_days">
+            <small class="admin-hint">Contados a partir da primeira pergunta, sem limite de perguntas. 0 = sem limite. Assinantes nunca são limitados.</small>
           </div>
           <div>
             <label class="admin-label" for="modelo">Modelo em uso</label>

@@ -29,3 +29,5 @@
 .home-residency--plana .home-residency-stats { margin-top:40px; }
 .home-residency-cta { display:flex; justify-content:center; margin-top:36px; }
 
+/* Texto da faixa plana tingido do próprio azul da faixa, não cinza. */
+.home-residency--plana p:not(.home-residency-kicker) { color: #c6d4ee; }

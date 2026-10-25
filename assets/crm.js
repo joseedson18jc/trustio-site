@@ -151,8 +151,8 @@
     });
   }
   function loadLimit() {
-    return sb.from("app_settings").select("value").eq("key", "free_message_limit").maybeSingle().then(function (r) {
-      $("[data-limit]").value = r.data ? Number(r.data.value) : 0;
+    return sb.from("app_settings").select("value").eq("key", "free_trial_days").maybeSingle().then(function (r) {
+      $("[data-limit]").value = r.data ? Number(r.data.value) : 3;
     });
   }
 
@@ -459,11 +459,13 @@
   });
 
   $("[data-limit]").addEventListener("change", function (e) {
-    var v = Math.max(0, parseInt(e.target.value, 10) || 0); e.target.value = v;
-    sb.from("app_settings").upsert({ key: "free_message_limit", value: v, updated_at: new Date().toISOString() }).then(function (r) {
+    // Campo vazio ou inválido volta ao padrão de 3 dias: 0 abriria o chat para todos, sem fim de teste.
+    var n = parseInt(e.target.value, 10);
+    var v = isNaN(n) ? 3 : Math.max(0, n); e.target.value = v;
+    sb.from("app_settings").upsert({ key: "free_trial_days", value: v, updated_at: new Date().toISOString() }).then(function (r) {
       if (r.error) { toast("Não foi possível salvar: " + r.error.message, "erro"); return; }
       e.target.classList.add("saved"); setTimeout(function () { e.target.classList.remove("saved"); }, 1200);
-      toast(v ? "Limite de perguntas grátis: " + v + "." : "Perguntas grátis sem limite.");
+      toast(v ? "Teste grátis: " + v + (v === 1 ? " dia" : " dias") + " a partir da primeira pergunta." : "Teste grátis sem limite de dias.");
     });
   });
 
@@ -716,7 +718,7 @@
     btn.disabled = true;
     sb.rpc("crm_reiniciar_cota", { p_lead_id: id, p_motivo: motivo }).then(function (r) {
       if (r.error) throw r.error;
-      toast("Cota de perguntas reiniciada.");
+      toast("Teste grátis reiniciado: os dias recomeçam na próxima pergunta.");
       return loadLeads().then(function () { if (dlg.open && dlg.dataset.id === id) abrirDetalhe(id); });
     }).catch(function (err) { toast(err.message || "Não foi possível reiniciar a cota.", "erro"); }).finally(function () { btn.disabled = false; });
   });

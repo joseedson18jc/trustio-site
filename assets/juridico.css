@@ -100,9 +100,8 @@
 .legal-hero h1 {
   max-width: 900px;
   margin-bottom: 28px;
-  font-size: clamp(50.8px, 6.97vw, 103.3px);
-  font-weight: 400;
-  letter-spacing: -0.0275em;
+  font-size: var(--h1-compact);
+  letter-spacing: var(--h1-tracking);
 }
 
 .legal-hero h1 span {
@@ -111,7 +110,7 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  font-weight: 300;
+  font-weight: var(--heading-soft-weight);
 }
 
 .legal-lead {
@@ -160,9 +159,7 @@
 .legal-live-copy h2,
 .legal-security-copy h2 {
   margin-bottom: 26px;
-  font-size: clamp(34.4px, 4.76vw, 62.3px);
-  font-weight: 400;
-  letter-spacing: -0.025em;
+  font-size: var(--h2);
 }
 
 .legal-statement-copy > p,
@@ -743,10 +740,6 @@
     padding-bottom: 90px;
   }
 
-  .legal-hero h1 {
-    font-size: clamp(44.3px, 13.94vw, 64px);
-  }
-
   .legal-lead {
     font-size: 18px;
   }
@@ -768,13 +761,6 @@
 
   .legal-statement-grid {
     gap: 22px;
-  }
-
-  .legal-statement-copy h2,
-  .legal-section-heading h2,
-  .legal-live-copy h2,
-  .legal-security-copy h2 {
-    font-size: clamp(31.2px, 9.84vw, 44.3px);
   }
 
   .legal-principles {
@@ -869,7 +855,6 @@
   align-items: center;
 }
 .legal-hero-grid .legal-hero-inner { max-width: none; }
-.legal-hero h1 { font-size: clamp(46px, 5.6vw, 88px); }
 .legal-lead { font-size: clamp(18px, 1.6vw, 21px); }
 
 .legal-doc { position: relative; padding: 58px 34px 46px 10px; }
@@ -1143,7 +1128,6 @@
   .legal-timeline article { padding-top: 34px; }
 }
 @media (max-width: 767px) {
-  .legal-hero h1 { font-size: clamp(40px, 12vw, 58px); }
   .legal-doc { padding: 22px 6px 52px; }
   .legal-chip { padding: 8px 11px 8px 9px; }
   .legal-chip svg { width: 26px; height: 26px; }

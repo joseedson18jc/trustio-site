@@ -16,12 +16,12 @@
   <link rel="preload" href="../assets/fonts/manrope-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="../assets/fonts/geist-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="../assets/theme.js?v=7b1e9843"></script>
-  <link rel="stylesheet" href="../assets/styles.css?v=bd3fa3fd">
+  <link rel="stylesheet" href="../assets/styles.css?v=43e34f01">
   <link rel="stylesheet" href="../assets/chat.css?v=06320bbc">
   <link rel="stylesheet" href="../assets/crm.css?v=c5f0ed96">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=c3461a69"></script>
-  <script defer src="../assets/crm.js?v=842a69ae"></script>
+  <script defer src="../assets/crm.js?v=917e8963"></script>
 </head>
 <body class="chat-page crm-page">
 <a class="skip-link" href="#leads">Ir para a lista de leads</a>
@@ -111,7 +111,7 @@
       <label class="check"><input type="checkbox" data-hide-tests> Ocultar testes <span data-tests-count></span></label>
       <button type="button" class="tag-ativa" data-tag-ativa hidden title="Tirar o filtro de etiqueta"></button>
       <span class="meta"><span data-shown></span> · <span data-updated></span></span>
-      <label class="setting so-admin">Perguntas grátis <input type="number" min="0" step="1" data-limit aria-label="Perguntas grátis por conta"> <small>0 = sem limite</small></label>
+      <label class="setting so-admin">Dias de teste grátis <input type="number" min="0" step="1" data-limit aria-label="Dias de teste grátis por conta"> <small>a partir da 1ª pergunta · 0 = sem limite</small></label>
     </div>
 
     <div class="load-error" data-load-error hidden role="alert">
@@ -209,7 +209,7 @@
       </form>
       <label>Teste do WhatsApp: duração em dias <input type="number" min="1" max="365" value="3" data-access-wa-days></label>
       <button type="button" class="btn btn-ghost" data-access-wa>Ativar / renovar teste do WhatsApp</button>
-      <button type="button" class="btn btn-ghost" data-access-reset-quota>Reiniciar cota de perguntas (com motivo)</button>
+      <button type="button" class="btn btn-ghost" data-access-reset-quota>Reiniciar teste grátis de 3 dias (com motivo)</button>
       <small>A liberação sem cota é do chat. O WhatsApp continua dependendo do teste ou da assinatura ativa.</small>
     </section>
     <div class="detail-edit">

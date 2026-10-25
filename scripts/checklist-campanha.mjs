@@ -122,8 +122,8 @@ for (const pagina of [...B2C, ...B2B]) {
   }
 
   // 8. oferta por extenso, sem Pix para pessoa física
-  if (ehB2C && /5 perguntas grátis/i.test(tudo) && !/uma vez por conta|uma única vez/i.test(tudo)) falha(pagina, 8, "\"5 perguntas grátis\" sem \"uma vez por conta\"");
-  if (ehB2C && /5 perguntas grátis/i.test(tudo) && !/sem cartão/i.test(tudo)) falha(pagina, 8, "\"5 perguntas grátis\" sem \"sem cartão\"");
+  if (ehB2C && /3 dias (de teste )?grátis/i.test(tudo) && !/uma vez por conta|uma única vez/i.test(tudo)) falha(pagina, 8, "\"3 dias grátis\" sem \"uma vez por conta\"");
+  if (ehB2C && /3 dias (de teste )?grátis/i.test(tudo) && !/sem cartão/i.test(tudo)) falha(pagina, 8, "\"3 dias grátis\" sem \"sem cartão\"");
   if (ehB2C && pagina !== "afiliados.html") {
     // afiliado recebe comissão por Pix; isso não é forma de pagamento do cliente
     let alvo = html;

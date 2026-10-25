@@ -64,11 +64,18 @@
   }
   $("#h-status").addEventListener("change", pintarHermes);
 
+  // Campo vazio ou inválido mantém o padrão de 3 dias: 0 abriria o chat para todos, sem fim de teste.
+  function diasDeTeste(texto) {
+    var n = parseInt(texto, 10);
+    return isNaN(n) ? 3 : Math.max(0, n);
+  }
+
   function salvar(chaves, rotulo) {
     var linhas = chaves.map(function (k) {
       var el = $("[data-set='" + k + "']");
       var v;
-      if (k === "free_message_limit" || k === "hermes_trial_dias") v = Math.max(0, parseInt(el.value, 10) || 0);
+      if (k === "free_trial_days") v = diasDeTeste(el.value);
+      else if (k === "hermes_trial_dias") v = Math.max(0, parseInt(el.value, 10) || 0);
       else v = String(el.value);
       return { key: k, value: v, updated_at: new Date().toISOString() };
     });
@@ -84,7 +91,7 @@
     }).catch(function (e) { aviso(rotulo, "Não foi possível salvar: " + (e.message || e), "erro"); });
   }
 
-  $("[data-save='chat']").addEventListener("click", function () { salvar(["system_prompt", "free_message_limit"], "chat"); });
+  $("[data-save='chat']").addEventListener("click", function () { salvar(["system_prompt", "free_trial_days"], "chat"); });
   $("[data-save='hermes']").addEventListener("click", function () { salvar(["hermes_status", "hermes_trial_dias", "hermes_numero", "hermes_telegram", "hermes_prompt"], "hermes"); });
 
   // ---------------------------------------------------------------- resumo e fila

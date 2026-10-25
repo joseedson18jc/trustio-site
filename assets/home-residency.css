@@ -23,3 +23,9 @@
 @media (max-width: 767px) { .home-residency-stats div { padding:18px 10px; font-size:12px; gap:8px; } }
 /* Trustio 3.0 · passada Impeccable (out/2026): segunda linha do título em cor sólida, sem gradiente. */
 .home-residency h2 span { background:none; color:#5ea7ff; } /* a seção é sempre escura, nos dois temas */
+/* Home (out/2026): as duas faixas do Brasil viraram uma só, plana — sem estrelas, horizonte ou
+   brilho — com os 4 fatos e o botão de cadastro. Empresas e afiliados seguem com a faixa animada. */
+.home-residency--plana { padding:clamp(64px, 8vw, 104px) 0; background:#081739; border-block:1px solid rgba(160,179,211,.14); }
+.home-residency--plana .home-residency-stats { margin-top:40px; }
+.home-residency-cta { display:flex; justify-content:center; margin-top:36px; }
+

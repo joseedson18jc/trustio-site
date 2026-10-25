@@ -423,7 +423,7 @@ const CONFIRMACAO = {
   pt: {
     incompleto: ["Link incompleto", "Este endereço não traz o código de confirmação. Abra o link direto do e-mail que enviamos."],
     instavel: ["Tente de novo em instantes", "Não conseguimos conferir o link agora. Abra de novo daqui a pouco; se ele já tiver sido usado, avisamos na hora."],
-    confirmado: ["Inscrição confirmada", "Seu contato foi confirmado. Para testar o chat com 5 perguntas grátis, <a href=\"{site}/cadastro.html\">crie uma conta</a> e confirme o e-mail. Este pedido de contato não cria conta no chat. " +
+    confirmado: ["Inscrição confirmada", "Seu contato foi confirmado. Para testar o chat por 3 dias grátis, <a href=\"{site}/cadastro.html\">crie uma conta</a> e confirme o e-mail. Este pedido de contato não cria conta no chat. " +
       'O acesso pessoal pago é liberado em até 1 dia útil após a confirmação do pagamento (pague com o e-mail da sua conta) — <a href="{site}/planos.html#pessoal" style="color:#5ea7ff">ver como</a>.'],
     expirado: ["Link expirado", "Este link valia por 48 horas. Faça a inscrição de novo e enviamos outro na hora."],
     invalido: ["Link inválido", "Este link não vale mais. Ele pode já ter sido usado, ou ter sido substituído por um mais " +
@@ -433,7 +433,7 @@ const CONFIRMACAO = {
   en: {
     incompleto: ["Incomplete link", "This address is missing the confirmation code. Open the link straight from the email we sent."],
     instavel: ["Try again in a moment", "We couldn't check the link right now. Open it again shortly; if it has already been used, we'll tell you right away."],
-    confirmado: ["Sign-up confirmed", "Your contact details are confirmed. To try the chat with 5 free questions, <a href=\"{site}/cadastro.html\">create an account</a> and confirm your email. This contact request does not create a chat account. " +
+    confirmado: ["Sign-up confirmed", "Your contact details are confirmed. To try the chat free for 3 days, <a href=\"{site}/cadastro.html\">create an account</a> and confirm your email. This contact request does not create a chat account. " +
       'Paid personal access is granted within 1 business day after payment confirmation (pay with your account e-mail) — <a href="{site}/planos.html#pessoal" style="color:#5ea7ff">see how</a>.'],
     expirado: ["Link expired", "This link was valid for 48 hours. Sign up again and we'll send a new one right away."],
     invalido: ["Invalid link", "This link is no longer valid. It may have been used already, or replaced by a newer one — " +

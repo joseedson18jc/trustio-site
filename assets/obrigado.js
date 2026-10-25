@@ -63,7 +63,7 @@ if (qs.get("lista") === "pre") {
 } else if (qs.get("lista") === "espera") {
   listaMode(T("Solicitação de contato confirmada", "Contact request confirmed"));
   document.querySelector("[data-plan-title]").textContent = T("Seu contato foi confirmado.", "Your contact details are confirmed.");
-  document.querySelector("[data-plan-lead]").textContent = T("Seu contato foi confirmado. Para usar o chat, crie uma conta e confirme o e-mail: você recebe 5 perguntas grátis. Este formulário não cria uma conta. Para empresas, a equipe orienta a contratação e a implantação.", "Your contact details are confirmed. To use the chat, create an account and confirm your email: you get 5 free questions. This form does not create an account. For businesses, our team guides subscription and deployment.");
+  document.querySelector("[data-plan-lead]").textContent = T("Seu contato foi confirmado. Para usar o chat, crie uma conta e confirme o e-mail: você recebe 3 dias de teste grátis, a partir da primeira pergunta. Este formulário não cria uma conta. Para empresas, a equipe orienta a contratação e a implantação.", "Your contact details are confirmed. To use the chat, create an account and confirm your email: you get a 3-day free trial, starting with your first question. This form does not create an account. For businesses, our team guides subscription and deployment.");
 } else if (qs.get("lista") === "pessoal") {
   listaMode(T("Lista confirmada", "List confirmed"));
   document.querySelector("[data-plan-title]").textContent = T("Seu contato foi confirmado.", "Your contact details are confirmed.");

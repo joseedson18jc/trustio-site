@@ -24,11 +24,8 @@
 
 .home-personas { padding: clamp(72px, 9vw, 120px) 0; }
 .home-personas-head { max-width: 760px; }
-.home-personas h2 {
-  font-family: var(--display); font-weight: 500; letter-spacing: -0.01em;
-  font-size: clamp(26px, 3.4vw, 42px); line-height: 1.14; margin: 14px 0 0;
-}
-.home-personas h2 span { color: var(--muted-strong); }
+.home-personas h2 { font-size: var(--h2); margin: 14px 0 0; }
+.home-personas h2 span { color: var(--muted-strong); font-weight: var(--heading-soft-weight); }
 .home-personas-lead { color: var(--muted); font-size: 18px; line-height: 1.6; margin: 18px 0 0; max-width: 620px; }
 
 .home-personas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 44px; }
@@ -71,11 +68,8 @@
 
 .home-prova { padding: clamp(72px, 9vw, 120px) 0; border-top: 1px solid var(--line); }
 .home-prova-head { max-width: 760px; }
-.home-prova h2 {
-  font-family: var(--display); font-weight: 500; letter-spacing: -0.01em;
-  font-size: clamp(26px, 3.4vw, 42px); line-height: 1.14; margin: 14px 0 0;
-}
-.home-prova h2 span { color: var(--muted-strong); }
+.home-prova h2 { font-size: var(--h2); margin: 14px 0 0; }
+.home-prova h2 span { color: var(--muted-strong); font-weight: var(--heading-soft-weight); }
 .home-prova-lead { color: var(--muted); font-size: 18px; line-height: 1.6; margin: 18px 0 0; max-width: 680px; }
 .home-prova-lead b { color: var(--text-strong); font-weight: 600; }
 

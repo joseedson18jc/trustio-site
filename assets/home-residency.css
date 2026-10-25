@@ -8,8 +8,8 @@
 @keyframes home-residency-tw { 50% { opacity: .15; } }
 .home-residency .home-residency-horizon { position: absolute; left: 0; right: 0; width: 100%; max-width: 100%; bottom: 0; height: 180px; border-radius: 50% 50% 0 0 / 100% 100% 0 0; z-index: -1; background: radial-gradient(closest-side, #0c2a66 70%, #091c45); box-shadow: 0 -2px 0 rgba(94,167,255,.8), 0 -18px 60px rgba(83,205,254,.35), 0 -80px 160px rgba(37,99,235,.35); }
 .home-residency .home-residency-kicker { color: #9dc8ff; justify-content: center; }
-.home-residency h2 { font-family: var(--display); font-weight: 500; text-transform: uppercase; letter-spacing: .12em; font-size: clamp(22px, 3.6vw, 46px); line-height: 1.15; text-align: center; margin: 0; }
-.home-residency h2 span { display: block; background: linear-gradient(100deg, #53cdfe, #5ea7ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.home-residency h2 { font-size: var(--h2); text-align: center; margin: 0; }
+.home-residency h2 span { display: block; font-weight: var(--heading-soft-weight); background: linear-gradient(100deg, #53cdfe, #5ea7ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .home-residency p { text-align: center; color: #bdc5d1; max-width: 640px; margin: 22px auto 0; font-size: 18px; }
 .home-residency-stats { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 54px; border-top: 1px solid rgba(160,179,211,.18); border-bottom: 1px solid rgba(160,179,211,.18); }
 .home-residency-stats div { display: flex; align-items: center; gap: 12px; padding: 22px 18px; font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #f4f6fa; line-height: 1.5; }

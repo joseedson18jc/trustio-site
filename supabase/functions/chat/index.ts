@@ -214,7 +214,9 @@ async function liberacao(admin: any, userId: string): Promise<Liberacao> {
 
 type Reservation = {
   ok: boolean; error?: string; lead_id?: string; used?: number; limit?: number;
-  subscriber?: boolean; remaining?: number | null;
+  subscriber?: boolean; remaining?: number | null; retry_after?: number;
+  // Teste grátis por tempo: fim do teste (null para pagos e equipe) e duração em dias.
+  trial_ends_at?: string | null; trial_days?: number;
 };
 
 Deno.serve(async (req) => {
@@ -341,8 +343,13 @@ Deno.serve(async (req) => {
   }
   const reservation = reservationData as Reservation;
   if (!reservation.ok) {
-    const status = reservation.error === "trial_esgotado" ? 402 : 403;
-    return json(status, { error: reservation.error, used: reservation.used, limit: reservation.limit }, origin);
+    // Ritmo do teste grátis (uma pergunta por vez, 5 s entre perguntas): 429 com a espera no corpo,
+    // porque o navegador não lê Retry-After de outra origem sem Access-Control-Expose-Headers.
+    const ritmo = reservation.error === "aguarde_resposta" || reservation.error === "aguarde_intervalo";
+    const status = reservation.error === "trial_esgotado" ? 402 : ritmo ? 429 : 403;
+    return json(status, { error: reservation.error, used: reservation.used,
+      trial_ends_at: reservation.trial_ends_at ?? null, trial_days: reservation.trial_days ?? null,
+      ...(ritmo ? { retry_after: reservation.retry_after ?? 5 } : {}) }, origin);
   }
   const leadId = reservation.lead_id!;
   const release = () => admin.rpc("release_chat_message", { p_lead_id: leadId });
@@ -360,7 +367,8 @@ Deno.serve(async (req) => {
         : "English. Preserve proper names, numbers, dates, and amounts exactly as spoken.");
       const r = await fetch(`${LLM_BASE_URL}/audio/transcriptions`, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${LLM_API_KEY}` },
+        // A fila do servidor da Trustio atende pagantes antes de quem está no teste.
+        headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "X-Trustio-Plano": reservation.subscriber ? "pago" : "teste" },
         body: form,
         signal: AbortSignal.timeout(120_000),
       });
@@ -472,7 +480,7 @@ Deno.serve(async (req) => {
   type OpcoesDaChamada = { semRaciocinio?: boolean; maxTokens?: number };
   const pedirModelo = (mensagens: unknown[], comBusca: boolean, opcoes: OpcoesDaChamada = {}) => fetch(`${LLM_BASE_URL}/chat/completions`, {
     method: "POST",
-    headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json" },
+    headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json", "X-Trustio-Plano": plano },
     body: JSON.stringify({
       model: modelo, messages: mensagens, stream: true, temperature: 0.2,
       ...(comBusca ? { tools: [FERRAMENTA_BUSCA] } : {}),
@@ -866,6 +874,7 @@ Deno.serve(async (req) => {
         janela,
         remaining: reservation.remaining ?? null,
         limit: reservation.subscriber ? null : reservation.limit,
+        trial_ends_at: reservation.trial_ends_at ?? null,
       });
     } else {
       // Nada de texto. Só devolve a pergunta à cota se nada chegou ao navegador: raciocínio
@@ -875,7 +884,9 @@ Deno.serve(async (req) => {
       send({ error: erroRodada ?? (interrompido ? "stream_interrompido" : "resposta_vazia"), ...(erroRodada === "contexto_cheio" ? { janela } : {}) });
     }
     fechar();
-  })();
+  })().finally(() =>
+    // Fim da resposta, com ou sem texto: solta a pergunta em andamento do teste grátis.
+    admin.rpc("fim_chat_message", { p_lead_id: leadId }).then(({ error }) => { if (error) console.error("fim_error", error); }));
   // Mantém a função viva até o fim da leitura, mesmo com o navegador desconectado.
   // deno-lint-ignore no-explicit-any
   (globalThis as any).EdgeRuntime?.waitUntil?.(trabalho);

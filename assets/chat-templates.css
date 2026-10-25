@@ -7,7 +7,7 @@
 .templates-dialog::backdrop { background: rgba(0, 0, 0, .65); }
 .templates-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .templates-k { font-family: var(--mono); font-size: 11px; color: var(--blue-signal); letter-spacing: .08em; margin: 0 0 8px; }
-.templates-top h2 { font-family: var(--display); font-size: clamp(20px, 4vw, 27px); margin: 0; letter-spacing: -.04em; }
+.templates-top h2 { font-family: var(--display); font-size: clamp(20px, 4vw, 27px); margin: 0; letter-spacing: -.02em; }
 .templates-desc { color: var(--muted-strong); font-size: 14px; line-height: 1.65; margin: 16px 0; }
 .templates-dialog input { width: 100%; min-height: 44px; padding: 10px 14px; border: 1px solid var(--line-bright); border-radius: 10px; background: var(--abyss); color: var(--ice); font: inherit; }
 .templates-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }

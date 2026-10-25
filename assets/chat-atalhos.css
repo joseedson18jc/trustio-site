@@ -1,7 +1,7 @@
 /* Abertura do chat (/app/), 17 out 2026: atalhos que fazem algo (anexar, voz, Heavy Thinking,
    templates) e tarefas rápidas que preenchem a caixa de mensagem. Usa as cores do tema do chat. */
 .atalhos { text-align: left; margin: 0 0 26px; }
-.atalhos-titulo { font-size: clamp(22px, 3vw, 30px); font-weight: 650; letter-spacing: -0.03em; line-height: 1.2; margin: 0 0 6px; color: var(--text-strong, var(--ice)); }
+.atalhos-titulo { font-size: clamp(22px, 3vw, 30px); font-weight: 650; letter-spacing: -0.015em; line-height: 1.2; margin: 0 0 6px; color: var(--text-strong, var(--ice)); }
 .welcome .atalhos-sub { margin: 0 0 18px; max-width: none; font-size: 15px; color: var(--muted); }
 
 .atalhos-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }

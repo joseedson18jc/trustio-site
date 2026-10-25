@@ -70,7 +70,7 @@
 .tm-name { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
 .tm-name > img { width: 44px; height: 44px; flex: 0 0 auto; }
 .tm-name > div { display: grid; gap: 4px; min-width: 0; }
-.tm-name h3 { margin: 0; font-family: var(--display); font-size: clamp(18px, 1.7vw, 23px); font-weight: 500; letter-spacing: -0.03em; line-height: 1.15; }
+.tm-name h3 { margin: 0; font-family: var(--display); font-size: clamp(18px, 1.7vw, 23px); font-weight: 500; letter-spacing: -0.015em; line-height: 1.15; }
 .tm-name .capability-tag { margin-left: auto; align-self: flex-start; white-space: nowrap; }
 .tm-heavy .capability-tag { color: var(--blue-signal); border-color: var(--line-bright); }
 
@@ -96,12 +96,12 @@
 }
 .tm-specs dt { color: var(--label-color); font-family: var(--mono); font-size: var(--label); letter-spacing: 0.06em; text-transform: uppercase; align-self: center; }
 .tm-specs dd { margin: 0; color: var(--ice); font-size: 14px; line-height: 1.45; }
-.tm-spec-destaque dd { color: var(--blue-signal); font-family: var(--display); font-size: 16px; font-weight: 500; letter-spacing: -0.02em; }
+.tm-spec-destaque dd { color: var(--blue-signal); font-family: var(--display); font-size: 16px; font-weight: 500; letter-spacing: -0.01em; }
 .tm-spec-aviso dd { color: var(--muted-strong); }
 
 /* O que os dois fazem */
 .tm-caps { margin-top: clamp(40px, 5vw, 64px); }
-.tm-caps-title { margin: 0 0 18px; font-family: var(--display); font-size: clamp(17px, 1.6vw, 21px); font-weight: 500; letter-spacing: -0.02em; }
+.tm-caps-title { margin: 0 0 18px; font-family: var(--display); font-size: clamp(17px, 1.6vw, 21px); font-weight: 500; letter-spacing: -0.01em; }
 .tm-cap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: 0; padding: 0; list-style: none; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--line); }
 .tm-cap-grid li { display: grid; gap: 6px; align-content: start; padding: 20px 22px; background: var(--surface); }
 .tm-cap-grid b { color: var(--ice); font-size: 15px; font-weight: 600; }
@@ -109,7 +109,7 @@
 
 /* Janela de contexto por plano */
 .tm-plans { display: grid; grid-template-columns: minmax(220px, 1fr) 2fr; gap: clamp(18px, 3vw, 40px); align-items: center; margin-top: clamp(40px, 5vw, 64px); }
-.tm-plans-text h3 { margin: 0 0 8px; font-family: var(--display); font-size: clamp(17px, 1.6vw, 21px); font-weight: 500; letter-spacing: -0.02em; }
+.tm-plans-text h3 { margin: 0 0 8px; font-family: var(--display); font-size: clamp(17px, 1.6vw, 21px); font-weight: 500; letter-spacing: -0.01em; }
 .tm-plans-text p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.6; }
 .tm-plan-table { width: 100%; border-collapse: collapse; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .tm-plan-table th, .tm-plan-table td { padding: 14px 18px; border-bottom: 1px solid var(--line); text-align: left; font-size: 14.5px; }

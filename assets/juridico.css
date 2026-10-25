@@ -102,7 +102,7 @@
   margin-bottom: 28px;
   font-size: clamp(50.8px, 6.97vw, 103.3px);
   font-weight: 400;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.0275em;
 }
 
 .legal-hero h1 span {
@@ -162,7 +162,7 @@
   margin-bottom: 26px;
   font-size: clamp(34.4px, 4.76vw, 62.3px);
   font-weight: 400;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.025em;
 }
 
 .legal-statement-copy > p,

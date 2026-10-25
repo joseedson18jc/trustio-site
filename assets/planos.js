@@ -44,7 +44,22 @@ function fromHash() {
     document.getElementById("passe")?.scrollIntoView({ behavior: rm.matches ? "auto" : "smooth", block: "center" });
   }
   else if (h === "empresas" || h === "diagnostico") show("empresas");
+  // Âncora para uma pergunta do FAQ (#qual-plano, #arrependimento): abre a aba dela e a resposta.
+  else if (h) {
+    const d = document.getElementById(h);
+    if (d && d.tagName === "DETAILS") {
+      if (d.closest("#pessoal")) show("pessoal"); else if (d.closest("#empresas")) show("empresas");
+      d.open = true;
+      d.scrollIntoView({ behavior: rm.matches ? "auto" : "smooth", block: "start" });
+    }
+  }
 }
+// Link para a mesma pergunta duas vezes não dispara hashchange: abre a resposta no clique também.
+document.addEventListener("click", (e) => {
+  const a = e.target.closest?.('a[href^="#"]');
+  const d = a && document.getElementById(a.getAttribute("href").slice(1));
+  if (d && d.tagName === "DETAILS") d.open = true;
+});
 fromHash();
 window.addEventListener("hashchange", fromHash);
 // "Quero acesso" nos cards: pré-seleciona o plano e leva ao formulário

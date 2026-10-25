@@ -212,3 +212,6 @@
 .plan ul{align-content:start}
 .plan .button{margin-top:auto}
 @media (max-width:767px){.como-funciona{grid-template-columns:1fr}}
+.seg button[aria-selected="true"] small{opacity:1}
+.b2c-head>p:not(.section-kicker){max-width:62ch}
+.plan li{text-wrap:pretty}

@@ -290,9 +290,9 @@ export async function webhookStripe(req, env, { rpc, json, escapar }) {
     return json(500, { ok: false, error: "tente_de_novo" });
   }
 
-  // Funil: o pagamento vira trial_activated com as UTMs do cadastro do comprador. O banco acha a
-  // conta pelo e-mail e não o grava. Melhor esforço: a medição nunca derruba a comissão (nem faz
-  // a Stripe reenviar); uma falha fica no log e aparece na conferência semanal contra a Stripe.
+  // Funil + liberação de acesso: registrar_trial_activated grava o evento do funil e aciona
+  // ativar_acesso_stripe(p_email_comprador, p_valor_centavos) no banco (passe de 7 dias para
+  // 2490/3990/5490 ou status = 'assinante' para planos recorrentes).
   try {
     await rpc(env, "registrar_trial_activated", {
       p_sessao: sessao.id,
@@ -311,6 +311,14 @@ export async function webhookStripe(req, env, { rpc, json, escapar }) {
     await enviarWhatsapp(env, a.whatsapp, MENSAGENS.comissao(a.nome, registro.valor_comissao, registro.valor_venda));
   }
   return json(200, { ok: true, registrada: Boolean(registro?.registrada), motivo: registro?.motivo || null });
+}
+
+export async function ativarAssinaturaNoBanco(env, email, centavos) {
+  if (!email) return null;
+  return rpc(env, "ativar_assinatura_stripe", {
+    p_email: String(email).trim().toLowerCase(),
+    p_valor_tabela: Number(centavos ?? 0),
+  });
 }
 
 export const statusIntegracoes = (env) => ({

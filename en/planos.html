@@ -8,11 +8,11 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://api.trustio.com.br; object-src 'none'; base-uri 'self'; form-action 'self' https://api.trustio.com.br">
-  <title>Plans and payments | Trustio — private AI infrastructure in Brazil</title>
-  <meta name="description" content="Starter, Pro and Dedicated private AI infrastructure plans, plus personal chat and Agentio plans, in reais. A use-case assessment whose fee is credited against your first monthly payments.">
+  <title>Plans and pricing | Trustio — private AI from R$ 24.90</title>
+  <meta name="description" content="Private, uncensored* AI chat priced in Brazilian reais: R$ 79/month, R$ 790/year or a 7-day pass for R$ 24.90. Try it free with 5 questions, no card. For businesses: Starter, Pro and Dedicated plans.">
   <link rel="canonical" href="https://trustio.com.br/en/planos.html">
   <meta property="og:type" content="website"><meta property="og:locale" content="en_US"><meta property="og:site_name" content="Trustio">
-  <meta property="og:title" content="Trustio | Plans and payments"><meta property="og:description" content="Private AI infrastructure in Brazil, set up in minutes. Plans for businesses and for you, in reais.">
+  <meta property="og:title" content="Trustio | Plans and pricing"><meta property="og:description" content="Private, uncensored* AI from R$ 24.90. Try it free with 5 questions, no card. Business plans on the same page.">
   <meta property="og:url" content="https://trustio.com.br/en/planos.html"><meta property="og:image" content="https://trustio.com.br/assets/social-card.png">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/assets/favicon-32.png" sizes="32x32">
@@ -21,13 +21,13 @@
   <link rel="preload" href="/assets/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="/assets/theme.js?v=7b1e9843"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=c0bb91a7">
+  <link rel="stylesheet" href="/assets/styles.css?v=2fa61a75">
   <link rel="stylesheet" href="/assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="/assets/atribuicao.js?v=eb741257"></script>
   <script defer src="/assets/whatsapp-suporte.js?v=19399fa4"></script>
-  <link rel="stylesheet" href="/assets/planos.css?v=bf36110c">
+  <link rel="stylesheet" href="/assets/planos.css?v=a7c972e9">
   <link rel="stylesheet" href="/assets/voice.css?v=35981e7c">
-  <script type="module" src="/assets/app.js?v=3ecff583"></script>
+  <script type="module" src="/assets/app.js?v=f8e03c90"></script>
   <script defer src="/assets/planos.js?v=29b05bf9"></script>
   <script defer src="/assets/optin.js?v=0c0020f4"></script>
   <script type="application/ld+json">
@@ -269,12 +269,12 @@
   <section class="plans-hero section-shell" aria-labelledby="plans-title">
   <div class="hero-field" aria-hidden="true"><canvas id="network-canvas"></canvas></div>
     <div class="container">
-      <p class="eyebrow"><span class="status-dot"></span> Plans and payments</p>
-      <h1 id="plans-title">Private AI infrastructure.<span>Set up in minutes.</span></h1>
-      <p class="lead">For businesses, private environments in Brazil. For you, private, uncensored AI* and the Agentio agent, by subscription. Pay in reais: card, Apple Pay or Google Pay, and Pix for the assessment and the Dedicated plan.</p>
+      <p class="eyebrow"><span class="status-dot"></span> Plans and pricing</p>
+      <h1 id="plans-title">Private, uncensored AI*.<span>From R$ 24.90.</span></h1>
+      <p class="lead">Try it free with 5 questions, no card. Then pick a plan in Brazilian reais, with no IOF tax and no token counting. For businesses: private environments in Brazil, in the next tab.</p>
       <div class="seg" role="tablist" aria-label="Plan type">
-        <button type="button" role="tab" id="tab-empresas" aria-selected="true" aria-controls="empresas" data-seg="empresas">For businesses</button>
-        <button type="button" role="tab" id="tab-pessoal" aria-selected="false" aria-controls="pessoal" data-seg="pessoal" tabindex="-1">For you <small>uncensored*</small></button>
+        <button type="button" role="tab" id="tab-pessoal" aria-selected="true" aria-controls="pessoal" data-seg="pessoal">For you <small>uncensored*</small></button>
+        <button type="button" role="tab" id="tab-empresas" aria-selected="false" aria-controls="empresas" data-seg="empresas" tabindex="-1">For businesses</button>
       </div>
       <div class="pay-methods" aria-label="Payment methods"><span><i></i>Credit card</span><span><i></i>Apple Pay</span><span><i></i>Google Pay</span><span><i></i>Invoice and receipt</span></div>
       
@@ -283,7 +283,7 @@
 
   <section class="section-shell pt0" aria-label="Plans">
     <div class="container">
-      <div class="seg-panel" id="empresas" role="tabpanel" aria-labelledby="tab-empresas">
+      <div class="seg-panel" id="empresas" role="tabpanel" aria-labelledby="tab-empresas" hidden>
       <div class="plan-grid">
         <article class="plan">
           <p class="k">Starter</p>
@@ -363,15 +363,17 @@
       </div>
       </div>
 
-      <div class="seg-panel" id="pessoal" role="tabpanel" aria-labelledby="tab-pessoal" hidden>
+      <div class="seg-panel" id="pessoal" role="tabpanel" aria-labelledby="tab-pessoal">
         <div class="b2c-head">
           <p class="section-kicker">For individuals</p>
-          <h2>Private, uncensored AI*. For you.</h2>
+          <h2>Choose your plan.</h2>
           <p>The same open models we run for businesses, with individual access. No content filter imposed by the provider, Trustio does not use your conversations to train models, and your account and history are stored in Brazil. Billed in reais — no IOF, no dollar surprises, no per-token charges.</p>
-          <p class="acesso-estado"><b>Status today:</b> the chat is already open to everyone, with 5 free questions, once per account, after you confirm your email. No card. Subscribing to any plan below gets you full access <b>within 1 business day after payment confirmation</b>.</p>
-          <p class="acesso-estado"><b>Don’t want to leave a card on file?</b> <a href="#passe">The 7-day pass</a> is a one-off payment: it doesn’t renew by itself and keeps nothing on file to charge later.</p>
-          <p class="acesso-estado"><b>Changed your mind?</b> Within 7 days of the purchase or of access being granted, you can withdraw from any personal plan and get back the amount paid (right of withdrawal, art. 49 of the Brazilian Consumer Protection Code). <a href="#arrependimento">How to withdraw</a></p>
-          <p class="acesso-estado">* Whoever sends the questions is responsible for their content and for how they use the answers, as provided by law.</p>
+          <ol class="como-funciona" aria-label="How the subscription works">
+            <li><b>Create your account and try it.</b> 5 free questions, once per account, after you confirm your e-mail. No card.</li>
+            <li><b>Pay with your account e-mail.</b> That's how we find your account and turn on your plan.<span class="conta-email" data-conta-email hidden> You're signed in as <b></b>, and checkout already uses that e-mail.</span></li>
+            <li><b>Access granted within 1 business day</b> after payment is confirmed. The 7-day pass starts counting from then.</li>
+          </ol>
+          <p class="b2c-garantias">Change your mind within 7 days and get your money back (right of withdrawal, art. 49 of the Brazilian Consumer Protection Code). <a href="#arrependimento">How to withdraw</a></p>
         </div>
 
         <div class="seg seg-sub" role="tablist" aria-label="Product for you">
@@ -383,36 +385,35 @@
         <div class="sub-panel" id="pessoal-chat" role="tabpanel" aria-labelledby="sub-chat">
         <div class="plan-grid b2c-grid">
           <article class="plan featured">
+            <span class="tag">Recommended</span>
             <p class="k">Personal · monthly</p>
             <h2>Full access</h2>
             <p class="desc">Private, uncensored* chat with the Trustio Flash and Trustio Heavy Thinking models, for a fixed monthly price.</p>
             <div class="price"><small>R$</small><b>79</b><small>/month</small></div>
-            <p class="note">Access within 1 business day <b>after payment confirmation</b> · try it first with 5 free questions, once per account, no card · card, Apple Pay or Google Pay · renews every month until you cancel</p>
+            <p class="note">Renews monthly · cancel anytime</p>
             <ul><li>Uncensored* model with no vendor filter</li><li>Trustio doesn’t train models on your conversations</li><li>Account and conversations stored in Brazil</li><li>Generous fair use, no token counting</li><li>History and files</li><li>Web search, run by Exa (US)</li><li>Priced in reais, no IOF tax</li></ul>
             <a class="button button-primary" href="https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08" rel="noopener">Subscribe monthly <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-            <p class="methods">Card · Apple Pay · Google Pay</p>
           </article>
           <article class="plan" id="passe">
             <p class="k">Pass · 7 days</p>
             <h2>Try it for a week</h2>
             <p class="desc">Seven days of full access, paid once. No automatic renewal, no card on file.</p>
             <div class="price"><small>R$</small><b>24<i>.90</i></b><small>for 7 days</small></div>
-            <p class="note">One-time payment · does not renew · access granted within 1 business day after payment confirmation, and the 7 days count from when access is granted</p>
+            <p class="note">One-time payment · doesn't renew on its own</p>
             <ul><li>Everything in the monthly plan, for 7 days</li><li>Ideal for trying it before subscribing</li><li>One-time card payment</li></ul>
             <a class="button button-outline" href="https://buy.stripe.com/8x228rgiKetN2LRfRl5wI09" rel="noopener">Buy the 7-day pass <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-            <p class="methods">Card · Apple Pay · Google Pay</p>
           </article>
           <article class="plan b2c-annual">
             <p class="k">Annual</p>
             <h2>Two months free</h2>
             <p class="desc">Twelve months for the price of ten. For those who already know they'll use it.</p>
             <div class="price"><small>R$</small><b>790</b><small>/year</small></div>
-            <p class="note">Works out to R$ 65.83 per month · renews every 12 months · access granted within 1 business day after payment confirmation</p>
+            <p class="note">Works out to R$ 65.83 a month · renews every 12 months</p>
             <ul><li>Everything in the monthly plan</li><li>Price locked for 12 months</li><li>Card, Apple Pay or Google Pay</li></ul>
             <a class="button button-outline" href="https://buy.stripe.com/cNifZhd6yfxR9afgVp5wI0a" rel="noopener">Subscribe yearly <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-            <p class="methods">Card · Apple Pay · Google Pay</p>
           </article>
         </div>
+        <p class="b2c-aviso">* Whoever sends the questions is responsible for their content and for how they use the answers, as provided by law.</p>
         </div>
 
         <div class="sub-panel" id="agentio" role="tabpanel" aria-labelledby="sub-agentio" hidden>
@@ -427,12 +428,12 @@
               <h2>Weekly</h2>
               <p class="desc">A full week of the agent, paid once. Does not auto-renew.</p>
               <div class="price"><small>R$</small><b>39<i>.90</i></b><small>for 7 days</small></div>
-              <p class="note">One-time payment · activation within 1 business day after payment confirmation</p>
+              <p class="note">One-time payment · doesn't renew on its own</p>
               <ul><li>Agent on WhatsApp or Telegram</li><li>Tasks, research, writing and summaries</li><li>Routines and reminders</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/9B6fZh5E6gBVbinax15wI0b" rel="noopener">Buy 7 days <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Card · Apple Pay · Google Pay</p>
             </article>
             <article class="plan featured">
+                            <span class="tag">Recommended</span>
                             <p class="k">Agentio · monthly</p>
               <h2>Monthly</h2>
               <p class="desc">The agent working for you all month, at a flat price.</p>
@@ -440,7 +441,6 @@
               <p class="note">Renews monthly · cancel anytime</p>
               <ul><li>Everything in weekly</li><li>Remembers your preferences and routines</li><li>Fair use, no token counting</li></ul>
               <a class="button button-primary" href="https://buy.stripe.com/bJe5kD2rU5Xhbin48D5wI0c" rel="noopener">Subscribe monthly <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Card · Apple Pay · Google Pay</p>
             </article>
             <article class="plan">
               <p class="k">Agentio · 6 months</p>
@@ -450,7 +450,6 @@
               <p class="note">Works out to R$ 108.17 per month · <span class="save">save 16%</span> · renews every 6 months</p>
               <ul><li>Everything in monthly</li><li>Price locked for 6 months</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/6oU8wPc2uetN5Y37kP5wI0d" rel="noopener">Subscribe for 6 months <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Card · Apple Pay · Google Pay</p>
             </article>
             <article class="plan b2c-annual">
               <p class="k">Agentio · annual</p>
@@ -460,7 +459,6 @@
               <p class="note">Works out to R$ 99.17 per month · <span class="save">save 23%</span> · renews every 12 months</p>
               <ul><li>Everything in monthly</li><li>Price locked for 12 months</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/fZu28rfeG71l1HNfRl5wI0e" rel="noopener">Subscribe yearly <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Card · Apple Pay · Google Pay</p>
             </article>
           </div>
           <p class="sub-nota">Hermes Agent is Nous Research’s open-source agent framework; Agentio is operated by Trustio, with the model running on Trustio’s infrastructure. Want the uncensored* chat on the site too? The <a href="#combo" data-sub-link="combo">Combo</a> costs less than both separately.</p>
@@ -481,9 +479,9 @@
               <p class="note">Separately: R$ 64.80 · <span class="save">save 15%</span></p>
               <ul><li>Uncensored chat* on the site</li><li>Agentio on Telegram or WhatsApp</li><li>Does not auto-renew</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/4gM8wP2rUgBVcmr6gL5wI0f" rel="noopener">Buy 7 days <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Card · Apple Pay · Google Pay</p>
             </article>
             <article class="plan featured">
+              <span class="tag">Recommended</span>
               <p class="k">Combo · monthly</p>
               <h2>Monthly</h2>
               <p class="desc">All of Trustio for you, every month.</p>
@@ -491,7 +489,6 @@
               <p class="note">Separately: R$ 208 · <span class="save">save 14%</span> · renews every month</p>
               <ul><li>Uncensored chat*, fair use</li><li>Agentio with memory and routines</li><li>Chat history stored in Brazil</li><li>Cancel anytime</li></ul>
               <a class="button button-primary" href="https://buy.stripe.com/7sY14ngiK2L5fyD9sX5wI0g" rel="noopener">Subscribe to monthly Combo <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Card · Apple Pay · Google Pay</p>
             </article>
             <article class="plan">
               <p class="k">Combo · 6 months</p>
@@ -501,7 +498,6 @@
               <p class="note">Works out to R$ 149.83 per month · <span class="save">save 16%</span> vs. monthly · renews every 6 months</p>
               <ul><li>Everything in monthly Combo</li><li>Price locked for 6 months</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/3cIaEX3vYetNgCH5cH5wI0h" rel="noopener">Subscribe for 6 months <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Card · Apple Pay · Google Pay</p>
             </article>
             <article class="plan b2c-annual">
               <p class="k">Combo · annual</p>
@@ -511,7 +507,6 @@
               <p class="note">Works out to R$ 140.83 per month · separately: R$ 1,980 · <span class="save">save 15%</span> · renews every 12 months</p>
               <ul><li>Everything in monthly Combo</li><li>Price locked for 12 months</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/3cIdR94A299t86bbB55wI0i" rel="noopener">Subscribe yearly <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Card · Apple Pay · Google Pay</p>
             </article>
           </div>
           <div class="tablewrap sub-compare table-scroll-wrapper" tabindex="0" role="region" aria-labelledby="compare-pessoal" aria-label="Individual plans comparison"><table>

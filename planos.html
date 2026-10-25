@@ -8,11 +8,11 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://api.trustio.com.br; object-src 'none'; base-uri 'self'; form-action 'self' https://api.trustio.com.br">
-  <title>Planos e pagamentos | Trustio — infraestrutura privada de IA no Brasil</title>
-  <meta name="description" content="Planos Starter, Pro e Dedicado de infraestrutura privada de IA e planos pessoais do chat e do Agentio, em reais. Diagnóstico de caso de uso com valor abatido das primeiras mensalidades.">
+  <title>Planos e preços | Trustio — IA privada a partir de R$ 24,90</title>
+  <meta name="description" content="Chat de IA privado e sem censura* em reais: R$ 79/mês, R$ 790/ano ou passe de 7 dias por R$ 24,90. Teste grátis com 5 perguntas, sem cartão. Para empresas: planos Starter, Pro e Dedicado.">
   <link rel="canonical" href="https://trustio.com.br/planos.html">
   <meta property="og:type" content="website"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="Trustio">
-  <meta property="og:title" content="Trustio | Planos e pagamentos"><meta property="og:description" content="Infraestrutura privada de IA no Brasil, contratada em minutos. Planos para empresas e para você, em reais.">
+  <meta property="og:title" content="Trustio | Planos e preços"><meta property="og:description" content="IA privada e sem censura* a partir de R$ 24,90. Teste grátis com 5 perguntas, sem cartão. Planos para empresas na mesma página.">
   <meta property="og:url" content="https://trustio.com.br/planos.html"><meta property="og:image" content="https://trustio.com.br/assets/social-card.png">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon-32.png" sizes="32x32">
@@ -21,13 +21,13 @@
   <link rel="preload" href="assets/fonts/unbounded-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/martian-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script src="assets/theme.js?v=7b1e9843"></script>
-  <link rel="stylesheet" href="assets/styles.css?v=c0bb91a7">
+  <link rel="stylesheet" href="assets/styles.css?v=2fa61a75">
   <link rel="stylesheet" href="assets/whatsapp-suporte.css?v=5f7529a1">
   <script defer src="assets/atribuicao.js?v=eb741257"></script>
   <script defer src="assets/whatsapp-suporte.js?v=19399fa4"></script>
-  <link rel="stylesheet" href="assets/planos.css?v=bf36110c">
+  <link rel="stylesheet" href="assets/planos.css?v=a7c972e9">
   <link rel="stylesheet" href="assets/voice.css?v=35981e7c">
-  <script type="module" src="assets/app.js?v=3ecff583"></script>
+  <script type="module" src="assets/app.js?v=f8e03c90"></script>
   <script defer src="assets/planos.js?v=29b05bf9"></script>
   <script defer src="assets/optin.js?v=0c0020f4"></script>
   <script type="application/ld+json">
@@ -99,12 +99,12 @@
   <section class="plans-hero section-shell" aria-labelledby="plans-title">
   <div class="hero-field" aria-hidden="true"><canvas id="network-canvas"></canvas></div>
     <div class="container">
-      <p class="eyebrow"><span class="status-dot"></span> Planos e pagamentos</p>
-      <h1 id="plans-title">Infraestrutura privada de IA.<span>Contratada em minutos.</span></h1>
-      <p class="lead">Para empresas, ambientes privados no Brasil. Para voc&ecirc;, IA privada e sem censura* e o agente Agentio, por assinatura. Pague em reais: cart&atilde;o, Apple Pay ou Google Pay, e Pix no diagn&oacute;stico e no plano Dedicado.</p>
+      <p class="eyebrow"><span class="status-dot"></span> Planos e preços</p>
+      <h1 id="plans-title">IA privada e sem censura*.<span>A partir de R$ 24,90.</span></h1>
+      <p class="lead">Teste gr&aacute;tis com 5 perguntas, sem cart&atilde;o. Depois, escolha um plano em reais, sem IOF e sem contar tokens. Para empresas: ambientes privados no Brasil, na aba ao lado.</p>
       <div class="seg" role="tablist" aria-label="Tipo de plano">
-        <button type="button" role="tab" id="tab-empresas" aria-selected="true" aria-controls="empresas" data-seg="empresas">Para empresas</button>
-        <button type="button" role="tab" id="tab-pessoal" aria-selected="false" aria-controls="pessoal" data-seg="pessoal" tabindex="-1">Para voc&ecirc; <small>sem censura*</small></button>
+        <button type="button" role="tab" id="tab-pessoal" aria-selected="true" aria-controls="pessoal" data-seg="pessoal">Para voc&ecirc; <small>sem censura*</small></button>
+        <button type="button" role="tab" id="tab-empresas" aria-selected="false" aria-controls="empresas" data-seg="empresas" tabindex="-1">Para empresas</button>
       </div>
       <div class="pay-methods" aria-label="Formas de pagamento"><span><i></i>Cartão de crédito</span><span><i></i>Apple Pay</span><span><i></i>Google Pay</span><span><i></i>Nota fiscal e recibo</span></div>
       
@@ -113,7 +113,7 @@
 
   <section class="section-shell pt0" aria-label="Planos">
     <div class="container">
-      <div class="seg-panel" id="empresas" role="tabpanel" aria-labelledby="tab-empresas">
+      <div class="seg-panel" id="empresas" role="tabpanel" aria-labelledby="tab-empresas" hidden>
       <div class="plan-grid">
         <article class="plan">
           <p class="k">Starter</p>
@@ -193,15 +193,17 @@
       </div>
       </div>
 
-      <div class="seg-panel" id="pessoal" role="tabpanel" aria-labelledby="tab-pessoal" hidden>
+      <div class="seg-panel" id="pessoal" role="tabpanel" aria-labelledby="tab-pessoal">
         <div class="b2c-head">
           <p class="section-kicker">Para pessoas f&iacute;sicas</p>
-          <h2>IA privada e sem censura*. Para voc&ecirc;.</h2>
+          <h2>Escolha seu plano.</h2>
           <p>Os mesmos modelos abertos que rodamos para empresas, num acesso individual. Sem filtro de conte&uacute;do imposto pelo fornecedor, a Trustio n&atilde;o usa suas conversas para treinar modelos, e a sua conta e o hist&oacute;rico ficam armazenados no Brasil. Cobrado em reais &mdash; sem IOF, sem surpresa de d&oacute;lar, sem cobran&ccedil;a por token.</p>
-          <p class="acesso-estado"><b>Estado de hoje:</b> o chat j&aacute; est&aacute; aberto para todos, com 5 perguntas gr&aacute;tis, uma vez por conta, ap&oacute;s confirmar o e-mail. Sem cart&atilde;o. Quem assina qualquer plano abaixo tem o acesso integral liberado <b>em até 1 dia útil após a confirmação do pagamento</b>.</p>
-          <p class="acesso-estado"><b>Sem querer deixar cart&atilde;o preso?</b> <a href="#passe">O passe de 7 dias</a> &eacute; pagamento &uacute;nico: n&atilde;o renova sozinho e n&atilde;o guarda nada para cobrar depois.</p>
-          <p class="acesso-estado"><b>Mudou de ideia?</b> Em at&eacute; 7 dias, contados da compra ou da libera&ccedil;&atilde;o do acesso, voc&ecirc; pode desistir de qualquer plano pessoal e receber de volta o valor pago (direito de arrependimento, art. 49 do C&oacute;digo de Defesa do Consumidor). <a href="#arrependimento">Como desistir</a></p>
-          <p class="acesso-estado">* Quem envia as perguntas responde pelo conteúdo delas e pelo uso que faz das respostas, nos termos da lei.</p>
+          <ol class="como-funciona" aria-label="Como funciona a assinatura">
+            <li><b>Crie a conta e teste.</b> 5 perguntas gr&aacute;tis, uma vez por conta, ap&oacute;s confirmar o e-mail. Sem cart&atilde;o.</li>
+            <li><b>Pague com o e-mail da sua conta.</b> &Eacute; por ele que achamos a sua conta e liberamos o plano.<span class="conta-email" data-conta-email hidden> Voc&ecirc; est&aacute; conectado como <b></b>, e o pagamento j&aacute; vem com esse e-mail.</span></li>
+            <li><b>Acesso liberado em at&eacute; 1 dia &uacute;til</b> ap&oacute;s a confirma&ccedil;&atilde;o do pagamento. O passe de 7 dias conta a partir da libera&ccedil;&atilde;o.</li>
+          </ol>
+          <p class="b2c-garantias">Desista em at&eacute; 7 dias e receba o valor de volta (direito de arrependimento, art. 49 do C&oacute;digo de Defesa do Consumidor). <a href="#arrependimento">Como desistir</a></p>
         </div>
 
         <div class="seg seg-sub" role="tablist" aria-label="Produto para voc&ecirc;">
@@ -213,36 +215,35 @@
         <div class="sub-panel" id="pessoal-chat" role="tabpanel" aria-labelledby="sub-chat">
         <div class="plan-grid b2c-grid">
           <article class="plan featured">
+            <span class="tag">Recomendado</span>
             <p class="k">Pessoal &middot; mensal</p>
             <h2>Acesso completo</h2>
             <p class="desc">Chat privado e sem censura*, com os modelos Trustio Flash e Trustio Heavy Thinking, por um pre&ccedil;o fixo por m&ecirc;s.</p>
             <div class="price"><small>R$</small><b>79</b><small>/m&ecirc;s</small></div>
-            <p class="note">Acesso em até 1 dia útil <b>após a confirmação do pagamento</b> &middot; teste antes com 5 perguntas grátis, uma vez por conta, sem cartão &middot; cart&atilde;o, Apple Pay ou Google Pay &middot; renova todo m&ecirc;s at&eacute; voc&ecirc; cancelar</p>
+            <p class="note">Renova todo m&ecirc;s &middot; cancele quando quiser</p>
             <ul><li>Modelo sem censura* e sem filtro do fornecedor</li><li>A Trustio não treina modelos com suas conversas</li><li>Conta e conversas guardadas no Brasil</li><li>Uso justo generoso, sem contar tokens</li><li>Hist&oacute;rico e arquivos</li><li>Busca na web, feita pela Exa (EUA)</li><li>Pre&ccedil;o em reais, sem IOF</li></ul>
             <a class="button button-primary" href="https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08" rel="noopener">Assinar mensal <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-            <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
           </article>
           <article class="plan" id="passe">
             <p class="k">Passe &middot; 7 dias</p>
             <h2>Experimente uma semana</h2>
             <p class="desc">Sete dias de acesso completo, pagos uma vez. Sem renova&ccedil;&atilde;o autom&aacute;tica, sem cart&atilde;o preso.</p>
             <div class="price"><small>R$</small><b>24<i>,90</i></b><small>por 7 dias</small></div>
-            <p class="note">Pagamento &uacute;nico &middot; n&atilde;o renova sozinho &middot; acesso liberado em até 1 dia útil após a confirmação do pagamento, e os 7 dias contam a partir da liberação</p>
+            <p class="note">Pagamento &uacute;nico &middot; n&atilde;o renova sozinho</p>
             <ul><li>Tudo do plano mensal, por 7 dias</li><li>Ideal para testar antes de assinar</li><li>Pagamento &uacute;nico no cart&atilde;o</li></ul>
             <a class="button button-outline" href="https://buy.stripe.com/8x228rgiKetN2LRfRl5wI09" rel="noopener">Comprar passe de 7 dias <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-            <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
           </article>
           <article class="plan b2c-annual">
             <p class="k">Anual</p>
             <h2>Dois meses gr&aacute;tis</h2>
             <p class="desc">Doze meses pelo pre&ccedil;o de dez. Para quem j&aacute; sabe que vai usar.</p>
             <div class="price"><small>R$</small><b>790</b><small>/ano</small></div>
-            <p class="note">Equivale a R$ 65,83 por m&ecirc;s &middot; renova a cada 12 meses &middot; acesso liberado em até 1 dia útil após a confirmação do pagamento</p>
+            <p class="note">Equivale a R$ 65,83 por m&ecirc;s &middot; renova a cada 12 meses</p>
             <ul><li>Tudo do plano mensal</li><li>Pre&ccedil;o travado por 12 meses</li><li>Cart&atilde;o, Apple Pay ou Google Pay</li></ul>
             <a class="button button-outline" href="https://buy.stripe.com/cNifZhd6yfxR9afgVp5wI0a" rel="noopener">Assinar anual <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-            <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
           </article>
         </div>
+        <p class="b2c-aviso">* Quem envia as perguntas responde pelo conte&uacute;do delas e pelo uso que faz das respostas, nos termos da lei.</p>
         </div>
 
         <div class="sub-panel" id="agentio" role="tabpanel" aria-labelledby="sub-agentio" hidden>
@@ -257,12 +258,12 @@
               <h2>Semanal</h2>
               <p class="desc">Uma semana inteira de agente, paga uma vez. N&atilde;o renova sozinho.</p>
               <div class="price"><small>R$</small><b>39<i>,90</i></b><small>por 7 dias</small></div>
-              <p class="note">Pagamento &uacute;nico &middot; ativação em até 1 dia útil após a confirmação do pagamento</p>
+              <p class="note">Pagamento &uacute;nico &middot; n&atilde;o renova sozinho</p>
               <ul><li>Agente no WhatsApp ou Telegram</li><li>Tarefas, pesquisa, escrita e resumos</li><li>Rotinas e lembretes</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/9B6fZh5E6gBVbinax15wI0b" rel="noopener">Comprar 7 dias <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
             </article>
             <article class="plan featured">
+                            <span class="tag">Recomendado</span>
                             <p class="k">Agentio &middot; mensal</p>
               <h2>Mensal</h2>
               <p class="desc">O agente trabalhando por voc&ecirc; o m&ecirc;s todo, por pre&ccedil;o fixo.</p>
@@ -270,7 +271,6 @@
               <p class="note">Renova todo m&ecirc;s &middot; cancele quando quiser</p>
               <ul><li>Tudo do semanal</li><li>Mem&oacute;ria das suas prefer&ecirc;ncias e rotinas</li><li>Uso justo, sem contar tokens</li></ul>
               <a class="button button-primary" href="https://buy.stripe.com/bJe5kD2rU5Xhbin48D5wI0c" rel="noopener">Assinar mensal <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
             </article>
             <article class="plan">
               <p class="k">Agentio &middot; semestral</p>
@@ -280,7 +280,6 @@
               <p class="note">Equivale a R$ 108,17 por m&ecirc;s &middot; <span class="save">economize 16%</span> &middot; renova a cada 6 meses</p>
               <ul><li>Tudo do mensal</li><li>Pre&ccedil;o travado por 6 meses</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/6oU8wPc2uetN5Y37kP5wI0d" rel="noopener">Assinar semestral <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
             </article>
             <article class="plan b2c-annual">
               <p class="k">Agentio &middot; anual</p>
@@ -290,7 +289,6 @@
               <p class="note">Equivale a R$ 99,17 por m&ecirc;s &middot; <span class="save">economize 23%</span> &middot; renova a cada 12 meses</p>
               <ul><li>Tudo do mensal</li><li>Pre&ccedil;o travado por 12 meses</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/fZu28rfeG71l1HNfRl5wI0e" rel="noopener">Assinar anual <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
             </article>
           </div>
           <p class="sub-nota">O Hermes Agent &eacute; o framework de agentes de c&oacute;digo aberto da Nous Research; o Agentio &eacute; operado pela Trustio, com o modelo rodando na infraestrutura da Trustio. Quer tamb&eacute;m o chat sem censura* no site? O <a href="#combo" data-sub-link="combo">Combo</a> sai mais barato que os dois separados.</p>
@@ -311,9 +309,9 @@
               <p class="note">Separados: R$ 64,80 &middot; <span class="save">economize 15%</span></p>
               <ul><li>Chat sem censura* no site</li><li>Agentio no Telegram ou WhatsApp</li><li>N&atilde;o renova sozinho</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/4gM8wP2rUgBVcmr6gL5wI0f" rel="noopener">Comprar 7 dias <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
             </article>
             <article class="plan featured">
+              <span class="tag">Recomendado</span>
               <p class="k">Combo &middot; mensal</p>
               <h2>Mensal</h2>
               <p class="desc">Tudo da Trustio para voc&ecirc;, todo m&ecirc;s.</p>
@@ -321,7 +319,6 @@
               <p class="note">Separados: R$ 208 &middot; <span class="save">economize 14%</span> &middot; renova todo m&ecirc;s</p>
               <ul><li>Chat sem censura*, uso justo</li><li>Agentio com mem&oacute;ria e rotinas</li><li>Hist&oacute;rico do chat guardado no Brasil</li><li>Cancele quando quiser</li></ul>
               <a class="button button-primary" href="https://buy.stripe.com/7sY14ngiK2L5fyD9sX5wI0g" rel="noopener">Assinar Combo mensal <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
             </article>
             <article class="plan">
               <p class="k">Combo &middot; semestral</p>
@@ -331,7 +328,6 @@
               <p class="note">Equivale a R$ 149,83 por m&ecirc;s &middot; <span class="save">economize 16%</span> sobre o mensal &middot; renova a cada 6 meses</p>
               <ul><li>Tudo do Combo mensal</li><li>Pre&ccedil;o travado por 6 meses</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/3cIaEX3vYetNgCH5cH5wI0h" rel="noopener">Assinar semestral <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
             </article>
             <article class="plan b2c-annual">
               <p class="k">Combo &middot; anual</p>
@@ -341,7 +337,6 @@
               <p class="note">Equivale a R$ 140,83 por m&ecirc;s &middot; separados: R$ 1.980 &middot; <span class="save">economize 15%</span> &middot; renova a cada 12 meses</p>
               <ul><li>Tudo do Combo mensal</li><li>Pre&ccedil;o travado por 12 meses</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/3cIdR94A299t86bbB55wI0i" rel="noopener">Assinar anual <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
-              <p class="methods">Cart&atilde;o &middot; Apple Pay &middot; Google Pay</p>
             </article>
           </div>
           <div class="tablewrap sub-compare table-scroll-wrapper" tabindex="0" role="region" aria-labelledby="compare-pessoal" aria-label="Comparativo de planos individuais"><table>

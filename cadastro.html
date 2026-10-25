@@ -24,18 +24,18 @@
   <link rel="stylesheet" href="assets/whatsapp-suporte.css?v=63736be5">
   <script defer src="assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="stylesheet" href="assets/planos.css?v=c94f7afc">
-  <link rel="stylesheet" href="assets/conta.css?v=b3c34f0c">
+  <link rel="stylesheet" href="assets/conta.css?v=f76f1db7">
   <script type="module" src="assets/app.js?v=f1793b39"></script>
   <script defer src="assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="assets/auth-config.js?v=c3461a69"></script>
   <script defer src="assets/atribuicao.js?v=eb741257"></script>
   <script defer src="assets/funil.js?v=6d1bc59f"></script>
-  <script defer src="assets/conta.js?v=3adad9be"></script>
+  <script defer src="assets/conta.js?v=64a5250e"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/cadastro.html">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/cadastro.html">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/cadastro.html"><!--/i18n:alt-->
 </head>
-<body class="planos-page conta-page">
+<body class="planos-page conta-page conta-cadastro">
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
 
   <header class="site-header" data-header>
@@ -79,43 +79,23 @@
   </header>
 
 <main id="conteudo">
-  <section class="plans-hero section-shell conta-hero" aria-labelledby="cadastro-title">
-    <div class="container">
-      <p class="eyebrow"><span class="status-dot"></span> Conta Trustio</p>
-      <h1 id="cadastro-title">Crie sua conta agora.<span>O chat já está aberto.</span></h1>
-      <p class="lead">IA privada e sem censura*, com conta e histórico armazenados no Brasil. A conta você cria hoje e confirma por e-mail em um minuto. O acesso ao chat já está aberto — confirma o e-mail e entra. Quem assina um plano tem a conta liberada em até 1 dia útil após a confirmação do pagamento. Nada é cobrado para criar a conta.</p>
-      <p class="acesso-estado"><b>Estado de hoje:</b> cadastro e chat abertos. Crie a conta, confirme o e-mail e comece a usar — com 5 perguntas grátis, uma vez por conta. Sem cartão. <a href="planos.html#pessoal">Ver planos</a></p>    </div>
-  </section>
+  <section class="section-shell conta-hero conta-entrada" aria-labelledby="cadastro-title">
+    <div class="container conta-grade">
+      <div class="conta-cabeca">
+        <h1 id="cadastro-title">Crie sua conta.<span>Converse em um minuto.</span></h1>
+        <p class="lead">IA privada e sem censura*, com conta e histórico guardados no Brasil. Confirme o e-mail e faça 5 perguntas grátis, sem cartão.</p>
+      </div>
 
-  <section class="section-shell pt0" aria-label="Formulário de cadastro">
-    <div class="container">
-      <div class="lista conta-lista">
-        <div>
-          <p class="section-kicker">Como funciona</p>
-          <h2>Três passos.<span>Nada é cobrado agora.</span></h2>
-          <ol class="conta-passos">
-            <li><b>Você cria a conta</b>Nome, e-mail e uma senha. Para empresas, o segmento.</li>
-            <li><b>Confirma o e-mail</b>Enviamos um link. Ao clicar, você já entra autenticado, sem digitar senha de novo.</li>
-            <li><b>Conversa sem censura*</b>Após confirmar o e-mail, faça 5 perguntas grátis no chat, uma vez por conta. Depois, você escolhe um plano quando quiser; o teste não gera cobrança.</li>
-          </ol>
-          <div class="conta-tags" aria-label="Garantias">
-            <span>Conta e histórico armazenados no Brasil</span><span>Sem censura*</span><span>LGPD</span><span>Sem cartão</span>
-          </div>
-          <p class="fine-print">* Quem envia as perguntas responde pelo conteúdo delas e pelo uso que faz das respostas, nos termos da lei.</p>
-          <p class="conta-alt conta-alt-left">Já tem conta? <a href="entrar.html">Entrar</a></p>
-        </div>
-
-        <div class="conta-card">
-          <h2>Criar conta</h2>
-          <p>Leva menos de um minuto.</p>
-          <div class="conta-oauth" hidden>
+      <div class="conta-card">
+        <div class="conta-oauth" hidden>
             <button class="conta-google" type="button" data-oauth="google" disabled><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9z"/></svg> Continuar com Google</button>
             <p class="lead-legal" data-oauth-status role="status" aria-live="polite"></p>
             <p class="conta-ou"><span>ou</span></p>
           </div>
-          <form class="lead-form" id="cadastro-form" method="post" novalidate action="/cadastro.html">
-            <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <form class="lead-form" id="cadastro-form" method="post" novalidate action="/cadastro.html" aria-labelledby="cadastro-title">
+          <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
 
+          <div class="conta-campos" data-campos>
             <label for="c-nome">Nome <span>obrigatório</span></label>
             <input id="c-nome" name="nome" type="text" autocomplete="name" placeholder="Seu nome" required>
             <label for="c-email">E-mail <span>obrigatório</span></label>
@@ -123,10 +103,10 @@
             <label for="c-senha">Senha <span>mínimo 8 caracteres</span></label>
             <input id="c-senha" name="senha" type="password" autocomplete="new-password" minlength="8" placeholder="••••••••" required>
 
-            <fieldset class="lead-pick">
-              <legend>Interesse</legend>
-              <label><input type="radio" name="tipo" value="b2c" data-tipo="b2c" checked>Para mim <small>IA privada e sem censura*</small></label>
-              <label><input type="radio" name="tipo" value="b2b" data-tipo="b2b">Para minha empresa <small>ambiente privado, VoiceAI, Jurídico, Saúde</small></label>
+            <fieldset class="lead-pick conta-pick">
+              <legend>A conta é</legend>
+              <label><input type="radio" name="tipo" value="b2c" data-tipo="b2c" checked>Para mim</label>
+              <label><input type="radio" name="tipo" value="b2b" data-tipo="b2b">Para minha empresa</label>
             </fieldset>
 
             <div class="cond" data-when="b2b" hidden>
@@ -136,15 +116,28 @@
               <input id="c-emp" name="empresa" type="text" autocomplete="organization" placeholder="Nome da empresa">
             </div>
 
-            <p class="form-expectativa">Ao enviar, você recebe <b>um e-mail de confirmação em poucos minutos</b>. Confirmado o e-mail, a conta fica pronta e o chat já está aberto. Nenhuma cobrança acontece aqui.</p>
-            <button class="button button-primary" type="submit" data-submit disabled>Criar conta e receber o link <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
-            <p class="lead-legal" data-status role="status" aria-live="polite"></p>
-            <div class="conta-done" data-done hidden>
-              <b>Falta só confirmar.</b> Abra o e-mail enviado para <code data-done-email></code> e clique em <b>Confirmar e entrar</b>. Não chegou? Confira o spam ou peça um novo link em <a href="entrar.html">Entrar</a>.
-            </div>
-            <p class="lead-legal">Usamos seu nome e e-mail para criar a conta e liberar o acesso. Você pode pedir a exclusão a qualquer momento. Sem spam. <a href="privacidade.html">Como tratamos seus dados</a></p>
-          </form>
-        </div>
+            <button class="button button-primary" type="submit" data-submit disabled>Criar conta grátis <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
+            <p class="conta-ajuda">Enviamos um link de confirmação para o seu e-mail.</p>
+          </div>
+          <div class="conta-done" data-done tabindex="-1" hidden>
+            <h2>Falta só confirmar seu e-mail.</h2>
+            <p>Abrimos sua conta. Clique em <b>Confirmar e entrar</b> no e-mail que enviamos para <code data-done-email></code>. Não chegou em 2 minutos? Veja o spam ou reenvie o link.</p>
+            <button class="conta-resend" type="button" data-done-resend>Reenviar link de confirmação</button>
+            <p class="conta-done-alt">Esse e-mail já tinha conta? <a href="entrar.html">Entre ou recupere a senha</a>.</p>
+          </div>
+          <p class="lead-legal" data-status role="status" aria-live="polite"></p>
+          <p class="lead-legal">Usamos seu nome e e-mail para criar a conta e liberar o acesso. Você pode pedir a exclusão a qualquer momento. Sem spam. <a href="privacidade.html">Como tratamos seus dados</a></p>
+        </form>
+      </div>
+
+      <div class="conta-extra">
+        <ol class="conta-passos">
+          <li><b>Crie a conta</b>Nome, e-mail e senha. Empresas informam também o segmento.</li>
+          <li><b>Confirme o e-mail</b>Clique no link que enviamos e você entra direto, sem digitar a senha de novo.</li>
+          <li><b>Converse sem censura*</b>O teste grátis vale uma vez por conta e não gera cobrança. Num plano pago, o acesso é liberado automaticamente após a confirmação do pagamento.</li>
+        </ol>
+        <p class="fine-print">* Quem envia as perguntas responde pelo conteúdo delas e pelo uso que faz das respostas, nos termos da lei.</p>
+        <p class="conta-alt conta-alt-left">Já tem conta? <a href="entrar.html">Entrar</a></p>
       </div>
     </div>
   </section>

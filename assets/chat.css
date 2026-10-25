@@ -120,6 +120,7 @@
 
 
 /* ── gate (sem sessão / recuperação de senha) ── */
+.gate-actions[hidden] { display: none; }
 .gate { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: var(--abyss); }
 .gate-card { width: min(420px, 100%); padding: 30px; border: 1px solid var(--line); border-radius: 20px; background: var(--card-gradient-strong); text-align: center; display: grid; gap: 12px; justify-items: center; }
 .gate-card h2 { margin: 6px 0 0; font-size: 18.9px; letter-spacing: -0.014em; font-weight: 500; }
@@ -128,7 +129,17 @@
 .gate-form label { font-family: var(--mono); font-size: var(--label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--label-color); }
 .gate-form input { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-raised); color: var(--ice); font: inherit; font-size: 16px; }
 .gate-form input:focus { outline: none; border-color: var(--line-bright); }
-.gate-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.gate-actions { display: grid; gap: 14px; justify-items: center; margin-top: 6px; }
+.gate-botoes { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.gate-voltar { font-size: 13.5px; font-weight: 600; color: var(--blue-signal); text-decoration: underline; text-underline-offset: 3px; }
+.gate-voltar:hover { color: var(--ice); }
+
+/* Aviso de público (18+) e do asterisco: uma linha discreta sob a caixa de mensagem, só na tela
+   inicial; numa conversa aberta ela sai e a conversa ganha o espaço. */
+.composer-aviso { margin: 10px 6px 0; color: var(--muted); font-size: 12px; line-height: 1.5; text-align: center; text-wrap: pretty; }
+.chat-main:has(.welcome[hidden]) .composer-aviso { display: none; }
+.welcome .welcome-nota { margin: 0 0 8px; max-width: none; text-align: left; }
+@media (max-width: 767px) { .composer-aviso { margin-top: 8px; font-size: 11.5px; } .welcome .welcome-nota { margin-inline: 4px; } }
 
 /* ── responsivo ── */
 @media (max-width: 1023px) {
@@ -172,20 +183,9 @@
 .welcome[data-mode="returning"] .onboard-grid { grid-template-columns: 1fr; }
 @media (max-width: 1023px) { .onboard-grid, .welcome[data-mode="returning"] .onboard-grid { grid-template-columns: 1fr; } .widget-form { flex-direction: column; } .widget-form .btn { width: 100%; } }
 
-/* ── Fundo do chat: cinza-escuro liso, sem grade, linhas ou brilho. Só no chat (admin e CRM
-   também usam .chat-page, mas têm .crm-page) e só no tema escuro; o claro segue o padrão. ── */
-:root:not([data-theme="light"]) .chat-page:not(.crm-page) {
-  --abyss: #1e1f22;
-  --surface: #17181a;
-  --surface-raised: #2a2b2f;
-  --bg-rgb: 30, 31, 34;
-  --line: rgba(255, 255, 255, 0.09);
-  --scroll-thumb: #3a3b40;
-  --scroll-thumb-hover: #4a4b51;
-  --card-gradient: #25262a;
-  --card-gradient-strong: #25262a;
-  --card-gradient-hover: #2c2d31;
-}
+/* ── Fundo do chat: liso, sem grade, linhas ou brilho, nas cores da marca (--abyss, --surface,
+   --surface-raised de styles.css). Até out/2026 o tema escuro do chat trocava a paleta por um
+   cinza (#1e1f22) que não existia no resto do site. ── */
 .chat-main { position: relative; overflow: hidden; background: var(--abyss); }
 .thread, .composer, .notice, .paywall, .chat-top { position: relative; z-index: 1; }
 .chat-top { background: rgba(var(--bg-rgb), 0.72); }
@@ -306,11 +306,6 @@ button.me:hover .me-gear { stroke: var(--ice); }
 @media (prefers-reduced-motion: reduce) { .conv-mais, button.me { transition: none; } }
 
 /* ── Sessão organizada (2026-10): strip de confiança, starters com etiqueta, composer enxuto ── */
-.trust-strip { margin: 22px auto 8px; padding: 14px 18px; max-width: 62ch; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
-.trust-strip p { margin: 0 auto; font-size: 13.5px; line-height: 1.55; }
-.trust-strip .fine-print { margin-top: 6px; font-size: 11.5px; color: var(--muted); }
-.trust-strip .aviso-conteudo { margin: 0 auto 10px; padding: 10px 12px; border: 1px solid var(--warn); border-left-width: 4px; border-radius: 10px; color: var(--ink, inherit); background: color-mix(in srgb, var(--warn) 12%, transparent); font-size: 14px; line-height: 1.5; }
-
 .starters-block { margin: 10px 0 26px; text-align: left; }
 .starters-block h2 { font-family: var(--display); font-size: 17px; line-height: 1.4; margin: 0 0 12px; }
 .starters { margin-top: 0; }
@@ -324,17 +319,16 @@ button.me:hover .me-gear { stroke: var(--ice); }
 
 
 @media (max-width: 767px) {
-  .trust-strip { margin-inline: 4px; }
   .starters-block { margin-inline: 4px; }
 }
 
 /* ═══ Redesign do chat (2026-10): cabeçalho limpo, respostas em cartão, composer arredondado e
    modelos em cartões. Só na área do cliente (/app/): CRM e admin usam .chat-top fora de .chat-main. ═══ */
 .chat-page:not(.crm-page) {
-  --chat-card: #26272b;
-  --chat-field: #2a2b2f;
+  --chat-card: var(--surface);
+  --chat-field: var(--surface-raised);
   --chat-soft: rgba(94, 167, 255, 0.12);
-  --chat-user: #2c3a52;
+  --chat-user: var(--surface-blue);
   --chat-accent: #5ea7ff;
   --chat-line-strong: rgba(255, 255, 255, 0.22);
   --chat-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);

@@ -145,6 +145,17 @@
     tipoInputs.forEach(function (i) { i.addEventListener("change", syncTipo); });
     syncTipo();
 
+    // "Reenviar link" na tela de confirmação: a mesma chamada do botão de reenvio do entrar.html.
+    var ultimoEmailCadastro = "";
+    var reenviarCadastro = signup.querySelector("[data-done-resend]");
+    if (reenviarCadastro) reenviarCadastro.addEventListener("click", function () {
+      if (!ultimoEmailCadastro) return;
+      reenviarCadastro.disabled = true;
+      sb.auth.resend({ type: "signup", email: ultimoEmailCadastro, options: { emailRedirectTo: appUrl } })
+        .then(function (r) { if (r.error) throw r.error; status(signup, T("Novo link enviado para ", "New link sent to ") + ultimoEmailCadastro + ".", "ok"); })
+        .catch(function (err) { status(signup, humanError(err), "error"); reenviarCadastro.disabled = false; });
+    });
+
     signup.addEventListener("submit", function (e) {
       e.preventDefault();
       if (!signup.reportValidity()) return;
@@ -187,6 +198,19 @@
         // que não vale para quem já tem conta. A mensagem abaixo diz o que vale nos dois casos.
         signup.querySelectorAll("input:not([type=hidden]), select, fieldset").forEach(function (el) { el.disabled = true; });
         busy(signup, true, T("Confira seu e-mail", "Check your email"));
+        // Tela "Falta só confirmar": a mesma para e-mail novo e para e-mail que já tem conta
+        // (a caixa sempre oferece entrar ou recuperar a senha, sem dizer qual dos dois é).
+        var campos = signup.querySelector("[data-campos]");
+        var feito = signup.querySelector("[data-done]");
+        var emailFeito = signup.querySelector("[data-done-email]");
+        if (feito) {
+          if (emailFeito) emailFeito.textContent = email;
+          if (campos) campos.hidden = true;
+          feito.hidden = false;
+          if (feito.focus) feito.focus();
+          ultimoEmailCadastro = email;
+          return;
+        }
         status(signup, T("Se esse e-mail ainda não tiver conta, enviamos o link de confirmação. Se já tiver, é só entrar: ", "If that email doesn't have an account yet, we sent the confirmation link. If it does, just sign in: "), "ok");
         var note = signup.querySelector("[data-status]");
         if (note) {

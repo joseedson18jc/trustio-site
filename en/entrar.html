@@ -26,17 +26,17 @@
   <link rel="stylesheet" href="/assets/whatsapp-suporte.css?v=63736be5">
   <script defer src="/assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="stylesheet" href="/assets/planos.css?v=c94f7afc">
-  <link rel="stylesheet" href="/assets/conta.css?v=b3c34f0c">
+  <link rel="stylesheet" href="/assets/conta.css?v=f76f1db7">
   <script type="module" src="/assets/app.js?v=f1793b39"></script>
   <script defer src="/assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="/assets/auth-config.js?v=c3461a69"></script>
   <script defer src="/assets/atribuicao.js?v=eb741257"></script>
-  <script defer src="/assets/conta.js?v=3adad9be"></script>
+  <script defer src="/assets/conta.js?v=64a5250e"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/entrar.html">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/entrar.html">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/entrar.html"><!--/i18n:alt-->
 </head>
-<body class="planos-page conta-page">
+<body class="planos-page conta-page conta-entrar">
   <a class="skip-link" href="#conteudo">Skip to content</a>
 
   <header class="site-header" data-header>
@@ -80,65 +80,54 @@
   </header>
 
 <main id="conteudo">
-  <section class="plans-hero section-shell conta-hero" aria-labelledby="entrar-title">
-    <div class="container">
-      <p class="eyebrow"><span class="status-dot"></span> Trustio account</p>
-      <h1 id="entrar-title">Sign in.<span>You land straight in your portal.</span></h1>
-      <p class="lead">Your conversations pick up where they left off, in your environment, with your history stored in Brazil.</p>
-    </div>
-  </section>
+  <section class="section-shell conta-hero conta-entrada" aria-labelledby="entrar-title">
+    <div class="container conta-grade">
+      <div class="conta-cabeca">
+        <h1 id="entrar-title">Sign in.<span>Your conversations pick up where you left off.</span></h1>
+        <p class="lead">Use the email and password you signed up with. Your history is stored in Brazil, only in your account.</p>
+      </div>
 
-  <section class="section-shell pt0" aria-label="Sign-in form">
-    <div class="container">
-      <div class="lista conta-lista">
-        <div>
-          <p class="section-kicker">First time here?</p>
-          <h2>Create your account in a minute.<span>Confirm your email and you're in.</span></h2>
-          <p class="conta-alt conta-alt-left"><a href="cadastro.html">Create account</a> · 5 free questions, once per account, no card.</p>
-          <div class="conta-tags" aria-label="Guarantees">
-            <span>History in Brazil</span><span>Uncensored*</span><span>LGPD</span>
+      <div class="conta-card">
+        <div data-panel="entrar">
+          <div class="conta-oauth" hidden>
+            <button class="conta-google" type="button" data-oauth="google" disabled><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9z"/></svg> Continue with Google</button>
+            <p class="lead-legal" data-oauth-status role="status" aria-live="polite"></p>
+            <p class="conta-ou"><span>or</span></p>
           </div>
-          <p class="fine-print">* Whoever sends the questions is responsible for their content and for how they use the answers, as provided by law.</p>
-        </div>
-
-        <div class="conta-card">
-          <div data-panel="entrar">
-            <h2>Sign in</h2>
-            <p>Use the email and password you signed up with.</p>
-            <div class="conta-oauth" hidden>
-              <button class="conta-google" type="button" data-oauth="google" disabled><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9z"/></svg> Continue with Google</button>
-              <p class="lead-legal" data-oauth-status role="status" aria-live="polite"></p>
-              <p class="conta-ou"><span>or</span></p>
+          <form class="lead-form" id="entrar-form" method="post" novalidate action="/en/entrar.html" aria-labelledby="entrar-title">
+            <label for="e-email">Email</label>
+            <input id="e-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
+            <label for="e-senha">Password</label>
+            <input id="e-senha" name="senha" type="password" autocomplete="current-password" placeholder="••••••••" required>
+            <button class="button button-primary" type="submit" data-submit disabled>Sign in to the chat <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
+            <p class="lead-legal" data-status role="status" aria-live="polite"></p>
+            <button class="conta-resend" type="button" data-resend hidden>Resend confirmation link</button>
+            <div class="conta-links">
+              <a href="#" data-show="recuperar">Forgot password</a>
+              <a href="cadastro.html">Create account</a>
             </div>
-            <form class="lead-form" id="entrar-form" method="post" novalidate action="/en/entrar.html">
-              <label for="e-email">Email</label>
-              <input id="e-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
-              <label for="e-senha">Password</label>
-              <input id="e-senha" name="senha" type="password" autocomplete="current-password" placeholder="••••••••" required>
-              <button class="button button-primary" type="submit" data-submit disabled>Sign in to the chat <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
-              <p class="lead-legal" data-status role="status" aria-live="polite"></p>
-              <button class="conta-resend" type="button" data-resend hidden>Resend confirmation link</button>
-              <div class="conta-links">
-                <a href="#" data-show="recuperar">Forgot password</a>
-                <a href="cadastro.html">Create account</a>
-              </div>
-            </form>
-          </div>
-
-          <div data-panel="recuperar" hidden>
-            <h2>Reset password</h2>
-            <p>We'll send you a link to set a new password.</p>
-            <form class="lead-form" id="recuperar-form" method="post" novalidate action="/en/entrar.html">
-              <label for="r-email">Email</label>
-              <input id="r-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
-              <button class="button button-primary" type="submit" data-submit disabled>Send link <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
-              <p class="lead-legal" data-status role="status" aria-live="polite"></p>
-              <div class="conta-links">
-                <a href="#" data-show="entrar">Back to sign in</a>
-              </div>
-            </form>
-          </div>
+          </form>
         </div>
+
+        <div data-panel="recuperar" hidden>
+          <h2>Reset password</h2>
+          <p>We'll send you a link to set a new password.</p>
+          <form class="lead-form" id="recuperar-form" method="post" novalidate action="/en/entrar.html">
+            <label for="r-email">Email</label>
+            <input id="r-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
+            <button class="button button-primary" type="submit" data-submit disabled>Send link <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
+            <p class="lead-legal" data-status role="status" aria-live="polite"></p>
+            <div class="conta-links">
+              <a href="#" data-show="entrar">Back to sign in</a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="conta-extra">
+        <h2 class="conta-extra-titulo">First time here?</h2>
+        <p>Create an account in a minute, confirm your email and ask 5 free questions, once per account, no card needed.</p>
+        <p class="conta-alt conta-alt-left"><a href="cadastro.html">Create a free account</a></p>
       </div>
     </div>
   </section>

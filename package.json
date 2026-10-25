@@ -15,10 +15,11 @@
     "indexnow": "node scripts/indexnow.mjs --all",
     "i18n": "node scripts/i18n.mjs",
     "i18n:check": "node scripts/i18n.mjs --check",
+    "test": "npm run test:worker && npm run test:mac && npm run test:gate && npm run test:crm-admin && npm run test:crm-audit && npm run test:auth && npm run test:chat-render && npm run test:docx && npm run test:voz && npm run test:atribuicao && npm run test:pagamentos",
     "test:worker": "node worker/test/worker.test.mjs",
     "test:mac": "node mac/test/hermes-autorizados.test.mjs && node mac/test/whatsapp.test.mjs",
     "test:gate": "node gate/test/gate.test.mjs",
-    "test:crm-admin": "node --test tests/crm-admin-db.test.mjs tests/crm-admin-ui.test.mjs tests/hermes-access.test.mjs tests/crm-invite.test.mjs tests/crm-email-tracking.test.mjs tests/crm-admin-notifications.test.mjs",
+    "test:crm-admin": "node --test tests/crm-admin-db.test.mjs tests/crm-admin-ui.test.mjs tests/hermes-access.test.mjs tests/crm-invite.test.mjs tests/crm-email-tracking.test.mjs tests/crm-admin-notifications.test.mjs tests/passe-7d.test.mjs",
     "test:crm-audit": "node --test tests/crm-audit.test.mjs",
     "test:auth": "node tests/auth-config.test.mjs",
     "test:chat-render": "node tests/chat-render.test.mjs",
@@ -26,6 +27,7 @@
     "test:docx": "node tests/docx.test.mjs",
     "test:voz": "node tests/voz-texto.test.mjs && node tests/voz-provedores.test.mjs",
     "test:atribuicao": "node --test tests/atribuicao.test.mjs tests/eventos-funil-db.test.mjs",
+    "test:pagamentos": "node --test tests/liberacao-stripe-db.test.mjs",
     "checklist:campanha": "node scripts/checklist-campanha.mjs"
   },
   "engines": {

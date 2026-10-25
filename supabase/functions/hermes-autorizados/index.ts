@@ -1,8 +1,8 @@
 // Trustio · números autorizados a falar com o Agentio (Supabase Edge Function).
 // O sincronizador no Mac (mac/hermes-autorizados.sh) consulta esta lista a cada 30 s e monta o
 // WHATSAPP_ALLOWED_USERS do Hermes: quem está com o teste de 3 dias ativo e dentro do prazo, e
-// os assinantes (com o telefone do cadastro, se nunca pediram o teste). Quando o teste vence, o
-// número sai da lista sozinho.
+// os assinantes e quem pagou Agentio ou Combo na Stripe (com o telefone do cadastro, se nunca
+// pediram o teste). Quando o teste ou o período pago vence, o número sai da lista sozinho.
 //
 // Segredo (Dashboard → Edge Functions → Secrets):
 //   HERMES_SEGREDO  obrigatório  o mesmo valor guardado no Mac em ~/.trustio-hermes-sync-key
@@ -45,12 +45,12 @@ Deno.serve(async (req) => {
 
   // Lê todas as páginas por chave (id > último lido), não por posição: um cadastro que entra ou
   // sai no meio da leitura não desloca as páginas seguintes nem esconde outro número.
-  type Linha = { id: string; whatsapp_numero: string | null; telefone: string | null; acesso_modo: string; acesso_inicio: string | null; acesso_fim: string | null; status: string; whatsapp_trial_status: string; whatsapp_trial_ends_at: string | null };
+  type Linha = { id: string; whatsapp_numero: string | null; telefone: string | null; acesso_modo: string; acesso_inicio: string | null; acesso_fim: string | null; status: string; whatsapp_trial_status: string; whatsapp_trial_ends_at: string | null; pago_agentio_ate: string | null };
   async function todas(filtro: (q: any) => any): Promise<Linha[] | null> {
     const linhas: Linha[] = [];
     let ultimo: string | null = null;
     while (true) {
-      let q = filtro(admin.from("crm_leads").select("id,whatsapp_numero,telefone,acesso_modo,acesso_inicio,acesso_fim,status,whatsapp_trial_status,whatsapp_trial_ends_at"));
+      let q = filtro(admin.from("crm_leads").select("id,whatsapp_numero,telefone,acesso_modo,acesso_inicio,acesso_fim,status,whatsapp_trial_status,whatsapp_trial_ends_at,pago_agentio_ate"));
       if (ultimo) q = q.gt("id", ultimo);
       const { data, error } = await q.order("id").limit(PAGINA);
       if (error) return null;
@@ -63,17 +63,30 @@ Deno.serve(async (req) => {
   // Falha de leitura não pode virar lista vazia: o Mac mantém a última lista aplicada.
   if (!contas) return responder(500, { error: "leitura" });
 
+  function liberadoAtivo(l: Linha) {
+    return l.acesso_modo === "liberado" &&
+      (!l.acesso_inicio || Date.parse(l.acesso_inicio) <= Date.parse(agora)) &&
+      (!l.acesso_fim || Date.parse(l.acesso_fim) > Date.parse(agora));
+  }
+  // Agentio pago (supabase/migrations/20261025180000): assinatura em dia vem como "infinity".
+  function agentioPago(l: Linha) {
+    return !!l.pago_agentio_ate && (l.pago_agentio_ate === "infinity" || Date.parse(l.pago_agentio_ate) > Date.parse(agora));
+  }
   function permitido(l: Linha) {
-    return !["revogado", "bloqueado", "bloqueado_login"].includes(l.acesso_modo) &&
-      (l.status !== "cancelado" || l.acesso_modo === "liberado") &&
+    if (["revogado", "bloqueado", "bloqueado_login"].includes(l.acesso_modo)) return false;
+    if (l.acesso_modo === "liberado") {
+      if (liberadoAtivo(l)) return true;
+      return l.status !== "cancelado";
+    }
+    return l.status !== "cancelado" &&
       (!l.acesso_inicio || Date.parse(l.acesso_inicio) <= Date.parse(agora)) && (!l.acesso_fim || Date.parse(l.acesso_fim) > Date.parse(agora));
   }
   // Uma restrição prevalece também sobre um número fixo ou compartilhado com outra conta.
   const negados = [...new Set(contas.filter((l) => !permitido(l)).flatMap((l) =>
     [normalizar(l.whatsapp_numero), normalizar(l.telefone)].filter((n): n is string => !!n)))].sort();
   const numeros = [...new Set(contas.filter(permitido).filter((l) =>
-    l.status === "assinante" || (l.whatsapp_trial_status === "ativo" && !!l.whatsapp_trial_ends_at && Date.parse(l.whatsapp_trial_ends_at) > Date.parse(agora)))
-    .map((l) => normalizar(l.whatsapp_numero) ?? (l.status === "assinante" ? normalizar(l.telefone) : null))
+    l.status === "assinante" || liberadoAtivo(l) || agentioPago(l) || (l.whatsapp_trial_status === "ativo" && !!l.whatsapp_trial_ends_at && Date.parse(l.whatsapp_trial_ends_at) > Date.parse(agora)))
+    .map((l) => normalizar(l.whatsapp_numero) ?? ((l.status === "assinante" || liberadoAtivo(l) || agentioPago(l)) ? normalizar(l.telefone) : null))
     .filter((n): n is string => !!n && !negados.includes(n)))].sort();
   return responder(200, { numeros, negados, gerado_em: agora });
 });

@@ -6,12 +6,14 @@
 // O que faz (idempotente: rodar de novo não duplica nada):
 //   1. Liga "permitir códigos promocionais" em todos os Payment Links ativos, para o cupom do
 //      afiliado (ex.: LUISC10) valer e vir preenchido no checkout.
-//   2. Cria o webhook https://api.trustio.com.br/stripe/webhook (checkout.session.completed).
+//   2. Cria o webhook https://api.trustio.com.br/stripe/webhook com os eventos da comissão e da
+//      liberação automática (EVENTOS abaixo); se ele já existe, acrescenta os que faltam.
 //   3. Grava no worker, via `wrangler secret put`, STRIPE_SECRET_KEY e STRIPE_WEBHOOK_SECRET.
 //      Os valores vão direto da memória para o wrangler: nada é impresso na tela.
 //
 // A chave precisa (chave restrita): Checkout Sessions (ler), Coupons, Promotion Codes,
-// Payment Links e Webhook Endpoints (escrever).
+// Payment Links e Webhook Endpoints (escrever); Invoices (ler), para o worker achar a assinatura
+// num reembolso de cobrança recorrente.
 import { spawnSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,6 +21,8 @@ import { fileURLToPath } from "node:url";
 const CHAVE = process.env.STRIPE_SECRET_KEY || "";
 const URL_WEBHOOK = "https://api.trustio.com.br/stripe/webhook";
 const VERSAO_API = "2024-06-20";
+const EVENTOS = ["checkout.session.completed", "checkout.session.async_payment_succeeded",
+  "customer.subscription.updated", "customer.subscription.deleted", "charge.refunded"];
 const WORKER = resolve(dirname(fileURLToPath(import.meta.url)), "..", "worker");
 
 if (!/^(sk|rk)_(live|test)_/.test(CHAVE)) {
@@ -73,16 +77,19 @@ const existentes = await stripe("GET", "webhook_endpoints?limit=100");
 const ja = existentes.data.find((w) => w.url === URL_WEBHOOK);
 let segredoWebhook = null;
 if (ja) {
+  const faltam = EVENTOS.filter((e) => !ja.enabled_events.includes(e) && !ja.enabled_events.includes("*"));
+  if (faltam.length) {
+    await stripe("POST", `webhook_endpoints/${ja.id}`, [...ja.enabled_events, ...faltam].map((e) => ["enabled_events[]", e]));
+    console.log(`Webhook ${ja.id}: eventos acrescentados: ${faltam.join(", ")}.`);
+  }
   console.log(`Webhook já existe (${ja.id}). A Stripe só mostra o segredo na criação: se o worker ainda não tem`);
   console.log("STRIPE_WEBHOOK_SECRET, gere outro em Developers → Webhooks → (endpoint) → Roll secret e rode:");
   console.log("  cd worker && npx wrangler secret put STRIPE_WEBHOOK_SECRET");
 } else {
-  const novo = await stripe("POST", "webhook_endpoints", {
-    url: URL_WEBHOOK,
-    "enabled_events[]": "checkout.session.completed",
-    description: "Trustio · comissões de afiliados",
-    api_version: VERSAO_API,
-  });
+  const novo = await stripe("POST", "webhook_endpoints", [
+    ["url", URL_WEBHOOK], ...EVENTOS.map((e) => ["enabled_events[]", e]),
+    ["description", "Trustio · comissões de afiliados e liberação dos planos pessoais"], ["api_version", VERSAO_API],
+  ]);
   segredoWebhook = novo.secret;
   console.log(`Webhook criado (${novo.id}).`);
 }

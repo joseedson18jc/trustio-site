@@ -621,6 +621,8 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
         return new Response(JSON.stringify({ id: "promo_" + code }), { status: 200 });
       }
       if (u.includes("/checkout/sessions/")) return new Response(JSON.stringify(respostas.sessao), { status: 200 });
+      if (u.includes("/invoices/in_1")) return new Response(JSON.stringify({ id: "in_1", subscription: "sub_1" }), { status: 200 });
+      if (u.includes("/invoices/")) return new Response(JSON.stringify({ error: { message: "sem permissão" } }), { status: 403 });
     }
     if (u.includes("evo.exemplo")) { zaps.push({ u, corpo: JSON.parse(o.body), apikey: o.headers.apikey }); return new Response("{}", { status: 201 }); }
     if (u.includes("api.resend.com")) { emails.push(JSON.parse(o.body)); return new Response("{}", { status: 200 }); }
@@ -653,7 +655,9 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
   const evento = JSON.stringify({ id: "evt_1", type: "checkout.session.completed", data: { object: { id: "cs_1", payment_status: "paid" } } });
   respostas.sessao = { id: "cs_1", client_reference_id: "LUISCO10", amount_subtotal: 79000, amount_total: 71100, customer_details: { email: "cliente@y.com" },
     payment_intent: "pi_1", line_items: { data: [{ price: { id: "price_anual" } }] },
+    payment_link: "plink_anual", metadata: { tier: "anual" }, subscription: "sub_1", customer: { id: "cus_1" },
     total_details: { breakdown: { discounts: [{ discount: { promotion_code: "promo_OUTRO10" } }] } } };
+  respostas.stripe_ativar_compra = { ok: true, ativado: true, pendente: false, tier: "anual" };
   respostas.registrar_comissao = { ok: true, registrada: true, valor_comissao: 20000, valor_venda: 79000,
     afiliado: { nome: "Luis Costa", email: "luis@x.com", whatsapp: "11987654321" } };
 
@@ -675,9 +679,14 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
      && rc.p_valor_venda === 79000 && rc.p_price_id === "price_anual" && rc.p_email_comprador === "cliente@y.com",
      "webhook: manda ao banco link, cupom usado, valor de tabela e comprador", JSON.stringify(rc));
   const tr = rpcs.find((x) => x.nome === "registrar_trial_activated")?.args;
-  ok(rpcs.map((x) => x.nome).join() === "registrar_comissao,registrar_trial_activated"
+  const lib = rpcs.find((x) => x.nome === "stripe_ativar_compra")?.args;
+  ok(lib?.p_sessao === "cs_1" && lib.p_email === "cliente@y.com" && lib.p_payment_link === "plink_anual" && lib.p_tier === "anual"
+     && lib.p_subscription === "sub_1" && lib.p_customer === "cus_1" && lib.p_payment_intent === "pi_1" && lib.p_valor_centavos === 71100,
+     "webhook: libera o plano pelo link de pagamento, com assinatura, cliente e pagamento para cancelar/reembolsar", JSON.stringify(lib));
+  ok(d.liberado === true, "webhook: resposta diz que liberou");
+  ok(rpcs.map((x) => x.nome).join() === "stripe_ativar_compra,registrar_comissao,registrar_trial_activated"
      && tr?.p_sessao === "cs_1" && tr.p_price_id === "price_anual" && tr.p_valor_centavos === 71100 && tr.p_email_comprador === "cliente@y.com",
-     "webhook: depois da comissão, registra trial_activated (sessão, preço, valor pago) para o funil", JSON.stringify(tr));
+     "webhook: libera, registra a comissão e depois trial_activated (sessão, preço, valor pago) para o funil", JSON.stringify(tr));
   ok(emails.some((e) => e.to[0] === "luis@x.com" && /R\$\s?200,00/.test(e.subject)) && zaps.some((z) => /R\$\s?200,00/.test(z.corpo.text)),
      "webhook: afiliado avisado da comissão por e-mail e WhatsApp");
 
@@ -699,6 +708,64 @@ ok(r.status === 400 && /Incomplete link/.test(await r.text()), "en: link incompl
   r = await hook(evento, assinar(evento));
   ok(r.status === 500, "webhook: banco fora do ar → 500 (a Stripe tenta de novo)");
   ok(!rpcs.some((x) => x.nome === "registrar_trial_activated"), "webhook: comissão falhou → trial_activated espera o reenvio da Stripe");
+  rpcs = [];
+  globalThis.fetch = (u, o) => String(u).includes("/rpc/stripe_ativar_compra") ? Promise.resolve(new Response("erro", { status: 500 })) : fetchMock(u, o);
+  r = await hook(evento, assinar(evento));
+  ok(r.status === 500 && !rpcs.some((x) => x.nome === "registrar_comissao"),
+     "webhook: liberação falhou → 500 antes da comissão (o reenvio libera e ainda avisa o afiliado)");
+  globalThis.fetch = fetchMock;
+
+  // pagamento confirmado depois (Pix/boleto): mesmo caminho da compra
+  const assincrono = JSON.stringify({ id: "evt_a", type: "checkout.session.async_payment_succeeded", data: { object: { id: "cs_1", payment_status: "paid" } } });
+  rpcs = [];
+  r = await hook(assincrono, assinar(assincrono));
+  ok(r.status === 200 && rpcs[0]?.nome === "stripe_ativar_compra", "webhook: pagamento assíncrono confirmado também libera");
+
+  // assinatura: cancelada no fim do período, desfeita, encerrada
+  const agoraS = Math.floor(Date.now() / 1000);
+  const subEv = (type, sub) => JSON.stringify({ id: "evt_s", type, created: agoraS, data: { object: { id: "sub_1", ...sub } } });
+  const enviaSub = async (type, sub) => { rpcs = []; const c = subEv(type, sub); const resp = await hook(c, assinar(c));
+    return { status: resp.status, args: rpcs.find((x) => x.nome === "stripe_atualizar_assinatura")?.args }; };
+  let s1 = await enviaSub("customer.subscription.updated", { status: "active", cancel_at_period_end: true, current_period_end: agoraS + 864000 });
+  ok(s1.status === 200 && s1.args?.p_fim === new Date((agoraS + 864000) * 1000).toISOString() && s1.args.p_encerrar === false
+     && s1.args.p_evento_em === new Date(agoraS * 1000).toISOString(), "webhook: cancelamento agendado → acesso até o fim do período", JSON.stringify(s1.args));
+  s1 = await enviaSub("customer.subscription.updated", { status: "active", cancel_at_period_end: true, items: { data: [{ current_period_end: agoraS + 99 }] } });
+  ok(s1.args?.p_fim === new Date((agoraS + 99) * 1000).toISOString(), "webhook: fim do período no item (API nova) também vale");
+  s1 = await enviaSub("customer.subscription.updated", { status: "active", cancel_at_period_end: false });
+  ok(s1.args?.p_fim === null && s1.args.p_encerrar === false, "webhook: cancelamento desfeito → volta a valer sem data");
+  s1 = await enviaSub("customer.subscription.deleted", { status: "canceled", ended_at: agoraS });
+  ok(s1.args?.p_encerrar === true && s1.args.p_fim === new Date(agoraS * 1000).toISOString(), "webhook: assinatura encerrada → acaba");
+  s1 = await enviaSub("customer.subscription.updated", { status: "unpaid" });
+  ok(s1.args?.p_encerrar === false && !!s1.args.p_fim, "webhook: fatura em aberto (unpaid) suspende sem encerrar: volta se pagar");
+  s1 = await enviaSub("customer.subscription.updated", { status: "incomplete" });
+  ok(s1.status === 200 && !s1.args, "webhook: assinatura incompleta não mexe no acesso");
+
+  // reembolso
+  const reemb = (charge) => JSON.stringify({ id: "evt_r", type: "charge.refunded", data: { object: { id: "ch_1", ...charge } } });
+  rpcs = [];
+  let c1 = reemb({ refunded: true, payment_intent: "pi_1", customer: "cus_1" });
+  r = await hook(c1, assinar(c1));
+  const rr = rpcs.find((x) => x.nome === "stripe_reembolso")?.args;
+  ok(r.status === 200 && rr?.p_payment_intent === "pi_1" && rr.p_subscription === null && !("p_customer" in rr),
+     "webhook: reembolso total de passe corta pela compra", JSON.stringify(rr));
+  rpcs = [];
+  c1 = reemb({ refunded: true, payment_intent: "pi_ren", customer: "cus_1", invoice: "in_1" });
+  r = await hook(c1, assinar(c1));
+  ok(r.status === 200 && rpcs.find((x) => x.nome === "stripe_reembolso")?.args.p_subscription === "sub_1",
+     "webhook: reembolso de cobrança de assinatura acha a assinatura pela fatura");
+  rpcs = [];
+  c1 = reemb({ refunded: true, payment_intent: "pi_ren", invoice: "in_negada" });
+  r = await hook(c1, assinar(c1));
+  ok(r.status === 500 && !rpcs.length, "webhook: sem ler a fatura → 500, a Stripe tenta de novo (não corta às cegas)");
+  rpcs = [];
+  c1 = reemb({ refunded: false, amount_refunded: 500, payment_intent: "pi_1" });
+  r = await hook(c1, assinar(c1));
+  ok(r.status === 200 && !rpcs.length, "webhook: reembolso parcial não corta o acesso");
+  globalThis.fetch = (u, o) => String(u).includes("/rpc/stripe_reembolso") ? Promise.resolve(new Response("erro", { status: 500 })) : fetchMock(u, o);
+  c1 = reemb({ refunded: true, payment_intent: "pi_1" });
+  r = await hook(c1, assinar(c1));
+  ok(r.status === 500, "webhook: banco fora do ar no reembolso → 500 (a Stripe tenta de novo)");
+  globalThis.fetch = fetchMock;
   globalThis.fetch = (u, o) => String(u).includes("/rpc/registrar_trial_activated") ? Promise.resolve(new Response("nao existe", { status: 404 })) : fetchMock(u, o);
   r = await hook(evento, assinar(evento));
   ok(r.status === 200, "webhook: falha ao gravar trial_activated não derruba a venda (200, sem reenvio)");

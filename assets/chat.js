@@ -48,9 +48,20 @@
   // ---------------------------------------------------------------- utilidades
   // Sem cota de perguntas: assinante, ou tipo de usuário admin, colaborador ou cliente
   // (a mesma regra do reserve_chat_message no banco).
+  // Plano pessoal pago na Stripe (liberação automática): "infinity" é assinatura em dia.
+  function chatPago() {
+    var ate = state.lead && state.lead.pago_chat_ate;
+    return !!ate && (ate === "infinity" || Date.parse(ate) > Date.now());
+  }
   function semCota() {
     var l = state.lead;
-    return !!l && (l.status === "assinante" || l.papel === "admin" || l.papel === "colaborador" || l.papel === "cliente");
+    if (!l) return false;
+    if (chatPago()) return true;
+    if (l.status === "assinante" || l.papel === "admin" || l.papel === "colaborador" || l.papel === "cliente") return true;
+    if (l.acesso_modo === "liberado") {
+      return !l.acesso_fim || Date.parse(l.acesso_fim) > Date.now();
+    }
+    return false;
   }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
@@ -200,7 +211,7 @@
     state.fechado = !!fechado;
     if (!state.fechado) {
       input.placeholder = state.placeholderPadrao || input.placeholder;
-      if (!(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; }
+      if (semCota() || !(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; }
       return;
     }
     d = d || {};
@@ -241,7 +252,7 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !topMenu.hidden) { fecharMenuTopo(); topMaisBtn.focus(); } });
 
   function loadLead() {
-    return sb.from("crm_leads").select("nome,email,telefone,tipo,status,papel,plano,mensagens_usadas,onboarding_seen_at,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_requested_at,whatsapp_trial_started_at,whatsapp_trial_ends_at").eq("user_id", state.user.id).maybeSingle()
+    return sb.from("crm_leads").select("nome,email,telefone,tipo,status,papel,plano,pago_chat_ate,pago_agentio_ate,pago_plano,acesso_modo,acesso_fim,mensagens_usadas,onboarding_seen_at,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_requested_at,whatsapp_trial_started_at,whatsapp_trial_ends_at").eq("user_id", state.user.id).maybeSingle()
       .then(function (r) { state.lead = r.data || null; });
   }
   function loadLimit() {
@@ -260,7 +271,8 @@
     pintarAvatar($("[data-me-av]"), name);
     var status = state.lead ? state.lead.status : "novo";
     var plan = state.lead && state.lead.plano;
-    var label = semCota() && status !== "assinante" ? ({ admin: "Admin", colaborador: T("Colaborador", "Team member"), cliente: T("Cliente", "Customer") })[state.lead.papel] + (plan ? " · " + plan : "") : status === "assinante" ? (T("Assinante", "Subscriber") + (plan ? " · " + plan : "")) : status === "trial_esgotado" ? T("Teste encerrado", "Trial ended") : T("Teste grátis", "Free trial");
+    var papelNome = ({ admin: "Admin", colaborador: T("Colaborador", "Team member"), cliente: T("Cliente", "Customer") })[state.lead && state.lead.papel] || T("Acesso liberado", "Access granted");
+    var label = chatPago() && status !== "assinante" ? T("Plano ativo", "Plan active") + (state.lead.pago_plano ? " · " + state.lead.pago_plano : "") : semCota() && status !== "assinante" ? papelNome + (plan ? " · " + plan : "") : status === "assinante" ? (T("Assinante", "Subscriber") + (plan ? " · " + plan : "")) : status === "trial_esgotado" ? T("Teste encerrado", "Trial ended") : T("Teste grátis", "Free trial");
     $("[data-me-plan]").textContent = label;
     renderQuota(status, state.lead ? state.lead.mensagens_usadas : 0);
     renderOnboardQuota();
@@ -485,7 +497,7 @@
     if (!state.sessaoCheia) return;
     state.sessaoCheia = false;
     showNotice("");
-    if (!state.fechado && !(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; }
+    if (!state.fechado && (semCota() || !(state.lead && state.lead.status === "trial_esgotado"))) { input.disabled = false; sendBtn.disabled = false; }
   }
 
   function resetThread() {
@@ -858,7 +870,7 @@
       if (!body.innerHTML && pending.parentNode) pending.remove();
       state.sending = false;
       thread.setAttribute("aria-busy", "false");
-      if (!state.fechado && !state.sessaoCheia && !(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; if (!TOQUE) input.focus(); }
+      if (!state.fechado && !state.sessaoCheia && (semCota() || !(state.lead && state.lead.status === "trial_esgotado"))) { input.disabled = false; sendBtn.disabled = false; if (!TOQUE) input.focus(); }
     });
   }
 
@@ -1382,7 +1394,7 @@
     var l = state.lead || {};
     $("#conta-nome").value = nomeAtual() === state.user.email ? "" : nomeAtual();
     $("#conta-tel").value = fmtPhone(l.telefone || "");
-    var telTravado = l.status === "assinante";
+    var telTravado = l.status === "assinante" || (!!l.telefone && !!l.pago_agentio_ate && (l.pago_agentio_ate === "infinity" || Date.parse(l.pago_agentio_ate) > Date.now()));
     $("#conta-tel").disabled = telTravado; $("[data-tel-travado]").hidden = !telTravado;
     $("#conta-email").value = state.user.email || "";
     $("[data-conta-plano]").textContent = $("[data-me-plan]").textContent;
@@ -1588,7 +1600,7 @@
   if (window.TrustioVoz) window.TrustioVoz.iniciar({
     sb: sb, CFG: CFG, T: T, EN: EN, input: input, semCota: semCota, showNotice: showNotice,
     adicionarArquivos: adicionarArquivos, enviar: send, ocupado: function () { return !!state.sending; },
-    planosUrl: "../planos.html"
+    planosUrl: "../planos.html#pessoal"
   });
 
   boot();

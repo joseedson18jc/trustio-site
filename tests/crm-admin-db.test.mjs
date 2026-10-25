@@ -242,16 +242,17 @@ test('email tracking deduplica eventos, preserva engajamento fora de ordem e lim
   const event=(id,type,date,to=['USER@test'],message='message')=>db.query('select crm_registrar_email($1,$2,$3,$4,$5,$6,$7,$8)',[id,message,type,date,'contato@trustio.com.br',to,'Convite','https://trustio.com.br/afiliados.html']);
   try {
     await actor(null);await db.exec('set role service_role');
-    await event('click','email.clicked','2026-10-10T12:00:00Z');
-    await event('click','email.clicked','2026-10-10T12:00:00Z');
-    await event('sent','email.sent','2026-10-09T12:00:00Z');
-    await event('delivered','email.delivered','2026-10-09T12:01:00Z');
-    await event('open','email.opened','2026-10-10T11:00:00Z');
+    const nowIso = new Date().toISOString();
+    await event('click','email.clicked',nowIso);
+    await event('click','email.clicked',nowIso);
+    await event('sent','email.sent',nowIso);
+    await event('delivered','email.delivered',nowIso);
+    await event('open','email.opened',nowIso);
     await event('none','email.delivered','2000-01-01T12:00:00Z',['other@test'],'old');
-    await event('bounce','email.bounced','2026-10-10T12:00:00Z',['other@test'],'bounce');
-    await event('failed','email.failed','2026-10-10T12:00:00Z',['other@test'],'failed');
-    await event('delay','email.delivery_delayed','2026-10-10T12:00:00Z',['other@test'],'delay');
-    await event('delayok','email.delivered','2026-10-10T12:01:00Z',['other@test'],'delay');
+    await event('bounce','email.bounced',nowIso,['other@test'],'bounce');
+    await event('failed','email.failed',nowIso,['other@test'],'failed');
+    await event('delay','email.delivery_delayed',nowIso,['other@test'],'delay');
+    await event('delayok','email.delivered',nowIso,['other@test'],'delay');
     await actor(1);
     const data=(await db.query('select * from crm_emails_overview order by email_id')).rows;
     const clicked=data.find(x=>x.email_id==='message');assert.equal(clicked.cliques,1);assert.equal(clicked.estado,'clicado');assert.equal(clicked.lead_id,uid(2));

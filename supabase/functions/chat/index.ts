@@ -215,6 +215,8 @@ async function liberacao(admin: any, userId: string): Promise<Liberacao> {
 type Reservation = {
   ok: boolean; error?: string; lead_id?: string; used?: number; limit?: number;
   subscriber?: boolean; remaining?: number | null;
+  // Teste grátis por tempo: fim do teste (null para pagos e equipe) e duração em dias.
+  trial_ends_at?: string | null; trial_days?: number;
 };
 
 Deno.serve(async (req) => {
@@ -342,7 +344,8 @@ Deno.serve(async (req) => {
   const reservation = reservationData as Reservation;
   if (!reservation.ok) {
     const status = reservation.error === "trial_esgotado" ? 402 : 403;
-    return json(status, { error: reservation.error, used: reservation.used, limit: reservation.limit }, origin);
+    return json(status, { error: reservation.error, used: reservation.used,
+      trial_ends_at: reservation.trial_ends_at ?? null, trial_days: reservation.trial_days ?? null }, origin);
   }
   const leadId = reservation.lead_id!;
   const release = () => admin.rpc("release_chat_message", { p_lead_id: leadId });
@@ -866,6 +869,7 @@ Deno.serve(async (req) => {
         janela,
         remaining: reservation.remaining ?? null,
         limit: reservation.subscriber ? null : reservation.limit,
+        trial_ends_at: reservation.trial_ends_at ?? null,
       });
     } else {
       // Nada de texto. Só devolve a pergunta à cota se nada chegou ao navegador: raciocínio

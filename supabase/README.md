@@ -19,11 +19,14 @@ GitHub Actions (`.github/workflows/supabase.yml`) a cada push na `main` que toqu
 2. O Supabase envia o e-mail de confirmação (`templates/confirmacao.html`).
 3. Gatilho `on_auth_user_created` cria a linha em `crm_leads` (status `novo`).
 4. O cliente clica no link → `on_auth_user_updated` marca `email_confirmado` → o link abre `/app/` já logado.
-5. No primeiro acesso aparecem os widgets do teste grátis (5 prompts, 3 dias de agente no WhatsApp, dicas).
+5. No primeiro acesso aparecem os widgets do teste grátis (3 dias de chat, 3 dias de agente no WhatsApp, dicas).
    "Começar a conversar" chama `mark_onboarding_seen()`; o pedido do WhatsApp chama `request_whatsapp_trial(numero)`.
-6. Cada mensagem passa pela função `chat`: só e-mail confirmado; cota `free_message_limit` (padrão 5;
-   `0` = sem limite) reservada de forma atômica; status vira `ativo` e, ao esgotar, `trial_esgotado`.
-   Status `assinante` ignora a cota.
+6. Cada mensagem passa pela função `chat`: só e-mail confirmado; reserva atômica em `reserve_chat_message`.
+   O teste grátis é por tempo, nunca por número de perguntas: a primeira pergunta grava
+   `crm_leads.teste_fim = now() + free_trial_days()` (`app_settings.free_trial_days`, padrão 3; `0` = sem limite)
+   e, até lá, as perguntas são ilimitadas. Depois do fim, status vira `trial_esgotado`. Só as RPCs do teste
+   gravam `teste_fim` (gatilho `crm_leads_guard_teste`). Equipe, cliente, assinante e plano pago ignoram o teste.
+   `free_message_limit` não é mais lido pelo chat (`20261025210000_teste_gratis_3_dias.sql`).
    **O teste de 3 dias do WhatsApp está desligado desde 19/10/2026** (`20261019130000_desliga_teste_whatsapp.sql`,
    revisão legal G2: o Agentio roda em Baileys). Com `app_settings.whatsapp_teste_aberto = false`:
    - `request_whatsapp_trial` devolve `teste_encerrado`;

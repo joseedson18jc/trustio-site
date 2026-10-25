@@ -40,7 +40,7 @@
   var baixarBtn = $("[data-baixar]");
   var gate = $("[data-gate]");
 
-  var state = { user: null, lead: null, limit: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false, fechado: false, sessaoCheia: false, placeholderPadrao: "", escolhas: 0,
+  var state = { user: null, lead: null, trialDias: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false, fechado: false, sessaoCheia: false, placeholderPadrao: "", escolhas: 0,
     // Preferências da conta (tabela preferencias_usuario) e o que vem com elas.
     pref: { estilo: "equilibrado", instrucoes: "", modelo: null, enter_envia: true, fonte: "normal", avatar_em: null },
     modelos: [], avatarUrl: null, filtro: "" };
@@ -52,6 +52,27 @@
   function chatPago() {
     var ate = state.lead && state.lead.pago_chat_ate;
     return !!ate && (ate === "infinity" || Date.parse(ate) > Date.now());
+  }
+  // Teste grátis por tempo (dias a partir da primeira pergunta), nunca por número de perguntas.
+  function fimDoTeste() {
+    var f = state.lead && state.lead.teste_fim;
+    return f ? Date.parse(f) : null;
+  }
+  function testeEncerrado() {
+    var f = fimDoTeste();
+    return !semCota() && !!state.trialDias && f !== null && f <= Date.now();
+  }
+  function fmtDia(ms) { var x = new Date(ms); return x.toLocaleDateString(LOCAL, { day: "2-digit", month: "2-digit" }) + T(" às ", " at ") + x.toLocaleTimeString(LOCAL, { hour: "2-digit", minute: "2-digit" }); }
+  function textoDoTeste() {
+    var f = fimDoTeste(), n = state.trialDias;
+    if (f === null) return EN ? "Free trial: " + n + " days, starting with your first question" : "Teste grátis: " + n + " dias, a partir da primeira pergunta";
+    if (f <= Date.now()) return T("Seu teste grátis terminou", "Your free trial has ended");
+    return T("Teste grátis até ", "Free trial until ") + fmtDia(f);
+  }
+  function parteUsadaDoTeste() {
+    var f = fimDoTeste(), total = state.trialDias * 86400e3;
+    if (f === null || !total) return 0;
+    return Math.max(0, Math.min(1, 1 - (f - Date.now()) / total));
   }
   function semCota() {
     var l = state.lead;
@@ -211,7 +232,7 @@
     state.fechado = !!fechado;
     if (!state.fechado) {
       input.placeholder = state.placeholderPadrao || input.placeholder;
-      if (semCota() || !(state.lead && state.lead.status === "trial_esgotado")) { input.disabled = false; sendBtn.disabled = false; }
+      if (!testeEncerrado()) { input.disabled = false; sendBtn.disabled = false; }
       return;
     }
     d = d || {};
@@ -222,7 +243,7 @@
       return;
     }
     input.placeholder = T("Chat temporariamente indisponível", "Chat temporarily unavailable");
-    showNotice(T("<b>O chat está temporariamente indisponível.</b> Sua conta e suas perguntas grátis continuam preservadas. Tente novamente em instantes. Se o problema continuar, fale com a equipe pelo contato@trustio.com.br.", "<b>The chat is temporarily unavailable.</b> Your account and free questions are preserved. Try again shortly. If the issue continues, contact our team at contato@trustio.com.br."));
+    showNotice(T("<b>O chat está temporariamente indisponível.</b> Sua conta e seu teste grátis continuam preservados. Tente novamente em instantes. Se o problema continuar, fale com a equipe pelo contato@trustio.com.br.", "<b>The chat is temporarily unavailable.</b> Your account and free trial are preserved. Try again shortly. If the issue continues, contact our team at contato@trustio.com.br."));
   }
 
   // Baixar e apagar ficam no menu ⋯ do cabeçalho, que só aparece com uma conversa aberta.
@@ -252,11 +273,11 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !topMenu.hidden) { fecharMenuTopo(); topMaisBtn.focus(); } });
 
   function loadLead() {
-    return sb.from("crm_leads").select("nome,email,telefone,tipo,status,papel,plano,pago_chat_ate,pago_agentio_ate,pago_plano,acesso_modo,acesso_fim,mensagens_usadas,onboarding_seen_at,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_requested_at,whatsapp_trial_started_at,whatsapp_trial_ends_at").eq("user_id", state.user.id).maybeSingle()
+    return sb.from("crm_leads").select("nome,email,telefone,tipo,status,papel,plano,pago_chat_ate,pago_agentio_ate,pago_plano,acesso_modo,acesso_fim,mensagens_usadas,teste_fim,onboarding_seen_at,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_requested_at,whatsapp_trial_started_at,whatsapp_trial_ends_at").eq("user_id", state.user.id).maybeSingle()
       .then(function (r) { state.lead = r.data || null; });
   }
   function loadLimit() {
-    return sb.rpc("free_message_limit").then(function (r) { state.limit = Number(r.data) || 0; }).catch(function () { state.limit = 0; });
+    return sb.rpc("free_trial_days").then(function (r) { state.trialDias = r.error ? 3 : Number(r.data) || 0; }).catch(function () { state.trialDias = 3; });
   }
   function loadAdmin() {
     return sb.from("admins").select("user_id").eq("user_id", state.user.id).maybeSingle()
@@ -272,20 +293,19 @@
     var status = state.lead ? state.lead.status : "novo";
     var plan = state.lead && state.lead.plano;
     var papelNome = ({ admin: "Admin", colaborador: T("Colaborador", "Team member"), cliente: T("Cliente", "Customer") })[state.lead && state.lead.papel] || T("Acesso liberado", "Access granted");
-    var label = chatPago() && status !== "assinante" ? T("Plano ativo", "Plan active") + (state.lead.pago_plano ? " · " + state.lead.pago_plano : "") : semCota() && status !== "assinante" ? papelNome + (plan ? " · " + plan : "") : status === "assinante" ? (T("Assinante", "Subscriber") + (plan ? " · " + plan : "")) : status === "trial_esgotado" ? T("Teste encerrado", "Trial ended") : T("Teste grátis", "Free trial");
+    var label = chatPago() && status !== "assinante" ? T("Plano ativo", "Plan active") + (state.lead.pago_plano ? " · " + state.lead.pago_plano : "") : semCota() && status !== "assinante" ? papelNome + (plan ? " · " + plan : "") : status === "assinante" ? (T("Assinante", "Subscriber") + (plan ? " · " + plan : "")) : testeEncerrado() ? T("Teste encerrado", "Trial ended") : T("Teste grátis", "Free trial");
     $("[data-me-plan]").textContent = label;
-    renderQuota(status, state.lead ? state.lead.mensagens_usadas : 0);
+    renderQuota();
     renderOnboardQuota();
   }
 
-  function renderQuota(status, used) {
+  function renderQuota() {
     var q = $("[data-quota]");
-    if (semCota() || !state.limit) { q.hidden = true; paywall.hidden = true; return; }
+    if (semCota() || !state.trialDias) { q.hidden = true; paywall.hidden = true; return; }
     q.hidden = false;
-    var left = Math.max(0, state.limit - used);
-    $("[data-quota-bar]").style.width = Math.min(100, (used / state.limit) * 100) + "%";
-    $("[data-quota-text]").textContent = EN ? left + " of " + state.limit + " free questions left" : left + " de " + state.limit + " perguntas grátis restantes";
-    var locked = left <= 0;
+    $("[data-quota-bar]").style.width = Math.round(parteUsadaDoTeste() * 100) + "%";
+    $("[data-quota-text]").textContent = textoDoTeste();
+    var locked = testeEncerrado();
     paywall.hidden = !locked;
     input.disabled = locked; sendBtn.disabled = locked;
   }
@@ -309,22 +329,22 @@
   }
 
   function renderOnboardQuota() {
-    var status = state.lead ? state.lead.status : "novo";
-    var used = state.lead ? Number(state.lead.mensagens_usadas || 0) : 0;
     var limitEl = $("[data-ob-limit]"), bar = $("[data-ob-bar]"), txt = $("[data-ob-quota]");
     if (!limitEl) return;
-    if (semCota() || !state.limit) {
+    if (semCota() || !state.trialDias) {
       var titulo = $("[data-ob-titulo]");
       if (titulo) titulo.textContent = T("Uso justo", "Fair use");
       bar.style.width = "100%";
-      txt.textContent = semCota() ? T("Plano ativo: uso justo, sem contar perguntas.", "Plan active: fair use, no question count.") : T("Sem cota de perguntas neste ambiente.", "No question quota in this environment.");
+      txt.textContent = semCota() ? T("Plano ativo: uso justo, sem contar perguntas.", "Plan active: fair use, no question count.") : T("Sem limite de dias neste ambiente.", "No day limit in this environment.");
       return;
     }
-    limitEl.textContent = state.limit;
-    var left = Math.max(0, state.limit - used);
-    bar.style.width = Math.min(100, (used / state.limit) * 100) + "%";
-    txt.textContent = used === 0 ? T("Você ainda não usou nenhum.", "You haven't used any yet.") : left === 0 ? T("Você usou todos. Escolha um plano para continuar.", "You've used them all. Choose a plan to continue.") : EN ? "You've used " + used + ". " + left + " left." : "Você usou " + used + ". Restam " + left + ".";
+    limitEl.textContent = state.trialDias;
+    bar.style.width = Math.round(parteUsadaDoTeste() * 100) + "%";
+    txt.textContent = fimDoTeste() === null ? T("Os dias começam a contar na sua primeira pergunta. Pergunte à vontade.", "The days start with your first question. Ask as much as you like.")
+      : testeEncerrado() ? T("Seu teste terminou. Escolha um plano para continuar.", "Your trial has ended. Choose a plan to continue.")
+      : textoDoTeste() + T(". Pergunte à vontade.", ". Ask as much as you like.");
   }
+
 
 
 
@@ -497,7 +517,7 @@
     if (!state.sessaoCheia) return;
     state.sessaoCheia = false;
     showNotice("");
-    if (!state.fechado && (semCota() || !(state.lead && state.lead.status === "trial_esgotado"))) { input.disabled = false; sendBtn.disabled = false; }
+    if (!state.fechado && !testeEncerrado()) { input.disabled = false; sendBtn.disabled = false; }
   }
 
   function resetThread() {
@@ -849,7 +869,7 @@
       var code = err && err.message;
       if (code === "sem_sessao" || (err && err.status === 401)) { location.replace(CFG.loginPath); return; }
       devolverRascunho();
-      if (code === "trial_esgotado") { pending.remove(); if (state.lead) { state.lead.status = "trial_esgotado"; state.lead.mensagens_usadas = state.limit; } renderMe(); }
+      if (code === "trial_esgotado") { pending.remove(); if (state.lead) { state.lead.status = "trial_esgotado"; state.lead.teste_fim = (err && err.data && err.data.trial_ends_at) || new Date().toISOString(); } renderMe(); }
       else if (code === "email_nao_confirmado") { pending.remove(); showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); }
       else if (code === "acesso_revogado") { pending.remove(); fechar(true, { motivo: "acesso_revogado" }); }
       else if (code === "chat_ainda_fechado") { pending.remove(); fechar(true, (err && err.data) || {}); }
@@ -870,16 +890,16 @@
       if (!body.innerHTML && pending.parentNode) pending.remove();
       state.sending = false;
       thread.setAttribute("aria-busy", "false");
-      if (!state.fechado && !state.sessaoCheia && (semCota() || !(state.lead && state.lead.status === "trial_esgotado"))) { input.disabled = false; sendBtn.disabled = false; if (!TOQUE) input.focus(); }
+      if (!state.fechado && !state.sessaoCheia && !testeEncerrado()) { input.disabled = false; sendBtn.disabled = false; if (!TOQUE) input.focus(); }
     });
   }
 
   function afterDone(d) {
     if (state.lead) {
       state.lead.mensagens_usadas = (state.lead.mensagens_usadas || 0) + 1;
-      if (!semCota()) state.lead.status = (d.remaining === 0) ? "trial_esgotado" : "ativo";
+      if (d.trial_ends_at) state.lead.teste_fim = d.trial_ends_at;
+      if (!semCota() && state.lead.status !== "assinante") state.lead.status = "ativo";
     }
-    if (typeof d.limit === "number" && d.limit > 0) state.limit = d.limit;
     renderMe();
     var known = state.conversations.some(function (c) { return c.id === d.conversation_id; });
     if (!known) loadConversations().then(function () {
@@ -1398,10 +1418,9 @@
     $("#conta-tel").disabled = telTravado; $("[data-tel-travado]").hidden = !telTravado;
     $("#conta-email").value = state.user.email || "";
     $("[data-conta-plano]").textContent = $("[data-me-plan]").textContent;
-    var usados = Number(l.mensagens_usadas || 0);
-    $("[data-conta-uso]").textContent = semCota() || !state.limit
+    $("[data-conta-uso]").textContent = semCota() || !state.trialDias
       ? T("Uso justo, sem contar perguntas.", "Fair use, no question count.")
-      : EN ? Math.max(0, state.limit - usados) + " of " + state.limit + " free questions left" : Math.max(0, state.limit - usados) + " de " + state.limit + " perguntas grátis restantes";
+      : textoDoTeste() + T(", sem limite de perguntas.", ", no question limit.");
     // Preferências
     var f = $("[data-pref-form]");
     f.querySelectorAll("input[name=estilo]").forEach(function (r) { r.checked = r.value === (state.pref.estilo || "equilibrado"); });

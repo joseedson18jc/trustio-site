@@ -17,3 +17,5 @@
 .home-residency-kicker::before { content:""; width:24px; height:1px; background:currentColor; opacity:.7; }
 @media (prefers-reduced-motion: reduce) { .home-residency-stars i { animation:none; } }
 @media (max-width:480px) { .home-residency-stats div { padding:18px 10px; font-size:12px; gap:8px; } }
+/* Trustio 3.0 · passada Impeccable (out/2026): segunda linha do título em cor sólida, sem gradiente. */
+.home-residency h2 span { background:none; color:#5ea7ff; } /* a seção é sempre escura, nos dois temas */

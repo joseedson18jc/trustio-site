@@ -144,3 +144,8 @@
 @media (prefers-reduced-motion: reduce) {
   .tm-card, .tm-card:hover { transition: none; transform: none; }
 }
+
+/* ---------- Trustio 3.0 · passada Impeccable (out/2026) ---------- */
+/* Nota de rodapé: quadro de 1 px no lugar da barra lateral, e medida de leitura no texto. */
+.tm-foot { border: 1px solid var(--line-bright); border-radius: 12px; }
+.tm-foot p { max-width: 64ch; }

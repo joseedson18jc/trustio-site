@@ -51,21 +51,83 @@
   font-family: var(--mono); font-size: var(--label); letter-spacing: 0.08em; text-transform: uppercase; color: var(--label-color);
 }
 
-/* Fundo tecnológico das telas de conta (entrar / cadastro). */
-.conta-page .plans-hero { position: relative; isolation: isolate; overflow: hidden; }
-.conta-page .plans-hero::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+/* Telas de conta (cadastro e entrar), 2026-10: o formulário na primeira tela.
+   Desktop: título e passos à esquerda, cartão do formulário à direita.
+   Celular: título e frase de abertura, logo o formulário; os passos vêm depois. */
+.conta-entrada { padding-block: clamp(104px, 13vh, 132px) clamp(48px, 7vh, 80px); }
+.conta-grade {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
+  grid-template-areas: "cabeca card" "extra card"; grid-template-rows: auto 1fr;
+  column-gap: clamp(40px, 6vw, 96px); row-gap: 28px; align-items: start;
+}
+.conta-cabeca { grid-area: cabeca; max-width: 40rem; }
+.conta-grade > .conta-card { grid-area: card; }
+.conta-extra { grid-area: extra; max-width: 36rem; }
+.conta-cabeca h1 { margin: 0; font-size: clamp(34px, 3.7vw, 54px); line-height: 1.04; letter-spacing: -0.022em; text-wrap: balance; }
+.conta-cabeca h1 span { display: block; color: var(--blue-signal); font-weight: 300; }
+.conta-cabeca .lead { margin: 20px 0 0; max-width: 46ch; color: var(--muted-strong); font-size: 17px; line-height: 1.6; }
+.conta-extra .conta-passos { margin-top: 4px; }
+.conta-extra .fine-print { margin-top: 22px; }
+.conta-extra-titulo { margin: 4px 0 8px; font-size: 19px; font-weight: 500; letter-spacing: -0.012em; }
+.conta-extra > p:not([class]) { margin: 0; max-width: 46ch; color: var(--muted-strong); font-size: 15px; line-height: 1.6; }
+
+/* Cadastro: tipo de conta em duas opções lado a lado; botão e frase de ajuda juntos. */
+.conta-campos { display: grid; gap: 8px; }
+.conta-campos[hidden] { display: none; }
+.conta-pick { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 8px; }
+.conta-pick legend { grid-column: 1 / -1; }
+.conta-pick label { min-height: 48px; padding: 10px 12px; font-size: 14px; }
+.conta-campos > .button { margin-top: 14px; }
+.conta-ajuda { margin: 2px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.5; text-align: center; }
+.conta-done h2 { margin: 0 0 6px; font-family: var(--body); font-size: 17px; font-weight: 650; letter-spacing: -0.01em; color: var(--ice); }
+.conta-done p { margin: 0; }
+.conta-done:focus { outline: none; }
+.conta-done .conta-resend { margin-top: 12px; }
+.conta-done-alt { margin-top: 12px !important; font-size: 13.5px; }
+.conta-done-alt a { color: var(--blue-signal); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Cabeçalho: na página de cadastro não se oferece "Criar conta"; na de login, não se oferece "Entrar". */
+.conta-cadastro .site-header .header-cta { display: none; }
+.conta-entrar .site-header .header-login { display: none; }
+.conta-entrar .site-header .header-cta { margin-left: auto; }
+/* O menu do celular copia as duas ações do cabeçalho (app.js): esconde a mesma de cada página. */
+.conta-cadastro .drawer-cta, .conta-entrar .drawer-login { display: none; }
+@media (max-width: 767px) {
+  /* Sem o botão de cadastro no cabeçalho do celular, idioma e tema voltam a caber ao lado do menu. */
+  .conta-cadastro .site-header:has(.header-cta) .header-cta { display: none; }
+  .conta-cadastro .site-header:has(.header-cta) .lang-switch { display: inline-flex; }
+  .conta-cadastro .site-header:has(.header-cta) .theme-toggle { display: inline-grid; }
+}
+
+/* Fundo tecnológico: grade e circuitos só atrás do cartão do formulário, longe dos títulos. */
+.conta-page .conta-hero { position: relative; isolation: isolate; overflow: hidden; }
+.conta-page .conta-hero::before {
+  content: ""; position: absolute; inset: 0 0 0 54%; z-index: -1; pointer-events: none;
   background-image:
     linear-gradient(rgba(94, 167, 255, 0.07) 1px, transparent 1px),
     linear-gradient(90deg, rgba(94, 167, 255, 0.07) 1px, transparent 1px),
     url("tech-lines.svg");
   background-size: 44px 44px, 44px 44px, cover;
   background-position: center, center, center;
-  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 25%, transparent 80%);
-  mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 25%, transparent 80%);
-  opacity: 0.85;
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 60% 50%, #000 30%, transparent 85%);
+  mask-image: radial-gradient(ellipse 70% 70% at 60% 50%, #000 30%, transparent 85%);
+  opacity: 0.8;
 }
-[data-theme="light"] .conta-page .plans-hero::before { opacity: 0.45; }
+[data-theme="light"] .conta-page .conta-hero::before { opacity: 0.4; }
+
+@media (max-width: 1023px) {
+  .conta-grade { grid-template-columns: minmax(0, 1fr); grid-template-areas: "cabeca" "card" "extra"; grid-template-rows: auto; row-gap: 24px; }
+  .conta-cabeca, .conta-extra { max-width: 40rem; }
+  .conta-grade > .conta-card { width: 100%; max-width: 560px; }
+  /* No celular os circuitos ficam no pé da seção, abaixo do título e do formulário. */
+  .conta-page .conta-hero::before { inset: auto 0 0 0; height: 38%; }
+}
+@media (max-width: 767px) {
+  .conta-entrada { padding-block: 92px 56px; }
+  .conta-cabeca h1 { font-size: clamp(30px, 9vw, 40px); }
+  .conta-cabeca .lead { margin-top: 12px; font-size: 15.5px; line-height: 1.5; }
+  .conta-grade > .conta-card { padding: 20px 18px; }
+}
 
 /* Auditoria UX F8: o bônus do WhatsApp não é um quarto passo — sai da lista numerada. */
 .conta-bonus{margin:22px 0 0;padding:16px 18px;border:1px dashed var(--line,rgba(160,179,211,.22));border-radius:14px;

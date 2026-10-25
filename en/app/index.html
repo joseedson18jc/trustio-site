@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1e1f22">
+  <meta name="theme-color" content="#05070b">
   <meta name="color-scheme" content="dark light">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow">
@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="/assets/styles.css?v=43e34f01">
   <link rel="stylesheet" href="/assets/chat-templates.css?v=1a8ebd15">
   <link rel="stylesheet" href="/assets/chat-skills.css?v=267330af">
-  <link rel="stylesheet" href="/assets/chat.css?v=06320bbc">
+  <link rel="stylesheet" href="/assets/chat.css?v=22672843">
   <link rel="stylesheet" href="/assets/whatsapp-suporte.css?v=63736be5">
   <script defer src="/assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="stylesheet" href="/assets/chat-atalhos.css?v=43b21838">
@@ -35,7 +35,7 @@
   <script defer src="/assets/vendor/katex/katex.min.js?v=e8d88550"></script>
   <script defer src="/assets/chat-render.js?v=563a4829"></script>
   <script defer src="/assets/voz.js?v=8e758685"></script>
-  <script defer src="/assets/chat.js?v=885cb6aa"></script>
+  <script defer src="/assets/chat.js?v=6583770b"></script>
   <script defer src="/assets/chat-atalhos.js?v=fd07fe98"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
@@ -142,29 +142,16 @@
               <b>Uncensored* templates</b>
               <small>Ready-made questions, just pick one.</small>
             </button>
-            <button class="atalho" type="button" data-skills-open aria-haspopup="dialog">
-              <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg></span>
-              <b>Skills</b>
-              <small>15 skills to use right here in the chat or download.</small>
-            </button>
           </div>
           <p class="atalhos-k">Quick tasks</p>
           <div class="atalhos-tarefas">
             <button type="button" data-tarefa="resumir">Summarize a document</button>
-            <button type="button" data-tarefa="conta">Solve a math problem</button>
             <button type="button" data-tarefa="grafico">Make a chart</button>
             <button type="button" data-tarefa="revisar">Proofread a text</button>
-            <button type="button" data-tarefa="traduzir">Translate</button>
             <button type="button" data-tarefa="mensagem">Write a message</button>
           </div>
           <p class="atalhos-aviso" data-atalhos-aviso role="status" hidden></p>
         </section>
-        <div class="trust-strip">
-          <p class="aviso-conteudo" role="note"><strong>Adult content, 18+ only: the model doesn’t create pornographic photos, videos or files, but it can write adult fiction when you ask. Illegal content is still prohibited.</strong></p>
-          <p>A private model, straight answers, no content filters added by us*. Your conversations are stored only in your account.</p>
-          <p class="fine-print">* Whoever sends the questions is responsible for their content and for how they use the answers, as provided by law.</p>
-        </div>
-
         <section class="starters-block" aria-labelledby="starters-title">
           <p class="onboard-k"><span class="status-dot"></span> Start with one click</p>
           <h2 id="starters-title">Try a real question.</h2>
@@ -209,13 +196,8 @@
             <span class="onboard-note">History in Brazil · uncensored* · LGPD</span>
           </div>
         </section>
+        <p class="fine-print welcome-nota">* Whoever sends the questions is responsible for their content and for how they use the answers, as provided by law.</p>
 
-        <div class="templates-intro">
-          <h2>A starting point for difficult questions.</h2>
-          <p>Fiction, debate and critical analysis. Pick a template, add context and send when ready.</p>
-          <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Explore uncensored* templates</button>
-          <small>Choosing a template does not send messages or use your question allowance.</small>
-        </div>
       </div>
     </div>
 
@@ -255,6 +237,7 @@
         </div>
         <div class="modelo-opcoes" role="radiogroup" aria-labelledby="modelo-rotulo" data-modelo-opcoes></div>
       </div>
+      <p class="composer-aviso" role="note">Adult content, 18+ only: the model doesn’t create pornographic photos, videos or files, but it can write adult fiction when you ask. Illegal content is still prohibited.</p>
     </form>
   </main>
 </div>
@@ -410,8 +393,11 @@
       <button class="btn btn-primary" type="submit">Save and sign in</button>
     </form>
     <div class="gate-actions" data-gate-actions hidden>
-      <a class="btn btn-primary" href="../entrar.html">Sign in</a>
-      <a class="btn btn-ghost" href="../cadastro.html">Create account</a>
+      <div class="gate-botoes">
+        <a class="btn btn-primary" href="../entrar.html" data-gate-entrar>Sign in</a>
+        <a class="btn btn-ghost" href="../cadastro.html">Create a free account</a>
+      </div>
+      <a class="gate-voltar" href="../index.html">Back to the website</a>
     </div>
   </div>
 </div>

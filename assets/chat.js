@@ -184,7 +184,13 @@
         // Pode ser o retorno do link de e-mail: o supabase-js processa o hash de forma assíncrona.
         return new Promise(function (resolve) { setTimeout(resolve, 600); }).then(function () { return sb.auth.getSession(); }).then(function (r2) {
           var s2 = r2.data && r2.data.session;
-          if (!s2) { gateShow(T("Você não está conectado", "You're not signed in"), T("Entre ou crie sua conta para usar o chat.", "Sign in or create an account to use the chat."), { actions: true }); return null; }
+          if (!s2) {
+            // Volta para o chat depois do login (?next=, aceito pelo conta.js só para caminhos do site).
+            var entrar = $("[data-gate-entrar]");
+            if (entrar) entrar.href = CFG.loginPath + "?next=" + encodeURIComponent(CFG.appPath);
+            gateShow(T("Você não está conectado.", "You're not signed in."), T("Entre para ver suas conversas, ou crie uma conta grátis em um minuto.", "Sign in to see your conversations, or create a free account in a minute."), { actions: true });
+            return null;
+          }
           return s2;
         });
       }
@@ -245,8 +251,10 @@
       showNotice(T("<b>Esta conta está sem acesso ao chat.</b> O acesso pode ter sido revogado, bloqueado ou estar fora do período autorizado. Fale com a equipe pelo contato@trustio.com.br.", "<b>This account cannot access chat.</b> Access may have been revoked, blocked, or outside its authorized dates. Contact contato@trustio.com.br."));
       return;
     }
-    input.placeholder = T("Chat temporariamente indisponível", "Chat temporarily unavailable");
-    showNotice(T("<b>O chat está temporariamente indisponível.</b> Sua conta e seu teste grátis continuam preservados. Tente novamente em instantes. Se o problema continuar, fale com a equipe pelo contato@trustio.com.br.", "<b>The chat is temporarily unavailable.</b> Your account and free trial are preserved. Try again shortly. If the issue continues, contact our team at contato@trustio.com.br."));
+    // Os dois caminhos que chegam aqui não gastam o teste: o GET de abertura não envia nada, e a
+    // função recusa com chat_ainda_fechado / modelo_nao_configurado antes de reservar a cota.
+    input.placeholder = T("O chat está fora do ar por alguns minutos.", "The chat is down for a few minutes.");
+    showNotice(T("<b>O chat está fora do ar por alguns minutos.</b> Sua conta e seu teste grátis continuam preservados. Tente de novo em instantes. Se continuar, fale com a equipe pelo contato@trustio.com.br.", "<b>The chat is down for a few minutes.</b> Your account and free trial are preserved. Try again in a moment. If it keeps happening, contact our team at contato@trustio.com.br."));
   }
 
   // Baixar e apagar ficam no menu ⋯ do cabeçalho, que só aparece com uma conversa aberta.
@@ -629,12 +637,10 @@
 
   // A conversa encheu o contexto do modelo: não dá para continuar nela. Uma aba nova
   // começa uma conversa nova (sem conversation_id), com o contexto vazio.
-  function sessaoCheia(janela) {
+  // "Nova conversa" (o mesmo botão da barra lateral) sai da sessão cheia; a antiga fica no histórico.
+  function sessaoCheia() {
     state.sessaoCheia = true;
-    var n = janela ? Number(janela).toLocaleString(LOCAL) : "";
-    showNotice(n
-      ? T("Esta sessão chegou ao limite de " + n + " tokens de contexto. Para continuar, feche esta aba e abra outra.", "This session reached its " + n + "-token context limit. To continue, close this tab and open a new one.")
-      : T("Esta sessão chegou ao limite de contexto do modelo. Para continuar, feche esta aba e abra outra.", "This session reached the model's context limit. To continue, close this tab and open a new one."));
+    showNotice(T("Esta conversa ficou longa demais para o modelo. Comece uma nova conversa para continuar; esta fica salva no histórico. ", "This conversation got too long for the model. Start a new conversation to continue; this one stays saved in your history. ") + "<button type=\"button\" data-nova-conversa>" + T("Nova conversa", "New conversation") + "</button>");
     input.disabled = true; sendBtn.disabled = true;
   }
 
@@ -852,7 +858,7 @@
               progTxt.textContent = (interrompida
                 ? T("Interrompida", "Interrupted")
                 : d.fim === "length"
-                  ? T("Resposta cortada no limite", "Answer cut off at the limit")
+                  ? T("A resposta ficou longa e foi cortada. Peça \u201ccontinue\u201d para ver o resto.", "The answer got long and was cut off. Ask \u201ccontinue\u201d to see the rest.")
                   : T("Concluída", "Done")) + " · " + tokens + " tokens · " + (EN ? seg : seg.replace(".", ",")) + " s"
                 + (d.contexto && d.janela ? T(" · sessão ", " · session ") + Math.min(100, Math.round(d.contexto / d.janela * 100)) + "%" : "");
               // Sessão cheia é o contexto do modelo quase todo usado (a próxima mensagem não
@@ -1117,6 +1123,10 @@
     t.disabled = true;
     sb.auth.resend({ type: "signup", email: state.user.email, options: { emailRedirectTo: location.origin + CFG.appPath } })
       .then(function () { showNotice(T("Novo link enviado para ", "New link sent to ") + esc(state.user.email) + "."); });
+  });
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("[data-nova-conversa]")) $("[data-new]").click();
   });
 
   function openSide() { shell.dataset.side = "open"; }
@@ -1611,7 +1621,7 @@
   var toggle = $(".theme-toggle");
   // Barra do navegador no celular na cor do fundo do chat (cinza-escuro ou claro).
   var themeColor = document.querySelector('meta[name="theme-color"]');
-  function paintThemeColor(t) { if (themeColor) themeColor.setAttribute("content", t === "light" ? "#f4f6fa" : "#1e1f22"); }
+  function paintThemeColor(t) { if (themeColor) themeColor.setAttribute("content", t === "light" ? "#f4f6fa" : "#05070b"); }
   function pintarTema(t) {
     if (t === "light") document.documentElement.setAttribute("data-theme", "light"); else document.documentElement.removeAttribute("data-theme");
     paintThemeColor(t);

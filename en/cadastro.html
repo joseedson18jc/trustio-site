@@ -24,18 +24,18 @@
   <link rel="stylesheet" href="/assets/whatsapp-suporte.css?v=63736be5">
   <script defer src="/assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="stylesheet" href="/assets/planos.css?v=fe04d61c">
-  <link rel="stylesheet" href="/assets/conta.css?v=75ecad98">
+  <link rel="stylesheet" href="/assets/conta.css?v=7dd51a4f">
   <script type="module" src="/assets/app.js?v=f1793b39"></script>
   <script defer src="/assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="/assets/auth-config.js?v=c3461a69"></script>
   <script defer src="/assets/atribuicao.js?v=eb741257"></script>
   <script defer src="/assets/funil.js?v=6d1bc59f"></script>
-  <script defer src="/assets/conta.js?v=3adad9be"></script>
+  <script defer src="/assets/conta.js?v=64a5250e"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/cadastro.html">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/cadastro.html">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/cadastro.html"><!--/i18n:alt-->
 </head>
-<body class="planos-page conta-page">
+<body class="planos-page conta-page conta-cadastro">
   <a class="skip-link" href="#conteudo">Skip to content</a>
 
   <header class="site-header" data-header>
@@ -79,43 +79,23 @@
   </header>
 
 <main id="conteudo">
-  <section class="plans-hero section-shell conta-hero" aria-labelledby="cadastro-title">
-    <div class="container">
-      <p class="eyebrow"><span class="status-dot"></span> Trustio account</p>
-      <h1 id="cadastro-title">Create your account now.<span>The chat is already open.</span></h1>
-      <p class="lead">Private, uncensored AI*, with your account and history stored in Brazil. Create your account today and confirm it by email in a minute. The chat is already open — confirm your email and you’re in. Subscribers get their account activated within 1 business day after payment is confirmed. Creating an account costs nothing.</p>
-      <p class="acesso-estado"><b>Status today:</b> sign-up and chat are open. Create your account, confirm your email and start using it — with a 3-day free trial, starting with your first question, once per account. No card. <a href="planos.html#pessoal">See plans</a></p>    </div>
-  </section>
+  <section class="section-shell conta-hero conta-entrada" aria-labelledby="cadastro-title">
+    <div class="container conta-grade">
+      <div class="conta-cabeca">
+        <h1 id="cadastro-title">Create your account.<span>Start chatting in a minute.</span></h1>
+        <p class="lead">Private, uncensored* AI, with your account and history stored in Brazil. Confirm your email and use the chat free for 3 days, no card needed.</p>
+      </div>
 
-  <section class="section-shell pt0" aria-label="Sign-up form">
-    <div class="container">
-      <div class="lista conta-lista">
-        <div>
-          <p class="section-kicker">How it works</p>
-          <h2>Three steps.<span>Nothing is charged now.</span></h2>
-          <ol class="conta-passos">
-            <li><b>You create the account</b>Name, email and a password. For businesses, the industry.</li>
-            <li><b>You confirm your email</b>We send you a link. Click it and you're signed in, without typing your password again.</li>
-            <li><b>Uncensored chat*</b>After you confirm your email, use the chat as much as you like for 3 free days, counted from your first question, once per account. Then pick a plan whenever you like; the trial is never charged.</li>
-          </ol>
-          <div class="conta-tags" aria-label="Guarantees">
-            <span>Account and history stored in Brazil</span><span>Uncensored*</span><span>LGPD</span><span>No card</span>
-          </div>
-          <p class="fine-print">* Whoever sends the questions is responsible for their content and for how they use the answers, as provided by law.</p>
-          <p class="conta-alt conta-alt-left">Already have an account? <a href="entrar.html">Sign in</a></p>
-        </div>
-
-        <div class="conta-card">
-          <h2>Create account</h2>
-          <p>Takes less than a minute.</p>
-          <div class="conta-oauth" hidden>
+      <div class="conta-card">
+        <div class="conta-oauth" hidden>
             <button class="conta-google" type="button" data-oauth="google" disabled><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9z"/></svg> Continue with Google</button>
             <p class="lead-legal" data-oauth-status role="status" aria-live="polite"></p>
             <p class="conta-ou"><span>or</span></p>
           </div>
-          <form class="lead-form" id="cadastro-form" method="post" novalidate action="/en/cadastro.html">
-            <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <form class="lead-form" id="cadastro-form" method="post" novalidate action="/en/cadastro.html" aria-labelledby="cadastro-title">
+          <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
 
+          <div class="conta-campos" data-campos>
             <label for="c-nome">Name <span>required</span></label>
             <input id="c-nome" name="nome" type="text" autocomplete="name" placeholder="Your name" required>
             <label for="c-email">Email <span>required</span></label>
@@ -123,10 +103,10 @@
             <label for="c-senha">Password <span>at least 8 characters</span></label>
             <input id="c-senha" name="senha" type="password" autocomplete="new-password" minlength="8" placeholder="••••••••" required>
 
-            <fieldset class="lead-pick">
-              <legend>Interest</legend>
-              <label><input type="radio" name="tipo" value="b2c" data-tipo="b2c" checked>For me <small>Private, uncensored AI*</small></label>
-              <label><input type="radio" name="tipo" value="b2b" data-tipo="b2b">For my company <small>private environment, VoiceAI, Legal, Healthcare</small></label>
+            <fieldset class="lead-pick conta-pick">
+              <legend>This account is</legend>
+              <label><input type="radio" name="tipo" value="b2c" data-tipo="b2c" checked>For me</label>
+              <label><input type="radio" name="tipo" value="b2b" data-tipo="b2b">For my company</label>
             </fieldset>
 
             <div class="cond" data-when="b2b" hidden>
@@ -136,15 +116,28 @@
               <input id="c-emp" name="empresa" type="text" autocomplete="organization" placeholder="Company name">
             </div>
 
-            <p class="form-expectativa">When you submit, you'll get <b>a confirmation email within a few minutes</b>. Once your email is confirmed, your account is ready and the chat is already open. No charge happens here.</p>
-            <button class="button button-primary" type="submit" data-submit disabled>Create account and get the link <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
-            <p class="lead-legal" data-status role="status" aria-live="polite"></p>
-            <div class="conta-done" data-done hidden>
-              <b>Just one step left: confirm.</b> Open the email sent to <code data-done-email></code> and click <b>Confirm and sign in</b>. Didn't get it? Check your spam folder or request a new link on the <a href="entrar.html">Sign in</a>.
-            </div>
-            <p class="lead-legal">We use your name and email to create your account and grant access. You can ask us to delete it at any time. No spam. <a href="privacidade.html">How we handle your data</a></p>
-          </form>
-        </div>
+            <button class="button button-primary" type="submit" data-submit disabled>Create a free account <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></button>
+            <p class="conta-ajuda">We'll send a confirmation link to your email.</p>
+          </div>
+          <div class="conta-done" data-done tabindex="-1" hidden>
+            <h2>Just confirm your email.</h2>
+            <p>Your account is open. Click <b>Confirm and sign in</b> in the email we sent to <code data-done-email></code>. Not there after 2 minutes? Check spam or resend the link.</p>
+            <button class="conta-resend" type="button" data-done-resend>Resend confirmation link</button>
+            <p class="conta-done-alt">Already had an account with this email? <a href="entrar.html">Sign in or reset your password</a>.</p>
+          </div>
+          <p class="lead-legal" data-status role="status" aria-live="polite"></p>
+          <p class="lead-legal">We use your name and email to create your account and grant access. You can ask us to delete it at any time. No spam. <a href="privacidade.html">How we handle your data</a></p>
+        </form>
+      </div>
+
+      <div class="conta-extra">
+        <ol class="conta-passos">
+          <li><b>Create the account</b>Name, email and password. Businesses also choose their industry.</li>
+          <li><b>Confirm your email</b>Click the link we send and you're signed in, without typing your password again.</li>
+          <li><b>Chat uncensored*</b>The free trial is once per account and never charges you. On a paid plan, access is unlocked automatically once the payment is confirmed.</li>
+        </ol>
+        <p class="fine-print">* Whoever sends the questions is responsible for their content and for how they use the answers, as provided by law.</p>
+        <p class="conta-alt conta-alt-left">Already have an account? <a href="entrar.html">Sign in</a></p>
       </div>
     </div>
   </section>

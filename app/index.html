@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1e1f22">
+  <meta name="theme-color" content="#05070b">
   <meta name="color-scheme" content="dark light">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow">
@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="../assets/styles.css?v=43e34f01">
   <link rel="stylesheet" href="../assets/chat-templates.css?v=1a8ebd15">
   <link rel="stylesheet" href="../assets/chat-skills.css?v=267330af">
-  <link rel="stylesheet" href="../assets/chat.css?v=06320bbc">
+  <link rel="stylesheet" href="../assets/chat.css?v=22672843">
   <link rel="stylesheet" href="../assets/whatsapp-suporte.css?v=63736be5">
   <script defer src="../assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="stylesheet" href="../assets/chat-atalhos.css?v=43b21838">
@@ -35,7 +35,7 @@
   <script defer src="../assets/vendor/katex/katex.min.js?v=e8d88550"></script>
   <script defer src="../assets/chat-render.js?v=563a4829"></script>
   <script defer src="../assets/voz.js?v=8e758685"></script>
-  <script defer src="../assets/chat.js?v=885cb6aa"></script>
+  <script defer src="../assets/chat.js?v=6583770b"></script>
   <script defer src="../assets/chat-atalhos.js?v=fd07fe98"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
@@ -142,29 +142,16 @@
               <b>Templates sem censura*</b>
               <small>Perguntas prontas, é só escolher.</small>
             </button>
-            <button class="atalho" type="button" data-skills-open aria-haspopup="dialog">
-              <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg></span>
-              <b>Skills</b>
-              <small>15 skills para usar aqui no chat ou baixar.</small>
-            </button>
           </div>
           <p class="atalhos-k">Tarefas rápidas</p>
           <div class="atalhos-tarefas">
             <button type="button" data-tarefa="resumir">Resumir um documento</button>
-            <button type="button" data-tarefa="conta">Resolver uma conta</button>
             <button type="button" data-tarefa="grafico">Gerar um gráfico</button>
             <button type="button" data-tarefa="revisar">Revisar um texto</button>
-            <button type="button" data-tarefa="traduzir">Traduzir</button>
             <button type="button" data-tarefa="mensagem">Escrever uma mensagem</button>
           </div>
           <p class="atalhos-aviso" data-atalhos-aviso role="status" hidden></p>
         </section>
-        <div class="trust-strip">
-          <p class="aviso-conteudo" role="note"><strong>Conteúdo adulto, só para maiores de 18 anos: o modelo não cria fotos, vídeos nem arquivos pornográficos, mas pode escrever ficção adulta quando você pede. Conteúdo ilegal continua proibido.</strong></p>
-          <p>Modelo privado, respostas diretas, sem filtros de conteúdo adicionados por nós*. Suas conversas ficam guardadas só na sua conta.</p>
-          <p class="fine-print">* Quem envia as perguntas responde pelo conteúdo delas e pelo uso que faz das respostas, nos termos da lei.</p>
-        </div>
-
         <section class="starters-block" aria-labelledby="starters-title">
           <p class="onboard-k"><span class="status-dot"></span> Comece com um clique</p>
           <h2 id="starters-title">Experimente uma pergunta de verdade.</h2>
@@ -209,13 +196,8 @@
             <span class="onboard-note">Histórico no Brasil · sem censura* · LGPD</span>
           </div>
         </section>
+        <p class="fine-print welcome-nota">* Quem envia as perguntas responde pelo conteúdo delas e pelo uso que faz das respostas, nos termos da lei.</p>
 
-        <div class="templates-intro">
-          <h2>Um ponto de partida para perguntas difíceis.</h2>
-          <p>Ficção, debates e análise crítica. Escolha um template, ajuste o contexto e envie quando estiver pronto.</p>
-          <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Explorar templates sem censura*</button>
-          <small>Escolher um template não envia mensagens nem consome perguntas.</small>
-        </div>
       </div>
     </div>
 
@@ -255,6 +237,7 @@
         </div>
         <div class="modelo-opcoes" role="radiogroup" aria-labelledby="modelo-rotulo" data-modelo-opcoes></div>
       </div>
+      <p class="composer-aviso" role="note">Conteúdo adulto, só para maiores de 18 anos: o modelo não cria fotos, vídeos nem arquivos pornográficos, mas pode escrever ficção adulta quando você pede. Conteúdo ilegal continua proibido.</p>
     </form>
   </main>
 </div>
@@ -410,8 +393,11 @@
       <button class="btn btn-primary" type="submit">Salvar e entrar</button>
     </form>
     <div class="gate-actions" data-gate-actions hidden>
-      <a class="btn btn-primary" href="../entrar.html">Entrar</a>
-      <a class="btn btn-ghost" href="../cadastro.html">Criar conta</a>
+      <div class="gate-botoes">
+        <a class="btn btn-primary" href="../entrar.html" data-gate-entrar>Entrar</a>
+        <a class="btn btn-ghost" href="../cadastro.html">Criar conta grátis</a>
+      </div>
+      <a class="gate-voltar" href="../index.html">Voltar para o site</a>
     </div>
   </div>
 </div>

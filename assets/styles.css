@@ -3355,3 +3355,74 @@ textarea::placeholder {
   color: var(--label-color);
   opacity: 1;
 }
+
+/* ==========================================================================
+   Criar conta no celular (critique Impeccable, out/2026)
+   Abaixo de 768 px o cabeçalho escondia "Criar conta grátis" e "Entrar", e o menu não tinha
+   nenhum dos dois: o único botão fixo no celular era o suporte do WhatsApp.
+   - Páginas pessoais (CTA = cadastro): o cabeçalho mostra marca + "Criar conta grátis" + menu;
+     idioma e tema descem para o menu (não cabem os cinco em 360 px).
+   - Todas as páginas: o menu abre com a ação principal e "Entrar" (montados pelo app.js).
+   ========================================================================== */
+@media (max-width: 767px) {
+  .site-header:has(.header-cta[href$="cadastro.html"]) .header-cta {
+    display: inline-flex;
+    min-height: 48px;
+    margin-left: 0;
+    padding-inline: 16px;
+    white-space: nowrap;
+  }
+  .site-header:has(.header-cta[href$="cadastro.html"]) :is(.lang-switch, .theme-toggle) { display: none; }
+}
+/* Telas de 320–359 px: a marca fica só com o símbolo para o botão caber. */
+@media (max-width: 359px) {
+  .site-header:has(.header-cta[href$="cadastro.html"]) .brand-word { display: none; }
+}
+
+.drawer-acoes {
+  display: grid;
+  gap: var(--space-12);
+  padding-bottom: var(--space-20);
+  margin-bottom: var(--space-8);
+  border-bottom: 1px solid var(--line);
+}
+.mobile-nav .drawer-acoes .button {
+  width: 100%;
+  min-height: 52px;
+  justify-content: center;
+  padding: 0 22px;
+  border-bottom: 0;
+  font-family: var(--body);
+  font-size: 16px;
+  font-weight: 500;
+}
+.mobile-nav .drawer-acoes .drawer-cta { color: #ffffff; }
+.mobile-nav .drawer-acoes .drawer-login { color: var(--ice); }
+.drawer-util {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  padding-top: var(--space-20);
+}
+.mobile-nav .drawer-util .drawer-lang,
+.drawer-util .drawer-theme {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  padding: 0 18px;
+  border: 1px solid rgba(var(--on-surface-rgb), 0.22);
+  border-radius: 999px;
+  background: rgba(var(--on-surface-rgb), 0.06);
+  color: var(--ice);
+  font-family: var(--body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.drawer-util .drawer-theme:focus-visible,
+.mobile-nav .drawer-util .drawer-lang:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 2px; }
+/* No tablet e no desktop esses controles já estão no cabeçalho. */
+@media (min-width: 768px) {
+  .drawer-acoes,
+  .drawer-util { display: none; }
+}

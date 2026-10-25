@@ -196,3 +196,19 @@
 .espera-nota,.form-expectativa{border:1px solid var(--line-bright,rgba(94,167,255,.35));border-radius:10px}
 .lead-pick label small,.lead-acesso label small{color:var(--muted-strong,#bdc5d1)}
 .b2b-espera{max-width:64ch}
+
+/* ---------- Planos pessoais primeiro (critique Impeccable, out/2026) ----------
+   Os quatro avisos antes do primeiro preço viram três passos curtos; o aviso legal do
+   asterisco desce para baixo dos cards; a lista de cada card para de esticar até o fundo. */
+.como-funciona{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:22px 0 0;padding:0;list-style:none;counter-reset:passo}
+.como-funciona li{position:relative;padding:16px 16px 16px 50px;border:1px solid var(--line,rgba(160,179,211,.16));border-radius:14px;color:var(--muted,#a9b4c6);font-size:14.5px;line-height:1.55;counter-increment:passo}
+.como-funciona li::before{content:counter(passo);position:absolute;top:15px;left:16px;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--blue,#2563eb);color:#fff;font-family:var(--mono,ui-monospace);font-size:12px;font-weight:600}
+.como-funciona li b{display:block;margin-bottom:2px;color:var(--ice,#f4f6fa);font-weight:600}
+.como-funciona .conta-email{display:block;margin-top:6px;color:var(--muted-strong,#bdc5d1)}
+.como-funciona .conta-email b{display:inline;margin:0;overflow-wrap:anywhere}
+.b2c-garantias{margin:14px 0 0;color:var(--muted,#a9b4c6);font-size:14px;line-height:1.55}
+.b2c-garantias a{color:var(--blue-signal,#5ea7ff);text-decoration:underline;text-underline-offset:3px}
+.b2c-aviso{margin:18px 0 0;max-width:72ch;color:var(--label-color,#8d98aa);font-size:13px;line-height:1.55}
+.plan ul{align-content:start}
+.plan .button{margin-top:auto}
+@media (max-width:767px){.como-funciona{grid-template-columns:1fr}}

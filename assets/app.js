@@ -10,6 +10,47 @@ const T = (pt, en) => (EN ? en : pt);
 const menuButton = document.querySelector(".menu-toggle");
 const mobileMenu = document.querySelector(".mobile-nav");
 
+// Menu do celular: a ação principal do cabeçalho e "Entrar" abrem a lista; idioma e tema
+// fecham a lista (no celular eles saem do cabeçalho para caber o botão de criar conta).
+// Montado aqui para valer em todas as páginas sem repetir HTML; classes próprias, para não
+// duplicar os controles .theme-toggle e .lang-switch.
+(function montarAcoesDoMenu() {
+  if (!mobileMenu || mobileMenu.querySelector(".drawer-acoes")) return;
+  const cta = document.querySelector(".site-header .header-cta");
+  const login = document.querySelector(".site-header .header-login");
+  const lang = document.querySelector(".site-header .lang-switch");
+  const tema = document.querySelector(".site-header .theme-toggle");
+  const link = (classe, href, texto) => {
+    const a = document.createElement("a");
+    a.className = classe;
+    a.href = href;
+    a.textContent = texto;
+    return a;
+  };
+  const acoes = document.createElement("div");
+  acoes.className = "drawer-acoes";
+  if (cta) acoes.append(link("button button-primary drawer-cta", cta.getAttribute("href"), cta.textContent.trim()));
+  if (login) acoes.append(link("button button-ghost drawer-login", login.getAttribute("href"), login.textContent.trim()));
+  if (acoes.children.length) mobileMenu.prepend(acoes);
+  const util = document.createElement("div");
+  util.className = "drawer-util";
+  if (lang) {
+    const destinoIngles = (lang.getAttribute("hreflang") || "").startsWith("en");
+    const a = link("drawer-lang", lang.getAttribute("href"), destinoIngles ? "English" : "Português");
+    a.hreflang = lang.getAttribute("hreflang") || "";
+    util.append(a);
+  }
+  if (tema) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "drawer-theme";
+    b.textContent = T("Alternar tema claro/escuro", "Switch light/dark theme");
+    b.addEventListener("click", () => tema.click());
+    util.append(b);
+  }
+  if (util.children.length) mobileMenu.append(util);
+})();
+
 function updateHeader() {
   if (!header) return;
   header.classList.toggle("is-scrolled", window.scrollY > 20);
@@ -507,12 +548,49 @@ function refGuardado() {
   return m && REF_VALIDO.test(m[1]) ? m[1] : null;
 }
 
+// E-mail da conta Trustio aberta neste navegador (sessão do Supabase no localStorage), ou null.
+// A liberação do plano pago acha a conta pelo e-mail do pagamento: pagar com outro e-mail
+// deixava a compra sem dono.
+function emailDaConta() {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const chave = localStorage.key(i);
+      if (!/^sb-[a-z0-9]+-auth-token$/.test(chave || "")) continue;
+      const sessao = JSON.parse(localStorage.getItem(chave) || "null");
+      const email = sessao?.user?.email || sessao?.currentSession?.user?.email;
+      if (typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return email;
+    }
+  } catch { /* sem localStorage ou sessão ilegível: segue sem e-mail */ }
+  return null;
+}
+// Onde a página mostra "você vai pagar como <e-mail>" (planos.html): só com a conta aberta.
+{
+  const email = emailDaConta();
+  document.querySelectorAll("[data-conta-email]").forEach((el) => {
+    const alvo = el.querySelector("b");
+    if (!email || !alvo) return;
+    alvo.textContent = email;
+    el.hidden = false;
+  });
+}
+
 document.addEventListener("click", (event) => {
   const link = event.target.closest?.('a[href^="https://buy.stripe.com/"]');
-  const ref = link && refGuardado();
-  if (!ref) return;
+  if (!link) return;
+  const ref = refGuardado();
+  const email = emailDaConta();
+  if (!ref && !email) return;
   const url = new URL(link.href);
-  url.searchParams.set("client_reference_id", ref);
-  url.searchParams.set("prefilled_promo_code", ref);
+  if (ref) {
+    url.searchParams.set("client_reference_id", ref);
+    url.searchParams.set("prefilled_promo_code", ref);
+  }
+  if (email) {
+    // Planos pessoais: o e-mail fica travado no checkout (é ele que liga o pagamento à conta).
+    // Planos de empresa: só vem preenchido, porque a empresa pode pagar com outro e-mail.
+    const pessoal = Boolean(link.closest("#pessoal, [data-pagamento-pessoal]"));
+    url.searchParams.delete(pessoal ? "prefilled_email" : "locked_prefilled_email");
+    url.searchParams.set(pessoal ? "locked_prefilled_email" : "prefilled_email", email);
+  }
   link.href = url.toString();
 }, true);

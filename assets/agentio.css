@@ -151,4 +151,4 @@
 .ag-copy h1 span { background: none; color: var(--blue-signal); }
 [data-theme="light"] .ag-copy h1 span { background: none; color: #1d5fd6; }
 .ag-cta { background: linear-gradient(135deg, #1a49b8, #0b1730 75%); box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.6); }
-.ag-tech p:not(.section-kicker) { max-width: 62ch; }
+.ag-tech p:not(.section-kicker) { max-width: 56ch; }

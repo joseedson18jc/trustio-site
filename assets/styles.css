@@ -3336,7 +3336,7 @@ h3 { letter-spacing: -0.018em; }
 .manifesto-intro { max-width: 58ch; }
 .vc-note p,
 .vc-src,
-.acesso-estado { max-width: 66ch; }
+.acesso-estado { max-width: 58ch; }
 .home-page .contact-card-inner.contact-lean > p:not(.section-kicker) { max-width: 60ch; }
 
 /* 7) /empresas.html: o bloco de contato não tinha margem lateral e o texto encostava na borda da tela

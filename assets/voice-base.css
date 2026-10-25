@@ -250,4 +250,4 @@
    Faixa "Brasil": barra lateral de 2 px vira quadro de 1 px. Medida de leitura no aviso dos canais. */
 .voice-cta p,.voice-cta .section-kicker{color:#e6f0ff}
 .br-strip div{border:1px solid var(--line-bright,rgba(94,167,255,.38));border-radius:12px}
-#canais .disclaimer{max-width:72ch}
+#canais .disclaimer{max-width:64ch}

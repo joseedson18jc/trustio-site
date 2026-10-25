@@ -324,8 +324,8 @@
         return '<article class="card plan' + (feat ? " feat" : "") + '">' +
           '<div class="top"><span class="label">' + p.k + "</span>" + (p.badge ? '<span class="tag">' + p.badge + "</span>" : "") + "</div>" +
           '<div class="price"><strong>' + brl(p.v, p.v % 1 !== 0) + "</strong><span>" + p.u + "</span></div>" +
-          '<div class="note">' + p.note + "</div>" +
           '<div class="perday">≈ ' + brl(p.v / p.d, true) + " por dia</div>" +
+          '<div class="note">' + p.note + "</div>" +
           "<ul>" + FEAT[prod].map(function (f) { return '<li><svg><use href="#i-check"/></svg>' + f + "</li>"; }).join("") + "</ul>" +
           '<a class="btn ' + (feat ? "btn-primary" : "btn-ghost") + '" href="planos.html#pessoal">Assinar ' + p.k.toLowerCase() + ' <span class="ico"><svg><use href="#i-arrow"/></svg></span></a>' +
           "</article>";

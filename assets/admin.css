@@ -71,8 +71,8 @@
 .admin-saude li[data-estado="alerta"] i { background: #ffb454; box-shadow: 0 0 0 3px rgba(255, 180, 84, 0.15); }
 .admin-saude li[data-estado="erro"] i { background: #ff7aa8; box-shadow: 0 0 0 3px rgba(255, 122, 168, 0.15); }
 
-@media (max-width: 1040px) { .admin-grid { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 620px) {
+@media (max-width: 1023px) { .admin-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 767px) {
   .admin-row { grid-template-columns: 1fr; }
   .admin-row-tight { grid-template-columns: 1fr; }
   .admin-row-tight .btn { width: 100%; }

@@ -48,7 +48,7 @@
 .faq details p{margin-top:10px;color:var(--muted,#a9b4c6);font-size:14.5px}
 .pt0{padding-top:0}
 .thanks-wrap{max-width:720px} .thanks-note{font-size:14px;margin-top:16px;color:var(--muted)} .thanks-note a{color:var(--blue-signal)} .thanks-actions{margin-top:28px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
-@media(max-width:900px){.plan-grid{grid-template-columns:1fr}.diag{grid-template-columns:1fr}.diag .side{border-left:0;border-top:1px solid var(--line,rgba(160,179,211,.16));padding:24px 0 0}.faq{grid-template-columns:1fr}}
+@media (max-width: 1023px){.plan-grid{grid-template-columns:1fr}.diag{grid-template-columns:1fr}.diag .side{border-left:0;border-top:1px solid var(--line,rgba(160,179,211,.16));padding:24px 0 0}.faq{grid-template-columns:1fr}}
 
 /* ── Empresas | Você: seletor, planos B2C e lista de acesso ── */
 .seg{display:inline-flex;gap:4px;margin-top:26px;padding:4px;border:1px solid var(--line,rgba(160,179,211,.16));border-radius:999px;background:var(--surface,#0b0e14)}
@@ -90,8 +90,8 @@
 .lead-form .button{margin-top:14px;min-height:52px;width:100%}
 .lead-legal{font-size:12px;color:var(--muted);line-height:1.5;margin:6px 0 0}
 .hp{position:absolute;left:-9999px;opacity:0;height:0;width:0}
-@media(max-width:960px){.lista{grid-template-columns:1fr;gap:24px}}
-@media(max-width:600px){.seg{display:flex;width:100%}.seg button{flex:1;justify-content:center;padding:10px 12px;font-size:13px}.seg button small{display:none}}
+@media (max-width: 1023px){.lista{grid-template-columns:1fr;gap:24px}}
+@media (max-width: 767px){.seg{display:flex;width:100%}.seg button{flex:1;justify-content:center;padding:10px 12px;font-size:13px}.seg button small{display:none}}
 @media(prefers-reduced-motion:reduce){.seg-panel{animation:none}}
 
 /* ── Lista de espera (espera.html) ── */
@@ -117,8 +117,8 @@
 .espera-links a{font-size:14px;font-weight:600;color:var(--muted-strong);display:inline-flex;gap:6px;align-items:center;min-height:24px}
 .espera-links a:hover{color:var(--text-strong)}
 /* celular: o formulário vem logo depois do topo; a explicação fica abaixo dele */
-@media(max-width:960px){.espera-lista>form{order:-1}}
-@media(max-width:600px){.espera-stats>div{flex:1 1 calc(50% - 6px);min-width:0;padding:14px}.espera-stats b{font-size:24px}.lead-pick label small{display:none}}
+@media (max-width: 1023px){.espera-lista>form{order:-1}}
+@media (max-width: 767px){.espera-stats>div{flex:1 1 calc(50% - 6px);min-width:0;padding:14px}.espera-stats b{font-size:24px}.lead-pick label small{display:none}}
 .b2b-espera{margin:22px auto 0;max-width:760px;padding:14px 18px;border:1px dashed rgba(94,167,255,.35);border-radius:14px;background:rgba(94,167,255,.05);font-size:14.5px;color:var(--muted,#a9b4c6);line-height:1.55;text-align:center}
 .b2b-espera b{color:var(--ice,#f4f6fa);font-weight:600}
 .b2b-espera a{color:var(--blue-signal,#5ea7ff);font-weight:600;text-decoration:underline;text-underline-offset:3px}
@@ -131,7 +131,7 @@
 .lead-acesso label:has([data-acesso="pre"]:checked){border-color:var(--blue-signal,#5ea7ff);box-shadow:0 0 0 1px rgba(94,167,255,.35) inset}
 .plan .note b{color:var(--ice,#f4f6fa);font-weight:600}
 .lista h2 span,.espera-lista h2 span{display:block;font-size:max(.6em,14px);font-weight:300;color:var(--muted);margin-top:8px;letter-spacing:-.01em}
-@media(max-width:600px){.lead-acesso label{flex-wrap:wrap}.lead-acesso label small{display:block;max-width:100%;text-align:left;margin-left:26px}}
+@media (max-width: 767px){.lead-acesso label{flex-wrap:wrap}.lead-acesso label small{display:block;max-width:100%;text-align:left;margin-left:26px}}
 
 /* ── Auditoria UX (22/09/2026) ─────────────────────────────────────────────
    F7: data, renovação e obrigatoriedade de campo são o que decide a compra —
@@ -170,9 +170,11 @@
 .sub-nota{max-width:760px;margin:22px 0 0;color:var(--muted,#a9b4c6);font-size:14px;line-height:1.6}
 .sub-nota a{color:var(--blue-signal,#5ea7ff)}
 .sub-compare{margin-top:34px}
-@media(max-width:1180px){.plan-grid.g4{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:700px){.plan-grid.g4{grid-template-columns:1fr}}
-@media(max-width:600px){.seg-sub button small{display:none}}
+/* 4 planos lado a lado só com painel de 1100 px ou mais (tela de 1180 px); abaixo disso, 2 por linha. */
+.sub-panel{container-type:inline-size}
+@container (max-width: 1099px){.plan-grid.g4{grid-template-columns:repeat(2,1fr)}}
+@media (max-width: 767px){.plan-grid.g4{grid-template-columns:1fr}}
+@media (max-width: 767px){.seg-sub button small{display:none}}
 @media(prefers-reduced-motion:reduce){.sub-panel{animation:none}}
 .plan .methods .soon{color:var(--blue-signal,#5ea7ff);white-space:nowrap}
 

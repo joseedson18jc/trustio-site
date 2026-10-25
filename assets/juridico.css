@@ -666,7 +666,7 @@
   line-height: 1.5;
 }
 
-@media (max-width: 1060px) {
+@media (max-width: 1023px) {
   .legal-hero {
     min-height: 850px;
   }
@@ -718,7 +718,7 @@
 
 /* Trustio 2.0: com a Unbounded, os títulos dos princípios ("Confidencialidade…") não cabem em
    três colunas abaixo de 1000px; empilham como no celular. */
-@media (max-width: 1000px) {
+@media (max-width: 1023px) {
   .legal-principles {
     grid-template-columns: 1fr;
   }
@@ -736,7 +736,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
   .legal-hero {
     min-height: auto;
     padding-top: 150px;
@@ -984,8 +984,8 @@
 .legal-pipe-step p { max-width: 210px; margin: 0 auto; color: var(--muted); font-size: 14px; line-height: 1.5; }
 .legal-pipe-note { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 44px; color: var(--muted-strong); font-size: 15px; text-align: center; }
 
-/* Capacidades: 3 colunas com mini-ilustrações */
-.legal-feature-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* Capacidades: 3 colunas com mini-ilustrações quando cada cartão tem ao menos 334 px; senão 2 (no celular, 1). */
+.legal-feature-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 334px), 1fr)); }
 .legal-feature-card { min-height: 0; padding: clamp(26px, 2.6vw, 34px); transition: transform 240ms ease, border-color 240ms ease; }
 .legal-feature-card:hover { transform: translateY(-3px); border-color: rgba(94, 167, 255, 0.45); }
 .legal-feature-card h3 { font-size: clamp(19px, 1.6vw, 22px); }
@@ -1118,11 +1118,10 @@
 .legal-timeline article + article::before { left: 28px; }
 
 /* Responsivo do redesign */
-@media (max-width: 1180px) {
+@media (max-width: 1023px) {
   .legal-trust { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .legal-feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 1060px) {
+@media (max-width: 1023px) {
   .legal-hero-grid { grid-template-columns: 1fr; }
   .legal-doc { max-width: 560px; margin: 0 auto; }
   .legal-pipe { grid-template-columns: 1fr; gap: 0; }
@@ -1143,7 +1142,7 @@
   .legal-timeline article::before { display: none; }
   .legal-timeline article { padding-top: 34px; }
 }
-@media (max-width: 760px) {
+@media (max-width: 767px) {
   .legal-hero h1 { font-size: clamp(40px, 12vw, 58px); }
   .legal-doc { padding: 22px 6px 52px; }
   .legal-chip { padding: 8px 11px 8px 9px; }

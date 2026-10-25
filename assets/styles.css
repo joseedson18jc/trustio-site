@@ -3180,11 +3180,15 @@ h3 { letter-spacing: -0.018em; }
    Correções encontradas na auditoria de 06/10/2026 (12 páginas × 5 larguras, tema claro e escuro). */
 
 /* 1) Cabeçalho entre 1024 e 1179 px: a navegação + botões passavam ~30 px da borda e cortavam o
-      botão de tema. Nessa faixa o selo "para empresas" sai (continua no title) e os botões ficam mais justos. */
-@media (min-width: 1024px) and (max-width: 1179px) {
-  .desktop-nav .nav-voice small { display: none; }
-  .site-header .header-cta { padding-inline: 16px; }
-  .site-header .lang-switch { padding-inline: 10px; }
+      botão de tema. Quando a linha do cabeçalho tem menos de 1100 px (telas de 1024 a 1179 px), o selo
+      "para empresas" sai (continua no title) e os botões ficam mais justos. Consulta de contêiner, não de tela. */
+.header-inner { container-type: inline-size; }
+@media (min-width: 1024px) {
+  @container (max-width: 1099px) {
+    .desktop-nav .nav-voice small { display: none; }
+    .site-header .header-cta { padding-inline: 16px; }
+    .site-header .lang-switch { padding-inline: 10px; }
+  }
 }
 
 /* 2) Selo "para empresas" do menu: vira etiqueta (pill), lida como selo e não como outro item. */
@@ -3384,8 +3388,8 @@ textarea::placeholder {
   }
   .site-header:has(.header-cta[href$="cadastro.html"]) :is(.lang-switch, .theme-toggle) { display: none; }
 }
-/* Telas de 320–359 px: a marca fica só com o símbolo para o botão caber. */
-@media (max-width: 359px) {
+/* Telas de 320–359 px (linha do cabeçalho com menos de 328 px): a marca fica só com o símbolo para o botão caber. */
+@container (max-width: 327px) {
   .site-header:has(.header-cta[href$="cadastro.html"]) .brand-word { display: none; }
 }
 

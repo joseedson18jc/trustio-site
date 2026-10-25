@@ -121,7 +121,7 @@ table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-
 .toast.is-error { border-color: rgba(255, 107, 107, 0.55); }
 @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
   .setting { margin-left: 0; }
   .search { flex: 1 1 100%; }
   .search input { width: 100%; }
@@ -203,8 +203,8 @@ table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-
 .historico small { font-family: var(--mono); font-size: 11px; color: var(--muted-strong); }
 .historico .hist-vazio { display: block; color: var(--label-color); }
 
-@media (max-width: 900px) { .visao-grid { grid-template-columns: 1fr; } }
-@media (max-width: 720px) {
+@media (max-width: 1023px) { .visao-grid { grid-template-columns: 1fr; } }
+@media (max-width: 767px) {
   .historico li { grid-template-columns: 1fr; gap: 0; }
   .funil li { grid-template-columns: 110px minmax(0, 1fr) 34px; }
 }
@@ -243,7 +243,7 @@ table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-
 .audit-anexo { margin: 6px 0; }
 .audit-anexo summary { cursor: pointer; color: var(--blue-signal); font-size: 12.5px; }
 .audit-anexo pre { max-height: 280px; overflow: auto; margin: 6px 0 0; padding: 8px 10px; border-radius: 8px; background: rgba(var(--on-surface-rgb), 0.04); white-space: pre-wrap; font-size: 12.5px; }
-@media (max-width: 600px) { .audit-filtros select { flex: 1 1 100%; } }
+@media (max-width: 767px) { .audit-filtros select { flex: 1 1 100%; } }
 
 /* Administração de acesso e segmentação */
 .admin-filtros { flex-wrap: wrap; gap: 12px; }

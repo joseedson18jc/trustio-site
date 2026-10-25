@@ -24,4 +24,4 @@
 .template-card details p { margin-top: 10px; padding: 12px; border-left: 2px solid var(--blue-signal); background: var(--abyss); }
 .template-card > button { margin-top: auto; white-space: normal; text-align: left; }
 .templates-dialog :focus-visible, .templates-intro button:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 3px; }
-@media (max-width: 600px) { .templates-dialog { padding: 18px; } .templates-grid { grid-template-columns: 1fr; } .templates-filters { gap: 6px; } .templates-filters .btn { padding: 0 10px; font-size: 12px; } }
+@media (max-width: 767px) { .templates-dialog { padding: 18px; } .templates-grid { grid-template-columns: 1fr; } .templates-filters { gap: 6px; } .templates-filters .btn { padding: 0 10px; font-size: 12px; } }

@@ -425,19 +425,19 @@
 [data-theme="light"] .afil-sim output,
 [data-theme="light"] .afil-card code { color: var(--blue); }
 
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
   .afil-hero-grid { grid-template-columns: 1fr; }
   .afil-personas { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1023px) {
   .afil-steps,
   .afil-why,
   .afil-sim { grid-template-columns: 1fr; }
   .afil-sim { padding: var(--space-28); }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .afil-hide-m { display: none; }
   .afil-table th,
   .afil-table td { padding: var(--space-12); font-size: 13.5px; }

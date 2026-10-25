@@ -155,4 +155,4 @@
 /* Texto mínimo de 12 px na tela (out/2026): o tamanho dos nomes das cidades vem de --tb-city-fs, calculado em brasil-banner.js a partir da largura do mapa. */
 /* Telas de até 400 px: com os nomes em 12 px, os da costa leste (Fortaleza, Recife, Salvador…) passavam da
    borda direita; o mapa se desloca para a esquerda (32 px a 320, zero a partir de ~390), sem mudar de tamanho. */
-@media (max-width: 400px) { .tb-map { position: relative; left: min(0px, calc(45vw - 176px)); } }
+.tb-map { position: relative; left: min(0px, calc(45vw - 176px)); }

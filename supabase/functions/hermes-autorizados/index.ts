@@ -63,17 +63,26 @@ Deno.serve(async (req) => {
   // Falha de leitura não pode virar lista vazia: o Mac mantém a última lista aplicada.
   if (!contas) return responder(500, { error: "leitura" });
 
+  function liberadoAtivo(l: Linha) {
+    return l.acesso_modo === "liberado" &&
+      (!l.acesso_inicio || Date.parse(l.acesso_inicio) <= Date.parse(agora)) &&
+      (!l.acesso_fim || Date.parse(l.acesso_fim) > Date.parse(agora));
+  }
   function permitido(l: Linha) {
-    return !["revogado", "bloqueado", "bloqueado_login"].includes(l.acesso_modo) &&
-      (l.status !== "cancelado" || l.acesso_modo === "liberado") &&
+    if (["revogado", "bloqueado", "bloqueado_login"].includes(l.acesso_modo)) return false;
+    if (l.acesso_modo === "liberado") {
+      if (liberadoAtivo(l)) return true;
+      return l.status !== "cancelado";
+    }
+    return l.status !== "cancelado" &&
       (!l.acesso_inicio || Date.parse(l.acesso_inicio) <= Date.parse(agora)) && (!l.acesso_fim || Date.parse(l.acesso_fim) > Date.parse(agora));
   }
   // Uma restrição prevalece também sobre um número fixo ou compartilhado com outra conta.
   const negados = [...new Set(contas.filter((l) => !permitido(l)).flatMap((l) =>
     [normalizar(l.whatsapp_numero), normalizar(l.telefone)].filter((n): n is string => !!n)))].sort();
   const numeros = [...new Set(contas.filter(permitido).filter((l) =>
-    l.status === "assinante" || (l.whatsapp_trial_status === "ativo" && !!l.whatsapp_trial_ends_at && Date.parse(l.whatsapp_trial_ends_at) > Date.parse(agora)))
-    .map((l) => normalizar(l.whatsapp_numero) ?? (l.status === "assinante" ? normalizar(l.telefone) : null))
+    l.status === "assinante" || liberadoAtivo(l) || (l.whatsapp_trial_status === "ativo" && !!l.whatsapp_trial_ends_at && Date.parse(l.whatsapp_trial_ends_at) > Date.parse(agora)))
+    .map((l) => normalizar(l.whatsapp_numero) ?? ((l.status === "assinante" || liberadoAtivo(l)) ? normalizar(l.telefone) : null))
     .filter((n): n is string => !!n && !negados.includes(n)))].sort();
   return responder(200, { numeros, negados, gerado_em: agora });
 });

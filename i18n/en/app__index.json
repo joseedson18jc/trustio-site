@@ -202,6 +202,8 @@
     "Desativar a skill": "Turn off the skill",
     "Uma skill é uma pasta de instruções que ensina um agente de IA a fazer uma tarefa do jeito certo. Estas 15 foram selecionadas e testadas pelo fundador da Trustio. Use qualquer uma aqui no chat, com um clique, ou baixe o .zip para o agente que você usa.": "A skill is a folder of instructions that teaches an AI agent to do a task the right way. These 15 were picked and tested by Trustio's founder. Use any of them right here in the chat with one click, or download the .zip for the agent you use.",
     "No chat, a skill guia as respostas da conversa até você trocar ou desativar. Scripts e arquivos que vêm no .zip só rodam no seu agente.": "In the chat, the skill guides the conversation's answers until you change or turn it off. Scripts and files inside the .zip only run in your own agent.",
-    "Como instalar fora da Trustio": "How to install outside Trustio"
+    "Como instalar fora da Trustio": "How to install outside Trustio",
+    "Para continuar conversando, libere o passe de 7 dias por R$ 24,90 ou escolha um plano mensal. O teste não gera cobrança automática e suas conversas continuam salvas.": "To keep chatting, unlock the 7-day pass for R$ 24.90 or choose a monthly plan. The trial has no automatic charges and your conversations stay saved.",
+    "Liberar 7 dias por R$ 24,90": "Unlock 7 days for R$ 24.90"
   }
 }

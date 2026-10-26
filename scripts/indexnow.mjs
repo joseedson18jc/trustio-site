@@ -11,9 +11,9 @@
 //                                                          # dois commits, e URLs que entraram ou
 //                                                          # saíram do sitemap
 //       … --wait      antes de avisar, espera o site publicado (a chave no ar e, no --changed,
-//                     cada página nova ou alterada servida por um deploy posterior ao commit, e
-//                     cada página apagada respondendo 404)
-//       … --dry-run   mostra o que enviaria, sem enviar
+//                     cada página nova ou alterada já servida com o conteúdo do commit, e cada
+//                     página apagada respondendo 404)
+//       … --dry-run   mostra o que enviaria, sem enviar (com --wait, espera o site antes)
 import { execFileSync } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
@@ -34,6 +34,7 @@ if (!chave) { console.error("Arquivo de chave <32 hex>.txt não encontrado na ra
 const atuais = urlsDoSitemap(await readFile(join(root, "sitemap.xml"), "utf8"));
 let urls = atuais;
 let momentoDoCommit = 0;
+let commitFinal = null;
 
 const i = args.indexOf("--changed");
 if (i !== -1) {
@@ -46,6 +47,7 @@ if (i !== -1) {
   urls = [...new Set([...anteriores, ...atuais])].filter((url) =>
     alterados.has(caminhoDaUrl(url)) || antes.has(url) !== depois.has(url));
   momentoDoCommit = Number(git("log", "-1", "--format=%ct", ate).trim()) * 1000;
+  commitFinal = ate;
 } else if (!args.includes("--all")) {
   console.error("Use --all ou --changed <de> <até>.");
   process.exit(1);
@@ -54,7 +56,7 @@ if (i !== -1) {
 if (!urls.length) { console.log("Nenhuma página do sitemap mudou; nada a avisar."); process.exit(0); }
 console.log(`${dryRun ? "Enviaria" : "Enviando"} ${urls.length} URL(s):`);
 for (const url of urls) console.log(`  ${url}${arquivoDaUrl(url) ? "" : " (apagada)"}`);
-if (dryRun) process.exit(0);
+if (dryRun && !esperar) process.exit(0);
 
 // O parâmetro fura o cache da CDN; o GitHub Pages ignora a query e serve o arquivo.
 async function consultar(url) {
@@ -63,12 +65,30 @@ async function consultar(url) {
   try { return await fetch(alvo, { method: "GET", redirect: "manual", cache: "no-store" }); } catch { return null; }
 }
 
+// Conteúdo do arquivo no commit avisado (o que o site deve servir depois do deploy).
+const noCommit = new Map();
+function conteudoNoCommit(arquivo) {
+  if (!noCommit.has(arquivo)) {
+    let texto = null;
+    try { texto = git("show", `${commitFinal}:${arquivo}`); } catch { /* não existe no commit */ }
+    noCommit.set(arquivo, texto);
+  }
+  return noCommit.get(arquivo);
+}
+
+// Publicado: a página no ar é igual à do commit. Desde 25/10/2026 o site sai sem o cabeçalho
+// Last-Modified, e esperar por ele travava o aviso por 15 min; o cabeçalho, quando vier, ainda vale.
 async function publicado(url) {
   const r = await consultar(url);
   if (!r) return false;
-  if (!arquivoDaUrl(url)) return r.status === 404;
+  const arquivo = arquivoDaUrl(url);
+  if (!arquivo) return r.status === 404;
+  if (r.status !== 200) return false;
+  if (!momentoDoCommit) return true;
   const modificado = Date.parse(r.headers.get("last-modified") ?? "");
-  return r.status === 200 && (!momentoDoCommit || modificado >= momentoDoCommit);
+  if (modificado >= momentoDoCommit) return true;
+  const esperado = conteudoNoCommit(arquivo);
+  return esperado !== null && (await r.text()) === esperado;
 }
 
 if (esperar) {
@@ -88,7 +108,8 @@ if (esperar) {
     }
     await new Promise((r) => setTimeout(r, 15000));
   }
-  console.log("Site publicado; avisando.");
+  console.log(dryRun ? "Site publicado." : "Site publicado; avisando.");
+  if (dryRun) process.exit(0);
 }
 
 const resposta = await fetch("https://api.indexnow.org/indexnow", {

@@ -31,8 +31,9 @@ jobs:
           node-version: 22
 
       # O GitHub Pages publica depois do push: o script espera a chave e cada página alterada
-      # no ar (deploy posterior ao commit; apagada respondendo 404) antes de avisar, senão o
-      # buscador rastreia a versão antiga.
+      # no ar (servida com o conteúdo deste commit; apagada respondendo 404) antes de avisar,
+      # senão o buscador rastreia a versão antiga. Se outro push mudar a mesma página antes,
+      # esta execução expira e a seguinte avisa.
       - name: Avisar o IndexNow
         timeout-minutes: 20
         run: |

@@ -3,6 +3,21 @@
 // no herói e carregar este arquivo. Com "reduzir movimento", fica parado.
 (() => {
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const TAU = Math.PI * 2;
+// Celular e máquina modesta: o campo continua vivo, mas redesenha menos vezes
+// por segundo. Sem isso, cada quadro (centenas de LEDs) travava a página no
+// carregamento — o Lighthouse media 4–8 s de bloqueio no celular.
+const toque = window.matchMedia("(pointer: coarse)").matches;
+const modesta = (navigator.hardwareConcurrency || 8) <= 4 || Boolean(navigator.connection && navigator.connection.saveData);
+// Intervalo mínimo entre quadros (ms): com interação, fluido; parado, a onda
+// é lenta e 20–24 quadros por segundo bastam.
+const QUADRO_ATIVO = modesta ? 1000 / 30 : toque ? 1000 / 40 : 1000 / 60;
+const QUADRO_PARADO = modesta ? 1000 / 15 : toque ? 1000 / 20 : 1000 / 24;
+// Alfa e cor arredondados para agrupar LEDs iguais num só preenchimento.
+const q = (v, passo) => Math.round(v / passo) * passo;
+// No celular a metade de baixo do campo some atrás de uma máscara (styles.css,
+// .led-hero > .hero-field): não adianta desenhar LED que ninguém vê.
+const estreito = window.matchMedia("(max-width: 760px)");
 
 class TrustioDotField {
   constructor(canvas) {
@@ -13,6 +28,10 @@ class TrustioDotField {
     this.height = 0;
     this.dpr = 1;
     this.animationFrame = 0;
+    this.lastDraw = 0;
+    // O loop só começa depois que a página termina de carregar; até lá fica o
+    // primeiro quadro, parado. Assim o campo não disputa a thread com o resto.
+    this.ready = false;
     this.startTime = performance.now();
     this.pointer = { x: 0, y: 0, active: false, lastMove: 0 };
     // Brilho por página (data-brilho no .hero-field): 1 é o /modelos; as páginas
@@ -35,7 +54,17 @@ class TrustioDotField {
     this.resizeObserver.observe(this.parent);
     this.bindEvents();
     this.resize();
-    this.draw(this.startTime);
+    this.draw(this.startTime, true);
+    const comecar = () => {
+      this.ready = true;
+      this.wake();
+    };
+    const depoisDoLoad = () => {
+      if ("requestIdleCallback" in window) window.requestIdleCallback(comecar, { timeout: 2500 });
+      else window.setTimeout(comecar, 600);
+    };
+    if (document.readyState === "complete") depoisDoLoad();
+    else window.addEventListener("load", depoisDoLoad, { once: true });
   }
 
   bindEvents() {
@@ -117,7 +146,7 @@ class TrustioDotField {
 
   // Um evento novo (mouse/scroll) religa o loop mesmo que ele estivesse parado.
   wake() {
-    if (this.visible && !this.animationFrame && !reducedMotion.matches) {
+    if (this.ready && this.visible && !this.animationFrame && !reducedMotion.matches) {
       this.animationFrame = window.requestAnimationFrame((time) => this.draw(time));
     }
   }
@@ -125,7 +154,7 @@ class TrustioDotField {
   // Draw only while the tab is active AND the hero is on screen — saves a full-canvas repaint per frame otherwise.
   syncVisibility() {
     this.visible = this.tabVisible && this.inViewport;
-    if (this.visible && !this.animationFrame && !reducedMotion.matches) {
+    if (this.ready && this.visible && !this.animationFrame && !reducedMotion.matches) {
       this.animationFrame = window.requestAnimationFrame((time) => this.draw(time));
     }
   }
@@ -135,7 +164,7 @@ class TrustioDotField {
     const availableWidth = Math.min(rect.width, window.innerWidth);
     this.width = Math.max(1, Math.round(availableWidth));
     this.height = Math.max(1, Math.round(rect.height));
-    this.dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    this.dpr = Math.min(window.devicePixelRatio || 1, toque || modesta ? 1.5 : 1.75);
     this.canvas.width = Math.round(this.width * this.dpr);
     this.canvas.height = Math.round(this.height * this.dpr);
     this.canvas.style.width = "100%";
@@ -144,11 +173,23 @@ class TrustioDotField {
     this.context.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     // Redimensionar apaga o canvas; com "reduzir movimento" não há loop para
     // redesenhar, então o quadro parado é refeito aqui.
-    if (reducedMotion.matches && this.context) this.draw(performance.now());
+    if ((reducedMotion.matches || !this.ready) && this.context) this.draw(performance.now(), true);
   }
 
-  draw(time) {
+  draw(time, forcar = false) {
     this.animationFrame = 0;
+    // Pula o quadro se ainda não passou o intervalo mínimo: parado, o campo
+    // anda devagar; com cursor, scroll ou ondulação, volta à taxa cheia.
+    if (!forcar) {
+      const ativo = this.energy > 0.04 || this.ripples.length > 0 || (this.pointer.active && time - this.pointer.lastMove < 1400);
+      if (time - this.lastDraw < (ativo ? QUADRO_ATIVO : QUADRO_PARADO) - 1) {
+        if (!reducedMotion.matches && this.visible) {
+          this.animationFrame = window.requestAnimationFrame((nextTime) => this.draw(nextTime));
+        }
+        return;
+      }
+    }
+    this.lastDraw = time;
     const ctx = this.context;
     const width = this.width;
     const height = this.height;
@@ -188,8 +229,19 @@ class TrustioDotField {
     const breath = especial ? 1 + Math.sin(elapsed * 0.0011) * 0.18 : 1;
     const ripples = especial ? (this.ripples = this.ripples.filter((r) => time - r.t < 1700)) : [];
 
+    // Só as linhas que aparecem na tela (e, no celular, acima da máscara).
+    // Herói alto no celular tinha mais da metade dos LEDs fora da vista.
+    const caixa = this.canvas.getBoundingClientRect();
+    const topoVisivel = Math.max(0, -caixa.top) - step;
+    let baseVisivel = Math.min(height, window.innerHeight - caixa.top) + step;
+    if (estreito.matches) baseVisivel = Math.min(baseVisivel, height * 0.7);
+    const primeiraLinha = step * 0.5 + Math.max(0, Math.ceil((topoVisivel - step * 0.5) / step)) * step;
+
     ctx.globalCompositeOperation = "lighter";
-    for (let y = step * 0.5; y < height; y += step) {
+    // Núcleos agrupados por cor: um Path2D por cor e um fill por grupo, em vez
+    // de um fill por LED. Os núcleos não se encostam, então o resultado é o mesmo.
+    const nucleos = new Map();
+    for (let y = primeiraLinha; y < baseVisivel; y += step) {
       for (let x = step * 0.5; x < width; x += step) {
         const distance = Math.hypot(x - sourceX, y - sourceY);
         const waveDistance = Math.abs(distance - waveRadius);
@@ -228,14 +280,15 @@ class TrustioDotField {
         const hot = Math.max(wave, wave2, halo, energy, rip);
         // cor do núcleo: aurora na home, azul-sinal nas demais
         const [cr, cg, cb] = especial ? this.aurora(x, y, elapsed) : [94, 167, 255];
-        ctx.beginPath();
-        ctx.fillStyle = hot > 0.25
-          ? `rgba(${Math.round(cr + hot * (255 - cr) * 0.55)}, ${Math.round(cg + hot * (255 - cg) * 0.6)}, ${Math.round(cb)}, ${alpha})`
+        const cor = hot > 0.25
+          ? `${q(cr + hot * (255 - cr) * 0.55, 6)},${q(cg + hot * (255 - cg) * 0.6, 6)},${q(cb, 6)},${q(alpha, 0.025).toFixed(3)}`
           : especial
-            ? `rgba(${Math.round(cr * 0.75)}, ${Math.round(cg * 0.75)}, ${Math.round(cb * 0.8)}, ${Math.min(0.42 * this.brilho, 0.7, alpha)})`
-            : `rgba(96, 118, 152, ${Math.min(0.5 * this.brilho, 0.75, alpha)})`;
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
+            ? `${q(cr * 0.75, 6)},${q(cg * 0.75, 6)},${q(cb * 0.8, 6)},${q(Math.min(0.42 * this.brilho, 0.7, alpha), 0.025).toFixed(3)}`
+            : `96,118,152,${q(Math.min(0.5 * this.brilho, 0.75, alpha), 0.025).toFixed(3)}`;
+        let caminho = nucleos.get(cor);
+        if (!caminho) { caminho = new Path2D(); nucleos.set(cor, caminho); }
+        caminho.moveTo(x + radius, y);
+        caminho.arc(x, y, radius, 0, TAU);
 
         // halo difuso dos LEDs mais acesos (onda no pico, cursor ou scroll)
         if (hot > 0.5) {
@@ -248,6 +301,11 @@ class TrustioDotField {
         // coleciona os acesos perto do cursor para as linhas de constelação
         if (halo > 0.45 || rip > 0.6) near.push({ x, y, b: Math.max(halo, rip * 0.8) });
       }
+    }
+
+    for (const [cor, caminho] of nucleos) {
+      ctx.fillStyle = `rgba(${cor})`;
+      ctx.fill(caminho);
     }
 
     // Constelação: liga os LEDs acesos ao redor do cursor (poucos pontos,

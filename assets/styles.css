@@ -473,6 +473,8 @@ p {
 
 .desktop-nav a {
   position: relative;
+  /* Área de toque de pelo menos 24 px de altura (WCAG 2.2, 2.5.8) sem mexer na largura. */
+  padding-block: 6px;
   color: var(--ice);
   font-size: 15px;
   font-weight: 560;
@@ -486,7 +488,7 @@ p {
 .desktop-nav a::after {
   position: absolute;
   right: 0;
-  bottom: -10px;
+  bottom: -4px;
   left: 0;
   height: 1px;
   background: var(--blue-signal);
@@ -1090,6 +1092,14 @@ p {
    nada do herói precisa de z-index próprio. */
 .led-hero { position: relative; isolation: isolate; overflow: hidden; }
 .led-hero > .hero-field { z-index: -1; pointer-events: none; }
+/* No celular o herói empilha tudo numa coluna e o campo passava por trás do
+   diagrama e dos links: some aos poucos na metade de baixo para o texto ficar limpo. */
+@media (max-width: 760px) {
+  .led-hero > .hero-field {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 40%, transparent 68%);
+    mask-image: linear-gradient(to bottom, #000 0, #000 40%, transparent 68%);
+  }
+}
 
 .home-hero-inner {
   position: relative;
@@ -2802,7 +2812,7 @@ h3 { letter-spacing: var(--h3-tracking); }
 .legal h2:first-child{margin-top:0}
 .legal h3{margin:28px 0 8px;font-size:17px;letter-spacing:-.01em;color:var(--ice,#f4f6fa);font-family:var(--body);font-weight:600}
 .legal p{margin:0 0 14px;font-size:16px;line-height:1.7;color:var(--muted-strong)}
-.legal a{color:var(--blue-signal,#5ea7ff)}
+.legal a:not(.button){color:var(--blue-signal,#5ea7ff)}
 .legal code{font-family:var(--mono,ui-monospace);font-size:.9em}
 .legal-lista{margin:0 0 18px;padding:0;list-style:none;display:grid;gap:10px}
 .legal-lista li{position:relative;padding-left:22px;font-size:15.5px;line-height:1.65;color:var(--muted-strong)}

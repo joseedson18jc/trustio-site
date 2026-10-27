@@ -140,7 +140,7 @@
 .plan .methods{font-size:12px;letter-spacing:.08em}
 .lead-form label span{font-size:12.5px;color:var(--muted-strong);font-weight:500}
 .lead-legal{font-size:13.5px;line-height:1.6}
-.lead-legal a{color:var(--blue-signal,#5ea7ff)}
+.lead-legal a{color:var(--blue-signal,#5ea7ff);text-decoration:underline;text-underline-offset:3px}
 
 /* ajuda logo abaixo do campo: diz por que pedimos aquele dado */
 .campo-ajuda{display:block;margin:6px 0 2px;font-size:12.5px;line-height:1.5;color:var(--muted)}
@@ -302,6 +302,7 @@
 #pessoal .plan .perday{display:inline-block;align-self:flex-start;margin:6px 0 10px;padding:3px 10px;border-radius:999px;background:rgba(94,167,255,.1)}
 #pessoal .plan ul{gap:11px;padding-top:18px;border-top:1px solid var(--line,rgba(160,179,211,.16))}
 #pessoal .plan li{color:var(--text,#dfe5ee);font-size:14.5px;line-height:1.45}
+[data-theme="light"] #pessoal .plan li{color:var(--muted-strong,#33405a)}
 #pessoal .plan li::before{width:16px;height:16px;margin-top:2px;border-radius:0;background:var(--blue-signal,#5ea7ff);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat}
 #pessoal .plan .button{min-height:50px;font-size:15px}
 /* Preços na mesma altura: descrição e nota com espaço reservado no desktop */

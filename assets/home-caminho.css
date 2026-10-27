@@ -82,22 +82,33 @@
 }
 
 /* ── Preços em uma linha ───────────────────────────────────────────────────── */
-.home-precos { padding-block: clamp(24px, 3vw, 48px); }
+/* Preços da home: três cartões, o teste grátis em destaque */
+.home-precos { position: relative; padding-block: clamp(56px, 7vw, 104px); overflow: hidden; isolation: isolate; }
+.home-precos::before { position: absolute; inset: 8% -10% auto; z-index: -1; height: 80%; background: radial-gradient(ellipse 55% 60% at 22% 55%, rgba(37, 99, 235, .22), transparent 70%), radial-gradient(ellipse 40% 50% at 82% 40%, rgba(94, 167, 255, .1), transparent 70%); content: ""; pointer-events: none; }
+.home-precos .section-kicker { margin-bottom: var(--space-16); }
 .home-precos h2 { max-width: 26ch; margin: 0 0 var(--space-48); font-size: var(--h2); }
 .home-precos h2 span { display: block; color: var(--muted-strong); font-weight: var(--heading-soft-weight); }
-.precos-linha { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; border-block: 1px solid var(--line); list-style: none; }
-.precos-linha li { display: grid; align-content: start; gap: 10px; padding: 32px 32px 36px 0; }
-.precos-linha li + li { padding-left: 32px; border-left: 1px solid var(--line); }
+.precos-linha { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 1.6vw, 22px); align-items: stretch; margin: 0; padding: 0; list-style: none; }
+.preco-card { position: relative; display: flex; flex-direction: column; gap: 10px; padding: clamp(26px, 2.4vw, 34px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--card-gradient); box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset; transition: transform .35s var(--ease), border-color .35s var(--ease), box-shadow .35s var(--ease); }
+.preco-card:hover { transform: translateY(-4px); border-color: rgba(94, 167, 255, .38); box-shadow: 0 24px 60px -28px rgba(37, 99, 235, .55); }
+.preco-destaque { border-color: rgba(94, 167, 255, .55); background: var(--card-gradient-featured); box-shadow: 0 0 0 1px rgba(94, 167, 255, .18), 0 30px 80px -30px rgba(37, 99, 235, .7); }
+.preco-destaque::before { position: absolute; inset: -1px; border-radius: inherit; padding: 1px; background: linear-gradient(140deg, rgba(94, 167, 255, .9), rgba(37, 99, 235, .15) 45%, rgba(94, 167, 255, .6)); content: ""; pointer-events: none; -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.preco-selo { align-self: flex-start; margin-bottom: 4px; padding: 5px 11px; border-radius: 999px; background: var(--blue, #2563eb); color: #fff; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+.preco-selo-sutil { border: 1px solid rgba(94, 167, 255, .45); background: rgba(94, 167, 255, .1); color: var(--blue-signal); }
 .preco-nome { color: var(--muted); font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
-.preco-valor { color: var(--text-strong); font-family: var(--display); font-size: clamp(36px, 3.6vw, 48px); font-weight: 500; letter-spacing: -.02em; line-height: 1.05; font-variant-numeric: tabular-nums; }
-.preco-valor small { margin-left: 4px; color: var(--muted); font-family: var(--body); font-size: 16px; font-weight: 500; letter-spacing: 0; }
+.preco-valor { color: var(--text-strong); font-family: var(--display); font-size: clamp(42px, 4.4vw, 60px); font-weight: 500; letter-spacing: -.025em; line-height: 1.02; font-variant-numeric: tabular-nums; }
+.preco-destaque .preco-valor { background: linear-gradient(120deg, var(--text-strong) 30%, var(--blue-signal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.preco-valor small { margin-left: 4px; color: var(--muted); font-family: var(--body); font-size: 16px; font-weight: 500; letter-spacing: 0; -webkit-text-fill-color: currentColor; }
 .preco-nota { color: var(--muted-strong); font-size: 15px; line-height: 1.5; }
-.precos-linha .text-link { justify-self: start; margin-top: 8px; }
+.preco-itens { display: grid; gap: 10px; margin: 14px 0 22px; padding: 18px 0 0; border-top: 1px solid var(--line); list-style: none; }
+.preco-itens li { display: flex; gap: 10px; align-items: flex-start; color: var(--text); font-size: 15px; line-height: 1.45; }
+.preco-itens svg { flex: none; margin-top: 2px; color: var(--blue-signal); }
+.preco-cta { margin-top: auto; justify-content: center; width: 100%; }
 .precos-rodape { max-width: 62ch; margin: var(--space-28) 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
 .precos-rodape a { color: var(--blue-signal); text-decoration: underline; text-underline-offset: 3px; }
 .home-precos .fine-print { margin-top: var(--space-16); }
 @media (max-width: 767px) {
   .precos-linha { grid-template-columns: 1fr; }
-  .precos-linha li { padding: 24px 0; }
-  .precos-linha li + li { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
 }
+
+@media (prefers-reduced-motion: reduce) { .preco-card, .preco-card:hover { transition: none; transform: none; } }

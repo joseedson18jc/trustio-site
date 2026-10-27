@@ -300,6 +300,15 @@
     var meta = state.user.user_metadata || {};
     var name = (state.lead && state.lead.nome) || meta.nome || state.user.email;
     $("[data-me-name]").textContent = name;
+    // Saudação da tela inicial: "Boa noite, José" (primeiro nome; com e-mail, a parte antes do @).
+    var ola = $("[data-welcome-ola]");
+    if (ola) {
+      var hora = new Date().getHours();
+      var primeiro = String(name || "").trim().split(/[\s@]+/)[0];
+      var saud = hora >= 5 && hora < 12 ? T("Bom dia", "Good morning") : hora >= 12 && hora < 18 ? T("Boa tarde", "Good afternoon") : T("Boa noite", "Good evening");
+      ola.textContent = primeiro ? saud + ", " + primeiro.charAt(0).toUpperCase() + primeiro.slice(1) : saud;
+      ola.hidden = false;
+    }
     pintarAvatar($("[data-me-av]"), name);
     var status = state.lead ? state.lead.status : "novo";
     var plan = state.lead && state.lead.plano;

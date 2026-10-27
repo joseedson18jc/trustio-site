@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="../assets/whatsapp-suporte.css?v=63736be5">
   <script defer src="../assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="stylesheet" href="../assets/chat-atalhos.css?v=43b21838">
+  <link rel="stylesheet" href="../assets/chat-v2.css?v=6c3ca88d">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=c3461a69"></script>
   <script defer src="../assets/atribuicao.js?v=eb741257"></script>
@@ -35,13 +36,13 @@
   <script defer src="../assets/vendor/katex/katex.min.js?v=e8d88550"></script>
   <script defer src="../assets/chat-render.js?v=563a4829"></script>
   <script defer src="../assets/voz.js?v=8e758685"></script>
-  <script defer src="../assets/chat.js?v=6583770b"></script>
+  <script defer src="../assets/chat.js?v=07872449"></script>
   <script defer src="../assets/chat-atalhos.js?v=fd07fe98"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/app/"><!--/i18n:alt-->
 </head>
-<body class="chat-page">
+<body class="chat-page chat-v2">
 <a class="skip-link" href="#composer">Ir para a caixa de mensagem</a>
 
 <div class="chat-shell" data-state="loading">
@@ -58,8 +59,10 @@
       <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg> Nova conversa
     </button>
 
-    <button class="btn btn-ghost" type="button" data-templates-open aria-haspopup="dialog">Templates sem censura*</button>
-    <button class="btn btn-ghost" type="button" data-skills-open aria-haspopup="dialog">Skills</button>
+    <div class="side-nav">
+      <button class="side-nav-item" type="button" data-templates-open aria-haspopup="dialog"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 4h5.5v5.5H3.5zM11 4h5.5v5.5H11zM3.5 11.5h5.5V16H3.5zM11 11.5h5.5V16H11z"/></svg><span>Templates sem censura*</span></button>
+      <button class="side-nav-item" type="button" data-skills-open aria-haspopup="dialog"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.8l1.7 4.1 4.3.4-3.3 2.8 1 4.2L10 12.1l-3.7 2.2 1-4.2L4 7.3l4.3-.4z"/></svg><span>Skills</span></button>
+    </div>
 
     <nav class="conv-list" aria-label="Conversas" data-conversations>
       <p class="side-k">Conversas</p>
@@ -86,7 +89,10 @@
         <a class="side-link" href="../admin/" data-admin-link hidden>Painel</a>
         <button class="side-link" type="button" data-logout>Sair</button>
       </div>
-      <p class="side-legal">A IA pode errar: confira informações importantes. Fotos e PDFs: o texto é lido no seu navegador; das fotos, uma cópia reduzida também vai ao modelo. Suas conversas ficam guardadas só na sua conta. * Você responde pelo conteúdo que envia e pelo uso que faz das respostas, nos termos da lei. <a href="../privacidade.html">Privacidade</a></p>
+      <details class="side-legal-det">
+        <summary>Avisos e privacidade</summary>
+        <p class="side-legal">A IA pode errar: confira informações importantes. Fotos e PDFs: o texto é lido no seu navegador; das fotos, uma cópia reduzida também vai ao modelo. Suas conversas ficam guardadas só na sua conta. * Você responde pelo conteúdo que envia e pelo uso que faz das respostas, nos termos da lei. <a href="../privacidade.html">Privacidade</a></p>
+      </details>
     </div>
   </aside>
 
@@ -116,9 +122,10 @@
       </div>
     </header>
 
-    <div class="thread" data-thread aria-live="polite" aria-busy="false">
+    <div class="thread" data-thread tabindex="0" aria-label="Conversa" aria-live="polite" aria-busy="false">
       <div class="welcome" data-welcome>
         <section class="atalhos" data-atalhos aria-labelledby="atalhos-title">
+          <p class="welcome-ola" data-welcome-ola hidden></p>
           <h1 class="atalhos-titulo" id="atalhos-title">O que vamos fazer agora?</h1>
           <p class="atalhos-sub">Escolha um atalho ou escreva direto na caixa de mensagem.</p>
           <div class="atalhos-grid">

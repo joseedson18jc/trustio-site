@@ -1085,6 +1085,12 @@ p {
   content: "";
 }
 
+/* Herói com o campo de LEDs azuis (assets/led-field.js) atrás do conteúdo:
+   o canvas fica num z-index negativo dentro de um contexto isolado, então
+   nada do herói precisa de z-index próprio. */
+.led-hero { position: relative; isolation: isolate; overflow: hidden; }
+.led-hero > .hero-field { z-index: -1; pointer-events: none; }
+
 .home-hero-inner {
   position: relative;
   z-index: 2;

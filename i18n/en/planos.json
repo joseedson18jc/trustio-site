@@ -495,6 +495,10 @@
     "3 dias grátis": "3 free days",
     "no chat, a partir da primeira pergunta, uma única vez, após confirmar o e-mail. Sem cartão. Nenhum plano cobra por token: o limite é uso justo, não contagem.": "in the chat, starting with your first question, only once, after you confirm your email. No card. No plan charges per token: the limit is fair use, not a count.",
     "O que acontece depois dos 3 dias grátis?": "What happens after the 3 free days?",
-    "O chat trava e nada é cobrado. Suas conversas continuam na conta, e você escolhe um plano quando quiser — ou simplesmente não escolhe. Os 3 dias começam na primeira pergunta e valem uma vez por conta, não por mês.": "The chat locks and nothing is charged. Your conversations stay in your account, and you choose a plan whenever you like — or simply don’t. The 3 days start with your first question and apply once per account, not per month."
+    "O chat trava e nada é cobrado. Suas conversas continuam na conta, e você escolhe um plano quando quiser — ou simplesmente não escolhe. Os 3 dias começam na primeira pergunta e valem uma vez por conta, não por mês.": "The chat locks and nothing is charged. Your conversations stay in your account, and you choose a plan whenever you like — or simply don’t. The 3 days start with your first question and apply once per account, not per month.",
+    "Menor custo por dia": "Lowest cost per day",
+    "Pagamento único": "One-time payment",
+    "Pagamento seguro pela Stripe": "Secure payment by Stripe",
+    "Desista em até 7 dias": "Change your mind within 7 days"
   }
 }

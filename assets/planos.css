@@ -272,3 +272,49 @@
 /* 4 cards por linha: o botão cabe numa linha só ("Assinar Combo mensal" quebrava em duas). */
 .plan-grid.g4 .plan{padding-inline:22px}
 .plan-grid.g4 .plan .button{gap:10px;padding-inline:18px;white-space:nowrap}
+
+/* ── Planos pessoais: onde a pessoa decide pagar (revisão de 27/10) ───────────────────────── */
+#pessoal .b2c-head{max-width:none}
+#pessoal .b2c-head > p:not(.section-kicker):not(.b2c-garantias){max-width:66ch}
+#pessoal .como-funciona{gap:14px;margin-top:28px}
+#pessoal .como-funciona li{padding:20px 20px 20px 58px;border-radius:16px;background:linear-gradient(160deg,rgba(var(--surface-blue-rgb),.32),rgba(var(--bg-rgb),.4))}
+#pessoal .como-funciona li::before{top:19px;left:20px;width:26px;height:26px;background:var(--cta-gradient);box-shadow:0 6px 18px rgba(37,99,235,.35)}
+.b2c-selos{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 0;padding:0;list-style:none}
+.b2c-selos li{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid rgba(94,167,255,.22);border-radius:999px;background:rgba(94,167,255,.06);color:var(--muted-strong,#bdc5d1);font-size:13.5px;font-weight:500}
+.b2c-selos svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--blue-signal,#5ea7ff);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#pessoal .b2c-garantias{font-size:13.5px}
+
+/* Escolha do produto: controle segmentado maior, centralizado */
+#pessoal .seg-sub{display:flex;width:max-content;max-width:100%;margin:40px auto 0;padding:5px}
+#pessoal .seg-sub button{padding:12px 22px;font-size:15px}
+
+/* Cartões */
+#pessoal .plan-grid{gap:18px;align-items:stretch}
+#pessoal .plan{padding:34px 26px 26px;border-radius:22px;transition:transform .35s var(--ease,ease),border-color .35s var(--ease,ease),box-shadow .35s var(--ease,ease)}
+#pessoal .plan:hover{transform:translateY(-4px);border-color:rgba(94,167,255,.38);box-shadow:0 26px 70px -32px rgba(37,99,235,.6)}
+#pessoal .plan .tag{left:24px;top:-13px;box-shadow:0 8px 20px rgba(37,99,235,.35)}
+#pessoal .plan .tag-sutil{border:1px solid rgba(94,167,255,.45);background:var(--surface,#0b0e14);color:var(--blue-signal,#5ea7ff);box-shadow:none}
+#pessoal .plan.featured{border-color:transparent;background:linear-gradient(180deg,rgba(15,35,72,.62),rgba(var(--bg-rgb),.88));box-shadow:0 0 0 1px rgba(94,167,255,.22),0 36px 100px -36px rgba(37,99,235,.75)}
+#pessoal .plan.featured::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(140deg,rgba(94,167,255,.95),rgba(37,99,235,.18) 45%,rgba(94,167,255,.65));pointer-events:none;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+#pessoal .plan .price{margin-top:26px}
+#pessoal .plan .price b{font-size:clamp(46px,4.2vw,56px)}
+#pessoal .plan.featured .price b{background:linear-gradient(120deg,var(--ice,#f4f6fa) 35%,var(--blue-signal,#5ea7ff));-webkit-background-clip:text;background-clip:text;color:transparent}
+#pessoal .plan .perday{display:inline-block;align-self:flex-start;margin:6px 0 10px;padding:3px 10px;border-radius:999px;background:rgba(94,167,255,.1)}
+#pessoal .plan ul{gap:11px;padding-top:18px;border-top:1px solid var(--line,rgba(160,179,211,.16))}
+#pessoal .plan li{color:var(--text,#dfe5ee);font-size:14.5px;line-height:1.45}
+#pessoal .plan li::before{width:16px;height:16px;margin-top:2px;border-radius:0;background:var(--blue-signal,#5ea7ff);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat}
+#pessoal .plan .button{min-height:50px;font-size:15px}
+/* Preços na mesma altura: descrição e nota com espaço reservado no desktop */
+@media (min-width: 1024px){
+  #pessoal .plan .desc{min-height:4.8em}
+  #pessoal .plan-grid.g4 .plan .desc{min-height:6.4em}
+  #pessoal .plan .note{min-height:3em}
+}
+@media (max-width: 767px){
+  #pessoal .seg-sub{width:100%}
+  #pessoal .seg-sub button{flex:1;justify-content:center;padding:11px 10px}
+  #pessoal .plan{padding:32px 22px 22px}
+}
+@media (prefers-reduced-motion: reduce){ #pessoal .plan,#pessoal .plan:hover{transition:none;transform:none} }
+:root[data-theme="light"] #pessoal .plan.featured{background:linear-gradient(180deg,rgba(219,232,255,.9),rgba(255,255,255,.95))}
+:root[data-theme="light"] #pessoal .plan .tag-sutil{background:#fff}

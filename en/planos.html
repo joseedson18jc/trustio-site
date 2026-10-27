@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="/assets/whatsapp-suporte.css?v=63736be5">
   <script defer src="/assets/atribuicao.js?v=eb741257"></script>
   <script defer src="/assets/whatsapp-suporte.js?v=19399fa4"></script>
-  <link rel="stylesheet" href="/assets/planos.css?v=fe04d61c">
+  <link rel="stylesheet" href="/assets/planos.css?v=a156a015">
   <link rel="stylesheet" href="/assets/voice.css?v=bf94d1e7">
   <script type="module" src="/assets/app.js?v=e413162f"></script>
   <script defer src="/assets/led-field.js?v=c2c88bca"></script>
@@ -376,6 +376,12 @@
             <li><b>Pay with your account e-mail.</b> That's how we find your account and turn on your plan.<span class="conta-email" data-conta-email hidden> You're signed in as <b></b>, and checkout already uses that e-mail.</span></li>
             <li><b>Access granted automatically</b> once payment is confirmed (pay with your account email). The 7-day pass counts from when access is granted.</li>
           </ol>
+          <ul class="b2c-selos" aria-label="Guarantees">
+            <li><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>Secure payment by Stripe</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Change your mind within 7 days</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5c-.5-1-1.4-1.5-2.5-1.5-1.5 0-2.5.8-2.5 2s1 1.7 2.5 2 2.5.8 2.5 2-1 2-2.5 2c-1.2 0-2.1-.5-2.6-1.5M12 6.5V8M12 16v1.5"/></svg>Priced in reais, no IOF tax</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 15c-2.2 0-4-1.3-4-3s1.8-3 4-3c3.5 0 6.5 6 10 6 2.2 0 4-1.3 4-3s-1.8-3-4-3c-3.5 0-6.5 6-10 6z"/></svg>Fair use, no token counting</li>
+          </ul>
           <p class="b2c-garantias">Change your mind within 7 days and get your money back (right of withdrawal, art. 49 of the Brazilian Consumer Protection Code). <a href="#arrependimento">How to withdraw</a></p>
         </div>
 
@@ -387,7 +393,7 @@
 
         <div class="sub-panel" id="pessoal-chat" role="tabpanel" aria-labelledby="sub-chat">
         <div class="plan-grid b2c-grid">
-          <article class="plan" id="passe">
+          <article class="plan" id="passe"><span class="tag tag-sutil">One-time payment</span>
             <p class="k">Pass · 7 days</p>
             <h2>Try it for a week</h2>
             <p class="desc">Seven days of full access, paid once. No automatic renewal, no card on file.</p>
@@ -397,7 +403,7 @@
             <ul><li>Everything in the monthly plan, for 7 days</li><li>Ideal for trying it before subscribing</li><li>One-time card payment</li></ul>
             <a class="button button-outline" href="https://buy.stripe.com/8x228rgiKetN2LRfRl5wI09" rel="noopener">Buy the 7-day pass <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
           </article>
-          <article class="plan featured">
+          <article class="plan featured"><span class="tag">Cancel anytime</span>
             <p class="k">Personal · monthly</p>
             <h2>Full access</h2>
             <p class="desc">Private, uncensored* chat with the Trustio Flash and Trustio Heavy Thinking models, for a fixed monthly price.</p>
@@ -407,7 +413,7 @@
             <ul><li>Uncensored* model with no vendor filter</li><li>Trustio doesn’t train models on your conversations</li><li>Account and conversations stored in Brazil</li><li>Generous fair use, no token counting</li><li>History and files</li><li>Web search, run by Exa (US)</li><li>Priced in reais, no IOF tax</li></ul>
             <a class="button button-primary" href="https://buy.stripe.com/28EcN5aYq4Td9afgVp5wI08" rel="noopener">Subscribe monthly <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
           </article>
-          <article class="plan b2c-annual">
+          <article class="plan b2c-annual"><span class="tag tag-sutil">Lowest cost per day</span>
             <p class="k">Annual</p>
             <h2>Two months free</h2>
             <p class="desc">Twelve months for the price of ten. For those who already know they'll use it.</p>
@@ -429,7 +435,7 @@
             <p>Agentio is Trustio’s AI agent, built on Hermes Agent, open source from Nous Research. You ask in plain language and it does the work: researches, writes, summarizes, organizes routines and reminders. It only answers on the number you register and confirms before any irreversible action.</p>
           </div>
           <div class="plan-grid g4">
-            <article class="plan">
+            <article class="plan"><span class="tag tag-sutil">One-time payment</span>
               <p class="k">Agentio · 7 days</p>
               <h2>Weekly</h2>
               <p class="desc">A full week of the agent, paid once. Does not auto-renew.</p>
@@ -439,7 +445,7 @@
               <ul><li>Agent on WhatsApp or Telegram</li><li>Tasks, research, writing and summaries</li><li>Routines and reminders</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/9B6fZh5E6gBVbinax15wI0b" rel="noopener">Buy 7 days <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
             </article>
-            <article class="plan featured">
+            <article class="plan featured"><span class="tag">Cancel anytime</span>
                             <p class="k">Agentio · monthly</p>
               <h2>Monthly</h2>
               <p class="desc">The agent working for you all month, at a flat price.</p>
@@ -459,7 +465,7 @@
               <ul><li>Everything in monthly</li><li>Price locked for 6 months</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/6oU8wPc2uetN5Y37kP5wI0d" rel="noopener">Subscribe for 6 months <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
             </article>
-            <article class="plan b2c-annual">
+            <article class="plan b2c-annual"><span class="tag tag-sutil">Lowest cost per day</span>
               <p class="k">Agentio · annual</p>
               <h2>Annual</h2>
               <p class="desc">The lowest monthly price. For those who have already handed off their routine.</p>
@@ -481,7 +487,7 @@
             <p>Chat uncensored* on Trustio and hand tasks to Agentio on Telegram or WhatsApp — same account, same private model, one charge that’s cheaper than subscribing to both separately.</p>
           </div>
           <div class="plan-grid g4">
-            <article class="plan">
+            <article class="plan"><span class="tag tag-sutil">One-time payment</span>
               <p class="k">Combo · 7 days</p>
               <h2>Weekly</h2>
               <p class="desc">Chat + Agentio for one week. One-time payment.</p>
@@ -491,7 +497,7 @@
               <ul><li>Uncensored chat* on the site</li><li>Agentio on Telegram or WhatsApp</li><li>Does not auto-renew</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/4gM8wP2rUgBVcmr6gL5wI0f" rel="noopener">Buy 7 days <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
             </article>
-            <article class="plan featured">
+            <article class="plan featured"><span class="tag">Cancel anytime</span>
               <p class="k">Combo · monthly</p>
               <h2>Monthly</h2>
               <p class="desc">All of Trustio for you, every month.</p>
@@ -511,7 +517,7 @@
               <ul><li>Everything in monthly Combo</li><li>Price locked for 6 months</li></ul>
               <a class="button button-outline" href="https://buy.stripe.com/3cIaEX3vYetNgCH5cH5wI0h" rel="noopener">Subscribe for 6 months <span aria-hidden="true"><svg class="arw" viewBox="0 0 24 24" width="16" height="16" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
             </article>
-            <article class="plan b2c-annual">
+            <article class="plan b2c-annual"><span class="tag tag-sutil">Lowest cost per day</span>
               <p class="k">Combo · annual</p>
               <h2>Annual</h2>
               <p class="desc">The full package at the lowest price.</p>

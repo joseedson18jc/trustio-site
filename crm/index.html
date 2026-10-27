@@ -18,10 +18,10 @@
   <script src="../assets/theme.js?v=7b1e9843"></script>
   <link rel="stylesheet" href="../assets/styles.css?v=b629b7b4">
   <link rel="stylesheet" href="../assets/chat.css?v=22672843">
-  <link rel="stylesheet" href="../assets/crm.css?v=c5f0ed96">
+  <link rel="stylesheet" href="../assets/crm.css?v=8740f9d5">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=c3461a69"></script>
-  <script defer src="../assets/crm.js?v=917e8963"></script>
+  <script defer src="../assets/crm.js?v=b2b99d07"></script>
 </head>
 <body class="chat-page crm-page">
 <a class="skip-link" href="#leads">Ir para a lista de leads</a>
@@ -210,7 +210,8 @@
       <label>Teste do WhatsApp: duração em dias <input type="number" min="1" max="365" value="3" data-access-wa-days></label>
       <button type="button" class="btn btn-ghost" data-access-wa>Ativar / renovar teste do WhatsApp</button>
       <button type="button" class="btn btn-ghost" data-access-reset-quota>Reiniciar teste grátis de 3 dias (com motivo)</button>
-      <small>A liberação sem cota é do chat. O WhatsApp continua dependendo do teste ou da assinatura ativa.</small>
+      <small data-teste-wa-off hidden>O teste de 3 dias do agente no WhatsApp está desligado. Para dar o Agentio a este lead sem pagamento, salve o acesso como Liberado: o número do lead entra na lista do agente enquanto a liberação valer.</small>
+      <small>Quem paga o Agentio ou o Combo entra na lista do agente sozinho.</small>
     </section>
     <div class="detail-edit">
       <label>Segmento <input type="text" data-detail-segment maxlength="100" placeholder="Ex.: saúde, varejo"></label>

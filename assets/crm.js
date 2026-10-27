@@ -25,7 +25,8 @@
     admin_restrito: "Só joseedson18@hotmail.com e matheuscastrocorrea@gmail.com podem ser admin.",
     papel_exige_conta: "Admin e colaborador precisam ter conta criada no site.",
     ultimo_admin: "Precisa haver pelo menos um admin.",
-    papel_so_admin: "Só um admin muda o tipo de usuário."
+    papel_so_admin: "Só um admin muda o tipo de usuário.",
+    "teste do agente no WhatsApp está desligado": "O teste de 3 dias do agente no WhatsApp está desligado (revisão legal da campanha). Quem paga o Agentio ou o Combo entra sozinho; para liberar alguém sem pagamento, use Controle de acesso → Liberado no detalhe do lead."
   };
   function erroLegivel(err) {
     var m = String((err && err.message) || "");
@@ -39,6 +40,9 @@
   // Gravações a caminho, por "id|campo": { valor, seq }. Só a mais recente de cada campo vale,
   // e um recarregamento da lista reaplica esses valores por cima do que veio do banco.
   var pendentes = {}, seqGravacao = 0, loadPedido = 0;
+  // Chave app_settings.whatsapp_teste_aberto (migração 20261019130000). null = ainda não lida:
+  // nesse caso nada é escondido e o banco continua barrando o que não pode.
+  var testeWaAberto = null;
 
   function lerPref() { try { return localStorage.getItem(PREF) !== "0"; } catch (e) { return true; } }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -116,6 +120,8 @@
       // e-mails e não depende dele: um erro lá não pode deixar a página em branco.
       var pronto = function () { shell.dataset.state = "ready"; };
       var leads = Promise.all([loadLeads(), papel === "admin" ? loadLimit() : null]).then(pronto, pronto);
+      // Só ajusta a interface: se falhar, nada fica escondido e o banco segue barrando.
+      try { loadTesteWa(); } catch (e) { /* sem a chave, a tela fica como antes */ }
       try { iniciarEmails(); } catch (e) { $("[data-email-connection]").textContent = "Atualização automática indisponível; use o botão Atualizar."; }
       return leads;
     });
@@ -149,6 +155,19 @@
       btn.disabled = false; $("[data-load-error]").hidden = false;
       $("[data-load-error-msg]").textContent = e.message || "erro desconhecido";
     });
+  }
+  // Com o teste do WhatsApp desligado, o CRM não oferece "Pedido", "Ativo" nem "Ativar 3 dias":
+  // o banco recusaria e o admin só veria o erro depois de tentar.
+  function loadTesteWa() {
+    return sb.rpc("teste_whatsapp_aberto").then(function (r) {
+      if (r.error) return;
+      testeWaAberto = r.data === true;
+      document.documentElement.toggleAttribute("data-teste-wa-fechado", testeWaAberto === false);
+      var b = $("[data-access-wa]"); if (b) b.hidden = testeWaAberto === false;
+      var d = $("[data-access-wa-days]"); if (d && d.closest("label")) d.closest("label").hidden = testeWaAberto === false;
+      var h = $("[data-teste-wa-off]"); if (h) h.hidden = testeWaAberto !== false;
+      render();
+    }, function () {});
   }
   function loadLimit() {
     return sb.from("app_settings").select("value").eq("key", "free_trial_days").maybeSingle().then(function (r) {
@@ -303,11 +322,15 @@
 
   function waCell(l) {
     var s = l.whatsapp_trial_status || "nao_solicitado";
-    var sel = "<select " + (eu.papel === "admin" ? "" : "disabled ") + "data-field=\"whatsapp_trial_status\" aria-label=\"Teste WhatsApp\">" + WA.map(function (k) { return "<option value=\"" + k + "\"" + (k === s ? " selected" : "") + ">" + WA_LABEL[k] + "</option>"; }).join("") + "</select>";
+    var fechado = testeWaAberto === false;
+    var sel = "<select " + (eu.papel === "admin" ? "" : "disabled ") + "data-field=\"whatsapp_trial_status\" aria-label=\"Teste WhatsApp\"" + (fechado ? " title=\"Teste de 3 dias desligado: só dá para encerrar\"" : "") + ">" + WA.map(function (k) {
+      var bloq = fechado && k !== s && (k === "solicitado" || k === "ativo");
+      return "<option value=\"" + k + "\"" + (k === s ? " selected" : "") + (bloq ? " disabled" : "") + ">" + WA_LABEL[k] + (bloq ? " (desligado)" : "") + "</option>";
+    }).join("") + "</select>";
     var num = l.whatsapp_numero ? telHtml(l.whatsapp_numero) : "";
     var extra = "";
     // Quem pediu, ou quem só deixou telefone no cadastro, pode ser ativado direto daqui.
-    if (eu.papel === "admin" && (s === "solicitado" || (s === "nao_solicitado" && (l.whatsapp_numero || l.telefone)))) extra = "<button type=\"button\" class=\"wa-go\" data-wa-activate>Ativar 3 dias</button>";
+    if (eu.papel === "admin" && !fechado && (s === "solicitado" || (s === "nao_solicitado" && (l.whatsapp_numero || l.telefone)))) extra = "<button type=\"button\" class=\"wa-go\" data-wa-activate>Ativar 3 dias</button>";
     if (s === "ativo") extra = (l.whatsapp_trial_ends_at ? "<small>até " + fmt(l.whatsapp_trial_ends_at) + "</small>" : "") + avisoHtml(l);
     return sel + num + extra;
   }

@@ -747,3 +747,13 @@ h1 .grad { font-weight: var(--heading-soft-weight); }
 .plan .price strong { font-size: clamp(32px, 2.8vw, 40px); font-variant-numeric: tabular-nums; }
 .plan .perday { margin: 4px 0 8px; padding: 0; border: 0; border-radius: 0; font-size: 12.5px; letter-spacing: .02em; font-variant-numeric: tabular-nums; color: var(--accent-text); }
 .plan .note { margin-bottom: 22px; font-size: 14px; line-height: 1.5; color: var(--muted-strong); }
+
+/* Campo de LEDs do site (assets/led-field.js), o mesmo do /modelos */
+.hero-field { position: absolute; inset: 0; opacity: .92; overflow: hidden; }
+.hero-field canvas { inset: 0; width: 100% !important; max-width: 100% !important; height: 100% !important; box-sizing: border-box; }
+.hero-field::after { position: absolute; inset: 0; background: radial-gradient(circle at 50% 48%, transparent 0, rgba(var(--bg-rgb), .08) 38%, rgba(var(--bg-rgb), .94) 84%); content: ""; }
+/* Herói com o campo de LEDs azuis (assets/led-field.js) atrás do conteúdo:
+   o canvas fica num z-index negativo dentro de um contexto isolado, então
+   nada do herói precisa de z-index próprio. */
+.led-hero { position: relative; isolation: isolate; overflow: hidden; }
+.led-hero > .hero-field { z-index: -1; pointer-events: none; }

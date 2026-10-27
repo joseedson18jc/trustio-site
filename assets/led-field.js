@@ -15,6 +15,9 @@ class TrustioDotField {
     this.animationFrame = 0;
     this.startTime = performance.now();
     this.pointer = { x: 0, y: 0, active: false, lastMove: 0 };
+    // Brilho por página (data-brilho no .hero-field): 1 é o /modelos; as páginas
+    // mais importantes vêm mais acesas. Limitado entre 0,5 e 2.
+    this.brilho = Math.max(0.5, Math.min(2, parseFloat(this.parent.dataset.brilho) || 1));
     // Energia do campo: o scroll "carrega" os LEDs (0..1) e decai sozinho.
     // No celular, sem ponteiro, é o scroll que acende o fundo.
     this.energy = 0;
@@ -103,6 +106,9 @@ class TrustioDotField {
     this.canvas.style.maxWidth = "100%";
     this.canvas.style.height = "100%";
     this.context.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    // Redimensionar apaga o canvas; com "reduzir movimento" não há loop para
+    // redesenhar, então o quadro parado é refeito aqui.
+    if (reducedMotion.matches && this.context) this.draw(performance.now());
   }
 
   draw(time) {
@@ -150,12 +156,12 @@ class TrustioDotField {
           ? 0
           : Math.max(0, Math.sin((elapsed + x * 12 + y * 8) / cycle * Math.PI * 2) - 0.74) * 0.16;
         // base + onda + energia do scroll + halo do cursor + cintilação
-        const alpha = Math.min(0.95,
+        const alpha = Math.min(0.95, this.brilho * (
           (this.isManifesto ? 0.14 : 0.22)
           + wave * (0.66 + energy * 0.3)
           + energy * 0.28
           + halo * 0.62
-          + shimmer);
+          + shimmer));
         const radius = (this.isManifesto ? 1.1 : 1.25)
           + wave * (1.6 + energy * 0.9)
           + energy * 0.7
@@ -166,14 +172,14 @@ class TrustioDotField {
         ctx.beginPath();
         ctx.fillStyle = hot > 0.25
           ? `rgba(${Math.round(94 + hot * 120)}, ${Math.round(167 + hot * 70)}, 255, ${alpha})`
-          : `rgba(96, 118, 152, ${Math.min(0.5, alpha)})`;
+          : `rgba(96, 118, 152, ${Math.min(0.5 * this.brilho, 0.75, alpha)})`;
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fill();
 
         // halo difuso dos LEDs mais acesos (onda no pico, cursor ou scroll)
         if (hot > 0.5) {
           ctx.beginPath();
-          ctx.fillStyle = `rgba(94, 167, 255, ${(hot - 0.5) * (0.2 + energy * 0.14)})`;
+          ctx.fillStyle = `rgba(94, 167, 255, ${Math.min(0.6, (hot - 0.5) * (0.2 + energy * 0.14) * this.brilho)})`;
           ctx.arc(x, y, radius * 4.2, 0, Math.PI * 2);
           ctx.fill();
         }
@@ -190,7 +196,7 @@ class TrustioDotField {
         for (let j = i + 1; j < near.length; j += 1) {
           const d = Math.hypot(near[i].x - near[j].x, near[i].y - near[j].y);
           if (d < step * 2.05) {
-            const la = Math.min(0.4, (near[i].b + near[j].b) * 0.22 * (1 - d / (step * 2.05)));
+            const la = Math.min(0.55, (near[i].b + near[j].b) * 0.22 * this.brilho * (1 - d / (step * 2.05)));
             if (la <= 0.02) continue;
             ctx.beginPath();
             ctx.strokeStyle = `rgba(94, 167, 255, ${la})`;

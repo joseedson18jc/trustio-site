@@ -421,9 +421,9 @@
 [data-theme="light"] .afil-field select { background: var(--white); }
 [data-theme="light"] .afil-sim input[type="range"]::-webkit-slider-thumb { border-color: var(--white); }
 [data-theme="light"] .afil-note b,
-[data-theme="light"] .afil-strip b,
 [data-theme="light"] .afil-sim output,
 [data-theme="light"] .afil-card code { color: var(--blue); }
+[data-theme="light"] .afil-strip b { color: var(--blue-signal); }
 
 @media (max-width: 1023px) {
   .afil-hero-grid { grid-template-columns: 1fr; }

@@ -50,7 +50,7 @@ const MARCAS = new Set([
   "SLA", "CRM", "CSV", "PDF", "Starter", "Pro", "Dedicado", "br-sao-1",
   "Gmail", "Outlook", "powered by xSpace", "Agentio", "Agentio · Nous", "Nous Research", "Hermes Agent", "by", "Agent Builder", "SAFE ROUTE", "TRUSTIO / SAFE ROUTE",
   // a própria bandeira: é reescrita depois da tradução
-  "EN", "PT", "Idioma atual: português. Mudar para inglês", "Mudar para inglês (English)",
+  "EN", "PT", "PT, idioma atual: português. Mudar para inglês", "Mudar para inglês (English)",
 ]);
 
 // ─────────────────────────────────────────────────────────────── entidades
@@ -143,8 +143,8 @@ const SETAS_TROCA = '<svg class="lang-switch-troca" viewBox="0 0 16 16" aria-hid
 
 function bandeira(pagina, idioma) {
   return idioma === "pt"
-    ? `<a class="lang-switch" href="/en/${bonito(pagina)}" hreflang="en" aria-label="Idioma atual: português. Mudar para inglês" title="Mudar para inglês (English)">${BANDEIRA_BR}<span>PT</span>${SETAS_TROCA}</a>`
-    : `<a class="lang-switch" href="/${bonito(pagina)}" hreflang="pt-BR" aria-label="Current language: English. Switch to Portuguese" title="Switch to Portuguese (Português)">${BANDEIRA_US}<span>EN</span>${SETAS_TROCA}</a>`;
+    ? `<a class="lang-switch" href="/en/${bonito(pagina)}" hreflang="en" aria-label="PT, idioma atual: português. Mudar para inglês" title="Mudar para inglês (English)">${BANDEIRA_BR}<span>PT</span>${SETAS_TROCA}</a>`
+    : `<a class="lang-switch" href="/${bonito(pagina)}" hreflang="pt-BR" aria-label="EN, current language: English. Switch to Portuguese" title="Switch to Portuguese (Português)">${BANDEIRA_US}<span>EN</span>${SETAS_TROCA}</a>`;
 }
 
 const alternativos = (pagina) =>

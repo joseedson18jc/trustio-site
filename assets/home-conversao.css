@@ -86,7 +86,7 @@
   font-family: var(--mono); font-size: 12px; letter-spacing: 0.02em;
   color: var(--muted-strong); word-break: break-word;
 }
-.home-prova-item a { color: var(--blue-signal); text-decoration: none; font-size: 14px; }
+.home-prova-item a { display: inline-flex; align-items: center; min-height: 32px; color: var(--blue-signal); text-decoration: none; font-size: 14px; }
 .home-prova-item a:hover, .home-prova-item a:focus-visible { text-decoration: underline; }
 
 /* A ressalva fecha a seção: dizer o que ainda não temos é parte da prova. */

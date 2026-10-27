@@ -86,3 +86,22 @@ test('consulta de convite antigo não sobrescreve outra ficha nem reabertura',as
   ctx.carregarConvite(l);ctx.dlg.dataset.id='other';pending[2]({data:{fim:'2099-01-01',enviado_em:'old'}});await new Promise(r=>setImmediate(r));
   assert.equal($('[data-invite-status]').textContent,'Consultando último convite…');
 });
+
+test('teste do WhatsApp desligado: a célula só oferece encerrar e some o "Ativar 3 dias"', () => {
+  const ctx = { eu:{papel:'admin'}, WA:['nao_solicitado','solicitado','ativo','encerrado'],
+    WA_LABEL:{nao_solicitado:'Não pediu',solicitado:'Pedido',ativo:'Ativo',encerrado:'Encerrado'},
+    telHtml:n=>n, fmt:d=>d, avisoHtml:()=>'', testeWaAberto:false };
+  vm.createContext(ctx);
+  vm.runInContext(func('  function waCell(l)', '  // Avisos da ativação'), ctx);
+  const fechado = ctx.waCell({whatsapp_trial_status:'encerrado', whatsapp_numero:'11999999999'});
+  assert.match(fechado, /value="ativo" disabled>Ativo \(desligado\)/);
+  assert.match(fechado, /value="solicitado" disabled>/);
+  assert.doesNotMatch(fechado, /value="encerrado" disabled/);
+  assert.doesNotMatch(ctx.waCell({whatsapp_trial_status:'nao_solicitado', telefone:'11999999999'}), /Ativar 3 dias/);
+  // Um teste que já está ativo continua selecionado e pode ser encerrado.
+  assert.match(ctx.waCell({whatsapp_trial_status:'ativo'}), /value="ativo" selected>Ativo</);
+  ctx.testeWaAberto = true;
+  const aberto = ctx.waCell({whatsapp_trial_status:'nao_solicitado', telefone:'11999999999'});
+  assert.doesNotMatch(aberto, / disabled/);
+  assert.match(aberto, /Ativar 3 dias/);
+});

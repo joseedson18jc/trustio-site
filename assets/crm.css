@@ -286,3 +286,6 @@ table.leads { width: 100%; min-width: 1120px; border-collapse: separate; border-
 .pr-hist::backdrop { background: rgba(0, 0, 0, 0.55); }
 .pr-hist ol { list-style: none; padding: 0; margin: 14px 0; display: grid; gap: 8px; font-size: 13px; max-height: 60vh; overflow: auto; }
 .pr-hist li small { color: var(--label-color); }
+
+/* Teste do WhatsApp desligado: o botão e o campo de dias somem (o .btn tem display próprio). */
+.admin-acesso [hidden] { display: none !important; }

@@ -214,6 +214,13 @@
       c.textContent = L.filter(function (l) { return passaFiltro(l, f); }).length;
       b.setAttribute("aria-pressed", f === state.filter ? "true" : "false");
     });
+    // Filtro ativo dentro de "Mais filtros": o painel abre e o resumo mostra qual é.
+    var mais = $("[data-mais-filtros]");
+    if (mais) {
+      var ativo = mais.querySelector('[aria-pressed="true"]');
+      if (ativo) mais.open = true;
+      mais.classList.toggle("tem-ativo", Boolean(ativo));
+    }
     document.querySelectorAll("[data-stat-filter]").forEach(function (s) {
       s.classList.toggle("is-on", s.dataset.statFilter === state.filter);
     });
@@ -472,6 +479,14 @@
     render();
   });
   $("[data-refresh]").addEventListener("click", function () { loadLeads(); });
+  // Visão geral começa fechada (a lista vem primeiro); quem abrir, encontra aberta na próxima vez.
+  var visao = $("[data-visao]");
+  if (visao) {
+    try { if (localStorage.getItem("trustio-crm-visao") === "1") visao.open = true; } catch (e) { /* sem storage */ }
+    visao.addEventListener("toggle", function () {
+      try { localStorage.setItem("trustio-crm-visao", visao.open ? "1" : "0"); } catch (e) { /* sem storage */ }
+    });
+  }
   $("[data-retry]").addEventListener("click", function () { loadLeads(); });
   document.querySelectorAll("th[data-sort] button").forEach(function (b) {
     b.addEventListener("click", function () {

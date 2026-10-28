@@ -9,7 +9,9 @@
  * ferramentas), o tempo é contado e a conversa é desligada no teto.
  *
  * Só para assinantes (voz_acesso_livre = 'livre', e-mail confirmado). O relé reserva os segundos
- * da sessão (reservar_voz_tempo_real) e devolve o que sobrou ao terminar.
+ * em blocos (reservar_voz_tempo_real, VOZ_TEMPO_REAL_BLOCO_S, padrão 120 s), pede o próximo 30 s
+ * antes de o atual acabar e devolve o que sobrou ao terminar. Se o worker morrer no meio (limite de
+ * CPU, deploy), só o bloco em curso fica sem devolver.
  *
  * Rotas (chamadas por index.js):
  *   GET /voz/tempo-real                     situação para o botão (Authorization: Bearer <token do Supabase>)
@@ -41,6 +43,12 @@ const SAUDACAO = "Oi! Pode falar, estou ouvindo.";
 const inteiro = (v, padrao, min) => Math.max(min, Math.floor(Number(v)) || padrao);
 const limiteDia = (env) => inteiro(env.VOZ_TEMPO_REAL_LIMITE_S, 3600, 60);
 const maxSessao = (env) => inteiro(env.VOZ_TEMPO_REAL_MAX_S, 900, 30);
+// Reserva em blocos: se o worker morrer no meio (limite de CPU, deploy), só o bloco atual fica sem devolver.
+const bloco = (env) => inteiro(env.VOZ_TEMPO_REAL_BLOCO_S, 120, 30);
+const ANTECEDENCIA_S = 30;            // pede o próximo bloco 30 s antes de o atual acabar
+const MIN_RESERVA_S = 10;             // reservar_voz_tempo_real recusa menos que isso
+const NOVA_TENTATIVA_MS = 5_000;      // renovação que falhou na rede tenta de novo
+const ESPERA_RENOVACAO_MS = 5_000;    // no fim, espera a renovação em curso até isso
 
 export function taxaPedida(url) {
   const t = Number(url.searchParams.get("taxa"));
@@ -106,8 +114,11 @@ function enviar(ws, dado) {
  * navegador mandou durante o login. aoFim(segundosUsados, motivo) roda uma vez só, quando qualquer
  * lado fecha ou o tempo acaba. Se o navegador já fechou, a sessão termina na hora.
  */
-export function rele({ cliente, xai: xaiInicial, segundos, taxa, env, aoFim, antes = [], agora = Date.now, relogio = setTimeout }) {
+export function rele({ cliente, xai: xaiInicial, segundos, total = segundos, renovar = null, taxa, env, aoFim, antes = [],
+  agora = Date.now, relogio = setTimeout }) {
   const inicio = agora();
+  let concedido = segundos;           // segundos já reservados no banco para esta sessão
+  const decorrido = () => agora() - inicio;
   let xai = xaiInicial;
   const pedirBuffer = (ws) => { try { ws.binaryType = "arraybuffer"; } catch { /* runtime sem binaryType */ } };
   pedirBuffer(cliente);
@@ -120,7 +131,44 @@ export function rele({ cliente, xai: xaiInicial, segundos, taxa, env, aoFim, ant
     enviar(cliente, JSON.stringify({ type: "trustio.fim", motivo }));
     try { cliente.close(motivo === "limite" ? 4000 : 1000, motivo); } catch { /* já fechado */ }
     try { xai?.close(1000, motivo); } catch { /* já fechado */ }
-    aoFim(Math.ceil((agora() - inicio) / 1000), motivo);
+    const usados = Math.min(concedido, Math.ceil(decorrido() / 1000));
+    // Uma renovação em curso pode ainda reservar um bloco: espera por ela (até 5 s) para devolver tudo.
+    if (!pendente) { aoFim(usados, motivo, concedido); return; }
+    Promise.race([pendente, new Promise((r) => relogio(r, ESPERA_RENOVACAO_MS))])
+      .then(() => aoFim(usados, motivo, concedido));
+  }
+
+  // Teto: confere quando o bloco atual acaba; se ele foi renovado nesse meio tempo, remarca.
+  function teto() {
+    if (acabou) return;
+    const falta = concedido * 1000 - decorrido();
+    if (falta <= 0) fim("limite");
+    else relogio(teto, falta);
+  }
+  // Renovação: 30 s antes do fim do bloco, pede o próximo (sem passar do total planejado).
+  let pendente = null;
+  function renovarAntes() {
+    if (acabou || !renovar || pendente) return;
+    const pedir = Math.min(bloco(env), total - concedido);
+    if (pedir < MIN_RESERVA_S) return;  // o banco não reserva menos de 10 s: a sessão acaba no concedido
+    const falta = (concedido - ANTECEDENCIA_S) * 1000 - decorrido();
+    if (falta > 0) { relogio(renovarAntes, falta); return; }
+    let chamada;
+    try { chamada = Promise.resolve(renovar(pedir)); } catch (e) { chamada = Promise.reject(e); }
+    pendente = chamada.then(
+      (n) => {
+        pendente = null;
+        // Conta o bloco mesmo se a sessão já acabou: ele foi reservado e precisa ser devolvido.
+        const ganhou = Math.max(0, Math.floor(Number(n)) || 0);
+        concedido += ganhou;
+        if (ganhou) renovarAntes();   // sem ganho: recusado, a sessão termina no que já foi concedido
+      },
+      (e) => {
+        pendente = null;
+        console.error("voz_tempo_real_renovar", String(e));
+        // Falha de rede: tenta de novo em 5 s enquanto ainda há tempo no bloco atual.
+        if (!acabou && concedido * 1000 - decorrido() > NOVA_TENTATIVA_MS) relogio(renovarAntes, NOVA_TENTATIVA_MS);
+      });
   }
 
   cliente.addEventListener("message", (ev) => {
@@ -134,7 +182,8 @@ export function rele({ cliente, xai: xaiInicial, segundos, taxa, env, aoFim, ant
   cliente.addEventListener("error", () => fim("navegador"));
   if (cliente.readyState !== 1) fim("navegador");
 
-  relogio(() => fim("limite"), segundos * 1000);
+  relogio(teto, concedido * 1000);
+  renovarAntes();
   const vigia = () => {
     if (acabou) return;
     if (agora() - ultimoAudio > INATIVO_MS) fim("inativo");
@@ -151,7 +200,7 @@ export function rele({ cliente, xai: xaiInicial, segundos, taxa, env, aoFim, ant
       xai.addEventListener("message", (ev) => {
         if (!configurada && typeof ev.data === "string" && ev.data.includes("\"session.updated\"")) {
           configurada = true;
-          enviar(cliente, JSON.stringify({ type: "trustio.pronto", segundos }));
+          enviar(cliente, JSON.stringify({ type: "trustio.pronto", segundos: total }));
           enviar(xai, JSON.stringify({ type: "conversation.item.create", item: {
             type: "force_message", role: "assistant", interruptible: true,
             content: [{ type: "output_text", text: SAUDACAO }],
@@ -195,6 +244,21 @@ async function rpc(env, f, nome, args) {
  * (que confere assinante, acesso não revogado, chat aberto e o teto do dia).
  * Devolve { ok: true, usuario, reserva } ou { ok: false, motivo }.
  */
+/**
+ * Quanto devolver de cada bloco reservado: a sobra sai dos blocos mais novos primeiro, cada um no
+ * seu dia (uma ligação pode passar da meia-noite). blocos = [{ dia, segundos }], na ordem reservada.
+ */
+export function devolucoes(blocos, sobra) {
+  const saida = [];
+  let resta = Math.max(0, Math.floor(sobra) || 0);
+  for (let i = blocos.length - 1; i >= 0 && resta > 0; i--) {
+    const n = Math.min(resta, blocos[i].segundos);
+    if (n > 0) saida.push({ dia: blocos[i].dia, segundos: n });
+    resta -= n;
+  }
+  return saida;
+}
+
 export async function prepararSessao(token, env, f = fetch) {
   if (!env.VOZ_XAI_API_KEY) return { ok: false, motivo: "nao_configurada" };
   let u = null;
@@ -203,10 +267,12 @@ export async function prepararSessao(token, env, f = fetch) {
   if (!u.email_confirmed_at) return { ok: false, motivo: "email_nao_confirmado" };
   let reserva = null;
   try {
-    reserva = await rpc(env, f, "reservar_voz_tempo_real", { p_user_id: u.id, p_segundos: maxSessao(env), p_limite: limiteDia(env) });
+    reserva = await rpc(env, f, "reservar_voz_tempo_real", { p_user_id: u.id, p_segundos: Math.min(bloco(env), maxSessao(env)), p_limite: limiteDia(env) });
   } catch (e) { console.error("voz_tempo_real_reserva", String(e)); }
   if (!reserva?.ok) return { ok: false, motivo: reserva?.error || "indisponivel" };
-  return { ok: true, usuario: u, reserva };
+  // Sessão planejada: o teto por sessão, sem passar do que resta no dia.
+  const total = Math.min(maxSessao(env), reserva.segundos + Math.max(0, Number(reserva.restante) || 0));
+  return { ok: true, usuario: u, reserva, total };
 }
 
 export async function situacao(token, env, f = fetch) {
@@ -273,10 +339,18 @@ export async function vozTempoReal(req, env, ctx, origin, { json, ORIGENS }) {
     if (!JWT.test(token)) return recusar("nao_autorizado");
     const xaiPromessa = abrirXai(env).catch((e) => { console.error("voz_tempo_real_xai", String(e)); return null; });
     const p = await prepararSessao(token, env, fetch);
-    const devolver = async (segundos) => {
-      if (!p.ok || segundos <= 0) return;
-      try { await rpc(env, fetch, "devolver_voz_tempo_real", { p_user_id: p.usuario.id, p_dia: p.reserva.dia, p_segundos: segundos }); }
-      catch (e) { console.error("voz_tempo_real_devolver", String(e)); }
+    const blocos = p.ok ? [{ dia: p.reserva.dia, segundos: p.reserva.segundos }] : [];
+    const devolver = async (sobra) => {
+      for (const d of devolucoes(blocos, sobra)) {
+        try { await rpc(env, fetch, "devolver_voz_tempo_real", { p_user_id: p.usuario.id, p_dia: d.dia, p_segundos: d.segundos }); }
+        catch (e) { console.error("voz_tempo_real_devolver", String(e)); }
+      }
+    };
+    const renovar = async (pedir) => {
+      const r = await rpc(env, fetch, "reservar_voz_tempo_real", { p_user_id: p.usuario.id, p_segundos: pedir, p_limite: limiteDia(env) });
+      if (!r?.ok) { console.log(JSON.stringify({ voz_tempo_real: "renovacao_recusada", motivo: r?.error })); return 0; }
+      blocos.push({ dia: r.dia, segundos: r.segundos });
+      return r.segundos;
     };
     if (!p.ok || desistiu) {
       (await xaiPromessa)?.close(1000, "fim");
@@ -288,10 +362,12 @@ export async function vozTempoReal(req, env, ctx, origin, { json, ORIGENS }) {
     let encerrar;
     const terminou = new Promise((r) => { encerrar = r; });
     const r = rele({
-      cliente: servidor, xai: null, segundos: p.reserva.segundos, taxa, env, antes,
-      aoFim: (usados, motivo) => {
-        console.log(JSON.stringify({ voz_tempo_real: "fim", usados, motivo }));
-        devolver(p.reserva.segundos - usados).finally(encerrar);
+      cliente: servidor, xai: null, segundos: p.reserva.segundos, total: p.total, renovar, taxa, env, antes,
+      aoFim: (usados, motivo, concedido) => {
+        console.log(JSON.stringify({ voz_tempo_real: "fim", usados, motivo, concedido }));
+        // Devolve pelo que foi de fato reservado no banco (inclui um bloco que chegou depois do fim).
+        const reservado = blocos.reduce((t, b) => t + b.segundos, 0);
+        devolver(reservado - usados).finally(encerrar);
       },
     });
     const xai = await xaiPromessa;

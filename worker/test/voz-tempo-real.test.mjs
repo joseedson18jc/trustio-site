@@ -1,6 +1,6 @@
 // Relé da voz em tempo real (worker/src/voz-tempo-real.js), com sockets e fetch simulados: nada sai para a rede.
 import {
-  XAI_REALTIME, filtrarDaXai, filtrarDoCliente, prepararSessao, rele, sessaoTrustio, situacao, taxaPedida, tokenDoProtocolo,
+  XAI_REALTIME, devolucoes, filtrarDaXai, filtrarDoCliente, prepararSessao, rele, sessaoTrustio, situacao, taxaPedida, tokenDoProtocolo,
 } from "../src/voz-tempo-real.js";
 
 let falhas = 0;
@@ -83,11 +83,14 @@ ok(filtrarDaXai(JSON.stringify({ type: "response.output_audio_transcript.delta",
   ok(xai.enviados.some(d => typeof d === "string" && json(d).item?.type === "force_message"), "relé manda a saudação curta");
   const teto = timers.find(t => t.ms === 900 * 1000);
   ok(!!teto, "relógio do teto marcado em 900 s");
-  agora = 125_400;  // 125,4 s depois
+  agora = 899_400;  // 899,4 s depois: o relógio dispara antes da hora e remarca
   teto.f();
+  ok(!cliente.fechado, "relógio adiantado não encerra antes do concedido");
+  agora = 900_000;
+  timers[timers.length - 1].f();
   ok(cliente.fechado && xai.fechado, "no teto o relé fecha os dois lados");
   ok(cliente.enviados.map(d => json(d)).some(e => e.type === "trustio.fim" && e.motivo === "limite"), "navegador fica sabendo que acabou o tempo");
-  ok(usados && usados.u === 126 && usados.m === "limite", "conta 126 s usados (arredonda para cima)");
+  ok(usados && usados.u === 900 && usados.m === "limite", "conta os 900 s usados");
 }
 
 // ---- relé: o navegador fecha, a xAI fecha junto, aoFim uma vez só
@@ -150,9 +153,11 @@ ok(filtrarDaXai(JSON.stringify({ type: "response.output_audio_transcript.delta",
   }
   m = montar();
   const certo = await prepararSessao("tok", env, m.f);
-  ok(certo.ok && certo.usuario.id === "u1" && certo.reserva.segundos === 900, "assinante: sessão reservada");
+  ok(certo.ok && certo.usuario.id === "u1" && certo.reserva.segundos === 900, "assinante: primeiro bloco reservado");
   const rpcReserva = m.chamadas.find(c => c.u.includes("/rpc/reservar_voz_tempo_real"));
-  ok(rpcReserva && rpcReserva.corpo.p_segundos === 900 && rpcReserva.corpo.p_limite === 3600, "reserva pede 900 s com teto diário de 3600 s");
+  ok(rpcReserva && rpcReserva.corpo.p_segundos === 120 && rpcReserva.corpo.p_limite === 3600, "reserva só o primeiro bloco (120 s), com teto diário de 3600 s");
+  ok(certo.total === 900, "sessão planejada: 900 s (cabe no que resta do dia)");
+  ok((await prepararSessao("tok", env, montar({ reserva: { ok: true, segundos: 120, dia: "2026-10-28", restante: 200 } }).f)).total === 320, "sessão planejada encolhe ao que resta do dia");
   const caiu = await prepararSessao("tok", env, async (u) => { if (String(u).endsWith("/auth/v1/user")) throw new Error("rede"); });
   ok(caiu.motivo === "nao_autorizado", "Supabase fora do ar: recusa sem estourar");
 }
@@ -175,6 +180,126 @@ ok(filtrarDaXai(JSON.stringify({ type: "response.output_audio_transcript.delta",
   const r = rele({ cliente, xai: null, segundos: 60, taxa: 24000, env: {}, agora: () => 0, relogio: () => 0, aoFim: () => {}, antes });
   r.xaiPronta(xai);
   ok(xai.enviados.filter(d => d instanceof Uint8Array).length === 2, "os 2 blocos de áudio do login chegam; o session.update não");
+}
+
+// ---- relé em blocos: renova antes de acabar, para no que foi concedido, devolve só a sobra
+{
+  const cliente = socketFalso(), xai = socketFalso();
+  let agora = 0; const timers = [];
+  const relogio = (f, ms) => { timers.push({ f, ms, em: agora + ms }); return timers.length; };
+  const disparar = async (ate) => {
+    // roda, em ordem, os timers que vencem até `ate` (inclusive os que eles mesmos marcam)
+    for (;;) {
+      timers.sort((a, b) => a.em - b.em);
+      const t = timers[0];
+      if (!t || t.em > ate) break;
+      timers.shift(); agora = t.em; t.f(); await new Promise((r) => setTimeout(r, 0));
+    }
+    agora = ate;
+  };
+  const pedidos = []; let resposta = 120, fimInfo = null;
+  const r = rele({ cliente, xai, segundos: 120, total: 300, taxa: 24000, env: {}, agora: () => agora, relogio,
+    renovar: async (n) => { pedidos.push(n); return resposta; },
+    aoFim: (u, m, concedido) => { fimInfo = { u, m, concedido }; } });
+  r.xaiPronta();
+  // a pessoa segue falando: o vigia de inatividade não pode desligar
+  const falar = setInterval(() => cliente.emitir("message", { data: new Uint8Array(960) }), 0);
+  xai.emitir("message", { data: JSON.stringify({ type: "session.updated", session: {} }) });
+  const pronto = cliente.enviados.map(d => json(d)).find(e => e.type === "trustio.pronto");
+  ok(pronto && pronto.segundos === 300, "trustio.pronto mostra a sessão planejada, não só o bloco");
+  const vivo = async (ate) => { for (let t = agora; t < ate; t += 5_000) { await disparar(t); cliente.emitir("message", { data: new Uint8Array(960) }); } await disparar(ate); };
+  await vivo(89_000);
+  ok(pedidos.length === 0, "antes de 90 s não renova");
+  await vivo(91_000);
+  ok(pedidos.length === 1 && pedidos[0] === 120, "30 s antes do fim do bloco pede mais 120 s");
+  await vivo(125_000);
+  ok(!fimInfo, "com o bloco renovado, passa dos 120 s");
+  resposta = 0;  // o dia acabou: a próxima renovação é recusada
+  await vivo(211_000);
+  ok(pedidos.length === 2 && pedidos[1] === 60, "segunda renovação pede só o que falta para os 300 s");
+  await vivo(239_000);
+  ok(!fimInfo, "recusada a renovação, segue até o fim do que já foi concedido");
+  await vivo(241_000);
+  clearInterval(falar);
+  ok(fimInfo && fimInfo.m === "limite" && fimInfo.concedido === 240, "para em 240 s, o que foi concedido");
+  ok(cliente.enviados.map(d => json(d)).some(e => e.type === "trustio.fim" && e.motivo === "limite"), "navegador fica sabendo do fim");
+}
+
+// ---- relé em blocos: renovação que falha (rede) não derruba, só não estende
+{
+  const cliente = socketFalso(), xai = socketFalso();
+  let agora = 0; const timers = [];
+  const relogio = (f, ms) => { timers.push({ f, ms, em: agora + ms }); return timers.length; };
+  let fimInfo = null;
+  const r = rele({ cliente, xai, segundos: 120, total: 900, taxa: 24000, env: {}, agora: () => agora, relogio,
+    renovar: async () => { throw new Error("rede"); }, aoFim: (u, m, c) => { fimInfo = { u, m, c }; } });
+  r.xaiPronta();
+  cliente.close(1000, "tchau");
+  ok(fimInfo && fimInfo.c === 120 && fimInfo.m === "navegador", "fechou cedo: aoFim recebe o concedido (120) para devolver a sobra");
+}
+
+// ---- devolução da sobra: dos blocos mais novos para os mais velhos, cada um no seu dia
+{
+  const b = [{ dia: "2026-10-28", segundos: 120 }, { dia: "2026-10-28", segundos: 120 }, { dia: "2026-10-29", segundos: 60 }];
+  const d = devolucoes(b, 100);
+  ok(d.length === 2 && d[0].dia === "2026-10-29" && d[0].segundos === 60 && d[1].segundos === 40, "sobra de 100 s: 60 do bloco de hoje, 40 do anterior");
+  ok(devolucoes(b, 0).length === 0 && devolucoes(b, -5).length === 0, "sem sobra, nada a devolver");
+  ok(devolucoes(b, 9999).reduce((t, x) => t + x.segundos, 0) === 300, "nunca devolve mais do que foi reservado");
+}
+
+// ---- relé em blocos: a pessoa fecha durante uma renovação; o bloco que chega depois entra na conta
+{
+  const cliente = socketFalso(), xai = socketFalso();
+  let agora = 0; const timers = [];
+  const relogio = (f, ms) => { timers.push({ f, ms, em: agora + ms }); return timers.length; };
+  let soltar; const fimInfo = [];
+  const r = rele({ cliente, xai, segundos: 120, total: 900, taxa: 24000, env: {}, agora: () => agora, relogio,
+    renovar: () => new Promise((res) => { soltar = res; }), aoFim: (u, m, c) => fimInfo.push({ u, m, c }) });
+  r.xaiPronta();
+  agora = 90_000; timers.filter(t => t.em <= 90_000 && t.f.name === "renovarAntes").forEach(t => t.f());
+  ok(typeof soltar === "function", "renovação em curso aos 90 s");
+  agora = 95_000; cliente.close(1000, "tchau");
+  ok(fimInfo.length === 0, "fechou durante a renovação: espera a resposta antes de devolver");
+  soltar(120); await new Promise((r) => setTimeout(r, 0)); await new Promise((r) => setTimeout(r, 0));
+  ok(fimInfo.length === 1 && fimInfo[0].c === 240 && fimInfo[0].u === 95, "o bloco que chegou depois entra no concedido (240) para ser devolvido");
+}
+
+// ---- relé em blocos: erro de rede na renovação tenta de novo; recusa de verdade não
+{
+  const cliente = socketFalso(), xai = socketFalso();
+  let agora = 0; const timers = [];
+  const relogio = (f, ms) => { timers.push({ f, ms, em: agora + ms }); return timers.length; };
+  let tentativas = 0, fimInfo = null;
+  const r = rele({ cliente, xai, segundos: 120, total: 900, taxa: 24000, env: {}, agora: () => agora, relogio,
+    renovar: async () => { tentativas++; if (tentativas === 1) throw new Error("rede"); return 120; },
+    aoFim: (u, m, c) => { fimInfo = { u, m, c }; } });
+  r.xaiPronta();
+  const rodar = async (ate) => {
+    for (;;) {
+      timers.sort((a, b) => a.em - b.em); const t = timers[0];
+      if (!t || t.em > ate) break;
+      timers.shift(); agora = t.em; cliente.emitir("message", { data: new Uint8Array(960) }); t.f();
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    agora = ate;
+  };
+  await rodar(91_000);
+  ok(tentativas === 1, "primeira renovação falhou na rede");
+  await rodar(97_000);
+  ok(tentativas === 2, "tenta de novo 5 s depois");
+  await rodar(125_000);
+  ok(!fimInfo, "com a segunda tentativa, passa do primeiro bloco");
+  cliente.close(1000, "tchau");
+}
+
+// ---- arredonda para cima os segundos usados
+{
+  const cliente = socketFalso(), xai = socketFalso();
+  let agora = 0, fimInfo = null;
+  const r = rele({ cliente, xai, segundos: 120, taxa: 24000, env: {}, agora: () => agora, relogio: () => 0, aoFim: (u) => { fimInfo = u; } });
+  r.xaiPronta();
+  agora = 12_300; cliente.close(1000, "tchau");
+  ok(fimInfo === 13, "12,3 s contam como 13 s");
 }
 
 if (falhas) { console.error(`${falhas} falha(s)`); process.exit(1); }

@@ -77,9 +77,7 @@
     sair.type = "button";
     acoes.appendChild(mudo);
     acoes.appendChild(sair);
-    var nota = el("p", "tr-nota", T("Voz gerada pela xAI (EUA). Use fones para a conversa fluir melhor.",
-      "Voice by xAI (US). Headphones help the conversation flow."));
-    [topo, orbe, estado, falas, acoes, nota].forEach(function (x) { painel.appendChild(x); });
+    [topo, orbe, estado, falas, acoes].forEach(function (x) { painel.appendChild(x); });
     fundo.appendChild(painel);
     document.body.appendChild(fundo);
     return { fundo: fundo, orbe: orbe, estado: estado, falas: falas, mudo: mudo, sair: sair, tempo: tempo };

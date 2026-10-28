@@ -1655,5 +1655,9 @@
     planosUrl: "../planos.html#pessoal"
   });
 
+  if (window.TrustioVozTempoReal) window.TrustioVozTempoReal.iniciar({
+    sb: sb, T: T, EN: EN, showNotice: showNotice, planosUrl: "../planos.html#pessoal"
+  });
+
   boot();
 })();

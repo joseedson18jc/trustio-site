@@ -31,6 +31,7 @@
  */
 
 import { aprovarAfiliado, cadastrarAfiliado, statusIntegracoes, webhookStripe } from "./afiliados.js";
+import { vozTempoReal } from "./voz-tempo-real.js";
 
 const ORIGENS = /^https:\/\/(?:[a-z0-9-]+\.)?trustio\.com\.br$|^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
 
@@ -564,10 +565,15 @@ async function etapaFunil(req, env, origin, { json }) {
 
 // ─────────────────────────────────────────────────────────────── rotas
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const url = new URL(req.url);
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin) });
+
+    // ---- voz em tempo real: situação para o botão (GET) e a conversa (WebSocket), ver voz-tempo-real.js
+    if (url.pathname === "/voz/tempo-real") {
+      return vozTempoReal(req, env, ctx, origin, { json, ORIGENS });
+    }
 
     // ---- saúde: diz o que falta configurar, sem revelar valor nenhum
     if (url.pathname === "/saude" && req.method === "GET") {

@@ -41,15 +41,20 @@
   function cartaoHeavy() { return document.querySelector("[data-modelo-opcoes] input[name='modelo-rapido'][value='trustio-heavy']"); }
 
   // Esconde o atalho quando o controle não existe nesta conta (voz desligada, um modelo só).
-  var cartoes = { voz: box.querySelector("[data-atalho='voz']"), heavy: box.querySelector("[data-atalho='heavy']") };
+  function mostrar(el, visivel) { if (el && el.hidden === !!visivel) el.hidden = !visivel; }
+  function botaoAoVivo() { var b = document.querySelector(".composer .tr-abrir"); return b && !b.hidden ? b : null; }
+  var cartoes = { voz: box.querySelector("[data-atalho='voz']"), heavy: box.querySelector("[data-atalho='heavy']"),
+    aoVivo: box.querySelector("[data-atalho='tempo-real']") };
   function atualizar() {
-    if (cartoes.voz) cartoes.voz.hidden = !botaoVoz();
-    if (cartoes.heavy) cartoes.heavy.hidden = !cartaoHeavy();
+    // Só escreve quando muda: o observador abaixo também vê o atributo hidden.
+    mostrar(cartoes.aoVivo, botaoAoVivo());
+    mostrar(cartoes.voz, botaoVoz());
+    mostrar(cartoes.heavy, cartaoHeavy());
   }
   atualizar();
   var composer = document.querySelector("[data-composer]");
   if (composer && "MutationObserver" in window) {
-    new MutationObserver(atualizar).observe(composer.parentNode || composer, { childList: true, subtree: true });
+    new MutationObserver(atualizar).observe(composer.parentNode || composer, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden"] });
   }
 
   box.addEventListener("click", function (e) {
@@ -66,6 +71,9 @@
     if (acao === "arquivo") {
       var anexo = document.querySelector("[data-attach]");
       if (anexo) anexo.click();
+    } else if (acao === "tempo-real") {
+      var aoVivo = botaoAoVivo();
+      if (aoVivo) aoVivo.click(); else focarCaixa();
     } else if (acao === "voz") {
       var voz = botaoVoz();
       if (voz) voz.click(); else focarCaixa();

@@ -40,7 +40,6 @@ body.chat-v2 .tr-abrir { width: 38px; height: 38px; border-color: transparent; }
 .tr-btn-mudo[aria-pressed="true"] { background: rgba(var(--on-surface-rgb), 0.12); }
 .tr-btn-sair { border: 0; background: var(--danger); color: #fff; }
 .tr-acoes button:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 2px; }
-.tr-nota { margin: 0; font-size: 0.78rem; color: var(--muted); text-align: center; }
 
 /* O atalho especial na tela de boas-vindas do chat */
 .atalho.atalho-especial { border-color: var(--line-bright); background: var(--card-gradient-featured, var(--chat-card)); }

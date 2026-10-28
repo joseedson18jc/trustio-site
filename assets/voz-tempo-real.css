@@ -41,7 +41,57 @@ body.chat-v2 .tr-abrir { width: 38px; height: 38px; border-color: transparent; }
 .tr-btn-sair { border: 0; background: var(--danger); color: #fff; }
 .tr-acoes button:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 2px; }
 
-/* O atalho especial na tela de boas-vindas do chat */
-.atalho.atalho-especial { border-color: var(--line-bright); background: var(--card-gradient-featured, var(--chat-card)); }
-.atalho-novo { margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: 10px; font-weight: 700;
-  letter-spacing: 0.03em; vertical-align: 2px; background: var(--cta-gradient); color: #fff; }
+/* O atalho especial na tela de boas-vindas do chat: borda de luz girando, brilho que respira,
+   ícone aceso com ondas e selo "Novo" com reflexo. Sem animação para quem pede menos movimento. */
+@property --tr-ang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.atalho.atalho-especial, body.chat-v2 .atalho.atalho-especial {
+  position: relative; isolation: isolate; overflow: hidden; border-color: transparent;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.22), rgba(94, 167, 255, 0.08) 45%, rgba(168, 136, 255, 0.14));
+  box-shadow: 0 0 0 1px rgba(94, 167, 255, 0.18), 0 12px 38px -14px rgba(94, 167, 255, 0.7);
+  animation: tr-respira 3.2s ease-in-out infinite;
+}
+.atalho.atalho-especial::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; padding: 1.5px; border-radius: inherit; pointer-events: none;
+  background: conic-gradient(from var(--tr-ang), #2563eb, #5ea7ff, #c9e6ff, #a888ff, #3ddc97, #2563eb);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: tr-borda 4s linear infinite;
+}
+.atalho.atalho-especial::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%; z-index: -1; pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.13), transparent);
+  transform: skewX(-18deg); animation: tr-reflexo 5.5s ease-in-out infinite;
+}
+.atalho.atalho-especial:hover, body.chat-v2 .atalho.atalho-especial:hover {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(94, 167, 255, 0.12) 45%, rgba(168, 136, 255, 0.2));
+  box-shadow: 0 0 0 1px rgba(94, 167, 255, 0.35), 0 16px 44px -12px rgba(94, 167, 255, 0.9);
+  transform: translateY(-1px);
+}
+.atalho.atalho-especial .atalho-ico, body.chat-v2 .atalho.atalho-especial .atalho-ico {
+  position: relative; background: linear-gradient(135deg, #1d4ed8, #3b82f6 55%, #7cc0ff); color: #fff;
+  box-shadow: 0 0 18px rgba(94, 167, 255, 0.65);
+}
+.atalho.atalho-especial .atalho-ico::after {
+  content: ""; position: absolute; inset: -3px; border-radius: 13px; border: 2px solid rgba(94, 167, 255, 0.55);
+  animation: tr-onda 2s ease-out infinite; pointer-events: none;
+}
+.atalho.atalho-especial .atalho-ico svg { stroke-width: 2.1; }
+.atalho.atalho-especial b { color: var(--text-strong, #fff); }
+.atalho-novo { position: relative; overflow: hidden; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.04em; vertical-align: 2px; background: linear-gradient(135deg, #1d4ed8, #3b82f6 55%, #7cc0ff); color: #fff;
+  box-shadow: 0 0 12px rgba(94, 167, 255, 0.7); }
+.atalho-novo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+  transform: translateX(-120%); animation: tr-selo 3s ease-in-out infinite; }
+@keyframes tr-borda { to { --tr-ang: 360deg; } }
+@keyframes tr-respira { 50% { box-shadow: 0 0 0 1px rgba(94, 167, 255, 0.3), 0 14px 46px -10px rgba(94, 167, 255, 0.95); } }
+@keyframes tr-reflexo { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+@keyframes tr-onda { 0% { transform: scale(0.92); opacity: 0.9; } 100% { transform: scale(1.35); opacity: 0; } }
+@keyframes tr-selo { 0%, 60% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+html[data-theme="light"] .atalho.atalho-especial, html[data-theme="light"] body.chat-v2 .atalho.atalho-especial {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(94, 167, 255, 0.05) 45%, rgba(168, 136, 255, 0.1));
+}
+@media (prefers-reduced-motion: reduce) {
+  .atalho.atalho-especial, .atalho.atalho-especial::before, .atalho.atalho-especial::after,
+  .atalho.atalho-especial .atalho-ico::after, .atalho-novo::after { animation: none; }
+  .atalho.atalho-especial::after, .atalho-novo::after { display: none; }
+}

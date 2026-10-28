@@ -80,8 +80,18 @@
     [topo, orbe, estado, falas, acoes].forEach(function (x) { painel.appendChild(x); });
     fundo.appendChild(painel);
     document.body.appendChild(fundo);
-    return { fundo: fundo, orbe: orbe, estado: estado, falas: falas, mudo: mudo, sair: sair, tempo: tempo };
+    return { fundo: fundo, orbe: orbe, orb: null, estado: estado, falas: falas, mudo: mudo, sair: sair, tempo: tempo };
   }
+  // A mesma esfera de galáxia do topo da página de voz (assets/orb.js, arquétipo 0).
+  // Sem WebGL, ou se o shader falhar, fica o gradiente do CSS.
+  function acenderOrbe(s) {
+    if (s.encerrada || !window.TrustioOrb) return;
+    try {
+      s.ui.orb = new window.TrustioOrb(s.ui.orbe, { colors: ["#2563eb", "#bfe0ff", "#5ea7ff"], anchor: "#5ea7ff",
+        bg: "#05070b", arch: 0, lens: 0.08, dual: true, fps: 60, seed: Math.random() * 100 });
+    } catch (e) { s.ui.orb = null; }
+  }
+  function nivelOrbe(s, v) { if (s.ui.orb) s.ui.orb.setLevel(v); }
   function falaDe(s, quem) {
     var linha = el("p", "tr-fala tr-fala-" + quem);
     s.ui.falas.appendChild(linha);
@@ -108,12 +118,22 @@
     // 40 ms de folga só no primeiro bloco de uma resposta: absorve a variação da rede sem atraso perceptível
     if (s.proximo < agora) s.proximo = agora + 0.04;
     fonte.start(s.proximo);
+    if (s.ui.orb) {
+      // A esfera acompanha a voz da IA quando o bloco começa a tocar
+      var soma = 0;
+      for (var j = 0; j < f.length; j += 4) soma += f[j] * f[j];
+      var nivel = Math.min(1, Math.sqrt(soma / Math.ceil(f.length / 4)) * 4);
+      s.marcas.push(setTimeout(function () { nivelOrbe(s, nivel); }, Math.max(0, (s.proximo - agora) * 1000)));
+    }
     s.proximo += b.duration;
     s.fontes.push(fonte);
     fonte.onended = function () {
       var k = s.fontes.indexOf(fonte);
       if (k >= 0) s.fontes.splice(k, 1);
-      if (!s.fontes.length && !s.encerrada) mostrarEstado(s, T("Ouvindo…", "Listening…"), "ouvindo");
+      if (!s.fontes.length && !s.encerrada) {
+        nivelOrbe(s, 0);
+        mostrarEstado(s, T("Ouvindo…", "Listening…"), "ouvindo");
+      }
     };
     mostrarEstado(s, T("Falando…", "Speaking…"), "falando");
   }
@@ -121,6 +141,9 @@
     s.fontes.forEach(function (f) { try { f.onended = null; f.stop(); } catch (e) { /* já parou */ } });
     s.fontes = [];
     s.proximo = 0;
+    s.marcas.forEach(clearTimeout);
+    s.marcas = [];
+    nivelOrbe(s, 0);
   }
 
   function aoEvento(s, ev) {
@@ -172,12 +195,13 @@
     var audio = new AC();
     if (TAXAS.indexOf(audio.sampleRate) < 0) { audio.close(); audio = new AC({ sampleRate: 48000 }); }
     if (audio.state === "suspended") audio.resume().catch(function () {});
-    var s = sessao = { audio: audio, taxa: audio.sampleRate, fontes: [], proximo: 0, guardado: [], mudo: false,
+    var s = sessao = { audio: audio, taxa: audio.sampleRate, fontes: [], marcas: [], proximo: 0, guardado: [], mudo: false,
       encerrada: false, ws: null, stream: null, no: null, linhaIa: null, motivo: null, fimEm: 0, ui: montarPainel() };
     s.ui.sair.addEventListener("click", function () { fechar(s); });
     s.ui.mudo.addEventListener("click", function () {
       s.mudo = !s.mudo;
       s.ui.mudo.setAttribute("aria-pressed", String(s.mudo));
+      if (s.mudo) { s.ui.orbe.style.setProperty("--nivel", "0"); if (!s.fontes.length) nivelOrbe(s, 0); }
       s.ui.mudo.textContent = s.mudo ? T("Ativar mic", "Unmute") : T("Silenciar", "Mute");
     });
     s.tecla = function (e) { if (e.key === "Escape") fechar(s); };
@@ -188,6 +212,8 @@
       s.ui.tempo.textContent = Math.floor(r / 60) + ":" + String(r % 60).padStart(2, "0");
     }, 1000);
     s.ui.sair.focus();
+    // A esfera compila um shader pesado: fica para o quadro seguinte, depois que mic, token e socket já começaram.
+    requestAnimationFrame(function () { acenderOrbe(s); });
 
     var mic = navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     var modulo = audio.audioWorklet.addModule(CAPTURA);
@@ -198,7 +224,9 @@
       s.no = new AudioWorkletNode(audio, "captura-trustio");
       s.no.port.onmessage = function (e) {
         if (s.encerrada || s.mudo) return;
-        s.ui.orbe.style.setProperty("--nivel", String(Math.min(1, e.data.nivel * 6)));
+        var nivelMic = Math.min(1, e.data.nivel * 6);
+        s.ui.orbe.style.setProperty("--nivel", String(nivelMic));
+        if (!s.fontes.length) nivelOrbe(s, nivelMic);
         if (s.ws && s.ws.readyState === 1) s.ws.send(e.data.pcm);
         else if (s.guardado.length < 400) s.guardado.push(e.data.pcm);
       };
@@ -237,6 +265,11 @@
     if (s.stream) s.stream.getTracks().forEach(function (t) { t.stop(); });
     if (s.ws && s.ws.readyState <= 1) try { s.ws.close(1000, "fim"); } catch (e) { /* */ }
     s.audio.close().catch(function () {});
+    if (s.ui.orb && s.ui.orb.gl) {
+      // Solta o contexto WebGL: o navegador só mantém alguns abertos
+      var perder = s.ui.orb.gl.getExtension("WEBGL_lose_context");
+      if (perder) perder.loseContext();
+    }
     s.ui.fundo.remove();
     if (sessao === s) sessao = null;
     if (botao) botao.focus();

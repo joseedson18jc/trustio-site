@@ -30,6 +30,7 @@ id = "3f6220c2393c4154b2927ac84fff4a91"
 # Segredos, definidos uma vez por linha de comando (ver README.md):
 #   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 #   wrangler secret put RESEND_API_KEY
+#   wrangler secret put VOZ_XAI_API_KEY      voz ao vivo (src/voz-tempo-real.js); sem ela o botão fica escondido
 
 # Logs do worker no painel (Observability → Logs): sem eles não dá para ver por que uma
 # chamada ao Supabase falhou. Declarado aqui para um deploy pelo Git não desligá-los.

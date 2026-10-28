@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark light">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex, nofollow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob: https://d8j0ntlcm91z4.cloudfront.net; connect-src 'self' https://mjdaluioyutnxlyomzyd.supabase.co https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob: https://d8j0ntlcm91z4.cloudfront.net; connect-src 'self' https://mjdaluioyutnxlyomzyd.supabase.co https://api.trustio.com.br wss://api.trustio.com.br https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Chat · Trustio</title>
   <meta name="description" content="Área do cliente Trustio: chat com IA privada e sem censura*.">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="../assets/whatsapp-suporte.css?v=63736be5">
   <script defer src="../assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="stylesheet" href="../assets/chat-atalhos.css?v=43b21838">
+  <link rel="stylesheet" href="../assets/voz-tempo-real.css?v=8f105d6b">
   <link rel="stylesheet" href="../assets/chat-v2.css?v=6c3ca88d">
   <script defer src="../assets/vendor/supabase.js?v=84ee9bf4"></script>
   <script defer src="../assets/auth-config.js?v=c3461a69"></script>
@@ -36,8 +37,9 @@
   <script defer src="../assets/vendor/katex/katex.min.js?v=e8d88550"></script>
   <script defer src="../assets/chat-render.js?v=563a4829"></script>
   <script defer src="../assets/voz.js?v=8e758685"></script>
-  <script defer src="../assets/chat.js?v=07872449"></script>
-  <script defer src="../assets/chat-atalhos.js?v=fd07fe98"></script>
+  <script defer src="../assets/voz-tempo-real.js?v=c3a10818"></script>
+  <script defer src="../assets/chat.js?v=b5324928"></script>
+  <script defer src="../assets/chat-atalhos.js?v=4e33a7da"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
   <link rel="alternate" hreflang="x-default" href="https://trustio.com.br/app/"><!--/i18n:alt-->
@@ -133,6 +135,11 @@
               <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5 12.4 20a5.5 5.5 0 0 1-7.8-7.8l8.9-8.9a3.7 3.7 0 0 1 5.2 5.2l-8.9 8.9a1.8 1.8 0 0 1-2.6-2.6L15.4 6.6"/></svg></span>
               <b>Enviar arquivo</b>
               <small>Foto, PDF, Word ou áudio. Até 3 por mensagem.</small>
+            </button>
+            <button class="atalho atalho-especial" type="button" data-atalho="tempo-real" hidden>
+              <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h2M7.5 8v8M12 4v16M16.5 8v8M19 12h2"/></svg></span>
+              <b>Voz ao vivo <small class="atalho-novo">Novo</small></b>
+              <small>Converse falando, em tempo real, como numa ligação.</small>
             </button>
             <button class="atalho" type="button" data-atalho="voz">
               <span class="atalho-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M4 14h3v6H5a1 1 0 0 1-1-1zM20 14h-3v6h2a1 1 0 0 0 1-1z"/></svg></span>

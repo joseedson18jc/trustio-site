@@ -14,7 +14,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import {
   FERRAMENTA_BUSCA, NOME_FERRAMENTA, SEM_BUSCA, type Resultado,
-  aceitaPedidosDeBusca, buscarNaWeb, instrucoesDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo, rodadaSemResposta,
+  aceitaPedidosDeBusca, buscarComReserva, instrucoesDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo, rodadaSemResposta,
   semNarracaoDeBusca,
 } from "./busca.ts";
 import { SKILLS, blocoDaSkill, skillDoPedido } from "./skills.ts";
@@ -134,6 +134,9 @@ const HISTORY = 30;
 // Busca na web (Exa, busca.ts): ligada só com EXA_API_KEY. Assinantes têm um teto diário;
 // quem está no teste, uma demonstração única. No máximo 2 buscas por mensagem.
 const EXA_API_KEY = (Deno.env.get("EXA_API_KEY") ?? "").trim();
+// Reserva (busca.ts, 29 out 2026): se a Exa falhar, a mesma busca vai à Firecrawl. Só com a Exa configurada;
+// a chave da Firecrawl sozinha não liga a busca.
+const FIRECRAWL_API_KEY = (Deno.env.get("FIRECRAWL_API_KEY") ?? "").trim();
 const BUSCA_LIMITE_DIARIO = Math.max(1, Number(Deno.env.get("BUSCA_LIMITE_DIARIO") ?? "100") || 100);
 const BUSCA_DEMO = Math.max(0, Number(Deno.env.get("BUSCA_DEMO") ?? "3") || 0);
 // 19 out 2026: era 2; o modelo dizia "vou tentar mais buscas" e parava. Cada busca ainda conta na cota.
@@ -606,6 +609,7 @@ Deno.serve(async (req) => {
     // devolve os resultados como mensagem "tool" e lê a próxima resposta, até ele responder em texto.
     let atual = upstream;
     let buscasFeitas = 0;
+    const estadoDaBusca = { exaFalhou: false };
     let erroRodada: string | null = null;
     const resultadosUsados: Resultado[] = [];
     const conversaDaBusca: unknown[] = [...anteriores, { role: "user", content: message }];
@@ -812,8 +816,11 @@ Deno.serve(async (req) => {
         } else {
           try {
             const inicioDaBusca = Date.now();
-            const rs = await buscarNaWeb(consulta, agora, EXA_API_KEY, fetch, { curta: fala === "conversa" });
-            console.log("busca_ok", rs.length, vaga.demo ? "demo" : "livre", Date.now() - inicioDaBusca, "ms", agora ? "agora" : "cache");
+            const { resultados: rs, provedor, falhaExa } = await buscarComReserva(consulta, agora,
+              { exa: EXA_API_KEY, firecrawl: FIRECRAWL_API_KEY }, fetch, { curta: fala === "conversa", estado: estadoDaBusca });
+            // A Exa caiu e a Firecrawl respondeu: a pessoa nem percebe, então a queda fica registrada aqui.
+            if (falhaExa) console.error("busca_exa_falhou", falhaExa.status ?? falhaExa.message, falhaExa.detalhe ?? "");
+            console.log("busca_ok", rs.length, vaga.demo ? "demo" : "livre", Date.now() - inicioDaBusca, "ms", agora ? "agora" : "cache", provedor);
             resultadosUsados.push(...rs);
             conteudo = resultadosParaModelo(consulta, rs);
             send({ busca_resultados: rs.length });

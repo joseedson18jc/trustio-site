@@ -23,6 +23,7 @@
 #   ELEVENLABS_API_KEY     voz de reserva, com ELEVENLABS_VOICE_ID; ELEVENLABS_MODEL opcional
 #   VOZ_LIMITE_DIARIO      caracteres por assinante por dia (padrão 60000); VOZ_DEMO, demonstração única do teste (padrão 1500)
 #   EXA_API_KEY            busca na web do chat (Exa); BUSCA_LIMITE_DIARIO (padrão 100 por assinante/dia), BUSCA_DEMO (padrão 3 no teste)
+#   FIRECRAWL_API_KEY      reserva da busca: se a Exa falhar, a busca vai à Firecrawl (opcional; sem ela, só a Exa)
 name: Supabase
 
 on:
@@ -205,12 +206,13 @@ jobs:
       - name: Definir segredos da busca na web
         env:
           EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
           BUSCA_LIMITE_DIARIO: ${{ secrets.BUSCA_LIMITE_DIARIO }}
           BUSCA_DEMO: ${{ secrets.BUSCA_DEMO }}
         run: |
           # Sem EXA_API_KEY, a busca fica desligada (o chat não oferece a ferramenta ao modelo); o deploy segue.
           f=$(mktemp); chmod 600 "$f"; trap 'rm -f "$f"' EXIT
-          for v in EXA_API_KEY BUSCA_LIMITE_DIARIO BUSCA_DEMO; do
+          for v in EXA_API_KEY FIRECRAWL_API_KEY BUSCA_LIMITE_DIARIO BUSCA_DEMO; do
             val="${!v}"; [ -n "$val" ] || continue
             val="${val//\\/\\\\}"; val="${val//\"/\\\"}"
             printf '%s="%s"\n' "$v" "$val" >> "$f"

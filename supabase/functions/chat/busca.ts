@@ -89,10 +89,16 @@ function urlSegura(u: unknown): string | null {
   } catch { return null; }
 }
 
+// Espera máxima da Exa. Com a reserva (Firecrawl) configurada, a Exa tem menos tempo, para que a Firecrawl
+// ainda caiba numa espera parecida com a de antes. A Exa leva ~0,4–0,7 s, ou ~3 s com página nova (28 out 2026).
+export const ESPERA_EXA = 15_000;
+export const ESPERA_EXA_COM_RESERVA = 7_000;
+
 // Na conversa por voz a resposta é curta: 3 resultados com trechos de até 400 caracteres bastam e
 // o modelo lê menos antes de começar a falar (19 out 2026).
 export async function buscarNaWeb(consulta: string, atual: boolean, chave: string,
-                                  fetchFn: typeof fetch = fetch, opcoes: { curta?: boolean } = {}): Promise<Resultado[]> {
+                                  fetchFn: typeof fetch = fetch,
+                                  opcoes: { curta?: boolean; espera?: number; estrito?: boolean } = {}): Promise<Resultado[]> {
   const r = await fetchFn("https://api.exa.ai/search", {
     method: "POST",
     headers: { "x-api-key": chave, "Content-Type": "application/json" },
@@ -108,13 +114,18 @@ export async function buscarNaWeb(consulta: string, atual: boolean, chave: strin
         ...(atual ? { maxAgeHours: 1, livecrawlTimeout: 2500 } : {}),
       },
     }),
-    signal: AbortSignal.timeout(15_000),
+    signal: AbortSignal.timeout(opcoes.espera ?? ESPERA_EXA),
   });
   if (!r.ok) {
     const corpo = await r.text().catch(() => "");
     throw Object.assign(new Error("busca_falhou"), { status: r.status, detalhe: corpo.slice(0, 200) });
   }
-  const j = await r.json().catch(() => ({}));
+  const j = await r.json().catch(() => null);
+  // Com a reserva, um corpo ilegível (ou cortado pelo tempo esgotado) é falha da Exa, não uma busca vazia:
+  // a busca vai à Firecrawl. Sem a reserva, segue como antes (lista vazia).
+  if (opcoes.estrito && !Array.isArray(j?.results)) {
+    throw Object.assign(new Error("busca_falhou"), { status: r.status, detalhe: "corpo_invalido" });
+  }
   const lista = Array.isArray(j?.results) ? j.results : [];
   const saida: Resultado[] = [];
   for (const it of lista) {
@@ -128,6 +139,96 @@ export async function buscarNaWeb(consulta: string, atual: boolean, chave: strin
     });
   }
   return saida;
+}
+
+// Reserva da busca (29 out 2026): se a Exa falhar (erro HTTP, tempo esgotado ou queda de rede), a mesma busca
+// vai à Firecrawl. Uma busca vazia da Exa é resposta, não falha. A Firecrawl só pesquisa (sem raspar páginas,
+// que cobraria por página) e devolve título, link e um trecho, tratados como os da Exa: dados de terceiros.
+// Sem FIRECRAWL_API_KEY, nada muda. Medido em 29 out: ~2 s e 2 créditos por busca de 3 resultados.
+export const ESPERA_FIRECRAWL = 10_000;
+export type Provedor = "exa" | "firecrawl";
+export type Falha = { status?: number; detalhe?: string; message?: string };
+// Estado de uma mensagem: depois de uma falha da Exa, as outras buscas da mesma mensagem vão direto à
+// Firecrawl (até 5 buscas por mensagem; cada espera pela Exa custaria até 7 s).
+export type EstadoDaBusca = { exaFalhou: boolean };
+
+export async function buscarNaFirecrawl(consulta: string, atual: boolean, chave: string,
+                                        fetchFn: typeof fetch = fetch, opcoes: { curta?: boolean } = {}): Promise<Resultado[]> {
+  const r = await fetchFn("https://api.firecrawl.dev/v2/search", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${chave}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      query: consulta,
+      limit: opcoes.curta ? 3 : NUM_RESULTADOS,
+      sources: [{ type: "web" }],
+      country: "BR",
+      domainTools: false,
+      timeout: ESPERA_FIRECRAWL - 2_000,
+      // "Agora": só resultados do último dia (com a última hora, quase nada volta).
+      ...(atual ? { tbs: "qdr:d" } : {}),
+    }),
+    signal: AbortSignal.timeout(ESPERA_FIRECRAWL),
+  });
+  const corpo = await r.text().catch(() => "");
+  let j: { success?: unknown; data?: { web?: unknown } } = {};
+  try { j = JSON.parse(corpo); } catch { /* corpo não é JSON: falha abaixo */ }
+  const lista = j?.data?.web;
+  if (!r.ok || j?.success !== true || !Array.isArray(lista)) {
+    throw Object.assign(new Error("busca_falhou"), { status: r.status, detalhe: corpo.slice(0, 200) });
+  }
+  const maximo = opcoes.curta ? 400 : MAX_TRECHO;
+  const saida: Resultado[] = [];
+  for (const it of lista) {
+    const url = urlSegura(it?.url);
+    if (!url) continue;
+    saida.push({
+      titulo: String(it?.title ?? "").replace(/\s+/g, " ").trim().slice(0, 200) || new URL(url).hostname,
+      url,
+      data: null,
+      // O trecho às vezes vem em Markdown ("# dólar hoje: …"): sem as marcas de título, espaços juntados.
+      texto: String(it?.description ?? "").replace(/^\s*#+\s*/gm, "").replace(/\s+/g, " ").trim().slice(0, maximo),
+    });
+  }
+  return saida;
+}
+
+function falhaDe(err: unknown): Falha {
+  const e = err as Falha;
+  return { status: e?.status, detalhe: e?.detalhe, message: e?.message };
+}
+
+function motivo(f: Falha): string {
+  return String(f.status ?? f.message ?? "erro");
+}
+
+export async function buscarComReserva(consulta: string, atual: boolean, chaves: { exa: string; firecrawl?: string },
+                                       fetchFn: typeof fetch = fetch,
+                                       opcoes: { curta?: boolean; estado?: EstadoDaBusca } = {}):
+                                       Promise<{ resultados: Resultado[]; provedor: Provedor; falhaExa: Falha | null }> {
+  const reserva = (chaves.firecrawl ?? "").trim();
+  if (!reserva) {
+    return { resultados: await buscarNaWeb(consulta, atual, chaves.exa, fetchFn, { curta: opcoes.curta }), provedor: "exa", falhaExa: null };
+  }
+  let falhaExa: Falha | null = null;
+  if (!opcoes.estado?.exaFalhou) {
+    try {
+      const resultados = await buscarNaWeb(consulta, atual, chaves.exa, fetchFn, { curta: opcoes.curta, espera: ESPERA_EXA_COM_RESERVA, estrito: true });
+      return { resultados, provedor: "exa", falhaExa: null };
+    } catch (err) {
+      falhaExa = falhaDe(err);
+      if (opcoes.estado) opcoes.estado.exaFalhou = true;
+    }
+  }
+  try {
+    const resultados = await buscarNaFirecrawl(consulta, atual, reserva, fetchFn, { curta: opcoes.curta });
+    return { resultados, provedor: "firecrawl", falhaExa };
+  } catch (err) {
+    const f = falhaDe(err);
+    const exa = falhaExa ? `exa ${motivo(falhaExa)}` : "exa pulada";
+    throw Object.assign(new Error("busca_falhou"), {
+      status: f.status, detalhe: `${exa}; firecrawl ${motivo(f)}: ${f.detalhe ?? ""}`.slice(0, 300),
+    });
+  }
 }
 
 function trechoDoResultado(it: { highlights?: unknown; text?: unknown } | null): string {

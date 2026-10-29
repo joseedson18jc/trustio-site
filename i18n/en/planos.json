@@ -499,6 +499,7 @@
     "Menor custo por dia": "Lowest cost per day",
     "Pagamento único": "One-time payment",
     "Pagamento seguro pela Stripe": "Secure payment by Stripe",
-    "Desista em até 7 dias": "Change your mind within 7 days"
+    "Desista em até 7 dias": "Change your mind within 7 days",
+    "Busca na web, feita pela Exa (EUA), com a Firecrawl (EUA) de reserva": "Web search, run by Exa (US), with Firecrawl (US) as backup"
   }
 }

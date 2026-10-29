@@ -1,7 +1,7 @@
 // Testes da busca na web do chat (supabase/functions/chat/busca.ts): pedido à Exa, limpeza dos
 // resultados, argumentos do modelo (não confiáveis) e a linha de fontes.
 import assert from "node:assert/strict";
-import { buscarNaWeb, instrucoesDeBusca, semNarracaoDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo, MAX_CONSULTA, aceitaPedidosDeBusca, MAX_RODADAS, rodadaSemResposta } from "../supabase/functions/chat/busca.ts";
+import { buscarNaWeb, buscarComReserva, ESPERA_EXA, ESPERA_EXA_COM_RESERVA, ESPERA_FIRECRAWL, instrucoesDeBusca, semNarracaoDeBusca, lerArgumentos, linhaDeFontes, resultadosParaModelo, MAX_CONSULTA, aceitaPedidosDeBusca, MAX_RODADAS, rodadaSemResposta } from "../supabase/functions/chat/busca.ts";
 
 let n = 0;
 const t = async (name, fn) => { await fn(); n++; console.log("ok -", name); };
@@ -123,6 +123,180 @@ await t("rodada com pedido de busca ignorado e só a narração não pode parece
   assert.equal(rodadaSemResposta(true, respostaLonga), false);
   assert.equal(rodadaSemResposta(false, ""), false);
   assert.equal(rodadaSemResposta(false, "Dei uma olhada nas pesquisas mais recentes e já tenho os números pra você."), false);
+});
+
+// Reserva da busca (29 out 2026): se a Exa falhar, a mesma busca vai à Firecrawl. Uma busca vazia da Exa é
+// resposta, não falha. Sem a chave da Firecrawl, tudo segue como antes.
+const resposta = (corpo, status = 200) => new Response(JSON.stringify(corpo), { status });
+const rede = (rotas) => {
+  const chamadas = [];
+  const f = async (url, init) => {
+    const u = String(url);
+    chamadas.push({ url: u, init, body: JSON.parse(init.body) });
+    const rota = u.startsWith("https://api.exa.ai/") ? rotas.exa : rotas.firecrawl;
+    if (typeof rota === "function") return rota();
+    return rota.clone();
+  };
+  f.chamadas = chamadas;
+  f.para = (host) => chamadas.filter((c) => c.url.includes(host));
+  return f;
+};
+const exaOk = (results) => resposta({ results });
+const fcOk = (web) => resposta({ success: true, data: { web } });
+
+await t("reserva: Exa responde, a Firecrawl nem é chamada", async () => {
+  const f = rede({ exa: exaOk([{ url: "https://a.com/x", title: "A", highlights: ["oi"] }]), firecrawl: fcOk([]) });
+  const r = await buscarComReserva("dólar", false, { exa: "ke", firecrawl: "kf" }, f);
+  assert.equal(r.provedor, "exa");
+  assert.equal(r.falhaExa, null);
+  assert.equal(r.resultados.length, 1);
+  assert.equal(f.para("firecrawl").length, 0);
+  const [ex] = f.para("api.exa.ai");
+  assert.equal(ex.body.numResults, 4);
+  assert.equal(ex.body.contents.maxAgeHours, undefined);
+});
+
+await t("reserva: Exa vazia é resposta, não falha", async () => {
+  const f = rede({ exa: exaOk([]), firecrawl: fcOk([{ url: "https://b.com", title: "B", description: "d" }]) });
+  const r = await buscarComReserva("x", false, { exa: "ke", firecrawl: "kf" }, f);
+  assert.equal(r.provedor, "exa");
+  assert.deepEqual(r.resultados, []);
+  assert.equal(f.para("firecrawl").length, 0);
+});
+
+await t("reserva: Exa com erro 500 → Firecrawl com Bearer, Brasil, só web, sem raspar páginas", async () => {
+  const f = rede({ exa: resposta({ error: "x" }, 500), firecrawl: fcOk([
+    { url: "https://economia.uol.com.br/cotacoes/", title: "Dólar  hoje", description: "# dólar hoje:\n A taxa  é 5,42.", position: 1 },
+  ]) });
+  const r = await buscarComReserva("dólar hoje", false, { exa: "ke", firecrawl: "kf" }, f);
+  const [fc] = f.para("firecrawl");
+  assert.equal(fc.url, "https://api.firecrawl.dev/v2/search");
+  assert.equal(fc.init.headers["Authorization"], "Bearer kf");
+  assert.equal(fc.body.query, "dólar hoje");
+  assert.equal(fc.body.limit, 4);
+  assert.deepEqual(fc.body.sources, [{ type: "web" }]);
+  assert.equal(fc.body.country, "BR");
+  assert.equal(fc.body.domainTools, false);
+  assert.equal(fc.body.scrapeOptions, undefined);
+  assert.equal(fc.body.tbs, undefined);
+  assert.equal(fc.body.timeout, ESPERA_FIRECRAWL - 2_000);
+  assert.equal(r.provedor, "firecrawl");
+  assert.equal(r.falhaExa.status, 500);
+  assert.deepEqual(r.resultados, [{ titulo: "Dólar hoje", url: "https://economia.uol.com.br/cotacoes/", data: null, texto: "dólar hoje: A taxa é 5,42." }]);
+});
+
+await t("reserva: pergunta de agora pede resultados do último dia; na voz, 3 resultados e trechos de 400", async () => {
+  const f = rede({ exa: resposta({}, 503), firecrawl: fcOk([{ url: "https://c.com", title: "C", description: "z".repeat(2000) }]) });
+  const r = await buscarComReserva("placar", true, { exa: "ke", firecrawl: "kf" }, f, { curta: true });
+  const [ex] = f.para("api.exa.ai");
+  assert.equal(ex.body.numResults, 3);
+  assert.equal(ex.body.contents.highlights.maxCharacters, 400);
+  assert.equal(ex.body.contents.maxAgeHours, 1);
+  const [fc] = f.para("firecrawl");
+  assert.equal(fc.body.tbs, "qdr:d");
+  assert.equal(fc.body.limit, 3);
+  assert.equal(r.resultados[0].texto.length, 400);
+});
+
+await t("reserva: links da Firecrawl passam pelo mesmo filtro (só http/https, parênteses escapados)", async () => {
+  const f = rede({ exa: resposta({}, 500), firecrawl: fcOk([
+    { url: "javascript:alert(1)", title: "mau", description: "x" },
+    { url: "https://w.org/a_(b)", title: "", description: "y" },
+  ]) });
+  const r = await buscarComReserva("q", false, { exa: "ke", firecrawl: "kf" }, f);
+  assert.equal(r.resultados.length, 1);
+  assert.equal(r.resultados[0].url, "https://w.org/a_%28b%29");
+  assert.equal(r.resultados[0].titulo, "w.org");
+});
+
+await t("reserva: resposta 200 da Firecrawl sem success, ou sem data.web, conta como falha", async () => {
+  for (const corpo of [{ success: false, error: "quota" }, { success: true, data: {} }]) {
+    const f = rede({ exa: resposta({}, 500), firecrawl: resposta(corpo) });
+    await assert.rejects(buscarComReserva("q", false, { exa: "ke", firecrawl: "kf" }, f), /busca_falhou/);
+  }
+});
+
+await t("reserva: as duas falham → erro com o motivo das duas", async () => {
+  const f = rede({ exa: resposta({}, 500), firecrawl: resposta({ error: "x" }, 402) });
+  await assert.rejects(buscarComReserva("q", false, { exa: "ke", firecrawl: "kf" }, f), (e) => {
+    assert.equal(e.message, "busca_falhou");
+    assert.equal(e.status, 402);
+    assert.match(e.detalhe, /exa 500/);
+    assert.match(e.detalhe, /firecrawl 402/);
+    return true;
+  });
+});
+
+await t("reserva: queda de rede ou tempo esgotado na Exa também passa para a Firecrawl", async () => {
+  const f = rede({ exa: () => { throw new DOMException("t", "TimeoutError"); }, firecrawl: fcOk([{ url: "https://d.com", title: "D", description: "d" }]) });
+  const r = await buscarComReserva("q", false, { exa: "ke", firecrawl: "kf" }, f);
+  assert.equal(r.provedor, "firecrawl");
+  assert.equal(r.falhaExa.message, "t");
+});
+
+await t("reserva: depois de uma falha da Exa, as outras buscas da mesma mensagem vão direto à Firecrawl", async () => {
+  const f = rede({ exa: resposta({}, 500), firecrawl: fcOk([{ url: "https://e.com", title: "E", description: "e" }]) });
+  const estado = { exaFalhou: false };
+  const a = await buscarComReserva("q1", false, { exa: "ke", firecrawl: "kf" }, f, { estado });
+  const b = await buscarComReserva("q2", false, { exa: "ke", firecrawl: "kf" }, f, { estado });
+  assert.equal(estado.exaFalhou, true);
+  assert.equal(f.para("api.exa.ai").length, 1);
+  assert.equal(f.para("firecrawl").length, 2);
+  assert.equal(a.falhaExa.status, 500);
+  assert.equal(b.falhaExa, null);
+  assert.equal(b.provedor, "firecrawl");
+});
+
+await t("reserva: com a reserva, a Exa espera 7 s e a Firecrawl 10 s; sem a reserva, a Exa espera 15 s como antes", async () => {
+  const tempos = [];
+  const original = AbortSignal.timeout;
+  AbortSignal.timeout = (ms) => { tempos.push(ms); return original.call(AbortSignal, ms); };
+  try {
+    await buscarComReserva("q", false, { exa: "ke", firecrawl: "kf" }, rede({ exa: resposta({}, 500), firecrawl: fcOk([]) }));
+    assert.deepEqual(tempos, [ESPERA_EXA_COM_RESERVA, ESPERA_FIRECRAWL]);
+    tempos.length = 0;
+    await buscarComReserva("q", false, { exa: "ke" }, rede({ exa: exaOk([]) }));
+    assert.deepEqual(tempos, [ESPERA_EXA]);
+  } finally { AbortSignal.timeout = original; }
+  assert.deepEqual([ESPERA_EXA, ESPERA_EXA_COM_RESERVA, ESPERA_FIRECRAWL], [15_000, 7_000, 10_000]);
+});
+
+await t("reserva: no chat de texto, o trecho da Firecrawl vai até 700 caracteres", async () => {
+  const f = rede({ exa: resposta({}, 500), firecrawl: fcOk([{ url: "https://g.com", title: "G", description: "y".repeat(2000) }]) });
+  const r = await buscarComReserva("q", false, { exa: "ke", firecrawl: "kf" }, f);
+  assert.equal(r.resultados[0].texto.length, 700);
+});
+
+await t("reserva: Exa pulada e Firecrawl falha → erro diz \"exa pulada\" e traz o começo da resposta da Firecrawl", async () => {
+  const f = rede({ exa: exaOk([]), firecrawl: resposta({ error: "sem créditos" }, 402) });
+  await assert.rejects(buscarComReserva("q", false, { exa: "ke", firecrawl: "kf" }, f, { estado: { exaFalhou: true } }), (e) => {
+    assert.match(e.detalhe, /^exa pulada; firecrawl 402: /);
+    assert.match(e.detalhe, /sem créditos/);
+    return true;
+  });
+  assert.equal(f.para("api.exa.ai").length, 0);
+});
+
+await t("reserva: Exa com 200 mas corpo ilegível ou sem lista é falha (vai à Firecrawl); sem a reserva, lista vazia como antes", async () => {
+  for (const corpoExa of [new Response("<html>oops</html>", { status: 200 }), resposta({})]) {
+    const estado = { exaFalhou: false };
+    const f = rede({ exa: corpoExa, firecrawl: fcOk([{ url: "https://h.com", title: "H", description: "h" }]) });
+    const r = await buscarComReserva("q", false, { exa: "ke", firecrawl: "kf" }, f, { estado });
+    assert.equal(r.provedor, "firecrawl");
+    assert.equal(r.falhaExa.detalhe, "corpo_invalido");
+    assert.equal(estado.exaFalhou, true);
+    const semReserva = await buscarComReserva("q", false, { exa: "ke" }, rede({ exa: corpoExa }));
+    assert.deepEqual(semReserva.resultados, []);
+  }
+});
+
+await t("sem a chave da Firecrawl: igual a antes (só a Exa; a falha da Exa é a falha da busca)", async () => {
+  const f = rede({ exa: resposta({ error: "x" }, 500), firecrawl: fcOk([]) });
+  await assert.rejects(buscarComReserva("q", false, { exa: "ke" }, f), (e) => e.message === "busca_falhou" && e.status === 500);
+  await assert.rejects(buscarComReserva("q", false, { exa: "ke", firecrawl: "" }, f), /busca_falhou/);
+  assert.equal(f.para("firecrawl").length, 0);
+  const ok = await buscarComReserva("q", false, { exa: "ke" }, rede({ exa: exaOk([]) }));
+  assert.equal(ok.provedor, "exa");
 });
 
 console.log(`\n${n} testes passaram`);

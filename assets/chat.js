@@ -838,6 +838,9 @@
                 ativa.textContent = T("Pesquisou na web: ", "Searched the web: ") + "“" + ativa.dataset.consulta + "” · " +
                   d.busca_resultados + " " + (d.busca_resultados === 1 ? T("fonte", "source") : T("fontes", "sources"));
               }
+              // O modelo ainda lê os resultados antes da primeira palavra (alguns segundos): o aviso diz isso,
+              // em vez de continuar em "Pesquisando…" com a busca já feita.
+              if (!full) progTxt.textContent = T("Lendo os resultados…", "Reading the results…");
             }
             if (d.delta) {
               // Primeiro trecho da resposta: o raciocínio recolhe e a resposta fica em foco.

@@ -587,7 +587,11 @@ Deno.serve(async (req) => {
   const send = (obj: unknown) => {
     if (!aberto || !saida) return;
     try { saida.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`)); }
-    catch { aberto = false; }
+    catch {
+      aberto = false;
+      cancelamento.abort(new DOMException("Conexão do cliente encerrada", "AbortError"));
+      void leitorAtivo?.cancel().catch(() => {});
+    }
   };
   const fechar = () => {
     if (!aberto || !saida) return;

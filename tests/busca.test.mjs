@@ -290,6 +290,44 @@ await t("reserva: Exa com 200 mas corpo ilegível ou sem lista é falha (vai à 
   }
 });
 
+await t("cancelamento: Exa e Firecrawl recebem sinais vinculados ao AbortSignal do chat", async () => {
+  const controller = new AbortController();
+  const f = rede({ exa: resposta({}, 500), firecrawl: fcOk([]) });
+  await buscarComReserva("q", false, { exa: "ke", firecrawl: "kf" }, f, { signal: controller.signal });
+  const sinais = f.chamadas.map((c) => c.init.signal);
+  assert.equal(sinais.length, 2);
+  assert.ok(sinais.every((signal) => signal instanceof AbortSignal));
+  controller.abort();
+  assert.ok(sinais.every((signal) => signal.aborted));
+});
+
+await t("cancelamento: se a Exa for abortada, não inicia fallback na Firecrawl", async () => {
+  const controller = new AbortController();
+  const f = rede({
+    exa: () => {
+      controller.abort();
+      throw new DOMException("cancelado", "AbortError");
+    },
+    firecrawl: fcOk([]),
+  });
+  await assert.rejects(
+    buscarComReserva("q", false, { exa: "ke", firecrawl: "kf" }, f, { signal: controller.signal }),
+    (e) => e.name === "AbortError",
+  );
+  assert.equal(f.para("firecrawl").length, 0);
+});
+
+await t("cancelamento: uma busca já cancelada não consome rede", async () => {
+  const controller = new AbortController();
+  controller.abort();
+  const f = rede({ exa: exaOk([]), firecrawl: fcOk([]) });
+  await assert.rejects(
+    buscarComReserva("q", false, { exa: "ke", firecrawl: "kf" }, f, { signal: controller.signal }),
+    (e) => e.name === "AbortError",
+  );
+  assert.equal(f.chamadas.length, 0);
+});
+
 await t("sem a chave da Firecrawl: igual a antes (só a Exa; a falha da Exa é a falha da busca)", async () => {
   const f = rede({ exa: resposta({ error: "x" }, 500), firecrawl: fcOk([]) });
   await assert.rejects(buscarComReserva("q", false, { exa: "ke" }, f), (e) => e.message === "busca_falhou" && e.status === 500);

@@ -43,7 +43,7 @@
   var state = { user: null, lead: null, trialDias: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false, fechado: false, sessaoCheia: false, placeholderPadrao: "", escolhas: 0,
     // Preferências da conta (tabela preferencias_usuario) e o que vem com elas.
     pref: { estilo: "equilibrado", instrucoes: "", modelo: null, enter_envia: true, fonte: "normal", avatar_em: null },
-    modelos: [], avatarUrl: null, filtro: "" };
+    modelos: [], avatarUrl: null, filtro: "", abortController: null };
 
   // ---------------------------------------------------------------- utilidades
   // Sem cota de perguntas: assinante, ou tipo de usuário admin, colaborador ou cliente
@@ -684,11 +684,17 @@
     if (state.fechado) { input.value = ""; autosize(); return; }
     if (!state.user.email_confirmed_at) { showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); return; }
     state.sending = true;
+    state.abortController = new AbortController();
+    sendBtn.disabled = false;
+    sendBtn.setAttribute("aria-label", T("Parar", "Stop"));
+    sendBtn.title = T("Parar geração", "Stop generating");
+    sendBtn.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5" /></svg>';
+    sendBtn.classList.add("is-stopping");
     // Mandar mensagem também é escolher: a retomada pendente não troca mais de conversa.
     state.escolhas++;
     showNotice("");
     input.value = ""; autosize();
-    sendBtn.disabled = true; input.disabled = true;
+    sendBtn.disabled = false; input.disabled = true;
     text += blocosDeAnexo(prontos, LIMITE_MENSAGEM - text.length);
     // As fotos também vão como imagem (cópia reduzida), para o modelo ver o que não é texto.
     var imagens = prontos.filter(function (a) { return a.imagem; }).map(function (a) { return a.imagem; });
@@ -778,7 +784,8 @@
       return fetch(CFG.chatEndpoint, {
         method: "POST",
         headers: headers,
-        body: payload
+        body: payload,
+        signal: state.abortController.signal
       });
     }).then(function (res) {
       if (!res.ok) {
@@ -893,6 +900,21 @@
         }
       });
     }).catch(function (err) {
+      if (err && (err.name === "AbortError" || (state.abortController && state.abortController.signal.aborted))) {
+        interrompida = true;
+        avisado = true;
+        if (dicaFila) { clearTimeout(dicaFila); dicaFila = null; }
+        var ativaParada = pending.querySelector(".msg-busca-item.is-ativa");
+        if (ativaParada) ativaParada.classList.remove("is-ativa");
+        if (full) {
+          prog.classList.add("is-done");
+          progTxt.textContent = T("Interrompida por você", "Stopped by you");
+        } else {
+          prog.remove();
+          pending.remove();
+        }
+        return;
+      }
       var code = err && err.message;
       if (code === "sem_sessao" || (err && err.status === 401)) { location.replace(CFG.loginPath); return; }
       devolverRascunho();
@@ -921,6 +943,11 @@
       if (!prog.classList.contains("is-done")) prog.remove();
       if (!body.innerHTML && pending.parentNode) pending.remove();
       state.sending = false;
+      state.abortController = null;
+      sendBtn.classList.remove("is-stopping");
+      sendBtn.setAttribute("aria-label", T("Enviar", "Send"));
+      sendBtn.title = T("Enviar", "Send");
+      sendBtn.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16V4.5M5 9.5l5-5 5 5"/></svg>';
       thread.setAttribute("aria-busy", "false");
       if (!state.fechado && !state.sessaoCheia && !testeEncerrado()) { input.disabled = false; sendBtn.disabled = false; if (!TOQUE) input.focus(); }
     });
@@ -1094,7 +1121,14 @@
   });
 
   // ---------------------------------------------------------------- UI
-  composer.addEventListener("submit", function (e) { e.preventDefault(); send(input.value); });
+  composer.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (state.sending) {
+      if (state.abortController) state.abortController.abort();
+      return;
+    }
+    send(input.value);
+  });
   input.addEventListener("keydown", function (e) {
     if (e.key !== "Enter" || e.isComposing) return;
     if (TOQUE && !e.ctrlKey && !e.metaKey) return;

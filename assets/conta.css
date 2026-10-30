@@ -143,6 +143,8 @@
 .conta-google:hover { border-color: var(--line-bright); }
 .conta-google:focus-visible { outline: none; border-color: var(--line-bright); box-shadow: 0 0 0 3px rgba(94, 167, 255, 0.12); }
 .conta-google:disabled { opacity: 0.5; cursor: default; }
+.conta-google + .conta-google { margin-top: 10px; }
+.conta-google[hidden] { display: none; }
 .conta-oauth [data-oauth-status]:empty { display: none; }
 .conta-ou { display: flex; align-items: center; gap: 12px; margin: 14px 0; color: var(--muted); font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.08em; }
 .conta-ou::before, .conta-ou::after { content: ""; flex: 1; height: 1px; background: var(--line); }

@@ -98,7 +98,7 @@
     }
   });
 
-  // ---------------------------------------------------------------- Google
+  // ---------------------------------------------------------------- Google, Facebook, Microsoft
   // O Google devolve para esta mesma página (com o ?next= original); o getSession acima
   // termina o trabalho. Erro ou cancelamento chega como #error_description=… na volta.
   // Atribuição: o Google não passa pelo signUp (sem metadata nem signup_start), mas a ida e a
@@ -106,7 +106,7 @@
   var oauthStatus = document.querySelector("[data-oauth-status]");
   var erroOauth = new URLSearchParams(location.hash.slice(1)).get("error_description");
   if (erroOauth && oauthStatus) {
-    oauthStatus.textContent = T("Não foi possível entrar com o Google. Tente de novo ou use e-mail e senha.", "We couldn't sign you in with Google. Try again, or use email and password.");
+    oauthStatus.textContent = T("Não foi possível entrar com essa conta. Tente de novo ou use e-mail e senha.", "We couldn't sign you in with that account. Try again, or use email and password.");
     oauthStatus.classList.add("is-error");
     history.replaceState(null, "", location.pathname + location.search);
   }
@@ -116,14 +116,27 @@
   if (blocoOauth) {
     fetch(CFG.url + "/auth/v1/settings", { headers: { apikey: CFG.key } })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function (cfg) { blocoOauth.hidden = !(cfg && cfg.external && cfg.external.google); })
+      .then(function (cfg) {
+        // Cada botão (Google, Facebook, Microsoft) só aparece com o seu provedor ligado.
+        var ext = (cfg && cfg.external) || {}, algum = false;
+        blocoOauth.querySelectorAll("[data-oauth]").forEach(function (b) {
+          b.hidden = !ext[b.dataset.oauth];
+          if (!b.hidden) algum = true;
+        });
+        blocoOauth.hidden = !algum;
+      })
       .catch(function (err) { console.warn("conta: não foi possível ler os provedores de login", err); });
   }
-  document.querySelectorAll("[data-oauth='google']").forEach(function (btn) {
+  // Microsoft (azure) só devolve o e-mail com o escopo "email"; Google e Facebook já mandam.
+  var ESCOPOS = { azure: "email" };
+  document.querySelectorAll("[data-oauth]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       btn.disabled = true;
+      var provedor = btn.dataset.oauth;
       var volta = location.origin + CFG.loginPath + (proximo ? "?next=" + encodeURIComponent(proximo) : "");
-      sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: volta } })
+      var opcoes = { redirectTo: volta };
+      if (ESCOPOS[provedor]) opcoes.scopes = ESCOPOS[provedor];
+      sb.auth.signInWithOAuth({ provider: provedor, options: opcoes })
         .then(function (r) { if (r.error) throw r.error; })
         .catch(function (err) {
           btn.disabled = false;

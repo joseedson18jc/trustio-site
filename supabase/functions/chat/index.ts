@@ -481,8 +481,11 @@ Deno.serve(async (req) => {
     ...(history ?? []).reverse().map((m) => ({ role: m.role, content: m.role === "assistant" ? semNarracaoDeBusca(m.content) : m.content })),
   ];
   type OpcoesDaChamada = { semRaciocinio?: boolean; maxTokens?: number };
+  // Um único sinal acompanha a geração inteira: modelo, leitura do stream e buscas.
+  const cancelamento = new AbortController();
   const pedirModelo = (mensagens: unknown[], comBusca: boolean, opcoes: OpcoesDaChamada = {}) => fetch(`${LLM_BASE_URL}/chat/completions`, {
     method: "POST",
+    signal: cancelamento.signal,
     headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json", "X-Trustio-Plano": plano },
     body: JSON.stringify({
       model: modelo, messages: mensagens, stream: true, temperature: 0.2,
@@ -577,10 +580,8 @@ Deno.serve(async (req) => {
   let full = "";
   const convId = conversationId;
 
-  // A leitura do modelo não depende de o navegador continuar conectado: se a pessoa
-  // recarrega ou fecha a aba no meio, a resposta termina de chegar e fica salva no
-  // histórico (antes, a conexão fechada descartava tudo). Enviar para o navegador é
-  // melhor esforço; ler, salvar e fechar a conta da cota é obrigação.
+  // A geração roda em segundo plano enquanto a conexão existe; se o cliente cancelar,
+  // o AbortController encerra a chamada upstream e a leitura, preservando o texto parcial.
   let saida: ReadableStreamDefaultController<Uint8Array> | null = null;
   let aberto = true;
   const send = (obj: unknown) => {
@@ -594,14 +595,19 @@ Deno.serve(async (req) => {
     try { saida.close(); } catch { /* já fechado */ }
   };
 
+  let leitorAtivo: ReadableStreamDefaultReader<Uint8Array> | null = null;
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
       saida = controller;
       send({ conversation_id: convId, limite: LLM_MAX_TOKENS, modelo, skill: skillAtiva,
         ...(transcricaoAudio ? { mensagem_usuario: message } : {}) });
     },
-    // Navegador foi embora: só para de enviar; a leitura do modelo segue.
-    cancel() { aberto = false; },
+    // O cancelamento do cliente precisa chegar ao provedor e à leitura local.
+    async cancel() {
+      aberto = false;
+      cancelamento.abort(new DOMException("Cliente cancelou a geração", "AbortError"));
+      try { await leitorAtivo?.cancel(); } catch { /* reader já encerrado */ }
+    },
   });
 
   const trabalho = (async () => {
@@ -657,7 +663,9 @@ Deno.serve(async (req) => {
     };
     rodadas: while (true) {
     rodada++;
+    if (cancelamento.signal.aborted) { interrompido = true; break rodadas; }
     const reader = atual.body!.getReader();
+    leitorAtivo = reader;
     let buffer = "";
     const chamadas: { id: string; nome: string; args: string }[] = [];
     const inicioDaRodada = full.length;
@@ -666,6 +674,7 @@ Deno.serve(async (req) => {
     fim = null;
     try {
       leitura: while (true) {
+        if (cancelamento.signal.aborted) { interrompido = true; break leitura; }
         const { done, value } = await reader.read();
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
@@ -738,10 +747,15 @@ Deno.serve(async (req) => {
     } catch (err) {
       interrompido = true;
       console.error("stream_error", err);
+    } finally {
+      if (leitorAtivo === reader) leitorAtivo = null;
+      try { reader.releaseLock(); } catch { /* reader cancelado */ }
     }
+    if (cancelamento.signal.aborted) interrompido = true;
     const pedidos = chamadas.filter((c) => c && c.nome);
     if (rodadaDeTriagem) {
       rodadaDeTriagem = false;
+      if (cancelamento.signal.aborted) { interrompido = true; break rodadas; }
       if (triagemRespondeu || interrompido || !pedidos.length) {
         // Sem busca: fecha a triagem (o servidor para de gerar) e faz a chamada normal, com raciocínio.
         await reader.cancel().catch(() => {});
@@ -766,16 +780,18 @@ Deno.serve(async (req) => {
       }
       console.log("triagem_busca", Date.now() - inicioDoTrabalho, "ms");
     }
+    if (cancelamento.signal.aborted) { interrompido = true; break rodadas; }
     if (!pedidos.length && !fim && full.length === inicioDaRodada && refazerRodada && !jaRefez) {
       jaRefez = true;
       console.error("modelo_caiu_na_rodada", interrompido ? "interrompido" : "sem_fim", Date.now() - inicioDoTrabalho, "ms");
       await reader.cancel().catch(() => {});
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 20 && !cancelamento.signal.aborted; i++) {
         await new Promise((r) => setTimeout(r, 2000));
-        const ok = await fetch(`${LLM_BASE_URL}/models`, { headers: { "Authorization": `Bearer ${LLM_API_KEY}` }, signal: AbortSignal.timeout(3000) })
+        const ok = await fetch(`${LLM_BASE_URL}/models`, { headers: { "Authorization": `Bearer ${LLM_API_KEY}` }, signal: AbortSignal.any([cancelamento.signal, AbortSignal.timeout(3000)]) })
           .then((r) => r.ok).catch(() => false);
         if (ok) break;
       }
+      if (cancelamento.signal.aborted) { interrompido = true; break rodadas; }
       try {
         atual = await refazerRodada();
         if (atual.ok && atual.body) { interrompido = false; console.log("modelo_refeito"); continue rodadas; }
@@ -800,6 +816,7 @@ Deno.serve(async (req) => {
     if (full.length > inicioDaRodada && !/\n\s*$/.test(full)) { full += "\n\n"; send({ delta: "\n\n", n: tokens }); }
     inicioDoFinal = full.length;
     for (const c of lista) {
+      if (cancelamento.signal.aborted) { interrompido = true; break; }
       let conteudo: string;
       if (c.nome !== NOME_FERRAMENTA) conteudo = "Ferramenta desconhecida.";
       else if (buscasFeitas >= MAX_BUSCAS_POR_MENSAGEM) conteudo = "Limite de buscas desta mensagem atingido: responda com o que já tem.";
@@ -808,6 +825,7 @@ Deno.serve(async (req) => {
         buscasFeitas++;
         send({ buscando: consulta, n: tokens });
         const { data: vaga, error: vagaErro } = await admin.rpc("reservar_busca", { p_user_id: user.id, p_limite: BUSCA_LIMITE_DIARIO, p_demo: BUSCA_DEMO });
+        if (cancelamento.signal.aborted) { interrompido = true; break; }
         if (vagaErro || !vaga?.ok) {
           if (vagaErro) console.error("reservar_busca", vagaErro);
           conteudo = vaga?.error === "busca_demo_esgotada"
@@ -817,7 +835,7 @@ Deno.serve(async (req) => {
           try {
             const inicioDaBusca = Date.now();
             const { resultados: rs, provedor, falhaExa } = await buscarComReserva(consulta, agora,
-              { exa: EXA_API_KEY, firecrawl: FIRECRAWL_API_KEY }, fetch, { curta: fala === "conversa", estado: estadoDaBusca });
+              { exa: EXA_API_KEY, firecrawl: FIRECRAWL_API_KEY }, fetch, { curta: fala === "conversa", estado: estadoDaBusca, signal: cancelamento.signal });
             // A Exa caiu e a Firecrawl respondeu: a pessoa nem percebe, então a queda fica registrada aqui.
             if (falhaExa) console.error("busca_exa_falhou", falhaExa.status ?? falhaExa.message, falhaExa.detalhe ?? "");
             console.log("busca_ok", rs.length, vaga.demo ? "demo" : "livre", Date.now() - inicioDaBusca, "ms", agora ? "agora" : "cache", provedor);
@@ -828,12 +846,14 @@ Deno.serve(async (req) => {
             const e = err as { status?: number; detalhe?: string; message?: string };
             console.error("busca_falhou", e.status ?? e.message, e.detalhe ?? "");
             await admin.rpc("devolver_busca", { p_user_id: user.id, p_demo: !!vaga.demo });
+            if (cancelamento.signal.aborted) { interrompido = true; break; }
             conteudo = "A busca na web falhou agora. Responda com o que você sabe e avise que não conseguiu pesquisar.";
           }
         }
       }
       conversaDaBusca.push({ role: "tool", tool_call_id: c.id, content: conteudo });
     }
+    if (cancelamento.signal.aborted) { interrompido = true; break rodadas; }
     // Próxima rodada: com a ferramenta só se ainda couber outra busca; senão ele tem de responder.
     const comBuscaAinda = buscasFeitas < MAX_BUSCAS_POR_MENSAGEM;
     ferramentaNaRodada = comBuscaAinda;
@@ -863,7 +883,8 @@ Deno.serve(async (req) => {
     }
 
     if (full) {
-      await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: full.slice(inicioDoFinal).trim() || full, model: modelo });
+      const respostaSalva = (full.slice(inicioDoFinal).trim() || full) + (interrompido ? "\n\n_(Resposta interrompida.)_" : "");
+      await admin.from("messages").insert({ conversation_id: convId, user_id: user.id, role: "assistant", content: respostaSalva, model: modelo });
       await admin.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
       if (interrompido) send({ error: "stream_interrompido" });
       // A segunda rodada (depois da busca) falhou, mas a primeira já tinha escrito algo: avisa.
@@ -894,7 +915,7 @@ Deno.serve(async (req) => {
   })().finally(() =>
     // Fim da resposta, com ou sem texto: solta a pergunta em andamento do teste grátis.
     admin.rpc("fim_chat_message", { p_lead_id: leadId }).then(({ error }) => { if (error) console.error("fim_error", error); }));
-  // Mantém a função viva até o fim da leitura, mesmo com o navegador desconectado.
+  // Mantém a função viva até finalizar ou processar o cancelamento do cliente.
   // deno-lint-ignore no-explicit-any
   (globalThis as any).EdgeRuntime?.waitUntil?.(trabalho);
 

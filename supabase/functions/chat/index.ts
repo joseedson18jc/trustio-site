@@ -767,7 +767,8 @@ Deno.serve(async (req) => {
           atual = await pedirModelo(conversaDaBusca, buscaLigada);
         } catch (err) {
           console.error("llm_fetch_error_triagem", err);
-          erroRodada = "modelo_indisponivel";
+          if (cancelamento.signal.aborted) interrompido = true;
+          else erroRodada = "modelo_indisponivel";
           break rodadas;
         }
         if (!atual.ok || !atual.body) {
@@ -825,7 +826,11 @@ Deno.serve(async (req) => {
         buscasFeitas++;
         send({ buscando: consulta, n: tokens });
         const { data: vaga, error: vagaErro } = await admin.rpc("reservar_busca", { p_user_id: user.id, p_limite: BUSCA_LIMITE_DIARIO, p_demo: BUSCA_DEMO });
-        if (cancelamento.signal.aborted) { interrompido = true; break; }
+        if (cancelamento.signal.aborted) {
+          if (vaga?.ok) await admin.rpc("devolver_busca", { p_user_id: user.id, p_demo: !!vaga.demo });
+          interrompido = true;
+          break;
+        }
         if (vagaErro || !vaga?.ok) {
           if (vagaErro) console.error("reservar_busca", vagaErro);
           conteudo = vaga?.error === "busca_demo_esgotada"
@@ -863,7 +868,8 @@ Deno.serve(async (req) => {
       atual = await refazerRodada();
     } catch (err) {
       console.error("llm_fetch_error_busca", err);
-      erroRodada = "modelo_indisponivel";
+      if (cancelamento.signal.aborted) interrompido = true;
+      else erroRodada = "modelo_indisponivel";
       break rodadas;
     }
     if (!atual.ok || !atual.body) {

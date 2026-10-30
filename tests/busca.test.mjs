@@ -290,12 +290,15 @@ await t("reserva: Exa com 200 mas corpo ilegível ou sem lista é falha (vai à 
   }
 });
 
-await t("cancelamento: o mesmo AbortSignal chega à Exa e à Firecrawl", async () => {
+await t("cancelamento: Exa e Firecrawl recebem sinais vinculados ao AbortSignal do chat", async () => {
   const controller = new AbortController();
   const f = rede({ exa: resposta({}, 500), firecrawl: fcOk([]) });
   await buscarComReserva("q", false, { exa: "ke", firecrawl: "kf" }, f, { signal: controller.signal });
-  assert.equal(f.para("api.exa.ai")[0].init.signal, controller.signal);
-  assert.equal(f.para("firecrawl")[0].init.signal, controller.signal);
+  const sinais = f.chamadas.map((c) => c.init.signal);
+  assert.equal(sinais.length, 2);
+  assert.ok(sinais.every((signal) => signal instanceof AbortSignal));
+  controller.abort();
+  assert.ok(sinais.every((signal) => signal.aborted));
 });
 
 await t("cancelamento: se a Exa for abortada, não inicia fallback na Firecrawl", async () => {

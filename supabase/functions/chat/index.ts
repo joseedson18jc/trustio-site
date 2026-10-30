@@ -172,6 +172,134 @@ type Reservation = {
   subscriber?: boolean; remaining?: number | null;
 };
 
+const COMPUTER_PARAR = new Set(["awaiting_confirmation", "completed", "failed", "aborted", "paused"]);
+
+function eventoComputer(data: Record<string, unknown>) {
+  const acao = data.action && typeof data.action === "object" ? data.action as Record<string, unknown> : null;
+  return {
+    session_id: typeof data.session_id === "string" ? data.session_id : null,
+    state: typeof data.state === "string" ? data.state : null,
+    step: typeof data.step === "number" ? data.step : null,
+    summary: typeof data.summary === "string" ? data.summary.slice(0, 300) : "",
+    error: typeof data.error === "string" ? data.error : null,
+    action: acao && typeof acao.action === "string" ? acao.action : null,
+  };
+}
+
+async function chamarComputer(path: string, token: string, body: unknown) {
+  const headers: Record<string, string> = {
+    "Authorization": `Bearer ${LLM_API_KEY}`,
+    "Content-Type": "application/json",
+  };
+  if (token) headers["X-Trustio-Computer-Token"] = token;
+  const res = await fetch(`${LLM_BASE_URL}${path}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body ?? {}),
+    signal: AbortSignal.timeout(150_000),
+  });
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>;
+  return { status: res.status, data };
+}
+
+function responderComputador(opts: {
+  origin: string | null;
+  admin: ReturnType<typeof createClient>;
+  userId: string;
+  conversationId: string | null;
+  goal: string;
+  computerAcao: string;
+  session: string;
+  token: string;
+  release: () => Promise<unknown>;
+}) {
+  const { origin, admin, userId, conversationId } = opts;
+  const encoder = new TextEncoder();
+  let saida: ReadableStreamDefaultController<Uint8Array> | null = null;
+  let aberto = true;
+  const send = (obj: unknown) => {
+    if (!aberto || !saida) return;
+    try { saida.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`)); }
+    catch { aberto = false; }
+  };
+  const fechar = () => {
+    if (!aberto || !saida) return;
+    aberto = false;
+    try { saida.close(); } catch { /* já fechado */ }
+  };
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) { saida = controller; if (conversationId) send({ conversation_id: conversationId }); },
+    cancel() { aberto = false; },
+  });
+  const trabalho = (async () => {
+    const linhas: string[] = [];
+    let session = opts.session;
+    let token = opts.token;
+    const anotar = (data: Record<string, unknown>, comToken = false) => {
+      const ev = eventoComputer(data);
+      if (ev.summary) linhas.push(ev.summary);
+      send({ computer: ev, ...(comToken && token ? { computer_token: token } : {}), conversation_id: conversationId });
+      return ev;
+    };
+    try {
+      if (!opts.computerAcao) {
+        const criado = await chamarComputer("/v1/computer/sessions", "", {
+          goal: opts.goal, conversation_id: conversationId,
+        });
+        if (criado.status !== 200 || typeof criado.data.session_id !== "string" || typeof criado.data.token !== "string") {
+          await opts.release();
+          send({ error: typeof criado.data.error === "string" ? criado.data.error : "computer_indisponivel" });
+          fechar();
+          return;
+        }
+        session = criado.data.session_id;
+        token = criado.data.token;
+        anotar(criado.data, true);
+      } else {
+        const caminho = opts.computerAcao === "confirm" || opts.computerAcao === "deny"
+          ? `/v1/computer/sessions/${session}/confirm`
+          : `/v1/computer/sessions/${session}/${opts.computerAcao}`;
+        const corpo = opts.computerAcao === "confirm" || opts.computerAcao === "deny"
+          ? { decision: opts.computerAcao === "deny" ? "deny" : "approve" }
+          : {};
+        const resp = await chamarComputer(caminho, token, corpo);
+        const ev = anotar(resp.data);
+        if (resp.status !== 200 || ev.state !== "observing") {
+          if (conversationId && linhas.length) {
+            await admin.from("messages").insert({
+              conversation_id: conversationId, user_id: userId, role: "assistant",
+              content: linhas.join("\n"), model: "trustio-heavy",
+            });
+          }
+          fechar();
+          return;
+        }
+      }
+      for (let i = 0; i < 15; i++) {
+        const passo = await chamarComputer(`/v1/computer/sessions/${session}/step`, token, {});
+        const ev = anotar(passo.data);
+        if (passo.status !== 200 || !ev.state || COMPUTER_PARAR.has(ev.state)) break;
+      }
+      if (conversationId && linhas.length) {
+        await admin.from("messages").insert({
+          conversation_id: conversationId, user_id: userId, role: "assistant",
+          content: linhas.join("\n"), model: "trustio-heavy",
+        });
+      }
+    } catch (err) {
+      console.error("computer_error", err instanceof Error ? err.name : "erro");
+      if (!opts.computerAcao) await opts.release();
+      send({ error: "computer_indisponivel" });
+    }
+    fechar();
+  })();
+  // deno-lint-ignore no-explicit-any
+  (globalThis as any).EdgeRuntime?.waitUntil?.(trabalho);
+  return new Response(stream, {
+    headers: { ...cors(origin), "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-store", "X-Accel-Buffering": "no" },
+  });
+}
+
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin) });
@@ -193,6 +321,20 @@ Deno.serve(async (req) => {
     const { data: ehAdmin } = await admin.from("admins").select("user_id").eq("user_id", user.id).maybeSingle();
     const configurado = LLM_API_KEY.length > 0;
     const acesso = await liberacao(admin, user.id);
+    const computer = { ready: false, armed: false };
+    if (configurado) {
+      try {
+        const h = await fetch(`${LLM_BASE_URL}/v1/computer/health`, {
+          headers: { Authorization: `Bearer ${LLM_API_KEY}` },
+          signal: AbortSignal.timeout(800),
+        });
+        if (h.ok) {
+          const j = await h.json() as { ready?: boolean; armed?: boolean };
+          computer.ready = j.ready === true;
+          computer.armed = j.armed === true;
+        }
+      } catch { /* o chat segue sem o computador nesta máquina */ }
+    }
     return json(200, {
       ok: true,
       // Só está aberto quando a data já chegou para esta conta E existe modelo para responder.
@@ -208,15 +350,28 @@ Deno.serve(async (req) => {
       // Sem consultar o servidor: a verificação não pode esperar um GET /models lento.
       modelo: ehAdmin && configurado ? (await modeloDoBanco(admin)) ?? modeloDescoberto?.id ?? LLM_MODEL : null,
       provedor: ehAdmin && configurado ? new URL(LLM_BASE_URL).host : null,
+      computer_ready: computer.ready,
+      computer_armed: computer.armed,
     }, origin);
   }
 
   if (!user.email_confirmed_at) return json(403, { error: "email_nao_confirmado" }, origin);
 
-  let body: { conversation_id?: string; message?: string; imagens?: unknown };
+  let body: {
+    conversation_id?: string; message?: string; imagens?: unknown;
+    computer?: boolean;
+    computer_action?: string;
+    computer_session?: string;
+    computer_token?: string;
+  };
   try { body = await req.json(); } catch { return json(400, { error: "bad_json" }, origin); }
+  const acoesComputer = new Set(["confirm", "deny", "pause", "resume", "abort"]);
+  const computerAcao = acoesComputer.has(String(body.computer_action ?? "")) ? String(body.computer_action) : "";
   const message = String(body.message ?? "").trim();
-  if (!message) return json(400, { error: "mensagem_vazia" }, origin);
+  if (!message && !computerAcao) return json(400, { error: "mensagem_vazia" }, origin);
+  if (computerAcao && (!body.computer_session || !body.computer_token)) {
+    return json(400, { error: "computer_sessao" }, origin);
+  }
   // 40 mil caracteres: mensagem com até 3 anexos lidos por OCR no navegador (o texto de
   // cada anexo é cortado em 12 mil, e o total dos anexos em 30 mil, antes de sair da página).
   if (message.length > 40000) return json(413, { error: "mensagem_longa" }, origin);
@@ -243,6 +398,14 @@ Deno.serve(async (req) => {
       antecipado_em: acesso.antecipado_em ?? null,
       pre_assinante: acesso.pre_assinante ?? false,
     }, origin);
+  }
+
+  if (computerAcao) {
+    return responderComputador({
+      origin, admin, userId: user.id, conversationId: body.conversation_id ?? null,
+      goal: message, computerAcao, session: String(body.computer_session),
+      token: String(body.computer_token), release: async () => {},
+    });
   }
 
   // Reserva a cota ANTES de chamar o modelo, numa única instrução no banco
@@ -273,6 +436,14 @@ Deno.serve(async (req) => {
     const { data: conv, error } = await admin.from("conversations").insert({ user_id: user.id, title }).select("id").single();
     if (error || !conv) { await release(); return json(500, { error: "conversa_nao_criada" }, origin); }
     conversationId = conv.id;
+  }
+
+  if (body.computer === true) {
+    await admin.from("messages").insert({ conversation_id: conversationId, user_id: user.id, role: "user", content: message });
+    return responderComputador({
+      origin, admin, userId: user.id, conversationId, goal: message,
+      computerAcao: "", session: "", token: "", release,
+    });
   }
 
   const { data: history } = await admin.from("messages").select("role,content")

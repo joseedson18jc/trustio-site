@@ -16,7 +16,7 @@
     "i18n": "node scripts/i18n.mjs",
     "i18n:check": "node scripts/i18n.mjs --check",
     "test:worker": "node worker/test/worker.test.mjs",
-    "test:mac": "node mac/test/hermes-autorizados.test.mjs && node mac/test/whatsapp.test.mjs",
+    "test:mac": "node mac/test/hermes-autorizados.test.mjs && node mac/test/whatsapp.test.mjs && python3 -m unittest mac/test/trustio_computer_test.py",
     "test:gate": "node gate/test/gate.test.mjs",
     "test:auth": "node tests/auth-config.test.mjs"
   },

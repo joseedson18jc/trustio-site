@@ -36,7 +36,7 @@
   var state = { user: null, lead: null, limit: 0, conversationId: null, conversations: [], sending: false, threadInner: null, isAdmin: false, fechado: false, sessaoCheia: false, placeholderPadrao: "", escolhas: 0,
     // Preferências da conta (tabela preferencias_usuario) e o que vem com elas.
     pref: { estilo: "equilibrado", instrucoes: "", modelo: null, enter_envia: true, fonte: "normal", avatar_em: null },
-    modelos: [], avatarUrl: null, filtro: "" };
+    modelos: [], avatarUrl: null, filtro: "", computerArmed: false, computerOn: false, computerSession: null, computerToken: null };
 
   // ---------------------------------------------------------------- utilidades
   // Sem cota de perguntas: assinante, ou tipo de usuário admin, colaborador ou cliente
@@ -166,11 +166,98 @@
       .then(function (res) { return res.ok ? res.json() : null; })
       .then(function (d) {
         if (d && Array.isArray(d.modelos)) state.modelos = d.modelos;
+        if (d && d.computer_armed) { state.computerArmed = true; montarComputer(); }
         if (!d || d.chat_aberto) { fechar(false); return; }
         fechar(true, d);
       })
       // Sem resposta agora não presumimos nada: o servidor recusa o envio se ainda estiver fechado.
       .catch(function () { /* o envio mostra o motivo certo depois */ });
+  }
+
+  function montarComputer() {
+    if (!state.computerArmed || document.querySelector("[data-computer-toggle]")) return;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.setAttribute("data-computer-toggle", "");
+    btn.setAttribute("aria-pressed", "false");
+    btn.textContent = T("Controlar este Mac", "Control this Mac");
+    btn.addEventListener("click", function () {
+      state.computerOn = !state.computerOn;
+      btn.setAttribute("aria-pressed", state.computerOn ? "true" : "false");
+    });
+    if (sendBtn && sendBtn.parentNode) sendBtn.parentNode.insertBefore(btn, sendBtn);
+  }
+
+  function enviarComputer(acao) {
+    if (!state.computerSession || !state.computerToken || state.sending) return;
+    state.sending = true;
+    sb.auth.getSession().then(function (r) {
+      var session = r.data && r.data.session;
+      if (!session) throw new Error("sem_sessao");
+      return fetch(CFG.chatEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token, "apikey": CFG.key },
+        body: JSON.stringify({
+          conversation_id: state.conversationId,
+          computer_action: acao,
+          computer_session: state.computerSession,
+          computer_token: state.computerToken
+        })
+      });
+    }).then(function (res) {
+      if (!res.ok) throw new Error("computer_http");
+      return lerComputer(res);
+    }).catch(function (err) {
+      showNotice(T("Não foi possível controlar o Mac agora.", "Couldn't control the Mac just now."));
+      console.error(err);
+    }).then(function () { state.sending = false; });
+  }
+
+  function lerComputer(res) {
+    var reader = res.body.getReader(), dec = new TextDecoder(), buf = "";
+    function pump() {
+      return reader.read().then(function (step) {
+        if (step.done) return;
+        buf += dec.decode(step.value, { stream: true });
+        var events = buf.split("\n\n"); buf = events.pop();
+        events.forEach(function (ev) {
+          var line = ev.split("\n").filter(function (l) { return l.indexOf("data:") === 0; })[0];
+          if (!line) return;
+          var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
+          aplicarComputer(d);
+        });
+        return pump();
+      });
+    }
+    return pump();
+  }
+
+  function aplicarComputer(d) {
+    if (d.computer_token) state.computerToken = d.computer_token;
+    if (!d.computer) return;
+    if (d.computer.session_id) state.computerSession = d.computer.session_id;
+    var barra = document.querySelector("[data-computer-status]");
+    if (!barra) {
+      barra = document.createElement("p");
+      barra.setAttribute("data-computer-status", "");
+      if (thread) thread.appendChild(barra);
+    }
+    var linha = d.computer.summary || d.computer.state || "";
+    if (linha) barra.textContent = (barra.textContent ? barra.textContent + "\n" : "") + linha;
+    var acoes = barra.querySelector("[data-computer-actions]");
+    if (acoes) acoes.remove();
+    if (d.computer.state === "awaiting_confirmation" || d.computer.state === "observing" || d.computer.state === "paused") {
+      acoes = document.createElement("span");
+      acoes.setAttribute("data-computer-actions", "");
+      [["resume", T("Retomar", "Resume")], ["confirm", T("Aprovar", "Approve")], ["deny", T("Negar", "Deny")], ["pause", T("Pausar", "Pause")], ["abort", T("Parar", "Stop")]].forEach(function (par) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.textContent = par[1];
+        b.addEventListener("click", function () { enviarComputer(par[0]); });
+        acoes.appendChild(b);
+      });
+      barra.appendChild(acoes);
+    }
   }
 
   // Estado, não um disable pontual: enquanto state.fechado for verdadeiro nada envia,
@@ -647,9 +734,13 @@
       return fetch(CFG.chatEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token, "apikey": CFG.key },
-        body: JSON.stringify(imagens.length
-          ? { conversation_id: state.conversationId, message: text, imagens: imagens }
-          : { conversation_id: state.conversationId, message: text })
+        body: JSON.stringify((function () {
+          var corpo = imagens.length
+            ? { conversation_id: state.conversationId, message: text, imagens: imagens }
+            : { conversation_id: state.conversationId, message: text };
+          if (state.computerOn) corpo.computer = true;
+          return corpo;
+        })())
       });
     }).then(function (res) {
       if (!res.ok) {
@@ -666,6 +757,7 @@
             if (!line) return;
             var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
             if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; lembrarConversa(d.conversation_id); }
+            if (d.computer || d.computer_token) { aplicarComputer(d); if (d.computer && d.computer.summary) { full += (full ? "\n" : "") + d.computer.summary; body.textContent = full; } }
             if (d.limite) { limite = Number(d.limite) || 0; prog.classList.remove("is-open"); mostrarProgresso(); }
             if (d.raciocinio) {
               contar(d);

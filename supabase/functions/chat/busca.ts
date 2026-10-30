@@ -98,7 +98,7 @@ export const ESPERA_EXA_COM_RESERVA = 7_000;
 // o modelo lê menos antes de começar a falar (19 out 2026).
 export async function buscarNaWeb(consulta: string, atual: boolean, chave: string,
                                   fetchFn: typeof fetch = fetch,
-                                  opcoes: { curta?: boolean; espera?: number; estrito?: boolean } = {}): Promise<Resultado[]> {
+                                  opcoes: { curta?: boolean; espera?: number; estrito?: boolean; signal?: AbortSignal } = {}): Promise<Resultado[]> {
   const r = await fetchFn("https://api.exa.ai/search", {
     method: "POST",
     headers: { "x-api-key": chave, "Content-Type": "application/json" },
@@ -114,7 +114,7 @@ export async function buscarNaWeb(consulta: string, atual: boolean, chave: strin
         ...(atual ? { maxAgeHours: 1, livecrawlTimeout: 2500 } : {}),
       },
     }),
-    signal: AbortSignal.timeout(opcoes.espera ?? ESPERA_EXA),
+    signal: opcoes.signal ? AbortSignal.any([opcoes.signal, AbortSignal.timeout(opcoes.espera ?? ESPERA_EXA)]) : AbortSignal.timeout(opcoes.espera ?? ESPERA_EXA),
   });
   if (!r.ok) {
     const corpo = await r.text().catch(() => "");
@@ -153,7 +153,7 @@ export type Falha = { status?: number; detalhe?: string; message?: string };
 export type EstadoDaBusca = { exaFalhou: boolean };
 
 export async function buscarNaFirecrawl(consulta: string, atual: boolean, chave: string,
-                                        fetchFn: typeof fetch = fetch, opcoes: { curta?: boolean } = {}): Promise<Resultado[]> {
+                                        fetchFn: typeof fetch = fetch, opcoes: { curta?: boolean; signal?: AbortSignal } = {}): Promise<Resultado[]> {
   const r = await fetchFn("https://api.firecrawl.dev/v2/search", {
     method: "POST",
     headers: { "Authorization": `Bearer ${chave}`, "Content-Type": "application/json" },
@@ -167,7 +167,7 @@ export async function buscarNaFirecrawl(consulta: string, atual: boolean, chave:
       // "Agora": só resultados do último dia (com a última hora, quase nada volta).
       ...(atual ? { tbs: "qdr:d" } : {}),
     }),
-    signal: AbortSignal.timeout(ESPERA_FIRECRAWL),
+    signal: opcoes.signal ? AbortSignal.any([opcoes.signal, AbortSignal.timeout(ESPERA_FIRECRAWL)]) : AbortSignal.timeout(ESPERA_FIRECRAWL),
   });
   const corpo = await r.text().catch(() => "");
   let j: { success?: unknown; data?: { web?: unknown } } = {};
@@ -203,24 +203,26 @@ function motivo(f: Falha): string {
 
 export async function buscarComReserva(consulta: string, atual: boolean, chaves: { exa: string; firecrawl?: string },
                                        fetchFn: typeof fetch = fetch,
-                                       opcoes: { curta?: boolean; estado?: EstadoDaBusca } = {}):
+                                       opcoes: { curta?: boolean; estado?: EstadoDaBusca; signal?: AbortSignal } = {}):
                                        Promise<{ resultados: Resultado[]; provedor: Provedor; falhaExa: Falha | null }> {
   const reserva = (chaves.firecrawl ?? "").trim();
+  if (opcoes.signal?.aborted) throw new DOMException("Busca cancelada", "AbortError");
   if (!reserva) {
-    return { resultados: await buscarNaWeb(consulta, atual, chaves.exa, fetchFn, { curta: opcoes.curta }), provedor: "exa", falhaExa: null };
+    return { resultados: await buscarNaWeb(consulta, atual, chaves.exa, fetchFn, { curta: opcoes.curta, signal: opcoes.signal }), provedor: "exa", falhaExa: null };
   }
   let falhaExa: Falha | null = null;
   if (!opcoes.estado?.exaFalhou) {
     try {
-      const resultados = await buscarNaWeb(consulta, atual, chaves.exa, fetchFn, { curta: opcoes.curta, espera: ESPERA_EXA_COM_RESERVA, estrito: true });
+      const resultados = await buscarNaWeb(consulta, atual, chaves.exa, fetchFn, { curta: opcoes.curta, espera: ESPERA_EXA_COM_RESERVA, estrito: true, signal: opcoes.signal });
       return { resultados, provedor: "exa", falhaExa: null };
     } catch (err) {
+      if (opcoes.signal?.aborted) throw err;
       falhaExa = falhaDe(err);
       if (opcoes.estado) opcoes.estado.exaFalhou = true;
     }
   }
   try {
-    const resultados = await buscarNaFirecrawl(consulta, atual, reserva, fetchFn, { curta: opcoes.curta });
+    const resultados = await buscarNaFirecrawl(consulta, atual, reserva, fetchFn, { curta: opcoes.curta, signal: opcoes.signal });
     return { resultados, provedor: "firecrawl", falhaExa };
   } catch (err) {
     const f = falhaDe(err);

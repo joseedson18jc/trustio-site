@@ -22,6 +22,12 @@ class Validacao(unittest.TestCase):
         self.assertEqual(tc.politica({"action": "keypress", "key": "return"}, False), "confirm")
         self.assertEqual(tc.politica({"action": "keypress", "key": "a", "modifiers": ["command"]}, False), "confirm")
         self.assertEqual(tc.politica({"action": "click", "x": 1, "y": 1}, True), "deny")
+        # letra solta digita texto: precisa da mesma confirmação que type
+        self.assertEqual(tc.politica({"action": "keypress", "key": "a"}, False), "confirm")
+        self.assertEqual(tc.politica({"action": "keypress", "key": "7"}, False), "confirm")
+        # todas as letras e dígitos aceitos têm código físico para atalhos
+        self.assertTrue(set("abcdefghijklmnopqrstuvwxyz0123456789") <= set(tc._CODIGO_ANSI))
+        self.assertEqual(tc._flags(["command", "shift"]), (1 << 20) | (1 << 17))
 
     def test_extrai_tool_call(self):
         bruto = json.dumps({"choices": [{"message": {"tool_calls": [{

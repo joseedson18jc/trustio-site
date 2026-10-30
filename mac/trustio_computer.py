@@ -107,6 +107,10 @@ def politica(acao, seguro):
         mods = set(acao.get("modifiers") or [])
         if mods & {"command", "option", "control"} or acao.get("key") in {"return", "enter", "delete"}:
             return "confirm"
+        # Letra ou dígito vira texto digitado: sem isto, digitar caractere por caractere
+        # passaria sem a confirmação exigida para type.
+        if len(str(acao.get("key") or "")) == 1:
+            return "confirm"
         return "allow"
     return "deny"
 
@@ -239,6 +243,15 @@ def recuperar(root=None):
     return ids
 
 
+def _primeiro(journal):
+    for linha in journal.read_text(encoding="utf-8").splitlines():
+        try:
+            return json.loads(linha)
+        except json.JSONDecodeError:
+            continue
+    return None
+
+
 def _ultimo(journal):
     ultimo = None
     for linha in journal.read_text(encoding="utf-8").splitlines():
@@ -333,7 +346,8 @@ def _obter(sid):
     sessao.token = token_path.read_text().strip()
     sessao.goal = ""
     sessao.conversation_id = None
-    sessao.criada = float(ultimo.get("ts") or time.time())
+    # O prazo do token conta da criação, não do último evento: um reinício não pode estender a sessão.
+    sessao.criada = float((_primeiro(journal) or ultimo).get("ts") or 0)
     sessao.state = ultimo.get("state") or "failed"
     sessao.steps = int(ultimo.get("step") or 0)
     sessao.repairs = 0
@@ -656,9 +670,10 @@ def executar_acao(acao):
     if nome == "click":
         botao = 1 if acao.get("button") == "right" else 0
         down, up = (3, 4) if botao else (1, 2)
-        for _ in range(int(acao.get("count") or 1)):
-            _mouse(down, x, y, botao)
-            _mouse(up, x, y, botao)
+        for n in range(1, int(acao.get("count") or 1) + 1):
+            # clickState 2 no segundo par: sem ele o macOS vê dois cliques simples, não um duplo.
+            _mouse(down, x, y, botao, n)
+            _mouse(up, x, y, botao, n)
         return
     if nome == "scroll":
         _scroll(x, y, int(acao.get("dx") or 0), int(acao.get("dy") or 0))
@@ -699,11 +714,13 @@ def _tela_pontos():
     return rect.size.width, rect.size.height
 
 
-def _mouse(kind, x, y, botao):
+def _mouse(kind, x, y, botao, cliques=1):
     cg = _cg()
     ev = cg.CGEventCreateMouseEvent(None, kind, _Ponto(x, y), botao)
     if not ev:
         raise RuntimeError("evento_mouse")
+    if cliques > 1:
+        cg.CGEventSetIntegerValueField(ev, 1, cliques)  # kCGMouseEventClickState
     cg.CGEventPost(0, ev)
     _cf().CFRelease(ev)
 
@@ -711,7 +728,8 @@ def _mouse(kind, x, y, botao):
 def _scroll(x, y, dx, dy):
     _mouse(5, x, y, 0)
     cg = _cg()
-    ev = cg.CGEventCreateScrollWheelEvent(None, 0, 2, int(dy), int(dx))
+    # A versão 2 não é variádica; no arm64 a variádica recebe o segundo eixo errado via ctypes.
+    ev = cg.CGEventCreateScrollWheelEvent2(None, 0, 2, int(dy), int(dx), 0)
     if not ev:
         raise RuntimeError("evento_scroll")
     cg.CGEventPost(0, ev)
@@ -721,15 +739,23 @@ def _scroll(x, y, dx, dy):
 def _digitar(texto):
     import ctypes
     cg = _cg()
-    ev = cg.CGEventCreateKeyboardEvent(None, 0, True)
-    if not ev:
-        raise RuntimeError("evento_teclado")
-    cod = texto.encode("utf-16-le")
-    n = len(cod) // 2
-    buf = (ctypes.c_uint16 * n).from_buffer_copy(cod)
-    cg.CGEventKeyboardSetUnicodeString(ev, n, buf)
-    cg.CGEventPost(0, ev)
-    _cf().CFRelease(ev)
+    unidades = list(memoryview(texto.encode("utf-16-le")).cast("H"))
+    # O macOS só aceita 20 unidades UTF-16 por evento; o resto seria descartado em silêncio.
+    i = 0
+    while i < len(unidades):
+        fim = min(i + 20, len(unidades))
+        if fim < len(unidades) and 0xD800 <= unidades[fim - 1] <= 0xDBFF:
+            fim -= 1  # não separar um par substituto (emoji)
+        pedaco = unidades[i:fim]
+        buf = (ctypes.c_uint16 * len(pedaco))(*pedaco)
+        for down in (True, False):
+            ev = cg.CGEventCreateKeyboardEvent(None, 0, down)
+            if not ev:
+                raise RuntimeError("evento_teclado")
+            cg.CGEventKeyboardSetUnicodeString(ev, len(pedaco), buf)
+            cg.CGEventPost(0, ev)
+            _cf().CFRelease(ev)
+        i = fim
 
 
 def _tecla(tecla, mods):
@@ -753,9 +779,36 @@ def _tecla(tecla, mods):
             cg.CGEventPost(0, ev)
             _cf().CFRelease(ev)
         return
+    if mods and tecla in _CODIGO_ANSI:
+        # Atalho (cmd+c, shift+a...): código físico ANSI com os flags, como o teclado real.
+        cg = _cg()
+        for down in (True, False):
+            ev = cg.CGEventCreateKeyboardEvent(None, _CODIGO_ANSI[tecla], down)
+            if not ev:
+                raise RuntimeError("evento_teclado")
+            cg.CGEventSetFlags(ev, _flags(mods))
+            cg.CGEventPost(0, ev)
+            _cf().CFRelease(ev)
+        return
     if mods:
         raise RuntimeError("atalho_nao_mapeado")
     _digitar(tecla)
+
+
+_CODIGO_ANSI = {
+    "a": 0, "s": 1, "d": 2, "f": 3, "h": 4, "g": 5, "z": 6, "x": 7, "c": 8, "v": 9,
+    "b": 11, "q": 12, "w": 13, "e": 14, "r": 15, "y": 16, "t": 17, "1": 18, "2": 19,
+    "3": 20, "4": 21, "6": 22, "5": 23, "9": 25, "7": 26, "8": 28, "0": 29, "o": 31,
+    "u": 32, "i": 34, "p": 35, "l": 37, "j": 38, "k": 40, "n": 45, "m": 46,
+}
+
+
+def _flags(mods):
+    flags = 0
+    for nome, bit in (("shift", 17), ("control", 18), ("option", 19), ("command", 20)):
+        if nome in mods:
+            flags |= 1 << bit
+    return flags
 
 
 def entrada_segura():
@@ -791,8 +844,9 @@ def _cg():
         _cg_lib.CGEventCreateKeyboardEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint16, ctypes.c_bool]
         _cg_lib.CGEventKeyboardSetUnicodeString.argtypes = [ctypes.c_void_p, ctypes.c_ulong, ctypes.c_void_p]
         _cg_lib.CGEventSetFlags.argtypes = [ctypes.c_void_p, ctypes.c_uint64]
-        _cg_lib.CGEventCreateScrollWheelEvent.restype = ctypes.c_void_p
-        _cg_lib.CGEventCreateScrollWheelEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_int32, ctypes.c_int32]
+        _cg_lib.CGEventSetIntegerValueField.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_int64]
+        _cg_lib.CGEventCreateScrollWheelEvent2.restype = ctypes.c_void_p
+        _cg_lib.CGEventCreateScrollWheelEvent2.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_int32, ctypes.c_int32, ctypes.c_int32]
     return _cg_lib
 
 

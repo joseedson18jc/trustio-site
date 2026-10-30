@@ -172,6 +172,9 @@ type Reservation = {
   subscriber?: boolean; remaining?: number | null;
 };
 
+// LLM_BASE_URL termina em /v1 (o chat chama /chat/completions); as rotas do computador já trazem /v1.
+const COMPUTER_BASE = LLM_BASE_URL.replace(/\/v1$/, "");
+const RE_SESSAO_COMPUTER = /^[0-9a-f]{32}$/;
 const COMPUTER_PARAR = new Set(["awaiting_confirmation", "completed", "failed", "aborted", "paused"]);
 
 function eventoComputer(data: Record<string, unknown>) {
@@ -192,7 +195,7 @@ async function chamarComputer(path: string, token: string, body: unknown) {
     "Content-Type": "application/json",
   };
   if (token) headers["X-Trustio-Computer-Token"] = token;
-  const res = await fetch(`${LLM_BASE_URL}${path}`, {
+  const res = await fetch(`${COMPUTER_BASE}${path}`, {
     method: "POST",
     headers,
     body: JSON.stringify(body ?? {}),
@@ -322,9 +325,9 @@ Deno.serve(async (req) => {
     const configurado = LLM_API_KEY.length > 0;
     const acesso = await liberacao(admin, user.id);
     const computer = { ready: false, armed: false };
-    if (configurado) {
+    if (configurado && ehAdmin) {
       try {
-        const h = await fetch(`${LLM_BASE_URL}/v1/computer/health`, {
+        const h = await fetch(`${COMPUTER_BASE}/v1/computer/health`, {
           headers: { Authorization: `Bearer ${LLM_API_KEY}` },
           signal: AbortSignal.timeout(800),
         });
@@ -369,8 +372,14 @@ Deno.serve(async (req) => {
   const computerAcao = acoesComputer.has(String(body.computer_action ?? "")) ? String(body.computer_action) : "";
   const message = String(body.message ?? "").trim();
   if (!message && !computerAcao) return json(400, { error: "mensagem_vazia" }, origin);
-  if (computerAcao && (!body.computer_session || !body.computer_token)) {
+  if (computerAcao && (!RE_SESSAO_COMPUTER.test(String(body.computer_session ?? "")) || !body.computer_token)) {
     return json(400, { error: "computer_sessao" }, origin);
+  }
+  // Controlar o Mac é só para administradores. O chat é aberto a clientes; sem esta
+  // checagem, qualquer conta logada poderia mandar o mouse e o teclado desta máquina.
+  if (computerAcao || body.computer === true) {
+    const { data: ehAdminComputer } = await admin.from("admins").select("user_id").eq("user_id", user.id).maybeSingle();
+    if (!ehAdminComputer) return json(403, { error: "computer_restrito" }, origin);
   }
   // 40 mil caracteres: mensagem com até 3 anexos lidos por OCR no navegador (o texto de
   // cada anexo é cortado em 12 mil, e o total dos anexos em 30 mil, antes de sair da página).

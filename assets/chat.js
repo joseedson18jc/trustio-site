@@ -224,7 +224,7 @@
           var line = ev.split("\n").filter(function (l) { return l.indexOf("data:") === 0; })[0];
           if (!line) return;
           var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
-          aplicarComputer(d);
+          aplicarComputer(d, true);
         });
         return pump();
       });
@@ -232,7 +232,9 @@
     return pump();
   }
 
-  function aplicarComputer(d) {
+  // comLog: só quando não há balão da resposta mostrando o resumo (ações depois do envio).
+  // No envio normal o resumo já vai para o balão; repetir aqui duplicava o texto.
+  function aplicarComputer(d, comLog) {
     if (d.computer_token) state.computerToken = d.computer_token;
     if (!d.computer) return;
     if (d.computer.session_id) state.computerSession = d.computer.session_id;
@@ -243,13 +245,19 @@
       if (thread) thread.appendChild(barra);
     }
     var linha = d.computer.summary || d.computer.state || "";
-    if (linha) barra.textContent = (barra.textContent ? barra.textContent + "\n" : "") + linha;
     var acoes = barra.querySelector("[data-computer-actions]");
     if (acoes) acoes.remove();
-    if (d.computer.state === "awaiting_confirmation" || d.computer.state === "observing" || d.computer.state === "paused") {
+    if (linha && comLog) barra.textContent = (barra.textContent ? barra.textContent + "\n" : "") + linha;
+    // Só os botões que o estado aceita: "Retomar" fora de paused dava 409 no gateway.
+    var porEstado = {
+      awaiting_confirmation: [["confirm", T("Aprovar", "Approve")], ["deny", T("Negar", "Deny")], ["abort", T("Parar", "Stop")]],
+      paused: [["resume", T("Retomar", "Resume")], ["abort", T("Parar", "Stop")]],
+      observing: [["pause", T("Pausar", "Pause")], ["abort", T("Parar", "Stop")]]
+    }[d.computer.state];
+    if (porEstado) {
       acoes = document.createElement("span");
       acoes.setAttribute("data-computer-actions", "");
-      [["resume", T("Retomar", "Resume")], ["confirm", T("Aprovar", "Approve")], ["deny", T("Negar", "Deny")], ["pause", T("Pausar", "Pause")], ["abort", T("Parar", "Stop")]].forEach(function (par) {
+      porEstado.forEach(function (par) {
         var b = document.createElement("button");
         b.type = "button";
         b.textContent = par[1];
@@ -757,7 +765,7 @@
             if (!line) return;
             var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
             if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; lembrarConversa(d.conversation_id); }
-            if (d.computer || d.computer_token) { aplicarComputer(d); if (d.computer && d.computer.summary) { full += (full ? "\n" : "") + d.computer.summary; body.textContent = full; } }
+            if (d.computer || d.computer_token) { aplicarComputer(d, false); if (d.computer && d.computer.summary) { full += (full ? "\n" : "") + d.computer.summary; body.textContent = full; } }
             if (d.limite) { limite = Number(d.limite) || 0; prog.classList.remove("is-open"); mostrarProgresso(); }
             if (d.raciocinio) {
               contar(d);

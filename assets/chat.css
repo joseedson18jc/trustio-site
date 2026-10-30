@@ -417,6 +417,9 @@ button.me:hover .me-gear { stroke: var(--ice); }
 .send { border: 0; background: var(--cta-gradient); color: #fff; box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.9); }
 .send svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .send:hover { filter: brightness(1.08); }
+.send.is-stopping { background: #b42332; box-shadow: 0 8px 20px -8px rgba(180, 35, 50, 0.65); }
+.send.is-stopping:hover { filter: brightness(1.12); }
+.send.is-stopping svg { stroke-width: 2.2; }
 .send:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
 
 /* Modelos: título, link para comparar e dois cartões com a marca e um indicador de escolha. */

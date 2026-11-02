@@ -19,6 +19,7 @@ import {
 } from "./busca.ts";
 import { SKILLS, blocoDaSkill, skillDoPedido } from "./skills.ts";
 import { type ModeloEscolhivel, escolhaPermitida, normalizarModelos, temBuscaPropria } from "./modelos.ts";
+import { idDoPedido, vigiarParada } from "./parar.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -247,7 +248,7 @@ Deno.serve(async (req) => {
 
   const requestSize = Number(req.headers.get("content-length") ?? 0);
   if (requestSize > MAX_CHAT_REQUEST) return json(413, { error: "mensagem_longa" }, origin);
-  let body: { conversation_id?: string; message?: string; imagens?: unknown; modelo?: unknown; fala?: unknown; skill?: unknown };
+  let body: { conversation_id?: string; message?: string; imagens?: unknown; modelo?: unknown; fala?: unknown; skill?: unknown; pedido_id?: unknown; parar?: unknown };
   let audio: File | null = null;
   let audioLanguage: "pt" | "en" = "pt";
   const contentType = req.headers.get("content-type") ?? "";
@@ -269,6 +270,8 @@ Deno.serve(async (req) => {
         modelo: String(form.get("modelo") ?? ""),
         // Gravação do microfone do chat (assets/voz.js): "1" = fala; "conversa" = conversa por voz.
         fala: String(form.get("fala") ?? ""),
+        // Id deste envio, para o botão parar (parar.ts).
+        pedido_id: String(form.get("pedido_id") ?? ""),
         // Skill ativa (Skills para baixar): só o id; ausente = mantém a da conversa.
         ...(form.has("skill") ? { skill: String(form.get("skill") ?? "") } : {}),
       };
@@ -276,6 +279,20 @@ Deno.serve(async (req) => {
       body = await req.json();
     }
   } catch { return json(400, { error: "bad_json" }, origin); }
+
+  // Botão parar (parar.ts): grava só o id do envio, com o dono vindo do token. Antes da cota e da
+  // liberação do chat: parar nunca consome pergunta. A resposta em andamento acha o id e para.
+  if (body && typeof body === "object" && "parar" in body) {
+    const pedido = idDoPedido(body.parar);
+    if (!pedido) return json(400, { error: "pedido_invalido" }, origin);
+    const { error } = await admin.from("parar_chat")
+      .upsert({ pedido_id: pedido, user_id: user.id }, { onConflict: "pedido_id", ignoreDuplicates: true });
+    if (error) { console.error("parar_error", error); return json(500, { error: "parar_indisponivel" }, origin); }
+    // Paradas que chegaram depois do fim da resposta ficam sem dono: some com as desta conta com mais de 1 hora.
+    await admin.from("parar_chat").delete().eq("user_id", user.id).lt("criado_em", new Date(Date.now() - 3_600_000).toISOString());
+    return json(202, { ok: true }, origin);
+  }
+  const pedidoId = idDoPedido(body.pedido_id);
   let message = String(body.message ?? "").trim();
   // 40 mil caracteres: mensagem com até 3 anexos lidos por OCR no navegador (o texto de
   // cada anexo é cortado em 12 mil, e o total dos anexos em 30 mil, antes de sair da página).
@@ -463,8 +480,11 @@ Deno.serve(async (req) => {
     ...(history ?? []).reverse().map((m) => ({ role: m.role, content: m.role === "assistant" ? semNarracaoDeBusca(m.content) : m.content })),
   ];
   type OpcoesDaChamada = { semRaciocinio?: boolean; maxTokens?: number };
+  // Botão parar: um só sinal corta qualquer chamada ao modelo deste envio, em andamento ou futura.
+  const cortar = new AbortController();
   const pedirModelo = (mensagens: unknown[], comBusca: boolean, opcoes: OpcoesDaChamada = {}) => fetch(`${LLM_BASE_URL}/chat/completions`, {
     method: "POST",
+    signal: cortar.signal,
     headers: { "Authorization": `Bearer ${LLM_API_KEY}`, "Content-Type": "application/json", "X-Trustio-Plano": plano },
     body: JSON.stringify({
       model: modelo, messages: mensagens, stream: true, temperature: 0.2,
@@ -485,6 +505,20 @@ Deno.serve(async (req) => {
   let triagemAtiva = buscaLigada && fala !== "conversa";
   const chamarTriagem = () => pedirModelo([...anteriores, { role: "user", content: message }], true,
     { semRaciocinio: true, maxTokens: MAX_TOKENS_TRIAGEM });
+
+  // Daqui até o fim da resposta, confere a cada segundo se a pessoa pediu para parar este envio.
+  const vigia = pedidoId ? vigiarParada(async () => {
+    const { data, error } = await admin.from("parar_chat").select("pedido_id")
+      .eq("pedido_id", pedidoId).eq("user_id", user.id).maybeSingle();
+    if (error) throw error;
+    return !!data;
+  }, () => cortar.abort()) : null;
+  const foiParado = () => !!vigia?.parado;
+  const encerrarVigia = () => {
+    vigia?.encerrar();
+    if (pedidoId) return admin.from("parar_chat").delete().eq("pedido_id", pedidoId)
+      .then(({ error }: { error: unknown }) => { if (error) console.error("parar_limpar", error); });
+  };
 
   let upstream!: Response;
   let detail = "";
@@ -535,11 +569,15 @@ Deno.serve(async (req) => {
       }
     }
   } catch (err) {
-    console.error("llm_fetch_error", err);
+    await encerrarVigia();
     await release();
+    // Parou antes de o modelo começar: nada foi gravado nem descontado; o navegador devolve o rascunho.
+    if (foiParado()) return json(409, { error: "parado" }, origin);
+    console.error("llm_fetch_error", err);
     return json(502, { error: "modelo_indisponivel" }, origin);
   }
   if (!upstream.ok || !upstream.body) {
+    await encerrarVigia();
     detail = detail || await upstream.text().catch(() => "");
     console.error("llm_error", upstream.status, detail.slice(0, 500));
     await release();
@@ -719,8 +757,10 @@ Deno.serve(async (req) => {
       }
     } catch (err) {
       interrompido = true;
-      console.error("stream_error", err);
+      if (!foiParado()) console.error("stream_error", err);
     }
+    // Parou: nenhuma chamada nova (triagem, nova tentativa ou rodada de busca); salva o que já veio.
+    if (foiParado()) { await reader.cancel().catch(() => {}); break rodadas; }
     const pedidos = chamadas.filter((c) => c && c.nome);
     if (rodadaDeTriagem) {
       rodadaDeTriagem = false;
@@ -752,7 +792,7 @@ Deno.serve(async (req) => {
       jaRefez = true;
       console.error("modelo_caiu_na_rodada", interrompido ? "interrompido" : "sem_fim", Date.now() - inicioDoTrabalho, "ms");
       await reader.cancel().catch(() => {});
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 20 && !foiParado(); i++) {
         await new Promise((r) => setTimeout(r, 2000));
         const ok = await fetch(`${LLM_BASE_URL}/models`, { headers: { "Authorization": `Bearer ${LLM_API_KEY}` }, signal: AbortSignal.timeout(3000) })
           .then((r) => r.ok).catch(() => false);
@@ -782,6 +822,7 @@ Deno.serve(async (req) => {
     if (full.length > inicioDaRodada && !/\n\s*$/.test(full)) { full += "\n\n"; send({ delta: "\n\n", n: tokens }); }
     inicioDoFinal = full.length;
     for (const c of lista) {
+      if (foiParado()) break;
       let conteudo: string;
       if (c.nome !== NOME_FERRAMENTA) conteudo = "Ferramenta desconhecida.";
       else if (buscasFeitas >= MAX_BUSCAS_POR_MENSAGEM) conteudo = "Limite de buscas desta mensagem atingido: responda com o que já tem.";
@@ -816,6 +857,7 @@ Deno.serve(async (req) => {
       }
       conversaDaBusca.push({ role: "tool", tool_call_id: c.id, content: conteudo });
     }
+    if (foiParado()) break rodadas;
     // Próxima rodada: com a ferramenta só se ainda couber outra busca; senão ele tem de responder.
     const comBuscaAinda = buscasFeitas < MAX_BUSCAS_POR_MENSAGEM;
     ferramentaNaRodada = comBuscaAinda;
@@ -836,10 +878,13 @@ Deno.serve(async (req) => {
     }
     }
     if (raciocinioRetido) soltarRaciocinio(true);
+    // Parada pedida pela pessoa não é erro: sem aviso de interrupção nem de modelo indisponível.
+    const parado = foiParado();
+    if (parado) { interrompido = false; erroRodada = null; }
 
     // Fontes: se a resposta usou a busca e não citou nenhum link, a linha de fontes entra no fim
     // (e fica salva no histórico). Na conversa por voz, não: links não se falam.
-    if (full && resultadosUsados.length && fala !== "conversa" && !erroRodada) {
+    if (full && resultadosUsados.length && fala !== "conversa" && !erroRodada && !parado) {
       const fontes = linhaDeFontes(full, resultadosUsados);
       if (fontes) { full += fontes; send({ delta: fontes, n: tokens }); }
     }
@@ -855,6 +900,7 @@ Deno.serve(async (req) => {
         conversation_id: convId,
         // "length": a resposta bateu no teto de tokens e pode ter sido cortada.
         fim,
+        ...(parado ? { parado: true } : {}),
         n: tokens,
         nr: tokensRaciocinio,
         // Contexto que a próxima pergunta vai ocupar: prompt + resposta salva. O raciocínio
@@ -868,14 +914,25 @@ Deno.serve(async (req) => {
     } else {
       // Nada de texto. Só devolve a pergunta à cota se nada chegou ao navegador: raciocínio
       // já entregue conta como uso (sem isso, pedir só o raciocínio virava pergunta grátis).
+      const devolvida = !pensando && !buscasFeitas;
+      if (devolvida) await release();
+      if (parado) {
+        // Parou antes da primeira palavra: a pergunta fica no histórico, sem resposta.
+        send({ done: true, parado: true, devolvida, conversation_id: convId, n: tokens, nr: tokensRaciocinio, janela,
+          remaining: reservation.remaining ?? null, limit: reservation.subscriber ? null : reservation.limit,
+          trial_ends_at: reservation.trial_ends_at ?? null });
+        fechar();
+        return;
+      }
       console.error(interrompido ? "stream_interrompido_sem_texto" : "llm_resposta_vazia");
-      if (!pensando && !buscasFeitas) await release();
       send({ error: erroRodada ?? (interrompido ? "stream_interrompido" : "resposta_vazia"), ...(erroRodada === "contexto_cheio" ? { janela } : {}) });
     }
     fechar();
-  })().finally(() =>
+  })().finally(() => Promise.all([
     // Fim da resposta, com ou sem texto: solta a pergunta em andamento do teste grátis.
-    admin.rpc("fim_chat_message", { p_lead_id: leadId }).then(({ error }) => { if (error) console.error("fim_error", error); }));
+    admin.rpc("fim_chat_message", { p_lead_id: leadId }).then(({ error }) => { if (error) console.error("fim_error", error); }),
+    encerrarVigia(),
+  ]));
   // Mantém a função viva até o fim da leitura, mesmo com o navegador desconectado.
   // deno-lint-ignore no-explicit-any
   (globalThis as any).EdgeRuntime?.waitUntil?.(trabalho);

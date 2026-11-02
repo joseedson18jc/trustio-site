@@ -31,6 +31,8 @@
   var composer = $("[data-composer]");
   var input = $("#prompt");
   var sendBtn = $("[data-send]");
+  // Botão parar (■): aparece no lugar do enviar enquanto a resposta chega.
+  var pararBtn = $("[data-parar]");
   var notice = $("[data-notice]");
   var paywall = $("[data-paywall]");
   var convList = $("[data-conversations]");
@@ -689,6 +691,11 @@
     showNotice("");
     input.value = ""; autosize();
     sendBtn.disabled = true; input.disabled = true;
+    // Id deste envio: o botão parar pede à função que pare exatamente esta resposta (e nenhuma outra).
+    var pedidoId = novoIdDePedido();
+    var parando = false, leitor = null, travaParada = null;
+    var cortarFetch = window.AbortController ? new AbortController() : null;
+    if (pararBtn) { sendBtn.hidden = true; pararBtn.hidden = false; pararBtn.disabled = false; }
     text += blocosDeAnexo(prontos, LIMITE_MENSAGEM - text.length);
     // As fotos também vão como imagem (cópia reduzida), para o modelo ver o que não é texto.
     var imagens = prontos.filter(function (a) { return a.imagem; }).map(function (a) { return a.imagem; });
@@ -731,7 +738,7 @@
     var limite = 0, tokens = 0, tokensPensando = 0, inicio = Date.now(), interrompida = false;
     function contar(d) { tokens = typeof d.n === "number" && d.n >= tokens ? d.n : tokens + 1; }
     function mostrarProgresso() {
-      var fase = full ? T("Escrevendo…", "Writing…") : T("Pensando…", "Thinking…");
+      var fase = parando ? T("Parando…", "Stopping…") : full ? T("Escrevendo…", "Writing…") : T("Pensando…", "Thinking…");
       if (limite) {
         var p = Math.min(99, Math.floor(tokens / limite * 100));
         progFill.style.width = p + "%";
@@ -748,6 +755,38 @@
     scrollBottom();
     thread.setAttribute("aria-busy", "true");
 
+    function marcarParada() {
+      var seg = ((Date.now() - inicio) / 1000).toFixed(1);
+      progFill.style.width = "100%"; prog.setAttribute("aria-valuenow", "100");
+      prog.classList.remove("is-open"); prog.classList.add("is-done");
+      progTxt.textContent = T("Interrompida por você", "Stopped by you") + (tokens ? " · " + tokens + " tokens" : "") + " · " + (EN ? seg : seg.replace(".", ",")) + " s";
+      if (!full) body.innerHTML = "<p class=\"msg-parada\">" + esc(T("Interrompida por você antes de começar a responder.", "Stopped by you before the answer started.")) + "</p>";
+    }
+    // Sem resposta da função em 15 s (ou se o pedido de parar falhar), para só aqui na página.
+    function cortarAqui() {
+      if (leitor) leitor.cancel().catch(function () {});
+      else if (cortarFetch) cortarFetch.abort();
+    }
+    // A resposta continua chegando até a função confirmar (cerca de 1 s): o que aparece é o que fica salvo.
+    state.pararResposta = function () {
+      if (parando) return;
+      parando = true;
+      if (pararBtn) pararBtn.disabled = true;
+      progTxt.textContent = T("Parando…", "Stopping…");
+      if (window.TrustioVoz && window.TrustioVoz.parar) window.TrustioVoz.parar();
+      travaParada = setTimeout(cortarAqui, 15000);
+      sb.auth.getSession().then(function (r) {
+        var session = r.data && r.data.session;
+        if (!session) throw new Error("sem_sessao");
+        return fetch(CFG.chatEndpoint, {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + session.access_token, "apikey": CFG.key, "Content-Type": "application/json" },
+          body: JSON.stringify({ parar: pedidoId })
+        });
+      }).then(function (res) { if (!res.ok) throw new Error("parar_http_" + res.status); })
+        .catch(function (err) { console.error(err); cortarAqui(); });
+    };
+
     sb.auth.getSession().then(function (r) {
       var session = r.data && r.data.session;
       if (!session) throw new Error("sem_sessao");
@@ -760,12 +799,13 @@
         if (imagens.length) payload.append("imagens", JSON.stringify(imagens));
         if (state.modelos.length >= 2) payload.append("modelo", opcoes.modelo || modeloAtual() || "");
         if (opcoes.fala) payload.append("fala", opcoes.fala);
+        payload.append("pedido_id", pedidoId);
         if (skillAtual() !== null) payload.append("skill", skillAtual());
         payload.append("audio_language", EN ? "en" : "pt");
         payload.append("audio", audio.file, audio.nome);
       } else {
         headers["Content-Type"] = "application/json";
-        payload = JSON.stringify(Object.assign({ conversation_id: state.conversationId, message: text },
+        payload = JSON.stringify(Object.assign({ conversation_id: state.conversationId, message: text, pedido_id: pedidoId },
           imagens.length ? { imagens: imagens } : {},
           state.modelos.length >= 2 ? { modelo: modeloAtual() || "" } : {},
           skillAtual() !== null ? { skill: skillAtual() } : {}));
@@ -778,13 +818,14 @@
       return fetch(CFG.chatEndpoint, {
         method: "POST",
         headers: headers,
-        body: payload
+        body: payload,
+        signal: cortarFetch ? cortarFetch.signal : undefined
       });
     }).then(function (res) {
       if (!res.ok) {
         return res.json().catch(function () { return {}; }).then(function (d) { var e = new Error(d.error || ("http_" + res.status)); e.data = d; e.status = res.status; throw e; });
       }
-      var reader = res.body.getReader(), dec = new TextDecoder(), buf = "";
+      var reader = leitor = res.body.getReader(), dec = new TextDecoder(), buf = "";
       function pump() {
         return reader.read().then(function (step) {
           if (step.done) return;
@@ -861,6 +902,13 @@
                 ? T("O modelo não devolveu resposta desta vez, e a mensagem não foi descontada. Tente enviar de novo.", "The model didn't return an answer this time, and the message wasn't counted. Try sending again.")
                 : T("A resposta foi interrompida. Tente enviar de novo.", "The answer was cut off. Try sending again."));
             }
+            if (d.done && d.parado) {
+              if (typeof d.n === "number") contar(d);
+              marcarParada();
+              afterDone(d);
+              pending._texto = full;
+              return;
+            }
             if (d.done) {
               if (typeof d.n === "number") contar(d);
               if (typeof d.nr === "number" && !think.hidden) { tokensPensando = d.nr; thinkSum.textContent = T("Raciocínio", "Reasoning") + " · " + tokensPensando + " tokens"; }
@@ -879,13 +927,16 @@
               afterDone(d);
               // Voz: o botão "Ouvir" aparece na resposta; na conversa por voz, ela é lida em voz alta.
               pending._texto = full;
-              if (full && !interrompida && window.TrustioVoz) window.TrustioVoz.respostaPronta(pending);
+              // Pediu para parar e a resposta terminou antes da confirmação: não lê em voz alta.
+              if (full && !interrompida && !parando && window.TrustioVoz) window.TrustioVoz.respostaPronta(pending);
             }
           });
           return pump();
         });
       }
       return pump().then(function () {
+        // Parou só aqui (a função não confirmou a tempo): marca a resposta como interrompida.
+        if (parando) { if (!prog.classList.contains("is-done")) marcarParada(); return; }
         // Fluxo terminou sem texto e sem aviso do servidor: não some calado.
         if (!full && !avisado) {
           body.textContent = "";
@@ -895,7 +946,15 @@
     }).catch(function (err) {
       var code = err && err.message;
       if (code === "sem_sessao" || (err && err.status === 401)) { location.replace(CFG.loginPath); return; }
+      // Parou aqui antes de a função responder: ela pode ainda terminar e salvar a resposta.
+      if (parando && err && err.name === "AbortError") {
+        pending.remove();
+        showNotice(T("Parado. Se o servidor já tinha começado a responder, a resposta aparece no histórico.", "Stopped. If the server had already started answering, the answer shows up in your history."));
+        return;
+      }
       devolverRascunho();
+      // Parou antes de o modelo começar: nada foi gravado nem descontado, e a mensagem volta para a caixa.
+      if (code === "parado") { pending.remove(); return; }
       if (code === "trial_esgotado") { pending.remove(); if (state.lead) { state.lead.status = "trial_esgotado"; state.lead.teste_fim = (err && err.data && err.data.trial_ends_at) || new Date().toISOString(); } renderMe(); }
       else if (code === "email_nao_confirmado") { pending.remove(); showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); }
       else if (code === "acesso_revogado") { pending.remove(); fechar(true, { motivo: "acesso_revogado" }); }
@@ -917,6 +976,9 @@
       else { pending.remove(); showNotice(esc(T("Não foi possível enviar", "We couldn't send that") + (code && code !== "Failed to fetch" && code !== "Load failed" ? " (" + code + ")" : "") + T(". Tente de novo em instantes.", ". Try again in a moment."))); console.error(err); }
     }).then(function () {
       if (dicaFila) { clearTimeout(dicaFila); dicaFila = null; }
+      if (travaParada) { clearTimeout(travaParada); travaParada = null; }
+      state.pararResposta = null;
+      if (pararBtn) { pararBtn.hidden = true; sendBtn.hidden = false; }
       pending.classList.remove("msg-pending");
       if (!prog.classList.contains("is-done")) prog.remove();
       if (!body.innerHTML && pending.parentNode) pending.remove();
@@ -927,7 +989,7 @@
   }
 
   function afterDone(d) {
-    if (state.lead) {
+    if (state.lead && !d.devolvida) {
       state.lead.mensagens_usadas = (state.lead.mensagens_usadas || 0) + 1;
       if (d.trial_ends_at) state.lead.teste_fim = d.trial_ends_at;
       if (!semCota() && state.lead.status !== "assinante") state.lead.status = "ativo";
@@ -1095,6 +1157,15 @@
 
   // ---------------------------------------------------------------- UI
   composer.addEventListener("submit", function (e) { e.preventDefault(); send(input.value); });
+  if (pararBtn) pararBtn.addEventListener("click", function () { if (state.pararResposta) state.pararResposta(); });
+  // Id aleatório de cada envio (UUID v4), para o botão parar.
+  function novoIdDePedido() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    var b = crypto.getRandomValues(new Uint8Array(16));
+    b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
+    var h = Array.prototype.map.call(b, function (x) { return (x + 256).toString(16).slice(1); }).join("");
+    return h.slice(0, 8) + "-" + h.slice(8, 12) + "-" + h.slice(12, 16) + "-" + h.slice(16, 20) + "-" + h.slice(20);
+  }
   input.addEventListener("keydown", function (e) {
     if (e.key !== "Enter" || e.isComposing) return;
     if (TOQUE && !e.ctrlKey && !e.metaKey) return;

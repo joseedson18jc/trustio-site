@@ -418,6 +418,10 @@ button.me:hover .me-gear { stroke: var(--ice); }
 .send svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .send:hover { filter: brightness(1.08); }
 .send:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+/* Botão parar (■): ocupa o lugar do enviar enquanto a resposta chega. */
+.send[hidden] { display: none; }
+.parar svg rect { fill: currentColor; stroke: none; }
+.msg-parada { color: var(--muted); font-style: italic; }
 
 /* Modelos: título, link para comparar e dois cartões com a marca e um indicador de escolha. */
 .modelo-bar { margin: 14px 0 0; }

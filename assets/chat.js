@@ -10,8 +10,8 @@
   // Pasta assets/ a partir deste arquivo (vale em /app/ e em /en/app/).
   var ASSETS = (function () { try { return new URL(".", document.currentScript.src).href; } catch (e) { return "../assets/"; } })();
   // Marcas dos modelos que o site tem em assets/modelos/ (outro nome que vier do servidor é ignorado).
-  var ICONES = { flash: true, heavy: true };
-  var ICONE_POR_ID = { "trustio-flash": "flash", "trustio-heavy": "heavy" };
+  var ICONES = { flash: true, heavy: true, thunderbolt: true };
+  var ICONE_POR_ID = { "trustio-flash": "flash", "trustio-heavy": "heavy", "trustio-thunderbolt": "thunderbolt" };
   // Celular e tablet (toque como entrada principal).
   var TOQUE = !!(window.matchMedia && window.matchMedia("(hover: none) and (pointer: coarse)").matches);
   var T = function (pt, en) { return EN ? en : pt; };
@@ -285,7 +285,7 @@
 
   function loadLead() {
     return sb.from("crm_leads").select("nome,email,telefone,tipo,status,papel,plano,pago_chat_ate,pago_agentio_ate,pago_plano,acesso_modo,acesso_fim,mensagens_usadas,teste_fim,onboarding_seen_at,whatsapp_numero,whatsapp_trial_status,whatsapp_trial_requested_at,whatsapp_trial_started_at,whatsapp_trial_ends_at").eq("user_id", state.user.id).maybeSingle()
-      .then(function (r) { state.lead = r.data || null; });
+      .then(function (r) { state.lead = r.data || null; renderModeloBar(); });   // cadeado dos modelos de assinante
   }
   function loadLimit() {
     return sb.rpc("free_trial_days").then(function (r) { state.trialDias = r.error ? 3 : Number(r.data) || 0; }).catch(function () { state.trialDias = 3; });
@@ -629,7 +629,7 @@
   }
   function rotuloDoModelo(id) {
     var m = state.modelos.filter(function (x) { return x.id === id; })[0];
-    return m ? m.rotulo : ({ "trustio-flash": "Trustio Flash", "trustio-heavy": "Trustio Heavy Thinking" })[id] || "";
+    return m ? m.rotulo : ({ "trustio-flash": "Trustio Flash", "trustio-heavy": "Trustio Heavy Thinking", "trustio-thunderbolt": "Trustio X-Thunderbolt" })[id] || "";
   }
   function marcarModelo(el, modelo) {
     var ic = iconeDoModelo(modelo), av = el.querySelector(".msg-av"), quem = el.querySelector(".msg-quem");
@@ -1198,8 +1198,11 @@
   // Seletor de modelo na caixa de mensagem (ex.: Trustio Flash / Trustio Heavy Thinking). Aparece
   // com 2+ modelos na lista que a função devolve; a escolha vai em cada envio e fica salva nas
   // preferências (vale em todas as conversas e aparelhos).
+  // Modelo só para assinantes (ex.: Trustio X-Thunderbolt) visto por quem está no teste: aparece com
+  // cadeado e leva aos planos. A função do chat recusa do mesmo jeito; aqui é só a vitrine.
+  function bloqueado(m) { return !!(m && m.assinante) && !semCota(); }
   function modeloAtual() {
-    if (state.modelos.some(function (m) { return m.id === state.pref.modelo; })) return state.pref.modelo;
+    if (state.modelos.some(function (m) { return m.id === state.pref.modelo && !bloqueado(m); })) return state.pref.modelo;
     // Sem escolha salva: o padrão marcado na lista; sem ele, nenhum (a função usa o padrão do servidor).
     var p = state.modelos.filter(function (m) { return m.padrao; })[0];
     return p ? p.id : null;
@@ -1208,7 +1211,8 @@
   // Linha curta do cartão: para os modelos com marca, um resumo de quando usar; senão, a descrição do servidor.
   var RESUMOS = {
     flash: ["Respostas rápidas para o dia a dia.", "Fast answers for everyday tasks."],
-    heavy: ["Pensa antes de responder. Ideal para tarefas complexas.", "Thinks before answering. Best for complex tasks."]
+    heavy: ["Pensa antes de responder. Ideal para tarefas complexas.", "Thinks before answering. Best for complex tasks."],
+    thunderbolt: ["Ultra rápido e sem censura. Exclusivo para assinantes.", "Ultra fast and uncensored. Subscribers only."]
   };
   function resumoModelo(m, ic) {
     if (ic && RESUMOS[ic]) return T(RESUMOS[ic][0], RESUMOS[ic][1]);
@@ -1225,12 +1229,19 @@
     box.innerHTML = "";
     opcoes.forEach(function (m, i) {
       // Cartão: marca, nome curto (sem o "Trustio"), uma linha sobre quando usar e o indicador.
-      var lab = document.createElement("label");
-      lab.className = "modelo-card" + (m.id === atual ? " is-on" : "");
+      // Só para assinantes, no teste: link para os planos no lugar da opção.
+      var trancado = bloqueado(m);
+      var lab = document.createElement(trancado ? "a" : "label");
+      lab.className = "modelo-card" + (m.id === atual ? " is-on" : "") + (trancado ? " is-locked" : "");
       var inp = document.createElement("input");
-      inp.type = "radio"; inp.name = "modelo-rapido"; inp.value = m.id; inp.checked = m.id === atual;
-      inp.setAttribute("aria-label", m.rotulo);
-      lab.appendChild(inp);
+      if (trancado) {
+        lab.href = "../planos.html";
+        lab.setAttribute("aria-label", m.rotulo + T(" (exclusivo para assinantes)", " (subscribers only)"));
+      } else {
+        inp.type = "radio"; inp.name = "modelo-rapido"; inp.value = m.id; inp.checked = m.id === atual;
+        inp.setAttribute("aria-label", m.rotulo);
+        lab.appendChild(inp);
+      }
       var ic = iconeDoModelo(m.id);
       var tile = document.createElement("span"); tile.className = "modelo-ico";
       var img = document.createElement("img"); img.alt = ""; img.width = 26; img.height = 26;
@@ -1239,8 +1250,13 @@
       var txt = document.createElement("span"); txt.className = "modelo-txt";
       var nome = document.createElement("b"); nome.className = "modelo-nome"; nome.textContent = m.rotulo.replace(/^Trustio\s+/, "");
       var desc = document.createElement("small"); desc.id = "modelo-desc-" + i; desc.textContent = resumoModelo(m, ic);
-      inp.setAttribute("aria-describedby", desc.id);
+      if (trancado) desc.textContent = T("Exclusivo para assinantes. Veja os planos.", "Subscribers only. See the plans.");
+      else inp.setAttribute("aria-describedby", desc.id);
       txt.appendChild(nome); txt.appendChild(desc); lab.appendChild(txt);
+      if (trancado) {
+        var selo = document.createElement("span"); selo.className = "modelo-selo"; selo.textContent = T("Assinantes", "Subscribers");
+        lab.appendChild(selo);
+      }
       var radio = document.createElement("span"); radio.className = "modelo-radio"; radio.setAttribute("aria-hidden", "true");
       lab.appendChild(radio);
       box.appendChild(lab);
@@ -1473,9 +1489,10 @@
     state.modelos.forEach(function (m) {
       var d = descricaoModelo(m);
       var o = document.createElement("option"); o.value = m.id; o.textContent = m.rotulo + (d ? " · " + d : "");
+      if (bloqueado(m)) { o.disabled = true; o.textContent = m.rotulo + T(" · só assinantes", " · subscribers only"); }
       sel.appendChild(o);
     });
-    sel.value = temPadrao ? modeloAtual() : state.modelos.some(function (m) { return m.id === state.pref.modelo; }) ? state.pref.modelo : "";
+    sel.value = temPadrao ? modeloAtual() : state.modelos.some(function (m) { return m.id === state.pref.modelo && !bloqueado(m); }) ? state.pref.modelo : "";
     sel.disabled = !state.modelos.length;
     $("[data-modelo-dica]").textContent = state.modelos.length
       ? T("O modelo escolhido vale para as próximas mensagens, em todas as conversas.", "The model you pick applies to your next messages, in every conversation.")

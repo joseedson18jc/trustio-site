@@ -18,6 +18,7 @@ import {
   semNarracaoDeBusca,
 } from "./busca.ts";
 import { SKILLS, blocoDaSkill, skillDoPedido } from "./skills.ts";
+import { type ModeloEscolhivel, escolhaPermitida, normalizarModelos, temBuscaPropria } from "./modelos.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -35,25 +36,6 @@ let modeloDescoberto: { id: string; em: number } | null = null;
 async function modeloDoBanco(admin: any): Promise<string | null> {
   const { data } = await admin.from("app_settings").select("value").eq("key", "llm_model").maybeSingle();
   return typeof data?.value === "string" && data.value.trim() ? data.value.trim() : null;
-}
-// Modelos que a pessoa pode escolher no chat, todos atendidos pelo mesmo LLM_BASE_URL. Vêm,
-// nesta ordem: do próprio servidor do modelo (GET /models com "trustio_modelos": o gateway da
-// Trustio anuncia os modos dele, ex.: Flash e Heavy Thinking); de app_settings.modelos_chat,
-// lista definida pelo admin ([{ id, rotulo, descricao }]). Sem nenhuma, só o modelo padrão.
-// icone: nome curto da marca do modelo (o site mostra assets/modelos/<icone>.svg, se conhecer).
-type ModeloEscolhivel = { id: string; rotulo: string; descricao?: string; descricao_en?: string; icone?: string; padrao?: boolean };
-function normalizarModelos(lista: unknown): ModeloEscolhivel[] {
-  return (Array.isArray(lista) ? lista : [])
-    .map((m: { id?: unknown; rotulo?: unknown; descricao?: unknown; descricao_en?: unknown; icone?: unknown; padrao?: unknown }) => ({
-      id: String(m?.id ?? "").trim().slice(0, 200),
-      rotulo: String(m?.rotulo ?? m?.id ?? "").trim().slice(0, 60),
-      descricao: m?.descricao ? String(m.descricao).trim().slice(0, 160) : undefined,
-      descricao_en: m?.descricao_en ? String(m.descricao_en).trim().slice(0, 160) : undefined,
-      icone: typeof m?.icone === "string" && /^[a-z0-9-]{1,24}$/.test(m.icone) ? m.icone : undefined,
-      padrao: m?.padrao === true ? true : undefined,
-    }))
-    .filter((m: ModeloEscolhivel) => m.id && m.rotulo)
-    .slice(0, 12);
 }
 // GET /models do servidor, guardado por 10 minutos (ids anunciados e modos escolhíveis). Se a
 // consulta falhar ou demorar, vale o último catálogo bom: lentidão não pode trocar o modo escolhido.
@@ -434,12 +416,12 @@ Deno.serve(async (req) => {
     .eq("user_id", user.id).maybeSingle();
   const pref = (prefRow ?? null) as Preferencias | null;
   // Modelo escolhido pela pessoa: o do seletor do chat (nesta mensagem) ou o salvo nas preferências.
-  // Vale só se ainda estiver na lista; senão, o padrão.
+  // Vale só se ainda estiver na lista e a conta puder usá-lo (Thunderbolt: só assinantes); senão, o padrão.
   // "" no envio = a pessoa escolheu o padrão no seletor (vale mesmo antes de a preferência ser gravada).
   const pedido = typeof body.modelo === "string" ? body.modelo.slice(0, 200) || null : pref?.modelo ?? null;
   // 25 s, como a descoberta do modelo logo abaixo: a primeira consulta depois de muito tempo pode
   // acordar o servidor, e um tempo curto aqui faria a escolha cair para o padrão sem motivo.
-  const escolhido = pedido ? (await modelosEscolhiveis(admin, 25_000)).find((m) => m.id === pedido)?.id ?? null : null;
+  const escolhido = pedido ? escolhaPermitida(await modelosEscolhiveis(admin, 25_000), pedido, !!reservation.subscriber) : null;
   const modeloConfigurado = escolhido ?? await modeloDoBanco(admin);
   let modelo = await modeloDaChamada(modeloConfigurado);
   console.log("llm_modelo", modelo);
@@ -452,7 +434,7 @@ Deno.serve(async (req) => {
   // Busca na web: com a chave da Exa, só no servidor da Trustio (o formato de ferramentas foi testado
   // nele) e sem fotos. A ferramenta só é oferecida ao modelo se a conta ainda puder buscar hoje.
   type SituacaoBusca = { pode?: boolean; acesso?: string };
-  const buscaSituacao: SituacaoBusca | null = EXA_API_KEY && contextoDoServidor && !imagens.length
+  const buscaSituacao: SituacaoBusca | null = EXA_API_KEY && contextoDoServidor && !imagens.length && !temBuscaPropria(modelo)
     ? await admin.rpc("busca_situacao", { p_user_id: user.id, p_limite: BUSCA_LIMITE_DIARIO, p_demo: BUSCA_DEMO })
         .then(({ data, error }: { data: unknown; error: unknown }) => {
           if (error) console.error("busca_situacao", error);

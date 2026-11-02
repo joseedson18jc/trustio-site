@@ -440,6 +440,11 @@ button.me:hover .me-gear { stroke: var(--ice); }
 .modelo-card.is-on { border-color: var(--chat-accent); background: var(--chat-soft); box-shadow: inset 0 0 0 1px var(--chat-accent); }
 .modelo-card.is-on .modelo-radio { border-color: var(--chat-accent); background: radial-gradient(circle, var(--chat-accent) 0 4.5px, transparent 5px); }
 .modelo-card:has(input:focus-visible) { outline: 2px solid var(--blue-signal); outline-offset: 2px; }
+/* Modelo só para assinantes, visto no teste: link para os planos, com selo no lugar do rádio. */
+.modelo-card.is-locked { color: inherit; text-decoration: none; }
+.modelo-card.is-locked .modelo-ico img { opacity: 0.55; }
+.modelo-card.is-locked:focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 2px; }
+.modelo-selo { flex: none; padding: 2px 8px; border: 1px solid var(--chat-line-strong); border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: var(--muted); }
 
 .chat-shell[data-teclado] .modelo-bar { display: none; }
 /* Gaveta fechada no celular sem sombra (no tema claro ela aparecia como uma faixa cinza na borda). */

@@ -195,6 +195,7 @@ body.chat-v2 .modelo-nome { font-size: 13px; font-weight: 600; color: var(--mute
 body.chat-v2 .modelo-card.is-on .modelo-nome { color: var(--text-strong); }
 body.chat-v2 .modelo-txt small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 body.chat-v2 .modelo-radio { display: none; }
+body.chat-v2 .modelo-selo { padding: 1px 7px; font-size: 10.5px; }
 
 body.chat-v2 .composer-aviso { margin-top: 12px; font-size: 11.5px; }
 body.chat-v2 .notice, body.chat-v2 .paywall { max-width: var(--v2-col); }

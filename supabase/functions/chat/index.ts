@@ -650,6 +650,8 @@ Deno.serve(async (req) => {
     // Tokens gerados: o número exato do modelo quando ele informa (timings/usage);
     // senão, um por trecho recebido.
     let tokens = 0;
+    // Velocidade de geração (tokens/s) que o llama.cpp informa em cada trecho; vai ao chat como "v".
+    let velocidade = 0;
     let trechos = 0;
     let trechosRaciocinio = 0;
     // Tokens do raciocínio, à parte: num trecho com raciocínio e texto juntos, os tokens
@@ -671,7 +673,7 @@ Deno.serve(async (req) => {
       for (const f of frasesDoPrompt) raciocinioRetido = raciocinioRetido.split(f).join("[instrução interna]");
       const corte = tudo ? raciocinioRetido.length : Math.max(0, raciocinioRetido.length - retencao);
       if (corte > 0) {
-        send({ raciocinio: raciocinioRetido.slice(0, corte), n: tokens, nr: tokensRaciocinio });
+        send({ raciocinio: raciocinioRetido.slice(0, corte), n: tokens, nr: tokensRaciocinio, ...(velocidade ? { v: velocidade } : {}) });
         raciocinioRetido = raciocinioRetido.slice(corte);
       }
     };
@@ -726,6 +728,8 @@ Deno.serve(async (req) => {
             if (raciocinio) trechosRaciocinio++;
             const antes = tokens;
             tokens = Math.max(tokens, trechos, Number(pedaco.timings?.predicted_n) || 0, Number(pedaco.usage?.completion_tokens) || 0);
+            const informada = Number(pedaco.timings?.predicted_per_second);
+            if (informada > 0 && Number.isFinite(informada)) velocidade = Math.round(informada);
             const novos = tokens - antes;
             if (raciocinio) {
               tokensRaciocinio += d.content ? Math.round(novos * raciocinio.length / (raciocinio.length + d.content.length)) : novos;
@@ -748,7 +752,7 @@ Deno.serve(async (req) => {
             if (d.content) {
               if (raciocinioRetido) soltarRaciocinio(true);
               full += d.content;
-              send({ delta: d.content, n: tokens });
+              send({ delta: d.content, n: tokens, ...(velocidade ? { v: velocidade } : {}) });
             } else if (!raciocinio && pedaco.usage) {
               send({ n: tokens });
             }
@@ -903,6 +907,7 @@ Deno.serve(async (req) => {
         ...(parado ? { parado: true } : {}),
         n: tokens,
         nr: tokensRaciocinio,
+        ...(velocidade ? { v: velocidade } : {}),
         // Contexto que a próxima pergunta vai ocupar: prompt + resposta salva. O raciocínio
         // não é salvo nem reenviado, então não conta.
         contexto: tokensPrompt === null ? null : tokensPrompt + Math.max(0, tokens - tokensRaciocinio),

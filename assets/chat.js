@@ -736,18 +736,24 @@
     var progFill = prog.querySelector(".msg-progress-bar span"), progTxt = prog.querySelector("small");
     col.appendChild(think); col.appendChild(body); col.appendChild(prog);
     var limite = 0, tokens = 0, tokensPensando = 0, inicio = Date.now(), interrompida = false;
-    function contar(d) { tokens = typeof d.n === "number" && d.n >= tokens ? d.n : tokens + 1; }
+    // Velocidade (assets/velocidade.js): a informada pelo modelo ("v") ou a medida desde o primeiro token.
+    var medidor = window.TrustioVelocidade ? window.TrustioVelocidade.medidor() : null;
+    function velocidade() { return medidor ? window.TrustioVelocidade.rotulo(medidor.taxa()) : ""; }
+    function contar(d) {
+      tokens = typeof d.n === "number" && d.n >= tokens ? d.n : tokens + 1;
+      if (medidor) medidor.marcar(tokens, Date.now(), d.v);
+    }
     function mostrarProgresso() {
       var fase = parando ? T("Parando…", "Stopping…") : full ? T("Escrevendo…", "Writing…") : T("Pensando…", "Thinking…");
       if (limite) {
         var p = Math.min(99, Math.floor(tokens / limite * 100));
         progFill.style.width = p + "%";
         prog.setAttribute("aria-valuenow", String(p));
-        progTxt.textContent = fase + " " + p + "%";
+        progTxt.textContent = fase + " " + p + "%" + velocidade();
       } else {
         prog.classList.add("is-open");
         prog.removeAttribute("aria-valuenow");
-        progTxt.textContent = fase;
+        progTxt.textContent = fase + velocidade();
       }
       thinkSum.textContent = T("Raciocínio", "Reasoning");
     }
@@ -759,7 +765,7 @@
       var seg = ((Date.now() - inicio) / 1000).toFixed(1);
       progFill.style.width = "100%"; prog.setAttribute("aria-valuenow", "100");
       prog.classList.remove("is-open"); prog.classList.add("is-done");
-      progTxt.textContent = T("Interrompida por você", "Stopped by you") + (tokens ? " · " + tokens + " tokens" : "") + " · " + (EN ? seg : seg.replace(".", ",")) + " s";
+      progTxt.textContent = T("Interrompida por você", "Stopped by you") + (tokens ? " · " + tokens + " tokens" : "") + " · " + (EN ? seg : seg.replace(".", ",")) + " s" + velocidade();
       if (!full) body.innerHTML = "<p class=\"msg-parada\">" + esc(T("Interrompida por você antes de começar a responder.", "Stopped by you before the answer started.")) + "</p>";
     }
     // Sem resposta da função em 15 s (ou se o pedido de parar falhar), para só aqui na página.
@@ -919,7 +925,7 @@
                 ? T("Interrompida", "Interrupted")
                 : d.fim === "length"
                   ? T("A resposta ficou longa e foi cortada. Peça \u201ccontinue\u201d para ver o resto.", "The answer got long and was cut off. Ask \u201ccontinue\u201d to see the rest.")
-                  : T("Concluída", "Done")) + " · " + tokens + " tokens · " + (EN ? seg : seg.replace(".", ",")) + " s"
+                  : T("Concluída", "Done")) + " · " + tokens + " tokens · " + (EN ? seg : seg.replace(".", ",")) + " s" + velocidade()
                 + (d.contexto && d.janela ? T(" · sessão ", " · session ") + Math.min(100, Math.round(d.contexto / d.janela * 100)) + "%" : "");
               // Sessão cheia é o contexto do modelo quase todo usado (a próxima mensagem não
               // caberia), não a resposta ter batido no teto de tokens por resposta.

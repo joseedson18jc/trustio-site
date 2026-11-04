@@ -94,6 +94,12 @@
   // Já logado (inclusive acabando de voltar do Google ou de um link de e-mail)? Vai para o destino.
   sb.auth.getSession().then(function (r) {
     if (r.data && r.data.session && document.body.dataset.redirectIfLogged !== "false") {
+      // Conversão GA4 na volta do OAuth: ?code= marca o retorno do provedor.
+      if (location.search.indexOf("code=") !== -1 && window.dataLayer) {
+        var u = r.data.session.user;
+        var novo = u && (Date.now() - new Date(u.created_at).getTime()) < 5 * 60 * 1000;
+        window.dataLayer.push({ event: novo ? "sign_up" : "login", method: "oauth" });
+      }
       irParaDestino(r.data.session);
     }
   });
@@ -202,6 +208,8 @@
         var user = r.data && r.data.user;
         var contaExistente = Boolean(user && Array.isArray(user.identities) && user.identities.length === 0);
         if (window.TRUSTIO_FUNIL) window.TRUSTIO_FUNIL.inicio({ conta_existente: contaExistente });
+        // Conversão GA4 (a tag está nas páginas públicas; /app não tem tag).
+        if (!contaExistente && window.dataLayer) window.dataLayer.push({ event: "sign_up", method: "email" });
         if (r.data && r.data.session) { irParaDestino(r.data.session); return; }
         // Mesma resposta para e-mail novo e para e-mail que já tem conta (o Supabase devolve
         // identities vazio nesse caso, sem erro): dizer "já tem conta" num formulário público
@@ -254,6 +262,7 @@
       sb.auth.signInWithPassword({ email: email, password: String(f.get("senha") || "") })
         .then(function (r) {
           if (r.error) throw r.error;
+          if (window.dataLayer) window.dataLayer.push({ event: "login", method: "email" });
           irParaDestino(r.data.session);
         })
         .catch(function (err) {

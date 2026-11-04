@@ -7,7 +7,16 @@
   <meta name="color-scheme" content="dark light">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="index, follow, max-image-preview:large">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://www.googletagmanager.com 'sha256-cuq+zNOANLtFx3An9v9Rl0faxLUJ80JD5dN4IA4ABc4='; style-src 'self'; img-src 'self' data: https://www.google-analytics.com; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://www.google-analytics.com https://*.google-analytics.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-NHZVLJ40PZ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-NHZVLJ40PZ');
+  </script>
   <title>Agentio | Trustio — um agente de IA no Telegram e no WhatsApp</title>
   <meta name="description" content="Agentio: o agente de IA da Trustio no Telegram e no WhatsApp, construído sobre o Hermes Agent, de código aberto da Nous Research. Converse por texto ou áudio e ele executa tarefas por você: pesquisa, escreve, compara, lembra.">
   <link rel="canonical" href="https://trustio.com.br/agentio.html">

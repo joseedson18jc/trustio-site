@@ -53,12 +53,15 @@ páginas geram conteúdo duplicado indexável e prejudicam o SEO. O `.gitignore`
 
 Todas as páginas aplicam uma CSP restrita via `<meta http-equiv>`: `default-src 'self'`,
 `object-src 'none'`, e `script-src`/`connect-src`/`form-action` limitados às origens que a página
-usa (Cloudflare Web Analytics, `api.trustio.com.br`, o projeto Supabase). Cabeçalhos que o `<meta>`
-não cobre (anti-clickjacking) vão na Cloudflare — ver `SECURITY.md`.
+usa (Cloudflare Web Analytics, a Google tag — GA4, `api.trustio.com.br`, o projeto Supabase).
+Cabeçalhos que o `<meta>` não cobre (anti-clickjacking) vão na Cloudflare — ver `SECURITY.md`.
 
 Consequência prática: **nada de `<script>` inline, `style=""` inline ou recursos de terceiros**
-(CDN, fontes remotas, imagens externas). Ícones e logotipos são SVG embutidos no HTML ou arquivos
-locais. Blocos `application/ld+json` são permitidos por não serem executáveis.
+(CDN, fontes remotas, imagens externas), com uma única exceção: o trecho de instalação da Google
+tag (GA4) no topo do `<head>`, liberado na CSP pelo hash sha256 do próprio trecho e pelas origens
+`www.googletagmanager.com` (script) e `www.google-analytics.com` (coleta). Ícones e logotipos são
+SVG embutidos no HTML ou arquivos locais. Blocos `application/ld+json` são permitidos por não
+serem executáveis.
 
 ## Ajustes antes de cada lançamento
 

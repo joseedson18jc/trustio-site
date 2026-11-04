@@ -8,13 +8,17 @@ As partes com conta — cadastro, login, chat (`/app/`), CRM e painel — usam o
 ## Controles no navegador
 
 - **CSP por página** (`<meta http-equiv="Content-Security-Policy">`): `default-src 'self'`,
-  `script-src 'self'` (mais o `static.cloudflareinsights.com` do Web Analytics),
+  `script-src 'self'` (mais o `static.cloudflareinsights.com` do Web Analytics, o
+  `www.googletagmanager.com` da Google tag e o hash sha256 do trecho inline dela),
   `style-src 'self'`, `object-src 'none'`, `base-uri 'self'` e `connect-src`/`form-action`
   limitados às origens que cada página usa (`api.trustio.com.br`, o projeto Supabase,
-  `cloudflareinsights.com`).
-- Nenhum `<script>` inline executável, `style=""`, `on*=` ou `javascript:`; só blocos
-  `application/ld+json`, que não executam.
-- Fontes, ícones e bibliotecas servidos da própria origem (sem CDN de terceiros). A CSP do chat
+  `cloudflareinsights.com`, `www.google-analytics.com`).
+- Único `<script>` inline executável: o bloco de inicialização da Google tag (GA4), aceito pelo
+  hash sha256 na CSP. `style=""`, `on*=` e `javascript:` continuam proibidos; blocos
+  `application/ld+json` não executam.
+- Fontes, ícones e bibliotecas servidos da própria origem (sem CDN de terceiros). A Google tag
+  carrega o `gtag.js` de `www.googletagmanager.com` e envia os eventos a
+  `www.google-analytics.com` (cookies first-party `_ga` e `_ga_G-NHZVLJ40PZ`). A CSP do chat
   (`/app/`, `/en/app/`) ainda libera mídia do CloudFront (`d8j0ntlcm91z4.cloudfront.net`, só
   `media-src`); as fontes do Google Fonts e do `db.onlinewebfonts.com` saíram em 10/2026.
 - A chave do Supabase no navegador é a *publishable*; a proteção dos dados é feita por RLS no banco.

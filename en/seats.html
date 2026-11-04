@@ -9,7 +9,16 @@
   <!-- Página de campanha: repete o bloco da home, então fica fora da busca para não
      disputar com ela. Continua acessível por link direto, que é o seu propósito. -->
   <meta name="robots" content="noindex, follow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://www.googletagmanager.com 'sha256-cuq+zNOANLtFx3An9v9Rl0faxLUJ80JD5dN4IA4ABc4='; style-src 'self'; img-src 'self' data: https://www.google-analytics.com; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://www.google-analytics.com https://*.google-analytics.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-NHZVLJ40PZ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-NHZVLJ40PZ');
+  </script>
   <title>Private, uncensored AI* for you | Trustio</title>
   <meta name="description" content="Individual access to the same open models we run for businesses: uncensored*, no vendor filter, with your account and conversations stored in Brazil. Create your account and try it free for 3 days, once per account, no card.">
   <meta name="keywords" content="uncensored AI, private personal AI, uncensored chat Brazil, private LLM, individual access, data in Brazil, LGPD">

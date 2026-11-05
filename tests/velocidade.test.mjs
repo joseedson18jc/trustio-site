@@ -54,4 +54,12 @@ t("rótulo", () => {
   assert.equal(V.rotulo(123), " · 123 tok/s");
 });
 
+t("a função de chat repassa pedaços só com timings (raciocínio oculto) como contagem e velocidade", () => {
+  const fonte = readFileSync(root + "supabase/functions/chat/index.ts", "utf8");
+  assert.match(fonte, /else if \(!raciocinio && \(pedaco\.usage \|\| informada > 0\)\) \{[^}]*send\(\{ n: tokens, \.\.\.\(velocidade \? \{ v: velocidade \}/);
+  const chat = readFileSync(root + "assets/chat.js", "utf8");
+  assert.match(chat, /if \(!d\.delta && !d\.raciocinio && typeof d\.n === "number" && !d\.done\) \{ contar\(d\); mostrarProgresso\(\); \}/,
+    "o navegador mostra a velocidade de um evento só com n e v");
+});
+
 console.log(`${n} testes ok`);

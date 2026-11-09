@@ -60,6 +60,7 @@ const sourceFiles = [
   ...((await walk(join(root, "app", "skills"))).map((file) => relative(root, file))),
   "crm/index.html",
   "crm/prospeccao.html",
+  "crm/negocios.html",
   "admin/index.html",
   "console/index.html",
   "404.html",

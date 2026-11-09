@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#05070b" />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://mjdaluioyutnxlyomzyd.supabase.co wss://mjdaluioyutnxlyomzyd.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'"
+    />
+    <script src="/assets/theme.js?v=7b1e9843"></script>
+    <script defer src="/assets/vendor/supabase.js?v=84ee9bf4"></script>
+    <script defer src="/assets/auth-config.js?v=c3461a69"></script>
+    <title>Trustio · CRM comercial</title>
+    <link rel="icon" href="/assets/favicon.svg" />
+    <link rel="stylesheet" href="/assets/crm-comercial.css?v=f98664fc" />
+    <script defer src="/assets/crm-comercial.js?v=7ce65fac"></script>
+  </head>
+  <body>
+    <aside>
+      <a class="brand" href="/"
+        ><img src="/assets/trustio-mark.svg" width="30" alt="" />Trust<span
+          >io</span
+        ></a
+      >
+      <p class="eyebrow">OPERAÇÃO COMERCIAL</p>
+      <nav aria-label="CRM">
+        <button data-view="pipeline" class="active">▥ &nbsp; Negócios</button>
+        <button data-view="activities">✓ &nbsp; Atividades</button>
+        <button data-view="calendar">▦ &nbsp; Calendário</button>
+        <button data-view="contacts">♙ &nbsp; Contatos</button>
+        <button data-view="accounts">▤ &nbsp; Contas</button>
+        <button data-view="templates">≡ &nbsp; Mensagens</button>
+        <button data-view="metrics">◷ &nbsp; Relatórios</button>
+      </nav>
+      <footer>
+        <a href="/crm/">Leads e clientes</a><br /><a href="/crm/prospeccao.html"
+          >Criadores e mídia</a
+        ><br /><a href="/crm/afiliados.html">Afiliados</a><br /><span
+          class="dot"
+        ></span>
+        Trustio CRM<br /><a href="/">← Site oficial</a>
+      </footer>
+    </aside>
+    <main>
+      <header>
+        <span>Trustio / CRM / Comercial</span
+        ><span id="sync" role="status">Conectando…</span
+        ><button
+          id="themeToggle"
+          class="theme-toggle"
+          type="button"
+          aria-label="Alternar tema"
+          aria-pressed="false"
+        >
+          Tema claro</button
+        ><button id="logout">Sair</button>
+      </header>
+      <section class="heading">
+        <div>
+          <p class="eyebrow">RELACIONAMENTOS QUE GERAM VALOR</p>
+          <h1 id="title">Negócios</h1>
+          <p id="subtitle">
+            Seu funil de vendas, do primeiro contato ao fechamento.
+          </p>
+        </div>
+        <div class="heading-actions">
+          <button id="refresh" aria-label="Atualizar dados">↻ Atualizar</button
+          ><button class="primary" id="create" disabled>+ Novo negócio</button>
+        </div>
+      </section>
+      <div id="notice" role="alert"></div>
+      <section
+        id="reminders"
+        class="reminders"
+        aria-label="Lembretes de atividades"
+      ></section>
+      <section id="stats" class="stats"></section>
+      <section id="filters" class="filters">
+        <input
+          id="search"
+          type="search"
+          aria-label="Buscar contas"
+          placeholder="Buscar conta, contato ou responsável…"
+        /><select id="stageFilter" aria-label="Filtrar estágio">
+          <option value="">Todos os estágios</option></select
+        ><select id="ownerFilter" aria-label="Filtrar responsável">
+          <option value="">Todos os responsáveis</option></select
+        ><select id="statusFilter" aria-label="Filtrar situação">
+          <option value="open">Em aberto</option>
+          <option value="won">Ganhos</option>
+          <option value="lost">Perdidos</option>
+          <option value="">Todos os negócios</option></select
+        ><button id="clear">Limpar filtros</button>
+        <div id="tags" class="tags"></div>
+      </section>
+      <section id="toolbar" class="toolbar"></section>
+      <section id="content"></section>
+      <p class="source">
+        Contexto confirmado no site oficial · B2C, chat privado, Agentio, IA
+        privada empresarial, VoiceAI e Omnichannel. Filtros de mercado e produto
+        conforme sua solicitação. Cadastre contas e prioridades com base em
+        dados confirmados.
+      </p>
+    </main>
+    <dialog id="editor">
+      <form id="form">
+        <div class="dialog-head">
+          <h2 id="editorTitle">Nova conta</h2>
+          <button type="button" id="close" aria-label="Fechar">✕</button>
+        </div>
+        <div id="fields" class="fields"></div>
+        <p id="formError" role="alert"></p>
+        <div class="actions">
+          <button type="button" id="remove" class="danger">Excluir</button
+          ><button type="button" id="cancel">Cancelar</button
+          ><button class="primary" id="save" type="submit">Salvar</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="details" class="details"><div id="detailContent"></div></dialog>
+    <dialog id="stageEditor">
+      <form id="stageForm">
+        <div class="dialog-head">
+          <h2>Editar funil</h2>
+          <button type="button" id="closeStages" aria-label="Fechar">✕</button>
+        </div>
+        <p>
+          Altere os nomes e a ordem das etapas. Etapas em uso ficam disponíveis.
+        </p>
+        <div id="stageRows"></div>
+        <button type="button" id="addStage">+ Adicionar etapa</button>
+        <p id="stageError" role="alert"></p>
+        <div class="actions">
+          <button class="primary" type="submit" id="saveStages">
+            Salvar funil
+          </button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

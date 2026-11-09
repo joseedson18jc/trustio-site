@@ -33,6 +33,7 @@ export default defineConfig({
         app: resolve(import.meta.dirname, "app/index.html"),
         crm: resolve(import.meta.dirname, "crm/index.html"),
         crmProspeccao: resolve(import.meta.dirname, "crm/prospeccao.html"),
+        crmNegocios: resolve(import.meta.dirname, "crm/negocios.html"),
         admin: resolve(import.meta.dirname, "admin/index.html"),
         notFound: resolve(import.meta.dirname, "404.html"),
         enEmpresas: resolve(import.meta.dirname, "en/empresas.html"),

@@ -209,6 +209,8 @@
         renderOnboard(!(state.lead && state.lead.onboarding_seen_at));
         restaurarSessao();
         if (abrirContaAoEntrar) { abrirContaAoEntrar = false; abrirConta(); }
+        // Primeiro acesso (sem conversa e sem ter visto o guia): os primeiros passos abrem sozinhos.
+        else if (!guiaJaVisto() && !state.conversations.length) abrirGuia();
         if (!state.user.email_confirmed_at) {
           showNotice(T("Seu e-mail ainda não foi confirmado. Abra o link que enviamos para começar a conversar. ", "Your email isn't confirmed yet. Open the link we sent to start chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>");
         } else {
@@ -370,24 +372,123 @@
 
 
 
+  // Guia visto: no cadastro (crm_leads) e, de reserva, neste navegador (conta sem linha no CRM
+  // ou gravação que falhou não podem reabrir o guia a cada visita).
+  var CHAVE_GUIA = "trustio-guia-visto";
+  function guiaJaVisto() {
+    if (state.lead && state.lead.onboarding_seen_at) return true;
+    try { return localStorage.getItem(CHAVE_GUIA) === (state.user && state.user.id); } catch (e) { return false; }
+  }
+  function marcarGuiaVisto() {
+    try { if (state.user) localStorage.setItem(CHAVE_GUIA, state.user.id); } catch (e) { /* sem storage */ }
+    if (state.lead && !state.lead.onboarding_seen_at) {
+      state.lead.onboarding_seen_at = new Date().toISOString();
+      sb.rpc("mark_onboarding_seen").then(function () {}, function () {});
+    }
+  }
+
   var obStart = $("[data-ob-start]");
   if (obStart) obStart.addEventListener("click", function () {
     welcome.dataset.mode = "returning";
-    if (state.lead && !state.lead.onboarding_seen_at) {
-      state.lead.onboarding_seen_at = new Date().toISOString();
-      sb.rpc("mark_onboarding_seen").then(function () {});
-    }
+    marcarGuiaVisto();
     input.focus();
   });
 
-  var obOpen = $("[data-ob-open]");
-  if (obOpen) obOpen.addEventListener("click", function () {
-    if (state.sending) return;
-    resetThread();
-    renderOnboard(true);
-    thread.scrollTop = 0;
+  // ---------------------------------------------------------------- guia de primeiros passos
+  // Abre sozinho no primeiro acesso e pelo botão "Instruções". Nenhum passo envia pergunta:
+  // os começos da última etapa só deixam um rascunho na caixa, então o teste grátis (que conta
+  // a partir da primeira pergunta enviada) não começa por causa do guia.
+  var guia = $("[data-guia]"), guiaPasso = 1;
+  var guiaEtapas = guia ? Array.prototype.slice.call(guia.querySelectorAll("[data-guia-etapa]")) : [];
+  var GUIA_COMECOS = {
+    duvida: T("Explique de forma simples, com um exemplo do dia a dia: ", "Explain it simply, with an everyday example: "),
+    texto: T("Revise o texto abaixo: corrija os erros, deixe mais claro e mantenha o meu tom.\n\n", "Review the text below: fix the mistakes, make it clearer and keep my tone.\n\n"),
+    documento: T("Vou anexar um documento. Resuma os pontos principais e aponte os riscos para mim.", "I'm attaching a document. Summarize the main points and flag the risks for me.")
+  };
+  function guiaMostrar(n, focar) {
+    guiaPasso = Math.max(1, Math.min(guiaEtapas.length, n));
+    guiaEtapas.forEach(function (e, i) { e.hidden = i + 1 !== guiaPasso; });
+    var ultima = guiaPasso === guiaEtapas.length;
+    $("[data-guia-contador]").textContent = T("Passo ", "Step ") + guiaPasso + T(" de ", " of ") + guiaEtapas.length;
+    Array.prototype.forEach.call($("[data-guia-pontos]").children, function (p, i) { p.classList.toggle("is-on", i < guiaPasso); });
+    $("[data-guia-voltar]").hidden = guiaPasso === 1;
+    $("[data-guia-pular]").hidden = ultima;
+    $("[data-guia-avancar]").textContent = ultima ? T("Escrever minha pergunta", "Write my question") : T("Continuar", "Continue");
+    guia.scrollTop = 0;
+    if (focar) { var h = guiaEtapas[guiaPasso - 1].querySelector("h2"); if (h) h.focus(); }
+  }
+  function preencherGuia() {
+    var primeiro = String(nomeAtual() || "").trim().split(/[\s@]+/)[0];
+    if (primeiro && primeiro.indexOf(".") < 0) primeiro = primeiro.charAt(0).toUpperCase() + primeiro.slice(1); else primeiro = "";
+    $("[data-guia-ola]").textContent = primeiro ? T("Olá, " + primeiro + ". Este é o seu chat privado.", "Hi, " + primeiro + ". This is your private chat.")
+      : T("Este é o seu chat privado.", "This is your private chat.");
+    var semRelogio = semCota() || !state.trialDias, naoComecou = !semRelogio && fimDoTeste() === null;
+    $("[data-guia-teste]").textContent = semCota() ? T("Plano ativo: uso justo, sem contar perguntas.", "Plan active: fair use, no question count.")
+      : !state.trialDias ? T("Sem limite de dias neste ambiente.", "No day limit in this environment.")
+      : testeEncerrado() ? T("Seu teste grátis terminou. Escolha um plano para continuar conversando.", "Your free trial has ended. Choose a plan to keep chatting.")
+      : naoComecou ? (EN ? "Your free trial: " + state.trialDias + " days. The clock only starts when you send your first question."
+                         : "Seu teste grátis: " + state.trialDias + " dias. O relógio só começa quando você envia a primeira pergunta.")
+      : textoDoTeste() + ".";
+    $("[data-guia-relogio]").hidden = !naoComecou;
+    guia.querySelectorAll("input[name=guia-estilo]").forEach(function (r) { r.checked = r.value === (state.pref.estilo || "equilibrado"); });
+    $("[data-guia-status]").textContent = "";
+  }
+  function fecharGuia() { marcarGuiaVisto(); guia.close(); }
+  function abrirGuia() {
+    if (!guia || guia.open || !state.user) return;
+    preencherGuia();
+    guiaMostrar(1);
     closeSide();
-  });
+    guia.showModal();
+    var h = guiaEtapas[0].querySelector("h2"); if (h) h.focus();
+  }
+  if (guia) {
+    $("[data-guia-avancar]").addEventListener("click", function () { if (guiaPasso === guiaEtapas.length) fecharGuia(); else guiaMostrar(guiaPasso + 1, true); });
+    $("[data-guia-voltar]").addEventListener("click", function () { guiaMostrar(guiaPasso - 1, true); });
+    $("[data-guia-pular]").addEventListener("click", fecharGuia);
+    $("[data-guia-fechar]").addEventListener("click", fecharGuia);
+    guia.addEventListener("click", function (e) { if (e.target === guia) fecharGuia(); });
+    // Setas andam entre os passos, menos dentro das opções de estilo (lá as setas trocam a opção).
+    guia.addEventListener("keydown", function (e) {
+      if (e.target && e.target.tagName === "INPUT") return;
+      if (e.key === "ArrowRight" && guiaPasso < guiaEtapas.length) { e.preventDefault(); guiaMostrar(guiaPasso + 1, true); }
+      else if (e.key === "ArrowLeft" && guiaPasso > 1) { e.preventDefault(); guiaMostrar(guiaPasso - 1, true); }
+    });
+    // Estilo das respostas: grava na hora (a mesma preferência de Minha conta › Preferências).
+    var filaEstilo = Promise.resolve();
+    guia.querySelectorAll("input[name=guia-estilo]").forEach(function (r) {
+      r.addEventListener("change", function () {
+        if (!r.checked) return;
+        var st = $("[data-guia-status]"), valor = r.value;
+        st.textContent = T("Salvando…", "Saving…");
+        filaEstilo = filaEstilo.then(function () { return salvarPrefs({ estilo: valor }); }).then(function () {
+          st.textContent = T("Estilo salvo.", "Style saved.");
+        }).catch(function () { st.textContent = T("Não foi possível salvar agora. Você pode escolher depois em Minha conta.", "We couldn't save right now. You can choose later in My account."); });
+      });
+    });
+    // Começos: rascunho na caixa, nunca um envio.
+    guia.querySelectorAll("[data-guia-exemplo]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var texto = GUIA_COMECOS[b.dataset.guiaExemplo] || "";
+        fecharGuia();
+        if (input.disabled) return;
+        if (texto && !input.value.trim()) { input.value = texto; input.dispatchEvent(new Event("input", { bubbles: true })); }
+        input.focus();
+        try { input.setSelectionRange(input.value.length, input.value.length); } catch (err) { /* alguns navegadores não deixam */ }
+      });
+    });
+    guia.addEventListener("cancel", marcarGuiaVisto);
+    // Fechar por qualquer caminho (botão, Esc, fundo, começo escolhido) conta como visto.
+    guia.addEventListener("close", function () {
+      marcarGuiaVisto();
+      welcome.dataset.mode = "returning";
+      if (!TOQUE && !input.disabled) input.focus();
+    });
+  }
+
+  // "Instruções" na barra lateral: abre o guia por cima do que estiver na tela (a conversa aberta fica).
+  var obOpen = $("[data-ob-open]");
+  if (obOpen) obOpen.addEventListener("click", abrirGuia);
 
   // ---------------------------------------------------------------- conversas
   // Sessão da aba: ao recarregar, a conversa continua se começou há menos de 2 horas;
@@ -413,7 +514,17 @@
 
   function loadConversations() {
     return sb.from("conversations").select("id,title,created_at,updated_at").eq("user_id", state.user.id).order("updated_at", { ascending: false }).limit(100)
-      .then(function (r) { state.conversations = r.data || []; renderConversations(); });
+      .then(function (r) {
+        conversasLidasEm = Date.now();
+        // Erro de rede não apaga a lista que já está na tela.
+        if (r.error) { if (!state.conversations.length) renderConversations(); return; }
+        var lista = r.data || [];
+        // A conversa aberta continua na lista mesmo fora das 100 mais recentes (ou ainda provisória).
+        var aberta = state.conversationId && state.conversations.filter(function (c) { return c.id === state.conversationId; })[0];
+        if (aberta && (aberta.provisoria || lista.length >= 100) && !lista.some(function (c) { return c.id === aberta.id; })) lista.unshift(aberta);
+        state.conversations = lista;
+        renderConversations();
+      });
   }
 
   function renderConversations() {
@@ -686,6 +797,7 @@
     if (state.fechado) { input.value = ""; autosize(); return; }
     if (!state.user.email_confirmed_at) { showNotice(T("Confirme seu e-mail antes de conversar. ", "Confirm your email before chatting. ") + "<button type=\"button\" data-resend-confirm>" + T("Reenviar link", "Resend link") + "</button>"); return; }
     state.sending = true;
+    var envioFalhou = false;
     // Mandar mensagem também é escolher: a retomada pendente não troca mais de conversa.
     state.escolhas++;
     showNotice("");
@@ -841,7 +953,10 @@
             var line = ev.split("\n").filter(function (l) { return l.indexOf("data:") === 0; })[0];
             if (!line) return;
             var d; try { d = JSON.parse(line.slice(5)); } catch (e) { return; }
-            if (d.conversation_id && !state.conversationId) { state.conversationId = d.conversation_id; lembrarConversa(d.conversation_id); }
+            if (d.conversation_id && !state.conversationId) {
+              state.conversationId = d.conversation_id; lembrarConversa(d.conversation_id);
+              registrarConversaNova(d.conversation_id, text);
+            }
             // A função confirma a skill que valeu nesta mensagem (null = nenhuma).
             if ("skill" in d) definirSkill(d.skill || "");
             if (typeof d.mensagem_usuario === "string") {
@@ -952,6 +1067,7 @@
     }).catch(function (err) {
       var code = err && err.message;
       if (code === "sem_sessao" || (err && err.status === 401)) { location.replace(CFG.loginPath); return; }
+      envioFalhou = true;
       // Parou aqui antes de a função responder: ela pode ainda terminar e salvar a resposta.
       if (parando && err && err.name === "AbortError") {
         pending.remove();
@@ -990,6 +1106,8 @@
       if (!body.innerHTML && pending.parentNode) pending.remove();
       state.sending = false;
       thread.setAttribute("aria-busy", "false");
+      // O envio falhou, mas o servidor pode ter criado a conversa antes: a lista confere com o banco.
+      if (envioFalhou && state.user) loadConversations().then(null, function () { /* fica a lista atual */ });
       if (!state.fechado && !state.sessaoCheia && !testeEncerrado()) { input.disabled = false; sendBtn.disabled = false; if (!TOQUE) input.focus(); }
     });
   }
@@ -1001,16 +1119,44 @@
       if (!semCota() && state.lead.status !== "assinante") state.lead.status = "ativo";
     }
     renderMe();
-    var known = state.conversations.some(function (c) { return c.id === d.conversation_id; });
-    if (!known) loadConversations().then(function () {
+    var atual = state.conversations.filter(function (c) { return c.id === d.conversation_id; })[0];
+    // Desconhecida, ou entrou na lista por registrarConversaNova: o título e as datas do servidor valem.
+    if (!atual || atual.provisoria) loadConversations().then(function () {
       var c = state.conversations.filter(function (x) { return x.id === d.conversation_id; })[0];
-      if (c) convTitle.textContent = c.title;
-      botoesDaConversa(true);
-    }); else {
+      if (c && state.conversationId === c.id) convTitle.textContent = c.title;
+      if (state.conversationId) botoesDaConversa(true);
+    }, function () { /* sem rede agora: a linha provisória fica até a próxima atualização */ }); else {
       state.conversations.sort(function (a, b) { return a.id === d.conversation_id ? -1 : b.id === d.conversation_id ? 1 : 0; });
       renderConversations();
     }
   }
+
+  // A função chat cria a conversa antes de começar a responder e manda o id no primeiro evento.
+  // A linha entra na barra lateral nessa hora, com o mesmo título que o servidor gravou (o começo
+  // da pergunta, sem o texto dos anexos): se a resposta demorar, for parada ou a conexão cair,
+  // a conversa já está na lista, sem precisar recarregar a página.
+  function registrarConversaNova(id, pergunta) {
+    if (state.conversations.some(function (c) { return c.id === id; })) return;
+    var base = String(pergunta || "").split("\n\n[[anexo: ")[0].trim() || String(pergunta || "").trim();
+    var titulo = base.length > 60 ? base.slice(0, 57).replace(/\s+$/, "") + "…" : base;
+    var agora = new Date().toISOString();
+    state.conversations.unshift({ id: id, title: titulo || T("Conversa", "Conversation"), created_at: agora, updated_at: agora, provisoria: true });
+    convTitle.textContent = titulo || T("Conversa", "Conversation");
+    botoesDaConversa(true);
+    renderConversations();
+  }
+
+  // Conversas criadas em outra aba ou aparelho: a lista se atualiza quando a pessoa volta para esta
+  // aba, no máximo uma vez a cada 20 s, e nunca no meio de um envio, de um renomear ou com um menu aberto.
+  var conversasLidasEm = 0;
+  function atualizarConversasSeParado() {
+    if (!state.user || state.sending || document.hidden || menuAberto) return;
+    if (convList.querySelector(".conv-row.is-editando")) return;
+    if (Date.now() - conversasLidasEm < 20000) return;
+    loadConversations().then(null, function () { /* fica a lista que já estava */ });
+  }
+  document.addEventListener("visibilitychange", atualizarConversasSeParado);
+  window.addEventListener("focus", atualizarConversasSeParado);
 
   // ---------------------------------------------------------------- anexos (PDF/OCR no navegador, visão do Strata e transcrição local de áudio)
   // Até 3 arquivos por envio. O texto extraído fica em blocos [[anexo: …]] … [[/anexo]].
@@ -1220,6 +1366,9 @@
 
   function openSide() { shell.dataset.side = "open"; }
   function closeSide() { delete shell.dataset.side; }
+  // Avisos e privacidade (rodapé da barra lateral): em tela baixa o texto abria fora da vista.
+  var avisosDet = $(".side-legal-det");
+  if (avisosDet) avisosDet.addEventListener("toggle", function () { if (avisosDet.open) avisosDet.scrollIntoView({ block: "nearest" }); });
   $("[data-side-open]").addEventListener("click", openSide);
   $("[data-side-close]").addEventListener("click", closeSide);
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSide(); });
@@ -1526,6 +1675,7 @@
       b.setAttribute("aria-selected", ativa ? "true" : "false");
       b.tabIndex = ativa ? 0 : -1;
       if (ativa && focar) b.focus();
+      if (ativa && conta.open) b.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
     conta.querySelectorAll("[data-painel]").forEach(function (p) { p.hidden = p.dataset.painel !== nome; });
   }
@@ -1533,9 +1683,10 @@
     b.addEventListener("click", function () { mostrarAba(b.dataset.tab); });
     b.addEventListener("keydown", function (e) {
       var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-      if (!d) return;
+      var alvo = d ? (i + d + abas.length) % abas.length : e.key === "Home" ? 0 : e.key === "End" ? abas.length - 1 : -1;
+      if (alvo < 0) return;
       e.preventDefault();
-      mostrarAba(abas[(i + d + abas.length) % abas.length].dataset.tab, true);
+      mostrarAba(abas[alvo].dataset.tab, true);
     });
   });
 

@@ -547,3 +547,66 @@ button.me:hover .me-gear { stroke: var(--ice); }
 .msg-busca-item.is-ativa::before { animation: msg-busca-pulso 1s ease-in-out infinite; }
 @keyframes msg-busca-pulso { 50% { opacity: .25; } }
 @media (prefers-reduced-motion: reduce) { .msg-busca-item.is-ativa::before { animation: none; } }
+
+/* Minha conta em tela estreita: as quatro abas cabem lado a lado (antes "Segurança" ficava cortada). */
+@media (max-width: 480px) {
+  .conta-tabs { gap: 0; padding: 8px 8px 0; }
+  .conta-tabs button { flex: 1 1 auto; padding: 10px 5px; font-size: 13px; text-align: center; }
+}
+
+/* Guia de primeiros passos (abre no primeiro acesso e em "Instruções"). */
+.guia { width: min(560px, calc(100vw - 24px)); max-height: min(720px, calc(100dvh - 24px)); padding: 0; border: 1px solid var(--line-bright); border-radius: 20px; background: var(--surface); color: var(--ice); box-shadow: 0 40px 120px rgba(0, 0, 0, 0.55); overflow-y: auto; overscroll-behavior: contain; }
+.guia[open] { display: flex; flex-direction: column; }
+.guia::backdrop { background: rgba(4, 6, 10, 0.62); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.guia-top { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 0; }
+.guia-k { margin: 0; font-family: var(--mono); font-size: var(--label); letter-spacing: 0.14em; text-transform: uppercase; color: var(--label-color); }
+.guia-x { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 9px; background: transparent; color: var(--ice); font-size: 19px; line-height: 1; cursor: pointer; }
+.guia-x:hover { border-color: var(--line-bright); }
+.guia-pontos-nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 12px 20px 0; }
+.guia-pontos-nav i { height: 3px; border-radius: 3px; background: var(--line); transition: background 0.2s; }
+.guia-pontos-nav i.is-on { background: var(--blue-signal); }
+.guia-etapa { padding: 20px 20px 4px; display: grid; gap: 14px; align-content: start; }
+.guia-etapa[hidden] { display: none; }
+.guia-etapa h2 { margin: 0; font-size: clamp(20px, 4.6vw, 24px); line-height: 1.25; letter-spacing: -0.02em; font-weight: 600; }
+.guia-etapa h2:focus { outline: none; }
+.guia-lead { margin: 0; color: var(--muted-strong); font-size: 14.5px; line-height: 1.6; }
+.guia-lista { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; counter-reset: guia; }
+.guia-lista li { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card-gradient); }
+ol.guia-lista li { counter-increment: guia; padding-left: 46px; position: relative; }
+ol.guia-lista li::before { content: counter(guia); position: absolute; left: 14px; top: 12px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: rgba(94, 167, 255, 0.14); color: var(--blue-signal); font-family: var(--mono); font-size: 12px; }
+.guia-lista b { font-size: 14px; }
+.guia-lista span { font-size: 13px; line-height: 1.5; color: var(--muted); }
+.guia-lista.is-compacta li { padding: 10px 14px; }
+.guia-teste { margin: 0; padding: 12px 14px; border-left: 3px solid var(--blue-signal); border-radius: 0 12px 12px 0; background: rgba(94, 167, 255, 0.08); font-size: 13.5px; line-height: 1.55; }
+.guia-teste:empty { display: none; }
+.guia-exemplo { display: grid; gap: 8px; }
+.guia-exemplo p { margin: 0; padding: 12px 14px; border: 1px dashed var(--line); border-radius: 12px; font-size: 13.5px; line-height: 1.55; color: var(--muted-strong); }
+.guia-exemplo p.is-bom { border-style: solid; border-color: rgba(94, 167, 255, 0.55); background: rgba(94, 167, 255, 0.08); color: var(--ice); }
+.guia-exemplo small { display: block; margin-bottom: 4px; font-family: var(--mono); font-size: var(--label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--label-color); }
+.guia-estilos { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.guia-estilos label { display: flex; gap: 9px; align-items: flex-start; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.guia-estilos label:has(input:checked) { border-color: rgba(94, 167, 255, 0.55); background: rgba(94, 167, 255, 0.08); }
+.guia-estilos label:has(input:focus-visible) { box-shadow: 0 0 0 3px rgba(94, 167, 255, 0.2); }
+.guia-estilos input { accent-color: #3b82f6; margin-top: 2px; }
+.guia-estilos span { display: grid; gap: 2px; min-width: 0; }
+.guia-estilos b { font-size: 13.5px; }
+.guia-estilos small { font-size: 12px; color: var(--muted); }
+.guia-status { margin: 0; min-height: 16px; font-family: var(--mono); font-size: var(--label); letter-spacing: 0.03em; color: var(--blue-signal); }
+.guia-comecos { display: grid; gap: 8px; }
+.guia-comecos button { display: grid; gap: 2px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card-gradient); color: var(--ice); font: inherit; text-align: left; cursor: pointer; transition: border-color 0.15s; }
+.guia-comecos button:hover { border-color: var(--line-bright); }
+.guia-comecos b { font-size: 14px; }
+.guia-comecos small { font-size: 12.5px; color: var(--muted); }
+.guia-nota { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.guia-nota[hidden] { display: none; }
+.guia-acoes { display: flex; align-items: center; gap: 10px; margin-top: auto; padding: 16px 20px 20px; }
+.guia-acoes [hidden] { display: none; }
+.guia-acoes .btn-primary { margin-left: auto; }
+.guia-pular { padding: 8px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.guia-pular:hover { color: var(--ice); }
+.guia :focus-visible { outline: 2px solid var(--blue-signal); outline-offset: 2px; }
+@media (max-width: 600px) {
+  .guia { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; border-radius: 0; border: 0; }
+  .guia-estilos { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .guia-pontos-nav i, .guia-estilos label, .guia-comecos button { transition: none; } }

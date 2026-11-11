@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="../assets/styles.css?v=de888e39">
   <link rel="stylesheet" href="../assets/chat-templates.css?v=1a8ebd15">
   <link rel="stylesheet" href="../assets/chat-skills.css?v=267330af">
-  <link rel="stylesheet" href="../assets/chat.css?v=665460a7">
+  <link rel="stylesheet" href="../assets/chat.css?v=062c5aa6">
   <link rel="stylesheet" href="../assets/whatsapp-suporte.css?v=63736be5">
   <script defer src="../assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="stylesheet" href="../assets/chat-atalhos.css?v=43b21838">
@@ -40,7 +40,7 @@
   <script defer src="../assets/orb.js?v=2a1bad38"></script>
   <script defer src="../assets/voz-tempo-real.js?v=06ce432d"></script>
   <script defer src="../assets/velocidade.js?v=7509be9a"></script>
-  <script defer src="../assets/chat.js?v=d0281c43"></script>
+  <script defer src="../assets/chat.js?v=68f0de8b"></script>
   <script defer src="../assets/chat-atalhos.js?v=4e33a7da"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
@@ -87,7 +87,7 @@
       </button>
       <div class="side-actions">
         <button class="side-link" type="button" data-conta-open aria-haspopup="dialog">Minha conta</button>
-        <button class="side-link" type="button" data-ob-open>Instruções</button>
+        <button class="side-link" type="button" data-ob-open aria-haspopup="dialog">Instruções</button>
         <a class="side-link" href="../planos.html">Planos</a>
         <a class="side-link" href="../crm/" data-admin-link hidden>CRM</a>
         <a class="side-link" href="../admin/" data-admin-link hidden>Painel</a>
@@ -95,7 +95,7 @@
       </div>
       <details class="side-legal-det">
         <summary>Avisos e privacidade</summary>
-        <p class="side-legal">A IA pode errar: confira informações importantes. Fotos e PDFs: o texto é lido no seu navegador; das fotos, uma cópia reduzida também vai ao modelo. Suas conversas ficam guardadas só na sua conta. * Você responde pelo conteúdo que envia e pelo uso que faz das respostas, nos termos da lei. <a href="../privacidade.html">Privacidade</a></p>
+        <p class="side-legal">A IA pode errar: confira informações importantes. Fotos e PDFs: o texto é lido no seu navegador; das fotos, uma cópia reduzida também vai ao modelo. Suas conversas ficam guardadas só na sua conta. Você responde pelo conteúdo que envia e pelo uso que faz das respostas, nos termos da lei. <a href="../privacidade.html">Privacidade</a></p>
       </details>
     </div>
   </aside>
@@ -398,6 +398,73 @@
     </div>
     <small class="conta-status" data-seg-status role="status"></small>
   </section>
+</dialog>
+
+<dialog class="guia" data-guia aria-labelledby="guia-titulo">
+  <div class="guia-top">
+    <p class="guia-k" data-guia-contador aria-live="polite"></p>
+    <button class="guia-x" type="button" data-guia-fechar aria-label="Fechar o guia">×</button>
+  </div>
+  <div class="guia-pontos-nav" aria-hidden="true" data-guia-pontos><i></i><i></i><i></i><i></i></div>
+
+  <section class="guia-etapa" data-guia-etapa="1">
+    <h2 id="guia-titulo" tabindex="-1" data-guia-ola>Este é o seu chat privado.</h2>
+    <p class="guia-lead">Em um minuto você sabe o que precisa. Este guia não envia nenhuma pergunta e não gasta o seu teste.</p>
+    <ul class="guia-lista">
+      <li><b>Privado</b><span>Suas conversas ficam guardadas só na sua conta.</span></li>
+      <li><b>Sem censura</b><span>O modelo responde direto. Você responde pelo que envia e pelo uso que faz das respostas.</span></li>
+      <li><b>Sem contar perguntas</b><span>O teste é por tempo, não por número de perguntas.</span></li>
+    </ul>
+    <p class="guia-teste" data-guia-teste></p>
+  </section>
+
+  <section class="guia-etapa" data-guia-etapa="2" hidden>
+    <h2 tabindex="-1">Peça como falaria com um especialista.</h2>
+    <p class="guia-lead">Três coisas deixam a resposta muito melhor:</p>
+    <ol class="guia-lista">
+      <li><b>Dê o contexto</b><span>Quem você é e qual é a situação.</span></li>
+      <li><b>Diga o resultado</b><span>O que você quer receber no fim.</span></li>
+      <li><b>Peça o formato</b><span>Lista, tabela, passo a passo, tom formal ou direto.</span></li>
+    </ol>
+    <div class="guia-exemplo">
+      <p><small>Vago</small>Me fale de contrato de aluguel.</p>
+      <p class="is-bom"><small>Melhor</small>Sou inquilino. O contrato cobra multa de 6 aluguéis em qualquer rescisão. Isso é abusivo? Responda em 5 linhas.</p>
+    </div>
+  </section>
+
+  <section class="guia-etapa" data-guia-etapa="3" hidden>
+    <h2 tabindex="-1">Escolha o estilo das respostas.</h2>
+    <p class="guia-lead">Vale para todas as conversas. Você muda quando quiser em Minha conta, na aba Preferências.</p>
+    <fieldset class="guia-estilos">
+      <legend class="vh">Estilo das respostas</legend>
+      <label><input type="radio" name="guia-estilo" value="direto"><span><b>Direto</b><small>Curto e ao ponto.</small></span></label>
+      <label><input type="radio" name="guia-estilo" value="equilibrado" checked><span><b>Equilibrado</b><small>O padrão.</small></span></label>
+      <label><input type="radio" name="guia-estilo" value="detalhado"><span><b>Detalhado</b><small>Com profundidade e exemplos.</small></span></label>
+    </fieldset>
+    <p class="guia-status" data-guia-status role="status"></p>
+    <ul class="guia-lista is-compacta">
+      <li><b>Anexos</b><span>Use o clipe para enviar foto, PDF, Word ou áudio.</span></li>
+      <li><b>Templates e Skills</b><span>Ficam no menu lateral, prontos para usar como rascunho.</span></li>
+    </ul>
+  </section>
+
+  <section class="guia-etapa" data-guia-etapa="4" hidden>
+    <h2 tabindex="-1">Pronto. Como quer começar?</h2>
+    <p class="guia-lead">Escolha um começo ou escreva a sua pergunta.</p>
+    <div class="guia-comecos">
+      <button type="button" data-guia-exemplo="duvida"><b>Tirar uma dúvida</b><small>Uma explicação simples sobre qualquer assunto.</small></button>
+      <button type="button" data-guia-exemplo="texto"><b>Revisar um texto meu</b><small>Corrigir, clarear e manter o seu tom.</small></button>
+      <button type="button" data-guia-exemplo="documento"><b>Analisar um documento</b><small>Resumo e riscos de um contrato ou PDF.</small></button>
+    </div>
+    <p class="guia-nota">O começo escolhido entra como rascunho: nada é enviado até você apertar Enviar.</p>
+    <p class="guia-nota" data-guia-relogio hidden>O seu teste grátis só começa a contar quando você envia a primeira pergunta.</p>
+  </section>
+
+  <div class="guia-acoes">
+    <button class="btn btn-ghost" type="button" data-guia-voltar hidden>Voltar</button>
+    <button class="guia-pular" type="button" data-guia-pular>Pular o guia</button>
+    <button class="btn btn-primary" type="button" data-guia-avancar>Continuar</button>
+  </div>
 </dialog>
 
 <div class="gate" data-gate hidden>

@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="/assets/styles.css?v=de888e39">
   <link rel="stylesheet" href="/assets/chat-templates.css?v=1a8ebd15">
   <link rel="stylesheet" href="/assets/chat-skills.css?v=267330af">
-  <link rel="stylesheet" href="/assets/chat.css?v=665460a7">
+  <link rel="stylesheet" href="/assets/chat.css?v=062c5aa6">
   <link rel="stylesheet" href="/assets/whatsapp-suporte.css?v=63736be5">
   <script defer src="/assets/whatsapp-suporte.js?v=19399fa4"></script>
   <link rel="stylesheet" href="/assets/chat-atalhos.css?v=43b21838">
@@ -40,7 +40,7 @@
   <script defer src="/assets/orb.js?v=2a1bad38"></script>
   <script defer src="/assets/voz-tempo-real.js?v=06ce432d"></script>
   <script defer src="/assets/velocidade.js?v=7509be9a"></script>
-  <script defer src="/assets/chat.js?v=d0281c43"></script>
+  <script defer src="/assets/chat.js?v=68f0de8b"></script>
   <script defer src="/assets/chat-atalhos.js?v=4e33a7da"></script>
   <!--i18n:alt--><link rel="alternate" hreflang="pt-BR" href="https://trustio.com.br/app/">
   <link rel="alternate" hreflang="en" href="https://trustio.com.br/en/app/">
@@ -87,7 +87,7 @@
       </button>
       <div class="side-actions">
         <button class="side-link" type="button" data-conta-open aria-haspopup="dialog">My account</button>
-        <button class="side-link" type="button" data-ob-open>Instructions</button>
+        <button class="side-link" type="button" data-ob-open aria-haspopup="dialog">Instructions</button>
         <a class="side-link" href="../planos.html">Plans</a>
         <a class="side-link" href="/crm/" data-admin-link hidden>CRM</a>
         <a class="side-link" href="/admin/" data-admin-link hidden>Dashboard</a>
@@ -95,7 +95,7 @@
       </div>
       <details class="side-legal-det">
         <summary>Notices and privacy</summary>
-        <p class="side-legal">AI can be wrong: double-check what matters. Photos and PDFs: text is read in your browser; for photos, a reduced copy also goes to the model. Your conversations stay in your account only. * You are responsible for the content you send and how you use the answers, within the law. <a href="../privacidade.html">Privacy</a></p>
+        <p class="side-legal">AI can be wrong: double-check what matters. Photos and PDFs: text is read in your browser; for photos, a reduced copy also goes to the model. Your conversations stay in your account only. You are responsible for the content you send and how you use the answers, within the law. <a href="../privacidade.html">Privacy</a></p>
       </details>
     </div>
   </aside>
@@ -398,6 +398,73 @@
     </div>
     <small class="conta-status" data-seg-status role="status"></small>
   </section>
+</dialog>
+
+<dialog class="guia" data-guia aria-labelledby="guia-titulo">
+  <div class="guia-top">
+    <p class="guia-k" data-guia-contador aria-live="polite"></p>
+    <button class="guia-x" type="button" data-guia-fechar aria-label="Close the guide">×</button>
+  </div>
+  <div class="guia-pontos-nav" aria-hidden="true" data-guia-pontos><i></i><i></i><i></i><i></i></div>
+
+  <section class="guia-etapa" data-guia-etapa="1">
+    <h2 id="guia-titulo" tabindex="-1" data-guia-ola>This is your private chat.</h2>
+    <p class="guia-lead">One minute and you know what you need. This guide sends no question and does not use up your trial.</p>
+    <ul class="guia-lista">
+      <li><b>Private</b><span>Your conversations stay in your account only.</span></li>
+      <li><b>Uncensored</b><span>The model answers directly. You are responsible for what you send and for how you use the answers.</span></li>
+      <li><b>No question count</b><span>The trial runs on time, not on a number of questions.</span></li>
+    </ul>
+    <p class="guia-teste" data-guia-teste></p>
+  </section>
+
+  <section class="guia-etapa" data-guia-etapa="2" hidden>
+    <h2 tabindex="-1">Ask the way you would ask an expert.</h2>
+    <p class="guia-lead">Three things make the answer much better:</p>
+    <ol class="guia-lista">
+      <li><b>Give the context</b><span>Who you are and what the situation is.</span></li>
+      <li><b>Say the result</b><span>What you want to get at the end.</span></li>
+      <li><b>Ask for the format</b><span>List, table, step by step, formal or direct tone.</span></li>
+    </ol>
+    <div class="guia-exemplo">
+      <p><small>Vague</small>Tell me about rental contracts.</p>
+      <p class="is-bom"><small>Better</small>I am a tenant. The contract charges a penalty of 6 months' rent for any termination. Is that abusive? Answer in 5 lines.</p>
+    </div>
+  </section>
+
+  <section class="guia-etapa" data-guia-etapa="3" hidden>
+    <h2 tabindex="-1">Choose the style of the answers.</h2>
+    <p class="guia-lead">It applies to every conversation. Change it whenever you like in My account, on the Preferences tab.</p>
+    <fieldset class="guia-estilos">
+      <legend class="vh">Answer style</legend>
+      <label><input type="radio" name="guia-estilo" value="direto"><span><b>Direct</b><small>Short and to the point.</small></span></label>
+      <label><input type="radio" name="guia-estilo" value="equilibrado" checked><span><b>Balanced</b><small>The default.</small></span></label>
+      <label><input type="radio" name="guia-estilo" value="detalhado"><span><b>Detailed</b><small>In depth, with examples.</small></span></label>
+    </fieldset>
+    <p class="guia-status" data-guia-status role="status"></p>
+    <ul class="guia-lista is-compacta">
+      <li><b>Attachments</b><span>Use the paperclip to send a photo, PDF, Word file or audio.</span></li>
+      <li><b>Templates and Skills</b><span>They are in the side menu, ready to use as a draft.</span></li>
+    </ul>
+  </section>
+
+  <section class="guia-etapa" data-guia-etapa="4" hidden>
+    <h2 tabindex="-1">All set. How do you want to start?</h2>
+    <p class="guia-lead">Pick a starting point or write your own question.</p>
+    <div class="guia-comecos">
+      <button type="button" data-guia-exemplo="duvida"><b>Ask a question</b><small>A simple explanation of any subject.</small></button>
+      <button type="button" data-guia-exemplo="texto"><b>Review a text of mine</b><small>Fix it, make it clearer and keep your tone.</small></button>
+      <button type="button" data-guia-exemplo="documento"><b>Analyze a document</b><small>Summary and risks of a contract or PDF.</small></button>
+    </div>
+    <p class="guia-nota">The starting point you pick goes in as a draft: nothing is sent until you press Send.</p>
+    <p class="guia-nota" data-guia-relogio hidden>Your free trial only starts counting when you send your first question.</p>
+  </section>
+
+  <div class="guia-acoes">
+    <button class="btn btn-ghost" type="button" data-guia-voltar hidden>Back</button>
+    <button class="guia-pular" type="button" data-guia-pular>Skip the guide</button>
+    <button class="btn btn-primary" type="button" data-guia-avancar>Continue</button>
+  </div>
 </dialog>
 
 <div class="gate" data-gate hidden>

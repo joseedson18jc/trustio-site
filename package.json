@@ -26,6 +26,7 @@
     "test:skills": "node tests/skills-chat.test.mjs",
     "test:modelos": "node tests/modelos-chat.test.mjs",
     "test:parar": "node --test tests/parar-chat.test.mjs",
+    "test:app": "node tests/e2e/app-shell.mjs",
     "test:velocidade": "node tests/velocidade.test.mjs",
     "test:docx": "node tests/docx.test.mjs",
     "test:voz": "node tests/voz-texto.test.mjs && node tests/voz-provedores.test.mjs && node --test tests/voz-tempo-real-db.test.mjs",

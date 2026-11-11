@@ -753,8 +753,10 @@ Deno.serve(async (req) => {
               if (raciocinioRetido) soltarRaciocinio(true);
               full += d.content;
               send({ delta: d.content, n: tokens, ...(velocidade ? { v: velocidade } : {}) });
-            } else if (!raciocinio && pedaco.usage) {
-              send({ n: tokens });
+            } else if (!raciocinio && (pedaco.usage || informada > 0)) {
+              // Raciocínio oculto (gateway do Mac): enquanto o modelo pensa chegam pedaços só com timings.
+              // Vão ao chat como contagem e velocidade, para o "Pensando…" mostrar os tok/s (3 nov 2026).
+              send({ n: tokens, ...(velocidade ? { v: velocidade } : {}) });
             }
           } catch { /* fragmento incompleto */ }
         }

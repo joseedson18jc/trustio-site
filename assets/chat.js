@@ -136,7 +136,8 @@
 
   function showNotice(html) { notice.innerHTML = html; notice.hidden = !html; }
   // Fila do servidor: pagantes são atendidos antes de quem está no teste grátis.
-  function linkPlanos() { return " <a href=\"" + esc(CFG.planosUrl) + "\">" + T("Ver planos", "See plans") + "</a>"; }
+  // auth-config.js chama o caminho de plansPath (planosUrl não existe lá: o link saía "undefined").
+  function linkPlanos() { return " <a href=\"" + esc(CFG.plansPath + "#pessoal") + "\">" + T("Ver planos", "See plans") + "</a>"; }
   var DICA_FILA_MS = 12000;
   function initials(name, email) {
     var base = (name || email || "?").trim();
@@ -760,9 +761,20 @@
   // A conversa encheu o contexto do modelo: não dá para continuar nela. Uma aba nova
   // começa uma conversa nova (sem conversation_id), com o contexto vazio.
   // "Nova conversa" (o mesmo botão da barra lateral) sai da sessão cheia; a antiga fica no histórico.
-  function sessaoCheia() {
+  // Janela cheia. No teste grátis, o aviso também convida a assinar (os planos pagos têm janela
+  // maior). Só o texto muda: quem decide a janela é o servidor, pelo plano da reserva. Supõe o
+  // gateway da Trustio, que anuncia janela por plano (trustio_contexto); sem isso, as duas seriam iguais.
+  function sessaoCheia(janela) {
     state.sessaoCheia = true;
-    showNotice(T("Esta conversa ficou longa demais para o modelo. Comece uma nova conversa para continuar; esta fica salva no histórico. ", "This conversation got too long for the model. Start a new conversation to continue; this one stays saved in your history. ") + "<button type=\"button\" data-nova-conversa>" + T("Nova conversa", "New conversation") + "</button>");
+    var nova = "<button type=\"button\" data-nova-conversa>" + T("Nova conversa", "New conversation") + "</button>";
+    if (state.lead && !semCota()) {
+      var n = Number(janela), mil = Number.isFinite(n) && n > 0 ? Math.floor(n / 1000) : 0;
+      var tamanho = mil > 0 ? T(" de " + mil + " mil tokens", " of " + mil + "K tokens") : "";
+      showNotice(T("Esta conversa chegou ao limite" + tamanho + " do teste grátis. Assine um plano para ter conversas mais longas, ou comece uma nova conversa; esta fica salva no histórico. ",
+        "This conversation reached the free trial limit" + tamanho + ". Subscribe to a plan for longer conversations, or start a new conversation; this one stays saved in your history. ") + nova + linkPlanos());
+    } else {
+      showNotice(T("Esta conversa ficou longa demais para o modelo. Comece uma nova conversa para continuar; esta fica salva no histórico. ", "This conversation got too long for the model. Start a new conversation to continue; this one stays saved in your history. ") + nova);
+    }
     input.disabled = true; sendBtn.disabled = true;
   }
 

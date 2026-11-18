@@ -306,6 +306,44 @@ for (const [tela, viewport] of Object.entries(TELAS)) {
   }
 }
 
+// Janela do teste cheia: pede para assinar (link para os planos), sem esconder a conversa nova.
+const pago = (extra = {}) => antigo({ ...extra, lead: { pago_chat_ate: '2027-12-31T00:00:00Z', pago_plano: 'pessoal', plano: 'pessoal', ...(extra.lead || {}) } });
+const aviso = (page) => page.evaluate(() => { const n = document.querySelector('[data-notice], .notice, #notice'); return n && !n.hidden ? { texto: n.textContent, planos: [...n.querySelectorAll('a')].map((a) => a.getAttribute('href') || ''), nova: !!n.querySelector('[data-nova-conversa]') } : null; });
+async function perguntarEEsperarAviso(page) {
+  await page.fill('#prompt', 'Pergunta que passa da janela');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => document.querySelector('[data-nova-conversa]'), null, { timeout: 8000 }).catch(() => {});
+  return aviso(page);
+}
+for (const en of [false, true]) {
+  await cenario(`janela do teste cheia (409) · ${en ? 'EN' : 'PT'}`, antigo({ chat: { atrasoMs: 50, falhaNoMeio: false, resposta: 'x', contextoCheio: 30000 } }), { en }, async ({ page }) => {
+    const a = await perguntarEEsperarAviso(page);
+    confere(!!a, 'aviso aparece');
+    confere(!!a && a.planos.some((h) => /planos\.html/.test(h)), 'aviso tem link para os planos', a && a.planos.join(','));
+    confere(!!a && (en ? /30K tokens/ : /30 mil tokens/).test(a.texto), 'aviso diz o tamanho da janela do teste', a && a.texto);
+    confere(!!a && (en ? /subscri|plan/i : /assin|plano/i).test(a.texto), 'aviso pede para assinar', a && a.texto);
+    confere(!!a && a.nova, 'continua com o botão de conversa nova');
+    confere(await page.locator('[data-send]').isDisabled(), 'envio travado');
+  });
+}
+await cenario('janela do teste cheia (95% da sessão)', antigo({ chat: { atrasoMs: 50, falhaNoMeio: false, resposta: 'um dois', contexto: 29000, janela: 30000 } }), {}, async ({ page }) => {
+  const a = await perguntarEEsperarAviso(page);
+  confere(!!a && a.planos.some((h) => /planos\.html/.test(h)), 'aviso com link para os planos também pelo medidor', a && JSON.stringify(a));
+  confere(!!a && /30 mil tokens/.test(a.texto), 'tamanho da janela pelo medidor', a && a.texto);
+});
+await cenario('janela cheia com plano ativo não pede para assinar', pago({ chat: { atrasoMs: 50, falhaNoMeio: false, resposta: 'x', contextoCheio: 86016 } }), {}, async ({ page }) => {
+  const a = await perguntarEEsperarAviso(page);
+  confere(!!a && a.nova, 'aviso de conversa nova aparece');
+  confere(!!a && a.planos.length === 0, 'sem link para os planos', a && a.planos.join(','));
+  confere(!!a && !/assin/i.test(a.texto), 'sem pedido de assinatura', a && a.texto);
+});
+
+await cenario('janela cheia com admin não pede para assinar', antigo({ lead: { papel: 'admin' }, chat: { atrasoMs: 50, falhaNoMeio: false, resposta: 'x', contextoCheio: 86016 } }), {}, async ({ page }) => {
+  const a = await perguntarEEsperarAviso(page);
+  confere(!!a && a.nova, 'aviso de conversa nova aparece');
+  confere(!!a && a.planos.length === 0, 'sem link para os planos', a && a.planos.join(','));
+});
+
 // 9 ─ Usuário com plano pago e usuário com teste encerrado: o guia diz a coisa certa.
 await cenario('guia · plano ativo', novoEstado({ lead: { ...novoEstado().lead, pago_chat_ate: '2027-12-31T00:00:00Z', pago_plano: 'pessoal', plano: 'pessoal' } }), {}, async ({ page }) => {
   await page.waitForSelector('dialog[data-guia][open]');

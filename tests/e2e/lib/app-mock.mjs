@@ -136,6 +136,8 @@ function estadoDe(req) { return estados.get(req.socket.server); }
 // A função chat de verdade: cria a conversa ANTES de começar a responder e só depois transmite.
 function responderChat(estado, dados, res) {
   estado.perguntas++;
+  // Conversa maior que a janela do plano: a função de verdade responde 409 antes de gravar qualquer coisa.
+  if (estado.chat.contextoCheio) return json(res, 409, { error: 'contexto_cheio', janela: estado.chat.contextoCheio });
   const agora = new Date().toISOString();
   let id = dados.conversation_id;
   if (!id || !estado.conversations.some((c) => c.id === id)) {
@@ -155,7 +157,8 @@ function responderChat(estado, dados, res) {
     if (i < partes.length) { send({ delta: (i ? ' ' : '') + partes[i], n: i + 1 }); i++; return setTimeout(passo, estado.chat.atrasoMs); }
     estado.messages.push({ conversation_id: id, role: 'assistant', content: estado.chat.resposta, created_at: new Date().toISOString(), model: 'trustio-flash' });
     estado.conversations.filter((c) => c.id === id).forEach((c) => { c.updated_at = new Date().toISOString(); });
-    send({ done: true, conversation_id: id, n: partes.length, trial_ends_at: estado.lead.teste_fim });
+    send({ done: true, conversation_id: id, n: partes.length, trial_ends_at: estado.lead.teste_fim,
+      ...(estado.chat.contexto ? { contexto: estado.chat.contexto, janela: estado.chat.janela } : {}) });
     res.end();
   };
   setTimeout(passo, estado.chat.atrasoMs);
@@ -178,7 +181,9 @@ export async function abrirApp(browser, mock, { en = false, viewport = { width: 
   const page = await ctx.newPage();
   const erros = [];
   page.on('pageerror', (e) => erros.push('pageerror: ' + e.message));
-  page.on('console', (m) => { if (m.type() === 'error' && !/net::ERR_(FAILED|ABORTED|BLOCKED)/.test(m.text())) erros.push('console: ' + m.text()); });
+  // O 409 de janela cheia (contexto_cheio) é esperado, mas só vindo da função chat.
+  const esperado = (m) => /status of 409/.test(m.text()) && /\/functions\/v1\/chat/.test((m.location() || {}).url || '');
+  page.on('console', (m) => { if (m.type() === 'error' && !/net::ERR_(FAILED|ABORTED|BLOCKED)/.test(m.text()) && !esperado(m)) erros.push('console: ' + m.text()); });
   await page.goto(mock.base + (en ? '/en' : '') + '/app/', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.chat-shell[data-state="ready"]', { timeout: 15000 });
   return { ctx, page, erros };

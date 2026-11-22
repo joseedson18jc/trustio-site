@@ -63,6 +63,8 @@ body.motion-paused .lat-bar-fill {
 
 /* ── Enhanced Interactive Hero Data-Path Simulator (.caminho) ─────────────── */
 .caminho {
+  opacity: 1;
+  transform: none;
   padding: clamp(20px, 2.6vw, 30px);
   border: 1px solid var(--line);
   border-radius: 24px;
@@ -70,6 +72,12 @@ body.motion-paused .lat-bar-fill {
   backdrop-filter: blur(14px);
   box-shadow: 0 24px 64px -32px rgba(0, 0, 0, 0.65);
   container-type: inline-size;
+}
+
+@media (min-width: 1024px) {
+  .cm-perimetro .cm-elo {
+    min-width: 176px;
+  }
 }
 
 [data-theme="light"] .caminho {

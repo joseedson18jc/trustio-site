@@ -91,7 +91,7 @@ function stop() {
   cancelAnimationFrame(raf);
   resetEq();
   if (typeof heroStop === "function" && current && stageOrb?.classList.contains("playing")) heroStop();
-  if (current) { orbs.get(current.orb)?.setLevel(0); current.orb.style.setProperty("--lv", "0"); current.orb.classList.remove("speaking"); current.card?.classList.remove("speaking"); current.card?.querySelector(".play")?.setAttribute("aria-pressed", "false"); current = null; }
+  if (current) { orbs.get(current.orb)?.setLevel(0); current.orb.style.setProperty("--lv", "0"); current.orb.classList.remove("speaking"); current.card?.classList.remove("speaking"); const prevPlay = current.card?.querySelector(".play"); if (prevPlay) { prevPlay.setAttribute("aria-pressed", "false"); prevPlay.textContent = T("▶ Ouvir", "▶ Listen"); } current = null; }
   player.pause();
 }
 function play(key, orb, caption) {
@@ -100,7 +100,8 @@ function play(key, orb, caption) {
   stop(); ensureAudio(); ctx?.resume?.();
   current = { key, orb, card };
   orb.classList.add("speaking"); card?.classList.add("speaking");
-  card?.querySelector(".play")?.setAttribute("aria-pressed", "true");
+  const curPlay = card?.querySelector(".play");
+  if (curPlay) { curPlay.setAttribute("aria-pressed", "true"); curPlay.textContent = T("❚❚ Pausar", "❚❚ Pause"); }
   if (caption) flashCaption(orb, caption);
   player.src = src(key);
   player.play().catch((err) => {

@@ -791,6 +791,261 @@ body.motion-paused .lat-bar-fill {
   .b2b-brief-grid { grid-template-columns: 1fr; }
 }
 
+/* ── Recomendador Interativo de Plano & Modelo (#recomendador) ────────────── */
+.home-match {
+  padding: clamp(64px, 8vw, 108px) 0;
+  border-top: 1px solid var(--line);
+}
+
+.home-match-head {
+  max-width: 720px;
+  margin-bottom: 32px;
+}
+
+.home-match h2 {
+  margin: 12px 0 0;
+  font-size: var(--h2);
+}
+
+.home-match h2 span {
+  color: var(--muted-strong);
+  font-weight: var(--heading-soft-weight);
+}
+
+.home-match-lead {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.match-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.match-form {
+  display: grid;
+  gap: 22px;
+}
+
+.match-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.match-group legend {
+  padding: 0;
+  margin-bottom: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--blue-signal);
+}
+
+.match-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+/* Choice cards (modern-web-guidance: card & forms): constant border-width/padding/weight to prevent layout shift */
+.match-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 54px;
+  padding: 13px 14px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.match-choice:hover {
+  border-color: var(--line-bright);
+}
+
+.match-choice input[type="radio"] {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--blue, #2563eb);
+  cursor: pointer;
+}
+
+.match-choice:has(> :checked) {
+  border-color: var(--blue-signal);
+  background: rgba(37, 99, 235, 0.11);
+  box-shadow: 0 0 0 1px rgba(94, 167, 255, 0.25);
+}
+
+.match-choice:has(> :focus-visible) {
+  outline: 2px solid var(--blue-signal);
+  outline-offset: 2px;
+}
+
+.match-choice-text {
+  display: grid;
+  gap: 2px;
+}
+
+.match-choice-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+  line-height: 1.3;
+}
+
+.match-choice-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.match-result {
+  position: sticky;
+  top: 96px;
+  padding: clamp(22px, 2.5vw, 30px);
+  border: 1px solid var(--line-bright);
+  border-radius: 20px;
+  background: var(--card-gradient-featured, var(--surface));
+  box-shadow: 0 24px 60px -30px rgba(37, 99, 235, 0.55);
+  display: grid;
+  gap: 16px;
+  container-type: inline-size;
+}
+
+.match-result-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.match-badge {
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--blue, #2563eb);
+  color: #ffffff;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.match-price-tag {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--blue-signal);
+  font-weight: 600;
+}
+
+.match-result h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(22px, 2.2vw, 28px);
+  font-weight: 600;
+  color: var(--text-strong);
+  line-height: 1.15;
+}
+
+.match-why {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted-strong);
+}
+
+.match-specs {
+  margin: 0;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+}
+
+.match-spec-row {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  gap: 10px;
+  font-size: 13.5px;
+}
+
+.match-spec-row dt {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.match-spec-row dd {
+  margin: 0;
+  color: var(--text-strong);
+  font-weight: 500;
+}
+
+.match-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.match-actions .button {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.match-copy-btn {
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted-strong);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.match-copy-btn:hover,
+.match-copy-btn:focus-visible {
+  border-color: var(--line-bright);
+  color: var(--text-strong);
+}
+
+.match-prefill-btn[hidden] {
+  display: none;
+}
+
+@container (max-width: 360px) {
+  .match-spec-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .match-grid {
+    grid-template-columns: 1fr;
+  }
+  .match-result {
+    position: static;
+  }
+}
+
 /* ── Modern CSS Scroll-Driven Reveal (progressive enhancement) ────────────── */
 @media (prefers-reduced-motion: no-preference) {
   @supports ((animation-timeline: view()) and (animation-range: entry)) {

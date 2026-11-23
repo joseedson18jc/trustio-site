@@ -443,4 +443,151 @@
       window.location.href = mailto;
     });
   }
+  /* ── 10. Recomendador Interativo de Plano & Modelo (#recomendador) ────── */
+  var matchForm = document.querySelector("[data-match-form]");
+  if (matchForm) {
+    var outPlan = document.querySelector("[data-match-plan]");
+    var outPrice = document.querySelector("[data-match-price]");
+    var outWhy = document.querySelector("[data-match-why]");
+    var outModel = document.querySelector("[data-match-model]");
+    var outContext = document.querySelector("[data-match-context]");
+    var outPrivacy = document.querySelector("[data-match-privacy]");
+    var outCta = document.querySelector("[data-match-cta]");
+    var prefillBtn = document.querySelector("[data-match-prefill]");
+    var copyRecBtn = document.querySelector("[data-match-copy]");
+
+    var currentRec = null;
+
+    var computeMatch = function (who, pain, freq) {
+      if (pain === "voz") {
+        return {
+          plan: T("VoiceAI powered by xAI + Omnichannel", "VoiceAI powered by xAI + Omnichannel"),
+          price: T("Projeto empresarial · sob medida", "Enterprise setup · tailored"),
+          why: T(
+            "Para atendimento real em telefone (SIP com DDD local), WhatsApp e e-mail com a mesma memória e latência abaixo de 1 segundo.",
+            "Built for real phone calls (SIP with local area code), WhatsApp and email sharing the same memory at sub-1s latency."
+          ),
+          model: T("Grok Voice (xAI) + orquestração Trustio", "Grok Voice (xAI) + Trustio orchestration"),
+          context: T("Telefonia SIP + transferência humana com contexto", "SIP telephony + warm human handoff"),
+          privacy: T("Áudio em infraestrutura parceira no Brasil · LGPD", "Audio processed on partner infrastructure in Brazil · LGPD"),
+          ctaLabel: T("Ouvir demonstrações VoiceAI", "Listen to VoiceAI demos"),
+          ctaHref: "voice.html",
+          isB2B: true,
+          b2bGoal: T("Agente VoiceAI integrado à telefonia SIP, WhatsApp e e-mail com transferência para humano", "VoiceAI agent integrated with SIP telephony, WhatsApp and email with human handoff")
+        };
+      }
+      if (who === "empresa" || freq === "operacao") {
+        return {
+          plan: T("Ambiente Privado Empresarial", "Private Business Environment"),
+          price: T("Diagnóstico + implantação dedicada no Brasil", "Diagnosis + dedicated Brazil deployment"),
+          why: T(
+            "Seu time ganha modelos abertos e governança LGPD dentro de um perímetro isolado no Brasil — sem vazamento de dados corporativos para big tech.",
+            "Your team gets open models and LGPD governance inside an isolated perimeter in Brazil — with zero corporate data leaking to big tech."
+          ),
+          model: T("Trustio Heavy Thinking + Trustio Flash (dedicado)", "Trustio Heavy Thinking + Trustio Flash (dedicated)"),
+          context: T("86 mil+ tokens · RAG e documentos internos", "86k+ tokens · RAG & internal documents"),
+          privacy: T("Perímetro isolado SP · 0% treinamento · trilha de auditoria", "Isolated SP perimeter · 0% training · audit trail"),
+          ctaLabel: T("Ver planos para empresas", "See business plans"),
+          ctaHref: "planos.html#empresas",
+          isB2B: true,
+          b2bGoal: pain === "privacidade"
+            ? T("Ambiente privado de IA hospedado no Brasil com conformidade LGPD e zero treinamento", "Private AI environment hosted in Brazil with LGPD compliance and zero training")
+            : T("IA privada sem censura para a equipe analisar documentos e casos sensíveis", "Private uncensored AI for our team to analyze sensitive documents and cases")
+        };
+      }
+      if (pain === "agente") {
+        return {
+          plan: T("Combo Chat + Agentio (WhatsApp & Telegram)", "Chat + Agentio Combo (WhatsApp & Telegram)"),
+          price: T("Comece com 3 dias grátis · planos em R$ sem IOF", "Start with 3 free days · BRL plans, no IOF"),
+          why: T(
+            "Junta o chat privado sem censura no navegador com o agente autônomo Agentio direto no seu WhatsApp e Telegram para executar rotinas no dia a dia.",
+            "Combines private uncensored web chat with the autonomous Agentio assistant right on WhatsApp and Telegram for daily tasks."
+          ),
+          model: T("Trustio Flash + Agentio autônomo", "Trustio Flash + autonomous Agentio"),
+          context: T("30 mil (teste) · 86 mil tokens (pagos)", "30k (trial) · 86k tokens (paid)"),
+          privacy: T("Conta e histórico no Brasil · 0% treinamento", "Account & history in Brazil · 0% training"),
+          ctaLabel: T("Ver Combo e Agentio", "See Combo & Agentio"),
+          ctaHref: "planos.html#combo",
+          isB2B: false
+        };
+      }
+      if (freq === "pontual") {
+        return {
+          plan: T("Teste grátis (3 dias) → Passe · 7 dias", "Free trial (3 days) → 7-day Pass"),
+          price: T("R$ 0 agora · depois R$ 24,90 pagamento único", "R$ 0 now · then R$ 24.90 one-time"),
+          why: T(
+            "Ideal para resolver uma demanda séria sem assinar nada: teste 3 dias sem cartão (contando da primeira pergunta) e use o passe avulso quando precisar.",
+            "Ideal for serious one-off work with zero subscription: try 3 days card-free (starting on your first question) and grab a 7-day pass whenever needed."
+          ),
+          model: pain === "censura" || who === "pro"
+            ? T("Trustio Heavy Thinking (análise profunda)", "Trustio Heavy Thinking (deep analysis)")
+            : T("Trustio Flash (rápido e direto)", "Trustio Flash (fast and direct)"),
+          context: T("30 mil tokens no teste · 86 mil no passe pago", "30k tokens in trial · 86k in paid pass"),
+          privacy: T("Servidores em São Paulo · 0% treinamento · sem IOF", "Servers in São Paulo · 0% training · no IOF"),
+          ctaLabel: T("Criar conta grátis (3 dias)", "Create free account (3 days)"),
+          ctaHref: "cadastro.html",
+          isB2B: false
+        };
+      }
+      return {
+        plan: T("Plano Mensal · Chat privado sem censura", "Monthly Plan · Private uncensored chat"),
+        price: T("R$ 79/mês (≈ R$ 2,63/dia) · sem IOF", "R$ 79/mo (≈ R$ 2.63/day) · no IOF"),
+        why: T(
+          "O menor custo por dia para uso constante na rotina profissional, com uso justo sem contar tokens e economia real frente a assinaturas em dólar.",
+          "Lowest daily cost for everyday professional work, with fair use (no token counting) and real savings over USD subscriptions."
+        ),
+        model: who === "pro" || pain === "censura"
+          ? T("Trustio Heavy Thinking + Trustio Flash", "Trustio Heavy Thinking + Trustio Flash")
+          : T("Trustio Flash (rotina ágil) + Heavy Thinking", "Trustio Flash (fast routine) + Heavy Thinking"),
+        context: T("86 mil tokens nos planos pagos (30 mil no teste)", "86k tokens on paid plans (30k in trial)"),
+        privacy: T("Histórico em São Paulo · LGPD · 0% treinamento", "History in São Paulo · LGPD · 0% training"),
+        ctaLabel: T("Começar 3 dias grátis → Mensal", "Start 3 free days → Monthly"),
+        ctaHref: "cadastro.html",
+        isB2B: false
+      };
+    };
+
+    var updateMatch = function () {
+      var fd = new FormData(matchForm);
+      var who = String(fd.get("who") || "pro");
+      var pain = String(fd.get("pain") || "censura");
+      var freq = String(fd.get("freq") || "rotina");
+      currentRec = computeMatch(who, pain, freq);
+
+      if (outPlan) outPlan.textContent = currentRec.plan;
+      if (outPrice) outPrice.textContent = currentRec.price;
+      if (outWhy) outWhy.textContent = currentRec.why;
+      if (outModel) outModel.textContent = currentRec.model;
+      if (outContext) outContext.textContent = currentRec.context;
+      if (outPrivacy) outPrivacy.textContent = currentRec.privacy;
+      if (outCta) {
+        outCta.textContent = currentRec.ctaLabel;
+        outCta.setAttribute("href", currentRec.ctaHref);
+      }
+      if (prefillBtn) {
+        prefillBtn.hidden = !currentRec.isB2B;
+      }
+    };
+
+    matchForm.addEventListener("change", updateMatch);
+    updateMatch();
+
+    prefillBtn?.addEventListener("click", function () {
+      if (!currentRec || !currentRec.b2bGoal) return;
+      var goalInput = document.getElementById("b2b-goal");
+      var contactSec = document.getElementById("contato");
+      if (goalInput) goalInput.value = currentRec.b2bGoal;
+      contactSec?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      setTimeout(function () { goalInput?.focus({ preventScroll: true }); }, 400);
+    });
+
+    copyRecBtn?.addEventListener("click", function () {
+      if (!currentRec) return;
+      var summary = "Trustio — " + currentRec.plan + "\n" + currentRec.price + "\n" + currentRec.model + " (" + currentRec.context + ")\n" + currentRec.privacy + "\nhttps://trustio.com.br/";
+      var orig = copyRecBtn.textContent;
+      if (navigator.clipboard?.writeText) navigator.clipboard.writeText(summary).catch(function () {});
+      copyRecBtn.textContent = T("Resumo copiado ✓", "Summary copied ✓");
+      setTimeout(function () { copyRecBtn.textContent = orig; }, 1800);
+    });
+  }
 })();

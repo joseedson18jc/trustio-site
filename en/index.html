@@ -122,8 +122,8 @@
   <link rel="stylesheet" href="/assets/home-residency.css?v=ad234e6c">
   <link rel="stylesheet" href="/assets/home-conversao.css?v=0e7fc401">
   <link rel="stylesheet" href="/assets/home-caminho.css?v=d9a29bfc">
-  <link rel="stylesheet" href="/assets/home-upgrade.css?v=0712e172">
-  <script defer src="/assets/home-interativo.js?v=1b80ecc4"></script>
+  <link rel="stylesheet" href="/assets/home-upgrade.css?v=6ae7ed1e">
+  <script defer src="/assets/home-interativo.js?v=c6877479"></script>
 
 </head>
 <body class="home-page">
@@ -239,6 +239,136 @@
         </ul>
         <p class="precos-rodape reveal">Pay with your account e-mail: access unlocks automatically once the payment is confirmed. Agentio, Combo and the annual plan in <a href="planos.html#pessoal">Plans</a>.</p>
         <p class="fine-print"></p>
+      </div>
+    </section>
+
+    <section class="home-match section-shell" id="recomendador" aria-labelledby="home-match-title">
+      <div class="container">
+        <div class="home-match-head reveal">
+          <p class="section-kicker">Choose in 10 seconds</p>
+          <h2 id="home-match-title">Which Trustio makes sense <span>for your use?</span></h2>
+          <p class="home-match-lead">Pick three options below and see the right plan, model and setup immediately — no forms and no sales calls.</p>
+        </div>
+
+        <div class="match-grid">
+          <form class="match-form" data-match-form aria-labelledby="home-match-title">
+            <fieldset class="match-group">
+              <legend>1 · Who will use it</legend>
+              <div class="match-options">
+                <label class="match-choice">
+                  <input type="radio" name="who" value="solo">
+                  <span class="match-choice-text">
+                    <span class="match-choice-title">Just me</span>
+                    <span class="match-choice-desc">Study, creation and personal use</span>
+                  </span>
+                </label>
+                <label class="match-choice">
+                  <input type="radio" name="who" value="pro" checked>
+                  <span class="match-choice-text">
+                    <span class="match-choice-title">Independent professional</span>
+                    <span class="match-choice-desc">Law, healthcare, research or IT</span>
+                  </span>
+                </label>
+                <label class="match-choice">
+                  <input type="radio" name="who" value="empresa">
+                  <span class="match-choice-text">
+                    <span class="match-choice-title">Business or team</span>
+                    <span class="match-choice-desc">Operations, support and LGPD</span>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="match-group">
+              <legend>2 · What slows you down today</legend>
+              <div class="match-options">
+                <label class="match-choice">
+                  <input type="radio" name="pain" value="censura" checked>
+                  <span class="match-choice-text">
+                    <span class="match-choice-title">Filters and censorship</span>
+                    <span class="match-choice-desc">Answers cut off on serious topics</span>
+                  </span>
+                </label>
+                <label class="match-choice">
+                  <input type="radio" name="pain" value="privacidade">
+                  <span class="match-choice-text">
+                    <span class="match-choice-title">Privacy and LGPD</span>
+                    <span class="match-choice-desc">Data in Brazil without AI training</span>
+                  </span>
+                </label>
+                <label class="match-choice">
+                  <input type="radio" name="pain" value="agente">
+                  <span class="match-choice-text">
+                    <span class="match-choice-title">WhatsApp and Telegram</span>
+                    <span class="match-choice-desc">Agent running daily routines</span>
+                  </span>
+                </label>
+                <label class="match-choice">
+                  <input type="radio" name="pain" value="voz">
+                  <span class="match-choice-text">
+                    <span class="match-choice-title">Voice support</span>
+                    <span class="match-choice-desc">SIP phone calls in Portuguese</span>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="match-group">
+              <legend>3 · Usage rhythm</legend>
+              <div class="match-options">
+                <label class="match-choice">
+                  <input type="radio" name="freq" value="pontual">
+                  <span class="match-choice-text">
+                    <span class="match-choice-title">Occasional or test now</span>
+                    <span class="match-choice-desc">No recurring subscription</span>
+                  </span>
+                </label>
+                <label class="match-choice">
+                  <input type="radio" name="freq" value="rotina" checked>
+                  <span class="match-choice-text">
+                    <span class="match-choice-title">Daily workflow</span>
+                    <span class="match-choice-desc">Fair use without counting tokens</span>
+                  </span>
+                </label>
+                <label class="match-choice">
+                  <input type="radio" name="freq" value="operacao">
+                  <span class="match-choice-text">
+                    <span class="match-choice-title">Team operation</span>
+                    <span class="match-choice-desc">Dedicated environment and channels</span>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+          </form>
+
+          <article class="match-result" aria-live="polite">
+            <div class="match-result-top">
+              <span class="match-badge">Tailored recommendation</span>
+              <span class="match-price-tag" data-match-price>R$ 79/mo (≈ R$ 2.63/day) · no IOF</span>
+            </div>
+            <h3 data-match-plan>Monthly Plan · Private uncensored chat</h3>
+            <p class="match-why" data-match-why>Lowest daily cost for everyday professional work, with fair use (no token counting) and real savings over USD subscriptions.</p>
+            <dl class="match-specs">
+              <div class="match-spec-row">
+                <dt>Recommended model</dt>
+                <dd data-match-model>Trustio Heavy Thinking + Trustio Flash</dd>
+              </div>
+              <div class="match-spec-row">
+                <dt>Context window</dt>
+                <dd data-match-context>86k tokens on paid plans (30k in trial)</dd>
+              </div>
+              <div class="match-spec-row">
+                <dt>Privacy</dt>
+                <dd data-match-privacy>History in São Paulo · LGPD · 0% training</dd>
+              </div>
+            </dl>
+            <div class="match-actions">
+              <a class="button button-primary" href="cadastro.html" data-match-cta>Start 3 free days → Monthly</a>
+              <button type="button" class="button button-outline match-prefill-btn" data-match-prefill hidden>Prefill brief in #contato</button>
+              <button type="button" class="match-copy-btn" data-match-copy>Copy recommendation</button>
+            </div>
+          </article>
+        </div>
       </div>
     </section>
 

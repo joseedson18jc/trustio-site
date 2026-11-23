@@ -4,63 +4,6 @@
    WCAG AA contrast, container queries, native <details>, scroll-driven motion.
    ========================================================================== */
 
-/* ── Global Motion Pause (WCAG 2.2.2) ─────────────────────────────────────── */
-body.motion-paused .caminho .cm-elo::after,
-body.motion-paused .home-live-dot,
-body.motion-paused .lat-bar-fill {
-  animation-play-state: paused !important;
-}
-
-.hero-motion-bar {
-  position: relative;
-  z-index: 3;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 18px;
-}
-
-.hero-motion-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 6px 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--muted-strong);
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease;
-}
-
-.hero-motion-pill:hover,
-.hero-motion-pill:focus-visible {
-  border-color: var(--line-bright);
-  color: var(--text-strong);
-}
-
-.home-live-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #22c55e;
-  flex: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .home-live-dot {
-    animation: trustio-live-pulse 2.2s ease-in-out infinite;
-  }
-}
-
-@keyframes trustio-live-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
-}
-
 /* ── Enhanced Interactive Hero Data-Path Simulator (.caminho) ─────────────── */
 .caminho {
   opacity: 1;

@@ -5,25 +5,7 @@
   var EN = /^en\b/i.test(document.documentElement.lang);
   var T = function (pt, en) { return EN ? en : pt; };
 
-  /* ── 1. WCAG 2.2.2 Pausar / Retomar animações ─────────────────────────── */
-  var motionBtn = document.querySelector("[data-motion-toggle]");
-  if (motionBtn) {
-    var rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (rm) document.body.classList.add("motion-paused");
-    var syncMotion = function () {
-      var paused = document.body.classList.contains("motion-paused");
-      motionBtn.textContent = paused
-        ? T("Retomar animações", "Resume animations")
-        : T("Pausar animações", "Pause animations");
-    };
-    syncMotion();
-    motionBtn.addEventListener("click", function () {
-      document.body.classList.toggle("motion-paused");
-      syncMotion();
-    });
-  }
-
-  /* ── 2. Simulador interativo do Caminho de uma Pergunta ───────────────── */
+  /* ── 1. Simulador interativo do Caminho de uma Pergunta ───────────────── */
   var caminho = document.querySelector("[data-caminho-sim]");
   if (caminho) {
     var inspText = caminho.querySelector("[data-caminho-detalhe]");

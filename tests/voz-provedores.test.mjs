@@ -93,4 +93,36 @@ await t("nenhum configurado", async () => {
   await assert.rejects(sintetizar("Olá.", "pt", { xaiKey: "", elevenKey: "" }, fakeFetch([])), /voz_nao_configurada/);
 });
 
+await t("xAI travada: cai para a ElevenLabs no prazo, sem esperar para sempre", async () => {
+  const sinais = [];
+  const f = (url, init) => {
+    sinais.push(init.signal);
+    return String(url).includes("x.ai") ? new Promise(() => {}) : Promise.resolve(audio("eleven"));
+  };
+  const inicio = Date.now();
+  const r = await sintetizar("Olá.", "pt", { ...cfgTudo, prazoMs: 30 }, f);
+  assert.equal(r.provedor, "elevenlabs");
+  assert.ok(Date.now() - inicio < 1000);
+  assert.equal(sinais[0].aborted, true, "o pedido travado é abortado");
+  // O prazo vale até a resposta começar: o áudio que já está chegando não é cortado depois.
+  await new Promise((res) => setTimeout(res, 60));
+  assert.equal(sinais[1].aborted, false);
+  assert.equal(await r.resposta.text(), "eleven");
+});
+
+await t("erro com corpo travado: não segura a vez do próximo provedor", async () => {
+  const preso = { ok: false, status: 500, body: null, text: () => new Promise(() => {}) };
+  const f = (url) => Promise.resolve(String(url).includes("x.ai") ? preso : audio("eleven"));
+  const inicio = Date.now();
+  const r = await sintetizar("Olá.", "pt", { ...cfgTudo, prazoMs: 30 }, f);
+  assert.equal(r.provedor, "elevenlabs");
+  assert.ok(Date.now() - inicio < 1000);
+});
+
+await t("todos travados: voz_indisponivel com o motivo 'prazo' de cada um", async () => {
+  const err = await sintetizar("Olá.", "pt", { ...cfgTudo, prazoMs: 20 }, () => new Promise(() => {})).catch((e) => e);
+  assert.equal(err.message, "voz_indisponivel");
+  assert.deepEqual(err.falhas, ["xai:prazo", "elevenlabs:prazo"]);
+});
+
 console.log(`\n${n} testes passaram`);

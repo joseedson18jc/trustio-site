@@ -29,7 +29,7 @@
     "test:app": "node tests/e2e/app-shell.mjs",
     "test:velocidade": "node tests/velocidade.test.mjs",
     "test:docx": "node tests/docx.test.mjs",
-    "test:voz": "node tests/voz-texto.test.mjs && node tests/voz-provedores.test.mjs && node --test tests/voz-tempo-real-db.test.mjs",
+    "test:voz": "node tests/voz-texto.test.mjs && node tests/voz-provedores.test.mjs && node --test tests/voz-pedido.test.mjs tests/voz-clientes.test.mjs && node --test tests/voz-tempo-real-db.test.mjs",
     "test:atribuicao": "node --test tests/atribuicao.test.mjs tests/eventos-funil-db.test.mjs",
     "test:pagamentos": "node --test tests/liberacao-stripe-db.test.mjs tests/teste-3-dias-db.test.mjs tests/ritmo-teste-db.test.mjs",
     "checklist:campanha": "node scripts/checklist-campanha.mjs"

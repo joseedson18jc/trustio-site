@@ -1,6 +1,6 @@
 // Relé da voz em tempo real (worker/src/voz-tempo-real.js), com sockets e fetch simulados: nada sai para a rede.
 import {
-  XAI_REALTIME, devolucoes, filtrarDaXai, filtrarDoCliente, prepararSessao, rele, sessaoTrustio, situacao, taxaPedida, tokenDoProtocolo,
+  PRAZO_PRONTA_MS, XAI_REALTIME, abrirXai, devolucoes, devolverBlocos, limitado, vozTempoReal, filtrarDaXai, filtrarDoCliente, pedir, prepararSessao, rele, reservar, sessaoTrustio, situacao, taxaPedida, tokenDoProtocolo,
 } from "../src/voz-tempo-real.js";
 
 let falhas = 0;
@@ -256,6 +256,7 @@ ok(filtrarDaXai(JSON.stringify({ type: "response.output_audio_transcript.delta",
   const r = rele({ cliente, xai, segundos: 120, total: 900, taxa: 24000, env: {}, agora: () => agora, relogio,
     renovar: () => new Promise((res) => { soltar = res; }), aoFim: (u, m, c) => fimInfo.push({ u, m, c }) });
   r.xaiPronta();
+  xai.emitir("message", { data: JSON.stringify({ type: "session.updated", session: {} }) });
   agora = 90_000; timers.filter(t => t.em <= 90_000 && t.f.name === "renovarAntes").forEach(t => t.f());
   ok(typeof soltar === "function", "renovação em curso aos 90 s");
   agora = 95_000; cliente.close(1000, "tchau");
@@ -274,6 +275,7 @@ ok(filtrarDaXai(JSON.stringify({ type: "response.output_audio_transcript.delta",
     renovar: async () => { tentativas++; if (tentativas === 1) throw new Error("rede"); return 120; },
     aoFim: (u, m, c) => { fimInfo = { u, m, c }; } });
   r.xaiPronta();
+  xai.emitir("message", { data: JSON.stringify({ type: "session.updated", session: {} }) });   // sessão confirmada: o prazo da xAI não encerra
   const rodar = async (ate) => {
     for (;;) {
       timers.sort((a, b) => a.em - b.em); const t = timers[0];
@@ -298,8 +300,170 @@ ok(filtrarDaXai(JSON.stringify({ type: "response.output_audio_transcript.delta",
   let agora = 0, fimInfo = null;
   const r = rele({ cliente, xai, segundos: 120, taxa: 24000, env: {}, agora: () => agora, relogio: () => 0, aoFim: (u) => { fimInfo = u; } });
   r.xaiPronta();
+  xai.emitir("message", { data: JSON.stringify({ type: "session.updated", session: {} }) });
   agora = 12_300; cliente.close(1000, "tchau");
   ok(fimInfo === 13, "12,3 s contam como 13 s");
+}
+
+// ---- prazo: a xAI conectou mas nunca confirmou a sessão; desliga no prazo, não no teto
+{
+  const cliente = socketFalso(), xai = socketFalso();
+  let agora = 0; const timers = [];
+  const relogio = (f, ms) => { timers.push({ f, ms }); return timers.length; };
+  let fimInfo = null;
+  const r = rele({ cliente, xai, segundos: 120, total: 900, taxa: 24000, env: {}, agora: () => agora, relogio, aoFim: (u, m) => { fimInfo = { u, m }; } });
+  r.xaiPronta();
+  const prazo = timers.find(t => t.ms === PRAZO_PRONTA_MS);
+  ok(!!prazo && PRAZO_PRONTA_MS < 120_000, "prazo para a xAI confirmar a sessão marcado, menor que o bloco");
+  agora = PRAZO_PRONTA_MS; prazo?.f();
+  ok(fimInfo && fimInfo.m === "xai", "sem session.updated no prazo: a sessão termina com motivo xai");
+  ok(cliente.fechado && xai.fechado, "e os dois lados fecham");
+  ok(fimInfo && fimInfo.u === 0, "conversa que a xAI nunca confirmou não gasta a cota: 0 s usados");
+}
+// ---- prazo: a xAI nem chegou a conectar (xaiPronta nunca chamada)
+{
+  const cliente = socketFalso();
+  let agora = 0; const timers = [];
+  let motivo = null;
+  rele({ cliente, xai: null, segundos: 120, taxa: 24000, env: {}, agora: () => agora, relogio: (f, ms) => { timers.push({ f, ms }); }, aoFim: (u, m) => { motivo = m; } });
+  agora = PRAZO_PRONTA_MS; timers.find(t => t.ms === PRAZO_PRONTA_MS)?.f();
+  ok(motivo === "xai" && cliente.fechado, "xAI que nunca abriu: o navegador é avisado e fechado no prazo");
+}
+// ---- prazo: sessão confirmada a tempo não é derrubada
+{
+  const cliente = socketFalso(), xai = socketFalso();
+  let agora = 0; const timers = [];
+  let motivo = null;
+  const r = rele({ cliente, xai, segundos: 120, taxa: 24000, env: {}, agora: () => agora, relogio: (f, ms) => { timers.push({ f, ms }); }, aoFim: (u, m) => { motivo = m; } });
+  r.xaiPronta();
+  xai.emitir("message", { data: JSON.stringify({ type: "session.updated", session: {} }) });
+  agora = PRAZO_PRONTA_MS; timers.find(t => t.ms === PRAZO_PRONTA_MS)?.f();
+  ok(motivo === null && !cliente.fechado, "sessão confirmada: o prazo não encerra nada");
+  cliente.close(1000, "tchau");
+}
+
+// ---- pedir: chamada de rede que não responde, ou que trava no corpo, falha no prazo e é abortada
+{
+  let sinal = null, erro = null;
+  const inicio = Date.now();
+  try { await pedir((url, init) => { sinal = init.signal; return new Promise(() => {}); }, "https://x", { method: "POST" }, 30); } catch (e) { erro = e; }
+  ok(erro && erro.message === "prazo" && Date.now() - inicio < 1000, "fetch travado: rejeita com 'prazo'");
+  ok(sinal && sinal.aborted, "e o pedido travado é abortado");
+  let sinal2 = null; erro = null;
+  try { await pedir(async (url, init) => { sinal2 = init.signal; return { ok: true, status: 200, text: () => new Promise(() => {}) }; }, "https://x", {}, 30); } catch (e) { erro = e; }
+  ok(erro && erro.message === "prazo" && sinal2.aborted, "cabeçalhos chegaram mas o corpo travou: também falha no prazo");
+  const r = await pedir(async () => new Response("oi", { status: 201 }), "https://x", {}, 30);
+  ok(r.ok && r.status === 201 && r.texto === "oi", "resposta a tempo: devolve status e corpo");
+}
+// ---- reserva que responde depois do prazo: o bloco reservado no banco é devolvido, não fica perdido
+{
+  const env = { SUPABASE_URL: "https://x.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "srv" };
+  const chamadas = []; let soltar;
+  const f = (url, init) => {
+    const u = String(url); chamadas.push({ u, corpo: JSON.parse(init.body) });
+    if (u.includes("/rpc/reservar_voz_tempo_real")) return new Promise((res) => { soltar = res; });
+    return Promise.resolve(new Response("", { status: 200 }));
+  };
+  let erro = null;
+  try { await reservar(env, f, "u1", 120, 30); } catch (e) { erro = e; }
+  ok(erro && erro.message === "prazo", "reserva lenta: falha com 'prazo'");
+  ok(!chamadas.some(c => c.u.includes("devolver")), "antes de a resposta chegar, nada a devolver");
+  soltar(new Response(JSON.stringify({ ok: true, segundos: 120, dia: "2026-11-26", restante: 500 }), { status: 200 }));
+  await new Promise((res) => setTimeout(res, 20));
+  const dev = chamadas.find(c => c.u.includes("/rpc/devolver_voz_tempo_real"));
+  ok(dev && dev.corpo.p_user_id === "u1" && dev.corpo.p_dia === "2026-11-26" && dev.corpo.p_segundos === 120, "o bloco que chegou atrasado é devolvido na hora");
+  const g = async (url) => new Response(JSON.stringify({ ok: true, segundos: 60, dia: "2026-11-26", restante: 0 }), { status: 200 });
+  ok((await reservar(env, g, "u1", 60, 30)).segundos === 60, "reserva a tempo: devolve a resposta do banco");
+}
+// ---- Supabase travado: prepararSessao recusa no prazo em vez de segurar a pessoa em "Conectando…"
+{
+  const env = { SUPABASE_URL: "https://x.supabase.co", SUPABASE_ANON_KEY: "pub", SUPABASE_SERVICE_ROLE_KEY: "srv", VOZ_XAI_API_KEY: "k" };
+  const travado = () => new Promise(() => {});
+  const p = await Promise.race([prepararSessao("tok", env, travado, 30), new Promise((res) => setTimeout(() => res("travou"), 1000))]);
+  ok(p !== "travou" && p.ok === false && p.motivo === "nao_autorizado", "login travado: nao_autorizado no prazo");
+  const f = async (url) => (String(url).endsWith("/auth/v1/user")
+    ? new Response(JSON.stringify({ id: "u1", email_confirmed_at: "2026-10-01" }), { status: 200 }) : travado());
+  const q = await Promise.race([prepararSessao("tok", env, f, 30), new Promise((res) => setTimeout(() => res("travou"), 1000))]);
+  ok(q !== "travou" && q.ok === false && q.motivo === "indisponivel", "reserva travada: indisponivel no prazo");
+}
+// ---- xAI travada na abertura: abrirXai falha no prazo; socket que chega atrasado é fechado
+{
+  const env = { VOZ_XAI_API_KEY: "k" };
+  let erro = null, soltar;
+  const atrasado = { aceito: false, fechado: false, accept() { this.aceito = true; }, close() { this.fechado = true; } };
+  try { await abrirXai(env, () => new Promise((res) => { soltar = res; }), 30); } catch (e) { erro = e; }
+  ok(erro && erro.message === "prazo", "abertura travada: falha com 'prazo'");
+  soltar({ status: 101, webSocket: atrasado }); await new Promise((res) => setTimeout(res, 0));
+  ok(atrasado.fechado, "socket da xAI que abriu depois do prazo é fechado (nada fica pendurado)");
+  const bom = { aceito: false, accept() { this.aceito = true; }, close() {} };
+  let pedido = null;
+  const ws = await abrirXai(env, async (url, init) => { pedido = { url, init }; return { status: 101, webSocket: bom }; }, 30);
+  ok(ws === bom && bom.aceito, "abertura normal: devolve o socket aceito");
+  ok(String(pedido.url).startsWith("https://api.x.ai/v1/realtime") && pedido.init.headers.Authorization === "Bearer k", "abre na xAI com a chave do worker");
+}
+
+// ---- cobrança: só conta tempo de conversa que a xAI confirmou
+{
+  const cliente = socketFalso();
+  let agora = 0, usados = null;
+  rele({ cliente, xai: null, segundos: 120, taxa: 24000, env: {}, agora: () => agora, relogio: () => 0, aoFim: (u) => { usados = u; } });
+  agora = 5_000; cliente.close(1000, "tchau");
+  ok(usados === 0, "fechou antes de a xAI ficar pronta: 0 s usados");
+}
+
+// ---- a xAI só é aberta para conta válida (antes abria para qualquer texto com cara de JWT)
+{
+  const env = { SUPABASE_URL: "https://x.supabase.co", SUPABASE_ANON_KEY: "pub", SUPABASE_SERVICE_ROLE_KEY: "srv", VOZ_XAI_API_KEY: "k" };
+  const montar = (statusUsuario, usuario) => {
+    const ordem = [];
+    const f = async (url) => {
+      const u = String(url);
+      if (u.endsWith("/auth/v1/user")) { ordem.push("conta"); return new Response(JSON.stringify(usuario), { status: statusUsuario }); }
+      ordem.push("reserva");
+      return new Response(JSON.stringify({ ok: true, segundos: 120, dia: "2026-11-26", restante: 500 }), { status: 200 });
+    };
+    return { f, ordem };
+  };
+  let m = montar(401, {});
+  await prepararSessao("tok", env, m.f, 1000, () => m.ordem.push("xai"));
+  ok(!m.ordem.includes("xai"), "token inválido: a xAI nem é aberta");
+  m = montar(200, { id: "u1", email_confirmed_at: null });
+  await prepararSessao("tok", env, m.f, 1000, () => m.ordem.push("xai"));
+  ok(!m.ordem.includes("xai"), "e-mail sem confirmar: a xAI nem é aberta");
+  m = montar(200, { id: "u1", email_confirmed_at: "2026-10-01" });
+  const p = await prepararSessao("tok", env, m.f, 1000, () => m.ordem.push("xai"));
+  ok(p.ok && m.ordem.join(",") === "conta,xai,reserva", "conta válida: a xAI abre logo depois da conta, junto com a reserva");
+}
+
+// ---- limite de pedidos por IP (binding VOZ_LIMITADOR do Cloudflare)
+{
+  const req = (ip, upgrade) => new Request("https://api.trustio.com.br/voz/tempo-real", { headers: { "cf-connecting-ip": ip, ...(upgrade ? { upgrade: "websocket" } : {}) } });
+  const chaves = [];
+  const env = { VOZ_LIMITADOR: { limit: async ({ key }) => { chaves.push(key); return { success: key !== "9.9.9.9" }; } } };
+  ok(await limitado(req("1.1.1.1"), env) === false && chaves[0] === "1.1.1.1", "dentro do limite passa; a chave é o IP");
+  ok(await limitado(req("9.9.9.9"), env) === true, "acima do limite: barrado");
+  ok(await limitado(req("9.9.9.9"), {}) === false, "sem o binding configurado: não barra ninguém");
+  ok(await limitado(req("9.9.9.9"), { VOZ_LIMITADOR: { limit: async () => { throw new Error("fora"); } } }) === false, "limitador fora do ar: não derruba a voz");
+  const json = (status, corpo) => new Response(JSON.stringify(corpo), { status });
+  const r1 = await vozTempoReal(req("9.9.9.9"), env, {}, "https://trustio.com.br", { json, ORIGENS: /trustio/ });
+  ok(r1.status === 401, "GET de situação não entra no limite (IP compartilhado não esconde o botão): segue para a conferência da conta");
+  const r2 = await vozTempoReal(req("9.9.9.9", true), env, {}, "https://trustio.com.br", { json, ORIGENS: /trustio/ });
+  ok(r2.status === 429, "WebSocket acima do limite: 429, sem abrir nada");
+}
+
+// ---- devolução: falha de rede tenta de novo; prazo estourado não (o banco pode já ter devolvido)
+{
+  const env = { SUPABASE_URL: "https://x.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "srv" };
+  const blocos = [{ dia: "2026-11-26", segundos: 120 }];
+  let n = 0;
+  await devolverBlocos(env, async () => { n++; if (n === 1) throw new Error("rede"); return new Response("", { status: 200 }); }, "u1", blocos, 50);
+  ok(n === 2, "devolução que falhou na rede é tentada de novo");
+  n = 0;
+  await devolverBlocos(env, async () => { n++; return new Response("erro", { status: 500 }); }, "u1", blocos, 50);
+  ok(n === 2, "erro do banco: duas tentativas e desiste sem estourar");
+  n = 0;
+  await devolverBlocos(env, () => { n++; return new Promise(() => {}); }, "u1", blocos, 50, 20);
+  ok(n === 1, "prazo estourado: não repete (evita devolver em dobro)");
 }
 
 if (falhas) { console.error(`${falhas} falha(s)`); process.exit(1); }

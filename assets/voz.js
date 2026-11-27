@@ -28,6 +28,11 @@
   }
   var micBtn = null, conversaBtn = null;
   var SILENCIO_MS = 1100, MAX_GRAVACAO_MS = 120000, LIMIAR = 0.018;
+  // Pedido de voz que não responde: desiste em vez de ficar em "Carregando…". Fica acima do pior caso do
+  // servidor (3 provedores, 30 s cada), para não desistir de um áudio que ainda vai chegar e já foi cobrado.
+  var PRAZO_AUDIO_MS = 100000;
+  var MAX_RODADAS_SEM_FALA = 3;          // conversa por voz sem ninguém falar (~6 min): desliga o microfone
+  var rodadasSemFala = 0;
 
   function T(pt, en) { return ctx.T(pt, en); }
   function assinante() { return acesso ? acesso === "livre" : !!ctx.semCota(); }
@@ -85,10 +90,18 @@
 
   // Pede ao servidor o MP3 de um texto. Erro sai com .message = código do servidor e .falhas.
   function buscarAudio(texto) {
+    var controle = window.AbortController ? new AbortController() : null;
+    var relogio = setTimeout(function () { if (controle) controle.abort(); }, PRAZO_AUDIO_MS);
+    function soltar() { clearTimeout(relogio); }
+    return buscarAudioSemPrazo(texto, controle ? controle.signal : undefined).then(
+      function (blob) { soltar(); return blob; },
+      function (err) { soltar(); if (err && err.name === "AbortError") err = new Error("prazo"); throw err; });
+  }
+  function buscarAudioSemPrazo(texto, sinal) {
     return ctx.sb.auth.getSession().then(function (r) {
       var s = r.data && r.data.session; if (!s) throw new Error("sem_sessao");
       return fetch(endpoint(), {
-        method: "POST",
+        method: "POST", signal: sinal,
         headers: { "Authorization": "Bearer " + s.access_token, "apikey": ctx.CFG.key, "Content-Type": "application/json" },
         body: JSON.stringify({ texto: texto, idioma: ctx.EN ? "en" : "pt" })
       });
@@ -278,9 +291,15 @@
         var temAudio = blob.size >= 2000;
         if (!temAudio || (!ouviuFala && (motivo === "silencio" || !detectorMorto))) {
           if (motivo === "toque") ctx.showNotice(T("Não ouvi sua voz. Fale um pouco mais perto do microfone e tente de novo.", "I didn't hear your voice. Speak a bit closer to the mic and try again."));
-          if (conversa && motivo !== "toque") setTimeout(gravar, 400);
+          if (conversa && motivo !== "toque") {
+            if (++rodadasSemFala >= MAX_RODADAS_SEM_FALA) {
+              rodadasSemFala = 0; sairConversa();
+              ctx.showNotice(T("Conversa por voz desligada: não ouvi ninguém por um tempo.", "Voice conversation turned off: I didn't hear anyone for a while."));
+            } else setTimeout(gravar, 400);
+          }
           return;
         }
+        rodadasSemFala = 0;
         ctx.adicionarArquivos([new File([blob], "fala." + ext, { type: mime })]);
         // A transcrição vira a própria mensagem; na conversa por voz, resposta curta e rápida (Flash).
         var falhou = function () { sairConversa(); };      // o aviso do chat fica na tela; a conversa para
@@ -305,6 +324,7 @@
     conversa = !conversa;
     conversaBtn.classList.toggle("is-ativa", conversa);
     conversaBtn.setAttribute("aria-pressed", conversa ? "true" : "false");
+    rodadasSemFala = 0;
     if (conversa) {
       ctx.showNotice(T("Conversa por voz ligada: fale, e eu respondo em voz alta. Toque de novo para desligar.", "Voice conversation on: speak and I'll answer out loud. Tap again to turn it off."));
       prepararEspera();

@@ -6,6 +6,9 @@
    - Latência: microfone, áudio e conexão começam juntos no toque; o áudio dito antes da conexão
      abrir fica guardado e segue depois; blocos de 20 ms; a resposta toca bloco a bloco enquanto chega,
      sem esperar o fim; se a pessoa fala por cima, a resposta para na hora.
+   - Robustez (26 nov 2026): o áudio da resposta interrompida que ainda estava a caminho é descartado;
+     com o microfone silenciado segue silêncio (a conversa não cai por inatividade); queda de conexão
+     sem motivo do servidor mostra um aviso.
    O chat (assets/chat.js) chama TrustioVozTempoReal.iniciar(...) uma vez, com o mesmo contexto da voz. */
 (function () {
   "use strict";
@@ -16,6 +19,9 @@
   var CAPTURA = new URL("voz-tempo-real-captura.js", (document.currentScript || {}).src || location.href).href;
   var ctx = null, botao = null, situacao = null;
   var sessao = null;   // a conversa aberta (uma por vez)
+  // Depois que a pessoa fala por cima, o áudio que chega é da resposta antiga: fica de fora até a fala
+  // dela acabar ou uma resposta nova começar. O teto de tempo evita ficar mudo se esses eventos não vierem.
+  var DESCARTE_MAX_MS = 10000;
 
   function T(pt, en) { return ctx.T(pt, en); }
   function el(tag, cls, texto) { var e = document.createElement(tag); if (cls) e.className = cls; if (texto) e.textContent = texto; return e; }
@@ -154,10 +160,15 @@
         break;
       case "input_audio_buffer.speech_started":
         calar(s);   // a pessoa falou por cima: a resposta para na hora (a xAI corta do lado dela)
+        s.descartarAte = Date.now() + DESCARTE_MAX_MS;
         s.linhaIa = null;
         mostrarEstado(s, T("Ouvindo você…", "Listening to you…"), "voce");
         break;
+      case "response.created":
+        s.descartarAte = 0;
+        break;
       case "input_audio_buffer.speech_stopped":
+        s.descartarAte = 0;
         mostrarEstado(s, T("Pensando…", "Thinking…"), "pensando");
         break;
       case "conversation.item.input_audio_transcription.completed":
@@ -196,7 +207,7 @@
     if (TAXAS.indexOf(audio.sampleRate) < 0) { audio.close(); audio = new AC({ sampleRate: 48000 }); }
     if (audio.state === "suspended") audio.resume().catch(function () {});
     var s = sessao = { audio: audio, taxa: audio.sampleRate, fontes: [], marcas: [], proximo: 0, guardado: [], mudo: false,
-      encerrada: false, ws: null, stream: null, no: null, linhaIa: null, motivo: null, fimEm: 0, ui: montarPainel() };
+      encerrada: false, descartarAte: 0, ws: null, stream: null, no: null, linhaIa: null, motivo: null, fimEm: 0, ui: montarPainel() };
     s.ui.sair.addEventListener("click", function () { fechar(s); });
     s.ui.mudo.addEventListener("click", function () {
       s.mudo = !s.mudo;
@@ -223,12 +234,16 @@
       var fonte = audio.createMediaStreamSource(s.stream);
       s.no = new AudioWorkletNode(audio, "captura-trustio");
       s.no.port.onmessage = function (e) {
-        if (s.encerrada || s.mudo) return;
-        var nivelMic = Math.min(1, e.data.nivel * 6);
-        s.ui.orbe.style.setProperty("--nivel", String(nivelMic));
-        if (!s.fontes.length) nivelOrbe(s, nivelMic);
-        if (s.ws && s.ws.readyState === 1) s.ws.send(e.data.pcm);
-        else if (s.guardado.length < 400) s.guardado.push(e.data.pcm);
+        if (s.encerrada) return;
+        // Silenciado: segue silêncio do mesmo tamanho, para o servidor não encerrar a conversa por inatividade.
+        var pcm = s.mudo ? new ArrayBuffer(e.data.pcm.byteLength) : e.data.pcm;
+        if (!s.mudo) {
+          var nivelMic = Math.min(1, e.data.nivel * 6);
+          s.ui.orbe.style.setProperty("--nivel", String(nivelMic));
+          if (!s.fontes.length) nivelOrbe(s, nivelMic);
+        }
+        if (s.ws && s.ws.readyState === 1) s.ws.send(pcm);
+        else if (s.guardado.length < 400) s.guardado.push(pcm);
       };
       fonte.connect(s.no);
     }).catch(function (e) {
@@ -248,11 +263,12 @@
         s.guardado = [];
       };
       ws.onmessage = function (e) {
-        if (typeof e.data !== "string") { tocar(s, e.data); return; }
+        if (typeof e.data !== "string") { if (Date.now() >= s.descartarAte) tocar(s, e.data); return; }
         try { aoEvento(s, JSON.parse(e.data)); } catch (err) { /* evento que não é JSON */ }
       };
-      ws.onclose = function () { if (!s.encerrada) fechar(s, s.motivo && s.motivo !== "navegador" ? motivo(s.motivo) : null); };
-    });
+      // Fechou sem o servidor dizer por quê (rede caiu, worker reiniciou, limite de pedidos): avisa em vez de sumir.
+      ws.onclose = function () { if (!s.encerrada) fechar(s, s.motivo === "navegador" ? null : motivo(s.motivo || "xai")); };
+    }).catch(function () { fechar(s, motivo("")); });
   }
 
   function fechar(s, aviso) {

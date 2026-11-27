@@ -1,10 +1,14 @@
 // Provedores de voz, na ordem (17 out 2026): xAI primeiro (pt-BR nativo), a mesma xAI com a chave
 // reserva (se a principal for recusada ou estourar limite) e ElevenLabs por último. Recebe o fetch por parâmetro para os testes.
+// Cada provedor tem um prazo para começar a responder (26 nov 2026): um provedor travado não segura o
+// pedido, a vez passa para o próximo. O prazo acaba quando a resposta chega; o áudio em curso não é cortado.
 
 export type ConfigVoz = {
   xaiKey?: string; xaiVoz?: string; xaiKey2?: string;
   elevenKey?: string; elevenVoz?: string; elevenModelo?: string;
+  prazoMs?: number;
 };
+const PRAZO_PADRAO_MS = 30_000;
 type Provedor = "xai" | "xai_reserva" | "elevenlabs";
 
 export function provedoresConfigurados(c: ConfigVoz): Provedor[] {
@@ -37,9 +41,26 @@ function pedido(p: Provedor, texto: string, idioma: "pt" | "en", c: ConfigVoz): 
   }];
 }
 
+function comPrazo(fetchFn: typeof fetch, url: string, init: RequestInit, ms: number): Promise<Response> {
+  const controle = new AbortController();
+  let relogio: ReturnType<typeof setTimeout> | undefined;
+  const prazo = new Promise<never>((_, rejeitar) => {
+    relogio = setTimeout(() => { controle.abort(); rejeitar(new Error("prazo")); }, ms);
+  });
+  const pedido = new Promise<Response>((resolver) => resolver(fetchFn(url, { ...init, signal: controle.signal })));
+  return Promise.race([pedido, prazo]).finally(() => clearTimeout(relogio));
+}
+
+// Corpo de uma resposta de erro, só para o log: se ele não chegar em `ms`, segue sem ele.
+function corpoDoErro(r: Response, ms: number): Promise<string> {
+  let relogio: ReturnType<typeof setTimeout> | undefined;
+  const desiste = new Promise<string>((resolver) => { relogio = setTimeout(() => resolver(""), ms); });
+  return Promise.race([r.text().catch(() => ""), desiste]).finally(() => clearTimeout(relogio));
+}
+
 // Devolve a resposta de áudio do primeiro provedor que der certo. Falha com "voz_nao_configurada"
 // (nenhum provedor) ou "voz_indisponivel" (todos falharam); nesse caso o erro leva `falhas`, só o status
-// de cada provedor ("xai:401", "elevenlabs:rede"), nunca o corpo da resposta.
+// de cada provedor ("xai:401", "elevenlabs:rede", "xai:prazo"), nunca o corpo da resposta.
 export async function sintetizar(texto: string, idioma: "pt" | "en", c: ConfigVoz,
                                  fetchFn: typeof fetch = fetch): Promise<{ resposta: Response; provedor: Provedor }> {
   const lista = provedoresConfigurados(c);
@@ -48,12 +69,12 @@ export async function sintetizar(texto: string, idioma: "pt" | "en", c: ConfigVo
   for (const p of lista) {
     try {
       const [url, init] = pedido(p, texto, idioma, c);
-      const r = await fetchFn(url, init);
+      const r = await comPrazo(fetchFn, url, init, c.prazoMs || PRAZO_PADRAO_MS);
       if (r.ok && r.body) return { resposta: r, provedor: p };
       falhas.push(`${p}:${r.status}`);
-      console.error(`voz_${p}_status`, r.status, (await r.text().catch(() => "")).slice(0, 200));
+      console.error(`voz_${p}_status`, r.status, (await corpoDoErro(r, Math.min(2000, c.prazoMs || PRAZO_PADRAO_MS))).slice(0, 200));
     } catch (err) {
-      falhas.push(`${p}:rede`);
+      falhas.push(`${p}:${err instanceof Error && err.message === "prazo" ? "prazo" : "rede"}`);
       console.error(`voz_${p}_rede`, err instanceof Error ? err.message : String(err));
     }
   }

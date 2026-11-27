@@ -20,6 +20,14 @@
  * Segredo: VOZ_XAI_API_KEY (wrangler secret put). Variáveis opcionais: VOZ_TEMPO_REAL_VOZ (padrão
  * rex), VOZ_TEMPO_REAL_LIMITE_S (segundos por dia, padrão 3600), VOZ_TEMPO_REAL_MAX_S (por
  * conversa, padrão 900).
+ *
+ * Prazos (26 nov 2026): nada espera para sempre. Chamadas ao Supabase e a abertura da xAI falham em
+ * PRAZO_REDE_MS (resposta inteira); se a xAI não confirmar a sessão em PRAZO_PRONTA_MS, a conversa termina com motivo
+ * "xai" (antes, a pessoa ficava em "Conectando…" gastando o tempo reservado até o teto).
+ *
+ * Abuso e cota (26 nov 2026): a xAI só é aberta depois de a conta ser conferida; VOZ_LIMITADOR
+ * (binding de rate limit do Cloudflare, wrangler.toml) barra excesso de conversas abertas por IP; conversa que
+ * a xAI nunca confirmou não gasta a cota; devolução que falha na rede é tentada de novo.
  */
 
 export const XAI_REALTIME = "wss://api.x.ai/v1/realtime";
@@ -49,6 +57,27 @@ const ANTECEDENCIA_S = 30;            // pede o próximo bloco 30 s antes de o a
 const MIN_RESERVA_S = 10;             // reservar_voz_tempo_real recusa menos que isso
 const NOVA_TENTATIVA_MS = 5_000;      // renovação que falhou na rede tenta de novo
 const ESPERA_RENOVACAO_MS = 5_000;    // no fim, espera a renovação em curso até isso
+const PRAZO_REDE_MS = 8_000;          // Supabase (conta, reserva, devolução) e abertura da xAI
+export const PRAZO_PRONTA_MS = 12_000; // do começo do relé até a xAI confirmar a sessão (session.updated)
+
+// Rejeita com Error("prazo") se a promessa não terminar em `ms`; aoEstourar roda nessa hora.
+function noPrazo(promessa, ms, aoEstourar) {
+  let relogio;
+  const prazo = new Promise((_, rejeitar) => {
+    relogio = setTimeout(() => { aoEstourar?.(); rejeitar(new Error("prazo")); }, ms);
+  });
+  return Promise.race([promessa, prazo]).finally(() => clearTimeout(relogio));
+}
+// fetch com prazo para a resposta inteira (cabeçalhos e corpo): no estouro o pedido é abortado.
+// Devolve { ok, status, texto }. Recebe o fetch por parâmetro para os testes.
+export function pedir(f, url, init, ms = PRAZO_REDE_MS) {
+  const controle = new AbortController();
+  const tudo = (async () => {
+    const r = await f(url, { ...init, signal: controle.signal });
+    return { ok: r.ok, status: r.status, texto: await r.text() };
+  })();
+  return noPrazo(tudo, ms, () => controle.abort());
+}
 
 export function taxaPedida(url) {
   const t = Number(url.searchParams.get("taxa"));
@@ -131,7 +160,8 @@ export function rele({ cliente, xai: xaiInicial, segundos, total = segundos, ren
     enviar(cliente, JSON.stringify({ type: "trustio.fim", motivo }));
     try { cliente.close(motivo === "limite" ? 4000 : 1000, motivo); } catch { /* já fechado */ }
     try { xai?.close(1000, motivo); } catch { /* já fechado */ }
-    const usados = Math.min(concedido, Math.ceil(decorrido() / 1000));
+    // Só conta tempo de conversa que existiu: se a xAI nunca confirmou a sessão, nada é gasto.
+    const usados = configurada ? Math.min(concedido, Math.ceil(decorrido() / 1000)) : 0;
     // Uma renovação em curso pode ainda reservar um bloco: espera por ela (até 5 s) para devolver tudo.
     if (!pendente) { aoFim(usados, motivo, concedido); return; }
     Promise.race([pendente, new Promise((r) => relogio(r, ESPERA_RENOVACAO_MS))])
@@ -190,6 +220,8 @@ export function rele({ cliente, xai: xaiInicial, segundos, total = segundos, ren
     else relogio(vigia, 10_000);
   };
   relogio(vigia, 10_000);
+  // A xAI não abriu, ou abriu e não confirmou a sessão: termina aqui, não no teto do bloco.
+  relogio(() => { if (!configurada) fim("xai"); }, PRAZO_PRONTA_MS);
 
   return {
     fim,
@@ -220,23 +252,42 @@ export function rele({ cliente, xai: xaiInicial, segundos, total = segundos, ren
 }
 
 // ---- Supabase
-async function usuario(token, env, f) {
+async function usuario(token, env, f, prazoMs = PRAZO_REDE_MS) {
   if (!token) return null;
-  const r = await f(`${env.SUPABASE_URL}/auth/v1/user`, {
+  const r = await pedir(f, `${env.SUPABASE_URL}/auth/v1/user`, {
     headers: { apikey: env.SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` },
-  });
+  }, prazoMs);
   if (!r.ok) return null;
-  const u = await r.json();
+  const u = JSON.parse(r.texto);
   return u && u.id ? u : null;
 }
-async function rpc(env, f, nome, args) {
+async function rpc(env, f, nome, args, prazoMs = PRAZO_REDE_MS) {
   const chave = env.SUPABASE_SERVICE_ROLE_KEY;
   const h = { apikey: chave, "Content-Type": "application/json" };
   if (String(chave).startsWith("eyJ")) h.Authorization = `Bearer ${chave}`;
-  const r = await f(`${env.SUPABASE_URL}/rest/v1/rpc/${nome}`, { method: "POST", headers: h, body: JSON.stringify(args) });
-  const texto = await r.text();
+  const r = await pedir(f, `${env.SUPABASE_URL}/rest/v1/rpc/${nome}`, { method: "POST", headers: h, body: JSON.stringify(args) }, prazoMs);
+  const texto = r.texto;
   if (!r.ok) throw new Error(`rpc ${nome} ${r.status}: ${texto.slice(0, 200)}`);
   return texto ? JSON.parse(texto) : null;
+}
+
+/**
+ * Reserva um bloco de segundos. Quem chama espera só `prazoMs`, mas o pedido não é abortado nessa hora
+ * (o banco pode já ter reservado): ele segue até ESPERA_RESERVA vezes o prazo e, se a resposta chegar
+ * atrasada com um bloco reservado, o bloco é devolvido na hora em vez de ficar perdido na cota do dia.
+ */
+const ESPERA_RESERVA = 4;
+export function reservar(env, f, userId, segundos, prazoMs = PRAZO_REDE_MS) {
+  let atrasou = false;
+  const pedido = rpc(env, f, "reservar_voz_tempo_real", { p_user_id: userId, p_segundos: segundos, p_limite: limiteDia(env) }, prazoMs * ESPERA_RESERVA)
+    .then((r) => {
+      if (atrasou && r?.ok) {
+        rpc(env, f, "devolver_voz_tempo_real", { p_user_id: userId, p_dia: r.dia, p_segundos: r.segundos }, prazoMs)
+          .catch((e) => console.error("voz_tempo_real_devolver_atrasada", String(e)));
+      }
+      return r;
+    });
+  return noPrazo(pedido, prazoMs, () => { atrasou = true; });
 }
 
 /**
@@ -259,15 +310,17 @@ export function devolucoes(blocos, sobra) {
   return saida;
 }
 
-export async function prepararSessao(token, env, f = fetch) {
+// aoConta() roda quando a conta foi aceita, antes da reserva: é a hora de abrir a xAI (em paralelo com a reserva).
+export async function prepararSessao(token, env, f = fetch, prazoMs = PRAZO_REDE_MS, aoConta = null) {
   if (!env.VOZ_XAI_API_KEY) return { ok: false, motivo: "nao_configurada" };
   let u = null;
-  try { u = await usuario(token, env, f); } catch (e) { console.error("voz_tempo_real_usuario", String(e)); }
+  try { u = await usuario(token, env, f, prazoMs); } catch (e) { console.error("voz_tempo_real_usuario", String(e)); }
   if (!u) return { ok: false, motivo: "nao_autorizado" };
   if (!u.email_confirmed_at) return { ok: false, motivo: "email_nao_confirmado" };
+  aoConta?.();
   let reserva = null;
   try {
-    reserva = await rpc(env, f, "reservar_voz_tempo_real", { p_user_id: u.id, p_segundos: Math.min(bloco(env), maxSessao(env)), p_limite: limiteDia(env) });
+    reserva = await reservar(env, f, u.id, Math.min(bloco(env), maxSessao(env)), prazoMs);
   } catch (e) { console.error("voz_tempo_real_reserva", String(e)); }
   if (!reserva?.ok) return { ok: false, motivo: reserva?.error || "indisponivel" };
   // Sessão planejada: o teto por sessão, sem passar do que resta no dia.
@@ -290,9 +343,18 @@ export async function situacao(token, env, f = fetch) {
 }
 
 // Abre a conexão com a xAI. Nos Workers o fetch de upgrade usa https:// (mesmo host e caminho do wss://).
-async function abrirXai(env) {
+// Com prazo: se a xAI não responder, falha com "prazo"; um socket que chegar depois disso é fechado.
+export async function abrirXai(env, f = fetch, prazoMs = PRAZO_REDE_MS) {
   const url = XAI_REALTIME.replace(/^wss:/, "https:") + "?model=" + MODELO;
-  const r = await fetch(url, { headers: { Upgrade: "websocket", Authorization: `Bearer ${env.VOZ_XAI_API_KEY}` } });
+  let atrasou = false;
+  const pedido = new Promise((resolver) => resolver(f(url, { headers: { Upgrade: "websocket", Authorization: `Bearer ${env.VOZ_XAI_API_KEY}` } })))
+    .then((resposta) => {
+      if (atrasou && resposta.webSocket) {
+        try { resposta.webSocket.accept(); resposta.webSocket.close(1000, "prazo"); } catch { /* já fechado */ }
+      }
+      return resposta;
+    });
+  const r = await noPrazo(pedido, prazoMs, () => { atrasou = true; });
   if (!r.webSocket) throw new Error(`xai_upgrade ${r.status}`);
   r.webSocket.accept();
   return r.webSocket;
@@ -300,9 +362,36 @@ async function abrirXai(env) {
 
 const JWT = /^[\w-]+\.[\w-]+\.[\w-]+$/;
 
+// Limite de pedidos por IP. Sem o binding, ou com ele fora do ar, ninguém é barrado: a voz não cai por causa do limitador.
+export async function limitado(req, env) {
+  const limitador = env.VOZ_LIMITADOR;
+  if (!limitador) return false;
+  try {
+    const { success } = await limitador.limit({ key: req.headers.get("cf-connecting-ip") || "sem-ip" });
+    return !success;
+  } catch (e) { console.error("voz_tempo_real_limitador", String(e)); return false; }
+}
+
+// Devolve a sobra, bloco a bloco. Falha de rede ou do banco tenta de novo; prazo estourado não, porque o
+// banco pode já ter devolvido e repetir devolveria em dobro.
+export async function devolverBlocos(env, f, userId, blocos, sobra, prazoMs = PRAZO_REDE_MS, tentativas = 2) {
+  for (const d of devolucoes(blocos, sobra)) {
+    for (let i = 1; i <= tentativas; i++) {
+      try {
+        await rpc(env, f, "devolver_voz_tempo_real", { p_user_id: userId, p_dia: d.dia, p_segundos: d.segundos }, prazoMs);
+        break;
+      } catch (e) {
+        console.error("voz_tempo_real_devolver", i, String(e));
+        if (e?.message === "prazo") break;
+      }
+    }
+  }
+}
+
 export async function vozTempoReal(req, env, ctx, origin, { json, ORIGENS }) {
   const url = new URL(req.url);
-  if ((req.headers.get("upgrade") || "").toLowerCase() !== "websocket") {
+  const conversa = (req.headers.get("upgrade") || "").toLowerCase() === "websocket";
+  if (!conversa) {
     if (req.method !== "GET") return json(405, { error: "method_not_allowed" }, origin);
     const token = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
     try {
@@ -314,6 +403,9 @@ export async function vozTempoReal(req, env, ctx, origin, { json, ORIGENS }) {
     }
   }
   if (!origin || !ORIGENS.test(origin)) return new Response("origem", { status: 403 });
+  // Só a conversa entra no limite por IP (é ela que custa xAI e cota). O GET de situação fica de fora:
+  // muita gente divide o mesmo IP (rede móvel, escritório) e o botão sumiria para quem não fez nada.
+  if (await limitado(req, env)) return new Response("muitos_pedidos", { status: 429 });
 
   // Responde o 101 na hora e confere conta, cota e xAI em paralelo: a pessoa já pode falar.
   const [cliente, servidor] = Object.values(new WebSocketPair());
@@ -335,19 +427,16 @@ export async function vozTempoReal(req, env, ctx, origin, { json, ORIGENS }) {
 
   ctx.waitUntil((async () => {
     if (!env.VOZ_XAI_API_KEY) return recusar("nao_configurada");
-    // Só abre a xAI (que custa uma conexão) para quem manda algo com cara de JWT.
     if (!JWT.test(token)) return recusar("nao_autorizado");
-    const xaiPromessa = abrirXai(env).catch((e) => { console.error("voz_tempo_real_xai", String(e)); return null; });
-    const p = await prepararSessao(token, env, fetch);
+    // A xAI (que custa uma conexão) só abre para conta conferida, em paralelo com a reserva.
+    let xaiPromessa = Promise.resolve(null);
+    const p = await prepararSessao(token, env, fetch, undefined, () => {
+      xaiPromessa = abrirXai(env).catch((e) => { console.error("voz_tempo_real_xai", String(e)); return null; });
+    });
     const blocos = p.ok ? [{ dia: p.reserva.dia, segundos: p.reserva.segundos }] : [];
-    const devolver = async (sobra) => {
-      for (const d of devolucoes(blocos, sobra)) {
-        try { await rpc(env, fetch, "devolver_voz_tempo_real", { p_user_id: p.usuario.id, p_dia: d.dia, p_segundos: d.segundos }); }
-        catch (e) { console.error("voz_tempo_real_devolver", String(e)); }
-      }
-    };
+    const devolver = (sobra) => devolverBlocos(env, fetch, p.usuario.id, blocos, sobra);
     const renovar = async (pedir) => {
-      const r = await rpc(env, fetch, "reservar_voz_tempo_real", { p_user_id: p.usuario.id, p_segundos: pedir, p_limite: limiteDia(env) });
+      const r = await reservar(env, fetch, p.usuario.id, pedir);
       if (!r?.ok) { console.log(JSON.stringify({ voz_tempo_real: "renovacao_recusada", motivo: r?.error })); return 0; }
       blocos.push({ dia: r.dia, segundos: r.segundos });
       return r.segundos;

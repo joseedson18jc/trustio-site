@@ -56,4 +56,12 @@ t("texto longo é cortado no fim de uma frase, nunca no meio da palavra", () => 
   assert.equal(cortarNaFrase("palavra ".repeat(10).trim(), 20), "palavra palavra…");
 });
 
+t("valores em reais não são confundidos com fórmula", () => {
+  assert.equal(textoParaFala("O plano custa R$ 10 no teste e R$ 20 depois."), "O plano custa R$ 10 no teste e R$ 20 depois.");
+  assert.equal(textoParaFala("De R$49,90 por R$ 29,90 hoje."), "De R$49,90 por R$ 29,90 hoje.");
+  assert.equal(textoParaFala("Custa US$ 5 ou US$ 8."), "Custa US$ 5 ou US$ 8.");
+  // fórmula de verdade continua sendo falada
+  assert.equal(textoParaFala("Some $a + b$ e pague R$ 10."), "Some a mais b e pague R$ 10.");
+});
+
 console.log(`\n${n} testes passaram`);

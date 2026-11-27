@@ -27,6 +27,16 @@ migrations_dir = "migrations"
 binding = "SIGNUPS"
 id = "3f6220c2393c4154b2927ac84fff4a91"
 
+# Voz ao vivo: no máximo 30 conversas abertas por minuto por IP em /voz/tempo-real (src/voz-tempo-real.js).
+# O limite é aproximado e vale por local do Cloudflare. Sem este bloco, o worker não limita.
+[[ratelimits]]
+name = "VOZ_LIMITADOR"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 30
+  period = 60
+
 # Segredos, definidos uma vez por linha de comando (ver README.md):
 #   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 #   wrangler secret put RESEND_API_KEY

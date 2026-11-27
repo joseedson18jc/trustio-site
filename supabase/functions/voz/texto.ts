@@ -40,8 +40,12 @@ function falarLatex(src: string): string {
   return s;
 }
 
+// Cifrão de dinheiro ("R$ 10", "US$ 5") não abre fórmula: fica guardado enquanto o LaTeX é tratado.
+const CIFRAO = "\u0001";
+
 export function textoParaFala(md: string): string {
-  let s = String(md || "");
+  let s = String(md || "").replaceAll(CIFRAO, "");
+  s = s.replace(/\b(R|US)\$(?=\s?\d)/g, "$1" + CIFRAO);
   s = s.replace(/\n*\[\[anexo:[^\]]*\]\][\s\S]*?\[\[\/anexo\]\]/g, "\n");      // anexos da mensagem
   s = s.replace(/```[\s\S]*?(```|$)/g, "\n");                                     // código e gráficos
   s = s.replace(/\$\$([\s\S]+?)\$\$/g, (_, m) => " " + falarLatex(m) + ". ");
@@ -63,7 +67,7 @@ export function textoParaFala(md: string): string {
   s = s.replace(/\s*\n\s*\n\s*/g, ". ").replace(/\s*\n\s*/g, " ");
   s = s.replace(/[ \t]+/g, " ").replace(/\s+([.,;:!?])/g, "$1");
   s = s.replace(/([.!?:])\.+/g, "$1").replace(/\.{2,}/g, ".").replace(/^[.\s]+/, "");
-  s = s.trim();
+  s = s.replaceAll(CIFRAO, "$").trim();
   if (s && !/[.!?…]$/.test(s)) s += ".";
   return s === "." ? "" : s;
 }

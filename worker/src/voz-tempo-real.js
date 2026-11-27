@@ -355,7 +355,12 @@ export async function abrirXai(env, f = fetch, prazoMs = PRAZO_REDE_MS) {
       return resposta;
     });
   const r = await noPrazo(pedido, prazoMs, () => { atrasou = true; });
-  if (!r.webSocket) throw new Error(`xai_upgrade ${r.status}`);
+  if (!r.webSocket) {
+    // O motivo da recusa vem no corpo (chave sem acesso, modelo, crédito): vai para o log, cortado e com prazo curto.
+    let corpo = "";
+    try { corpo = String(await noPrazo(r.text(), Math.min(2000, prazoMs)) || "").trim().slice(0, 300); } catch { /* sem corpo */ }
+    throw new Error(`xai_upgrade ${r.status}` + (corpo ? `: ${corpo}` : ""));
+  }
   r.webSocket.accept();
   return r.webSocket;
 }

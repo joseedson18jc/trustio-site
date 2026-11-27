@@ -466,5 +466,20 @@ ok(filtrarDaXai(JSON.stringify({ type: "response.output_audio_transcript.delta",
   ok(n === 1, "prazo estourado: não repete (evita devolver em dobro)");
 }
 
+// ---- xAI recusa a abertura (403, 401...): o erro leva o status e o começo do corpo, para o log dizer o motivo
+{
+  const env = { VOZ_XAI_API_KEY: "k" };
+  const tentar = async (resposta, prazo = 200) => { try { await abrirXai(env, async () => resposta, prazo); return null; } catch (e) { return e.message; } };
+  const m1 = await tentar({ status: 403, text: async () => '{"error":"The model grok-voice-latest is not available for your team"}' });
+  ok(m1.startsWith("xai_upgrade 403: ") && m1.includes("not available for your team"), "recusa da xAI: status e motivo no erro");
+  const m2 = await tentar({ status: 403, text: async () => "x".repeat(5000) });
+  ok(m2.length <= "xai_upgrade 403: ".length + 300, "corpo longo é cortado em 300 caracteres");
+  const inicio = Date.now();
+  const m3 = await tentar({ status: 403, text: () => new Promise(() => {}) }, 60);
+  ok(m3 === "xai_upgrade 403" && Date.now() - inicio < 1000, "corpo que não chega: fica só o status, sem travar");
+  const m4 = await tentar({ status: 500, text: async () => { throw new Error("stream"); } });
+  ok(m4 === "xai_upgrade 500", "corpo ilegível: fica só o status");
+}
+
 if (falhas) { console.error(`${falhas} falha(s)`); process.exit(1); }
 console.log("voz-tempo-real: tudo ok");

@@ -26,6 +26,7 @@ export default defineConfig({
         planos: resolve(import.meta.dirname, "planos.html"),
         planosTeste: resolve(import.meta.dirname, "planos-teste.html"),
         obrigado: resolve(import.meta.dirname, "obrigado.html"),
+        descadastro: resolve(import.meta.dirname, "descadastro.html"),
         espera: resolve(import.meta.dirname, "espera.html"),
         console: resolve(import.meta.dirname, "console/index.html"),
         cadastro: resolve(import.meta.dirname, "cadastro.html"),

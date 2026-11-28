@@ -6,6 +6,7 @@ Disallow: /crm/
 Disallow: /admin/
 Disallow: /planos-teste.html
 Disallow: /obrigado.html
+Disallow: /descadastro.html
 Disallow: /design-system/
 
 Sitemap: https://trustio.com.br/sitemap.xml

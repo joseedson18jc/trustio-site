@@ -52,6 +52,7 @@ const sourceFiles = [
   "planos.html",
   "planos-teste.html",
   "obrigado.html",
+  "descadastro.html",
   "espera.html",
   "cadastro.html",
   "entrar.html",

@@ -7,17 +7,18 @@ import { createHash } from 'node:crypto';
 const raw = readFileSync(new URL('../supabase/functions/lembrete-oferta/index.ts', import.meta.url), 'utf8').replace(/^import .*;\n/gm, '').replace('export function', 'function');
 const js = stripTypeScriptTypes(raw, { mode: 'strip' }) + '\nglobalThis.__mensagem = mensagem;';
 const TOKEN = 'a'.repeat(40);
+const TOKEN_SAIR = '11111111-2222-4333-8444-555555555555';
 function harness({ fila, key = 'fixture', falha = false } = {}) {
   let handler; const sends = [], updates = [], rpcs = [];
-  const db = { rpc: async (name, args) => { rpcs.push({ name, args }); return { data: fila ?? [], error: null }; },
+  const db = { rpc: async (name, args) => { rpcs.push({ name, args }); return { data: name === 'crm_lembrete_sair' ? args.p_token === TOKEN_SAIR : fila ?? [], error: null }; },
     from: () => ({ update: (v) => ({ eq: async (_c, id) => { updates.push({ id, ...v }); return { error: null }; } }) }) };
   const ctx = { Deno: { env: { get: (n) => (n === 'RESEND_API_KEY' ? key : n === 'EMAIL_FROM' ? undefined : 'fixture') }, serve: (fn) => { handler = fn; } },
-    createClient: () => db, Response, Date, AbortSignal, TextEncoder, crypto, Uint8Array, Array, JSON, Promise,
+    createClient: () => db, Response, Date, AbortSignal, TextEncoder, crypto, Uint8Array, Array, JSON, Promise, URL,
     setTimeout: (fn) => setTimeout(fn, 0),
     fetch: async (url, options) => { sends.push({ url, options, body: JSON.parse(options.body) }); return new Response(JSON.stringify(falha ? { message: 'x' } : { id: 'prov-' + sends.length }), { status: falha ? 422 : 200 }); } };
   ctx.globalThis = ctx;
   vm.runInNewContext(js, ctx);
-  const invoke = (headers = { 'x-trustio-disparo': TOKEN }, method = 'POST') => handler(new Request('https://fixture.test', { method, headers }));
+  const invoke = (headers = { 'x-trustio-disparo': TOKEN }, method = 'POST', url = 'https://fixture.test', body) => handler(new Request(url, { method, headers, body }));
   return { invoke, sends, updates, rpcs, mensagem: ctx.__mensagem };
 }
 const L = (extra = {}) => ({ id: '00000000-0000-0000-0000-000000000001', email: 'pessoa@test', nome: 'ana maria', teste_fim: null, ...extra });
@@ -48,9 +49,32 @@ test('nome estranho ou com HTML não entra na saudação', () => {
   }
   assert.ok(mensagem(L({ nome: "d'ávila souza" })).text.startsWith("Olá, D'ávila."));
 });
-test('sem token, com token curto ou com token já usado: nada é enviado', async () => {
+test('com token de descadastro: link da página, botão de um clique e texto sem o "responda sair"', () => {
+  const { mensagem } = harness();
+  const m = mensagem(L({ sair_token: TOKEN_SAIR }));
+  const link = 'https://trustio.com.br/descadastro.html?t=' + TOKEN_SAIR;
+  assert.ok(m.text.includes('Dúvidas? Responda este e-mail.\n\nPara não receber mais e-mails de oferta da Trustio: ' + link + '\n\nEquipe Trustio'), m.text);
+  assert.ok(m.html.includes(`<a href="${link}" style="color:#5b6474">Parar de receber e-mails de oferta</a>`));
+  assert.ok(!m.text.includes('responda com "sair"'));
+  assert.equal(m.headers['List-Unsubscribe'], `<https://mjdaluioyutnxlyomzyd.supabase.co/functions/v1/lembrete-oferta?sair=${TOKEN_SAIR}>, <mailto:contato@trustio.com.br?subject=sair>`);
+  assert.equal(m.headers['List-Unsubscribe-Post'], 'List-Unsubscribe=One-Click');
+  assert.ok(!mensagem(L({ sair_token: '"><script>' })).html.includes('<script>'), 'token estranho não entra no HTML');
+});
+test('descadastro: um clique (token na URL), página (token no corpo), token inválido e CORS', async () => {
+  const h = harness({ fila: [L()] });
+  const pre = await h.invoke({}, 'OPTIONS'); assert.equal(pre.status, 204); assert.equal(pre.headers.get('access-control-allow-origin'), 'https://trustio.com.br');
+  const um = await h.invoke({ 'content-type': 'application/x-www-form-urlencoded' }, 'POST', 'https://fixture.test/?sair=' + TOKEN_SAIR, 'List-Unsubscribe=One-Click');
+  assert.equal(um.status, 200); assert.deepEqual(await um.json(), { ok: true });
+  const pagina = await h.invoke({ 'content-type': 'application/json' }, 'POST', 'https://fixture.test', JSON.stringify({ sair: TOKEN_SAIR }));
+  assert.equal(pagina.status, 200); assert.equal(pagina.headers.get('access-control-allow-origin'), 'https://trustio.com.br');
+  assert.deepEqual(h.rpcs.map((r) => [r.name, r.args.p_token]), [['crm_lembrete_sair', TOKEN_SAIR], ['crm_lembrete_sair', TOKEN_SAIR]]);
+  assert.equal((await h.invoke({ 'content-type': 'application/json' }, 'POST', 'https://fixture.test', JSON.stringify({ sair: '99999999-2222-4333-8444-555555555555' }))).status, 404);
+  for (const ruim of ['abc', "1' or '1'='1", '']) assert.equal((await h.invoke({}, 'POST', 'https://fixture.test/?sair=' + encodeURIComponent(ruim))).status, 404);
+  assert.equal(h.rpcs.length, 3, 'token malformado nem chega ao banco'); assert.equal(h.sends.length, 0);
+});
+test('token de disparo curto ou já usado: nada é enviado', async () => {
   const h = harness({ fila: [] });
-  assert.equal((await h.invoke({})).status, 401); assert.equal((await h.invoke({ 'x-trustio-disparo': 'curto' })).status, 401);
+  assert.equal((await h.invoke({ 'x-trustio-disparo': 'curto' })).status, 401);
   assert.equal(h.rpcs.length, 0);
   assert.equal((await h.invoke()).status, 401); assert.equal(h.sends.length, 0);
   assert.equal((await h.invoke(undefined, 'GET')).status, 405);
